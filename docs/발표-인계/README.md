@@ -10,8 +10,9 @@
 > **깃허브 주소를 그냥 열면 `main` 이 보이고, 거기에는 이 폴더가 없습니다.**
 > `main` 은 **배포되는 코드만** 올리는 브랜치로 관리합니다 (건드리면 서비스 주소가 바뀝니다).
 >
-> **상단 브랜치 단추를 눌러 `develop` 으로 바꾸고 보세요.** 또는 아래 주소로 바로:
-> `https://github.com/byeonsoyun/2026-ax-ton/tree/develop/docs` 발표 대본과 슬라이드 구성은 이미 [`../presentation/`](../presentation/README.md)
+> **브랜치를 바꿀 필요가 없어졌습니다** (2026-09-28) — 저장소 기본 브랜치가 `develop` 이라
+> 아래 주소를 열면 최신 문서가 바로 보입니다:
+> `https://github.com/2026-ax-ton/2026-ax-ton/tree/develop/docs` 발표 대본과 슬라이드 구성은 이미 [`../presentation/`](../presentation/README.md)
 에 있습니다. **이 폴더는 그것을 대체하지 않고, 그것으로 채우기 어려운 칸을 메웁니다.**
 
 ---

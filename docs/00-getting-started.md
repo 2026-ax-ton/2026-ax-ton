@@ -39,7 +39,7 @@ cd ~/Documents
 ```
 
 ```
-git clone https://github.com/byeonsoyun/2026-ax-ton.git
+git clone https://github.com/2026-ax-ton/2026-ax-ton.git
 ```
 
 ```
