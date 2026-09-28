@@ -80,6 +80,7 @@
 | **손으로 확인 (성공/실패 · 경계 · 시연 코스)** | `docs/10-checklist.md` ★ |
 | **발표 준비 (평가지표 대조 · 대본 · 예상 질문)** | `docs/presentation/` ★ |
 | **발표팀에게 넘길 것 (사업자 관점 · 아키텍처 · 최신 숫자 · 촬영 대본)** | `docs/발표-인계/` ★ |
+| **해커톤 AI Agent 계획 (전부 "후보")** | `docs/12-hackathon-agent-plan.md` ★ |
 | 발표 근거 원본 (시장 · 출처 · 자체 평가) | `docs/11-evaluation.md` |
 | 왜 이 코드가 이렇게 생겼나 | `docs/devlog/byeonsoyun.md` |
 
@@ -104,9 +105,25 @@
 - 확인은 `src/index.html` 을 브라우저로 여는 것으로 끝납니다
 - 서버도 DB 도 없습니다. 모든 데이터는 브라우저 `localStorage` 에만 있습니다
 
-### 배포는 Vercel — 살아 있습니다 (2026-08-25 첫 배포)
+### 배포는 Vercel (2026-08-25 첫 배포)
 
 > **https://2026-ax-ton.vercel.app**
+
+> ## ★★ 2026-09-28 — Vercel 연결이 끊겨 있습니다
+>
+> 저장소가 **개인 계정 → 조직(`2026-ax-ton`)** 으로 이전되면서
+> **Vercel 의 GitHub 연결이 끊겼습니다.** `main` 에 push 해도 **배포가 안 걸립니다.**
+> Vercel GitHub App 은 계정·조직 단위로 설치되는데, 저장소가 조직으로 가면서
+> 개인 계정에 설치된 앱이 그 저장소를 더 못 봅니다.
+>
+> **웹에서 재연결하기 전까지 배포 주소는 9/4 판입니다.**
+> 재연결이 끝났으면 이 블록을 지우세요.
+>
+> **★ 재연결할 때 반드시 확인할 것 둘**
+> 1. **Root Directory 가 `src` 인지** — 풀리면 `docs/` `tests/` `CLAUDE.md` 가 인터넷에 공개됩니다
+> 2. **Production Branch 가 `main` 인지** — Vercel 은 연결할 때 **깃허브 기본 브랜치**를
+>    운영 브랜치로 집어 갑니다. 기본 브랜치가 `develop` 인 상태로 연결하면
+>    **`develop` 에 올린 것이 곧바로 배포 주소가 됩니다**
 
 - **`main` 이 운영 브랜치입니다. `main` 에 올라가면 자동으로 배포됩니다**
 - **Root Directory 는 `src`** 입니다. 그래야 `docs/` `tests/` 가 배포에 안 올라갑니다.
@@ -277,9 +294,42 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
 
 **사용자가 명령어를 칠 필요가 없게 당신이 실행하세요.**
 
+### ★ 2026-09-28 — 조직으로 옮겼고, 브랜치 전략이 바뀌었습니다
+
+저장소가 **`2026-ax-ton` 조직** 소유가 됐습니다.
+`origin` 은 `https://github.com/2026-ax-ton/2026-ax-ton.git` 입니다
+(개인 주소는 301 리다이렉트로만 살아 있습니다 — 쓰지 마세요).
+
+```
+main              배포 전용 · 보호됨 (강제 덮어쓰기 · 삭제 금지)
+ ↑ 배포할 때만 --ff-only
+develop           기준 브랜치 · 깃허브 기본 브랜치
+ ↑ PR 로 머지
+feat/agent-*      ★ 해커톤 AI Agent 작업은 여기
+feature/byeonsoyun  기존(아이디어톤) 작업용. 그대로 둡니다
+```
+
+- **아이디어톤 시점 = 태그 `v1.0-ideathon`**
+- **해커톤 작업은 `feat/agent-*` 로 새로 땁니다.** 혼자여도 **PR 을 씁니다** —
+  심사에서 "어떻게 만들었나" 의 증거가 되고, 팀원이 코드를 못 봐도 PR 본문은 읽습니다
+- **`main` 보호에는 예외(바이패스)가 있습니다** — 저장소 관리자는 직접 push 할 수 있습니다.
+  그래서 **아래 배포 절차(`--ff-only` + 직접 push)가 그대로 유효합니다.**
+  보호는 사고(강제 덮어쓰기·브랜치 삭제)를 막는 용도입니다
+
+> ### ★ `feature/yesool` 을 지우지 마세요
+>
+> 옛 팀 브랜치 셋 중 **`feature/yesool` 에는 완전히 다른 프로젝트가 들어 있습니다** —
+> `Safelang`, **Next.js + Supabase** 기반의 별개 구현(로그인 · PDF 수료증 ·
+> ffmpeg 영상 · 교재 업로드 추출). 지금 코드와 **공통 조상이 없습니다**.
+>
+> **서버가 있어야 되는 것(E층)을 그쪽은 이미 시도했습니다.** 해커톤에서 AI 를 붙이려면
+> 어차피 서버가 필요하니 참고할 실물입니다. `feature/classyb` `feature/smilesy` 는
+> 지금 코드에 이미 들어간 것들이지만, **셋 다 보존하기로 했습니다** (2026-09-28 결정).
+
 ### 세션을 시작할 때
 
-1. `git branch --show-current` — `feature/byeonsoyun` 인지 확인
+1. `git branch --show-current` — 작업 브랜치인지 확인
+   (해커톤 작업이면 `feat/agent-*`, 기존 작업이면 `feature/byeonsoyun`)
 2. `main` 이나 `develop` 에 있으면 **작업하지 말고** 사용자에게 알린 뒤 옮기세요
 3. `git pull origin develop` — 다른 기기에서 작업했을 수 있으니 받아옵니다
 4. 충돌이 나면 혼자 판단하지 말고 사용자에게 상황을 쉬운 말로 설명하세요
@@ -299,24 +349,32 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
 
 ### 절대 하지 않는 것
 
-- `main` 에 **직접 push 하지 마세요**
-- 평소 작업은 `feature/byeonsoyun` 에 push 합니다.
-  **덩어리가 끝나면 `develop` 에 머지**해 기준 브랜치를 최신으로 둡니다 (혼자라 PR 은 없습니다)
+- `main` 에 **작업 커밋을 직접 올리지 마세요** (배포 `--ff-only` 만 예외)
+- 평소 작업은 작업 브랜치에 push 합니다.
+  **덩어리가 끝나면 `develop` 에 머지**해 기준 브랜치를 최신으로 둡니다.
+  **해커톤 작업(`feat/agent-*`)은 PR 로 머지합니다** (2026-09-28 부터)
 - **배포하고 싶을 때만 `develop` → `main` 을 앞으로 감기(`--ff-only`)로 넘깁니다.**
   `main` 에 올라가는 순간 배포 주소가 그것으로 바뀝니다.
   `main` 에서 **직접 작업하거나 작업 커밋을 올리는 것은 여전히 금지**입니다
 - **★ `main` 은 성역입니다 — `src/` 가 바뀌지 않은 커밋은 `main` 에 올리지 않습니다** (2026-08-30 결정).
   문서만 고친 커밋은 `develop` 에 두고, **다음 배포가 함께 실어 갑니다.**
   그래서 `main` 의 `docs/` 는 `develop` 보다 뒤처져 있는 것이 정상입니다
-- **문서를 사람에게 보여 줄 때는 `develop` 링크를 줍니다** —
-  `https://github.com/byeonsoyun/2026-ax-ton/tree/develop/docs`
-  깃허브 기본 브랜치가 `main` 이라 주소만 주면 최신 문서가 안 보입니다
+- **문서 링크는 이제 그냥 저장소 주소를 주면 됩니다** —
+  `https://github.com/2026-ax-ton/2026-ax-ton`
+  **깃허브 기본 브랜치를 `develop` 으로 바꿨기 때문입니다** (2026-09-28).
+  저장소를 열면 최신 문서가 바로 보입니다.
+  **다만 배포는 여전히 `main` 입니다** — 기본 브랜치와 운영 브랜치는 다른 것입니다
 - **★ push 순서는 `main` 이 먼저입니다.** `develop` 을 먼저 올리면 Vercel 이
   그 커밋을 이미 빌드한 것으로 보고 **`main` 배포를 건너뜁니다.**
   그러면 push 는 성공했는데 배포 주소만 옛날 것으로 남습니다 (2026-08-25 에 겪음).
   `git push origin main` → `git push origin develop` → `git push origin feature/byeonsoyun` 순서로 하세요
 - **배포한 뒤에는 주소를 실제로 열어서 확인하세요.** push 가 됐다고 배포가 된 것이
   아닙니다. `curl -s <주소>/assets/ui.js | grep <이번에 넣은 함수 이름>` 이면 충분합니다
+- **★ 주소가 옛날 것이면 먼저 "Vercel 이 받아 가기는 했나" 를 보세요** (2026-09-28 에 겪음).
+  캐시를 의심하기 전에 이것부터입니다 —
+  `curl -s https://api.github.com/repos/2026-ax-ton/2026-ax-ton/commits/main/status`
+  의 `total_count` 가 **`0` 이면 Vercel 이 그 커밋을 아예 안 봤다는 뜻**입니다.
+  캐시 문제가 아니라 **연결 문제**입니다
 - `git push --force`, `git reset --hard` 는 사용자가 명시적으로 요청하지 않는 한 쓰지 마세요
 - `--no-verify` 로 훅을 건너뛰지 마세요
 

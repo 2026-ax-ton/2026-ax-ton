@@ -16,6 +16,7 @@
 | **손으로 직접 확인해 보려 합니다** | [10-checklist.md](10-checklist.md) — **체크리스트** ★ 성공/실패 케이스 · 경계 · 시연 코스 |
 | **발표를 준비합니다** | [presentation/](presentation/README.md) — **발표 폴더** ★ 평가지표 8칸 대조 · 왜 이 문제인가 · 차별점 · Claude 활용 · 대본 · 예상 질문 |
 | **발표팀인데 개발자가 아닙니다** | [발표-인계/](발표-인계/README.md) — **개발자가 발표팀에 넘기는 것** ★ 사업자 관점 · 아키텍처 그림 · **최신 숫자** · 촬영 대본 · PPT 대조 · 개발 질문 답변 |
+| **해커톤(11월 말) AI Agent 를 붙이려 합니다** | [12-hackathon-agent-plan.md](12-hackathon-agent-plan.md) — **전부 "후보"** ★ 주제·평가표 공지 전까지 코드를 쓰지 않습니다 |
 | 발표 근거 원본 (더 자세함) | [11-evaluation.md](11-evaluation.md) — 자체 평가 · 시장조사 · **출처 링크 15건** |
 | **오늘 처음입니다** | [00-getting-started.md](00-getting-started.md) — 설치부터 첫 화면까지 |
 | **화면별 요구사항** | [02-positions.md](02-positions.md) — 팀 시절 기록이지만 내용은 유효 |
