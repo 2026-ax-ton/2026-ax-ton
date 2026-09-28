@@ -172,4 +172,85 @@ const LANGS = ['km', 'id', 'vi', 'ne', 'th'];
     kn !== null && kn.hidden === true);
 }
 
+/* =================================================================
+   8. ★★ 만들어 놓고 안 붙인 번역이 없는가
+
+   2026-09-28 에 실제로 그랬다. 사전 92개 중 45개(49%)가 화면에
+   연결조차 안 돼 있었다 — 번역은 다 있는데 화면은 한국어로 나갔다.
+
+   ★ 번역이 없는 것보다 이쪽이 더 잡기 어렵다. 사전만 보면 다 있어 보이고,
+     화면을 한국어로 보는 사람에게는 아무 이상이 없기 때문이다.
+     크메르어로 열어 봐야 보이는데, 그 일을 사람이 매번 하지는 않는다.
+   ================================================================= */
+{
+  /* ★ 안 쓰는 것이 맞는 키. 왜 그런지를 함께 적는다 —
+       이유 없이 목록만 길어지면 이 검사는 곧 무시된다. */
+  const OK_UNUSED = {
+    'state.passed': '인쇄되는 증빙에만 쓰는 말. 증빙은 감독기관에 내는 서류라 한국어로 둔다',
+    'state.failed': '같은 이유 — 증빙은 한국어',
+    'action.back': '아직 놓을 자리가 없다. 화면이 생기면 붙인다',
+    'learn.startQuiz': '수강이 끝나면 버튼 없이 바로 검증으로 넘어간다 (learn.js)',
+    'speech.anonNotice': '더 긴 speech.anonReport 가 그 자리를 쓴다',
+    'voice.fromVoice': '담당자 대시보드에서 쓰는 말. 관리자 화면은 번역하지 않는다',
+  };
+
+  /* i18n.js 자신도 본다 (note() 가 i18n.unreviewed 를 부른다).
+     다만 사전 정의 줄은 빼야 한다 — 정의를 사용으로 세면 안 잡힌다. */
+  const selfCode = fs.readFileSync(path.join(SRC, 'assets/i18n.js'), 'utf8')
+    .split(/\r?\n/).filter((ln) => !/^\s*'[a-z][\w.]*':\s*\{/.test(ln)).join('\n');
+  const scan = (dir) => fs.readdirSync(path.join(SRC, dir))
+    .filter((n) => /\.(html|js)$/.test(n) && n !== 'i18n.js')
+    .map((n) => fs.readFileSync(path.join(SRC, dir, n), 'utf8'));
+  const sources = [...scan('worker'), ...scan('assets'), selfCode];
+
+  const unused = KEYS.filter((k) => !OK_UNUSED[k] &&
+    !sources.some((src) => src.includes("'" + k + "'") || src.includes('"' + k + '"')));
+
+  ok('★★ 사전에 있는 말은 화면에도 붙어 있다 (만들어만 두지 않는다)',
+    unused.length === 0,
+    unused.length + '개가 어디서도 안 쓰인다: ' + unused.join(', '));
+}
+
+/* =================================================================
+   9. HTML 에 적어 둔 한국어 원문이 사전과 어긋나지 않는가
+
+   HTML 은 JS 가 멈춰도 화면이 비지 않게 한국어를 그대로 들고 있다.
+   그 원문과 사전의 ko 가 갈라지면, 사람은 화면(HTML)을 믿고
+   번역은 사전을 따라가서 둘이 다른 말을 하게 된다.
+   ================================================================= */
+{
+  const drift = [];
+  for (const n of fs.readdirSync(path.join(SRC, 'worker')).filter((x) => x.endsWith('.html'))) {
+    const html = fs.readFileSync(path.join(SRC, 'worker', n), 'utf8');
+    const re = /data-i18n="([^"]+)"[^>]*>([^<]*)</g;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const [, key, shown] = m;
+      const ko = I18N.DICT[key] && I18N.DICT[key].ko;
+      if (!ko) { drift.push(n + ' ' + key + ' → 사전에 없는 키'); continue; }
+      /* 줄바꿈과 들여쓰기는 같은 말로 본다 — HTML 은 보기 좋게 접어 쓴다 */
+      const flat = (x) => x.trim().replace(/\s+/g, ' ');
+      if (flat(shown) !== flat(ko)) drift.push(n + ' ' + key + ': HTML "' + flat(shown) + '" ≠ 사전 "' + flat(ko) + '"');
+    }
+  }
+  ok('★ HTML 의 한국어 원문과 사전이 같은 말을 한다', drift.length === 0, drift.join(' | '));
+}
+
+/* =================================================================
+   10. 배지 글자를 어느 언어로든 꺼낼 수 있는가
+
+   "한글이 아닌 것은 아이콘" 으로 걸러내던 코드가 있었다. 배지 글자가
+   노동자의 언어가 되는 순간 크메르어 배지는 통째로 사라졌고,
+   소리로 읽어 주는 데서도 함께 빠졌다 — 글을 못 읽는 사람에게는
+   그 정보가 아예 없는 것이 된다.
+   ================================================================= */
+{
+  const UI = win.UI;
+  const b = UI.okBadge(I18N.t('state.done', 'km'));
+  eq('★ 크메르어 배지에서도 글자가 나온다', UI.badgeText(b), I18N.t('state.done', 'km'));
+  eq('한국어 배지도 그대로', UI.badgeText(UI.okBadge('완료')), '완료');
+  ok('아이콘은 섞여 나오지 않는다', UI.badgeText(b).indexOf('<') === -1);
+  eq('빈 것을 넣어도 터지지 않는다', UI.badgeText(null), '');
+}
+
 report('화면 안내 다국어 — 노동자의 언어로 나오는가 (UI-1)');

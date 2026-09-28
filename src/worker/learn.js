@@ -143,9 +143,9 @@
      ----------------------------------------------------------------- */
 
   function badgeFor(state) {
-    if (state === 'done') return UI.okBadge('완료');
-    if (state === 'verify') return UI.waitBadge('이해도 검증이 남았습니다');
-    return UI.neutralBadge('아직 안 들었습니다');
+    if (state === 'done') return UI.okBadge(I18N.t('state.done'));
+    if (state === 'verify') return UI.waitBadge(I18N.t('state.quizLeft'));
+    return UI.neutralBadge(I18N.t('state.notStarted'));
   }
 
   function renderList() {
@@ -192,9 +192,9 @@
       var tags = UI.el('div', 'tags');
       tags.appendChild(badgeFor(state));
       // 검수를 못 지난 문구가 있으면 몇 개가 빠졌는지 밝힌다
-      if (total > usable) tags.appendChild(UI.waitBadge('검수 대기 ' + (total - usable) + '개 제외'));
+      if (total > usable) tags.appendChild(UI.waitBadge(I18N.t('learn.excluded') + ' ' + (total - usable)));
       if (needsTranslation() && !translationCoverage(course))
-        tags.appendChild(UI.waitBadge('내 언어 번역 준비 중'));
+        tags.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
       body.appendChild(tags);
 
       open.appendChild(body);
@@ -294,7 +294,7 @@
       card.appendChild(UI.el('p', 'translated', phrase.ko));
       if (needsTranslation()) {
         var miss = UI.el('p', 'original');
-        miss.appendChild(UI.waitBadge('내 언어 번역 준비 중'));
+        miss.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
         card.appendChild(miss);
       }
     }

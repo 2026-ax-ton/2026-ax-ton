@@ -32,15 +32,15 @@
   <p class="voicenote noprint" id="voicenote" hidden></p>
 
   <div class="pagehead noprint">
-    <h1>내 기록</h1>
-    <p class="lead">내가 받은 교육과 확인 결과입니다.</p>
+    <h1 data-i18n="my.title">내 기록</h1>
+    <p class="lead" data-i18n="my.lead">내가 받은 교육과 확인 결과입니다.</p>
   </div>
 
   <!-- 1. 회원정보 -->
   <section class="card noprint" aria-labelledby="t-me">
     <div class="sec-head">
       <div>
-        <h2 id="t-me">내 정보</h2>
+        <h2 id="t-me" data-i18n="my.info">내 정보</h2>
         <p class="why">
           외국인등록번호와 여권번호는 받지 않습니다. 사업장 안에서 쓰는 식별번호만 씁니다.
         </p>
@@ -50,7 +50,7 @@
 
     <hr class="hr">
 
-    <h3 class="sub" id="t-mylang">내 언어 바꾸기</h3>
+    <h3 class="sub" id="t-mylang" data-i18n="my.myLang">내 언어 바꾸기</h3>
     <p class="why">
       고르면 바로 저장됩니다. 교육과 이해도 검증이 이 언어로 나옵니다.
       번역이 아직 없는 문구는 한국어로 나오고 "번역 준비 중" 이라고 적힙니다.
@@ -70,7 +70,7 @@
 
     <hr class="hr">
 
-    <h3 class="sub" id="t-myfont">글자 크기</h3>
+    <h3 class="sub" id="t-myfont" data-i18n="my.fontSize">글자 크기</h3>
     <p class="why">
       고르면 바로 바뀌고, 이 기기에서 계속 유지됩니다.
       칸에 적힌 글자가 실제로 그 크기입니다.
@@ -104,8 +104,8 @@
   <section class="card noprint" aria-labelledby="t-history">
     <div class="sec-head">
       <div>
-        <h2 id="t-history">받은 교육</h2>
-        <p class="why">통과하지 못한 것도 그대로 보입니다. 다시 하면 됩니다.</p>
+        <h2 id="t-history" data-i18n="my.courses">받은 교육</h2>
+        <p class="why" data-i18n="my.historyWhy">통과하지 못한 것도 그대로 보입니다. 다시 하면 됩니다.</p>
       </div>
     </div>
     <ul class="course-list" id="history-list"></ul>
@@ -115,15 +115,15 @@
   <section class="card noprint" aria-labelledby="t-proof">
     <div class="sec-head">
       <div>
-        <h2 id="t-proof">내 수강 증빙</h2>
+        <h2 id="t-proof" data-i18n="my.proof">내 수강 증빙</h2>
         <p class="why">
-          내 교육 기록을 종이나 PDF 로 뽑습니다.
-          <b>못 들은 교육을 빼고 뽑는 기능은 없습니다.</b> 있는 그대로 나옵니다.
+          <span data-i18n="my.proofPaper">내 교육 기록을 종이나 PDF 로 뽑습니다.</span>
+          <b data-i18n="my.proofWhy">못 들은 교육을 빼고 뽑는 기능은 없습니다. 있는 그대로 나옵니다.</b>
         </p>
       </div>
     </div>
     <div class="big-actions">
-      <button class="btn btn-primary" type="button" id="btn-print"><span class="ico" aria-hidden="true">🖨</span> 증빙 출력하기</button>
+      <button class="btn btn-primary" type="button" id="btn-print"><span class="ico" aria-hidden="true">🖨</span> <span data-i18n="my.print">증빙 출력하기</span></button>
     </div>
   </section>
 
@@ -131,7 +131,7 @@
   <section class="card noprint" aria-labelledby="t-reports">
     <div class="sec-head">
       <div>
-        <h2 id="t-reports">위험 신고</h2>
+        <h2 id="t-reports" data-i18n="my.reports">위험 신고</h2>
         <p class="why" id="reports-why"></p>
       </div>
     </div>

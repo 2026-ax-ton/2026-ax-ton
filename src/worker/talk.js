@@ -316,7 +316,7 @@
         head.appendChild(document.createTextNode([
           writerName(c), UI.formatDate(c.createdAt)
         ].join(' · ')));
-        if (official) head.appendChild(UI.okBadge('공식 답변'));
+        if (official) head.appendChild(UI.okBadge(I18N.t('talk.official')));
         li.appendChild(head);
 
         li.appendChild(UI.el('p', 'body', c.body));

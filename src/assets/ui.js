@@ -67,6 +67,21 @@ var UI = (function () {
     return node;
   }
 
+  /* 배지에서 아이콘을 뺀 글자만.
+
+     ★ "한글이 아닌 것은 아이콘" 으로 걸러내면 안 된다. 배지 글자는
+       노동자의 언어라서, 크메르어 배지는 통째로 사라지고 소리에서도
+       빠진다 — 글을 못 읽는 사람에게는 그 정보가 아예 없는 것이 된다.
+       badge() 가 아이콘 다음에 글자를 텍스트 노드로 붙이므로
+       텍스트 노드만 모으면 어느 언어든 남는다. */
+  function badgeText(node) {
+    if (!node || !node.childNodes) return '';
+    return [].slice.call(node.childNodes)
+      .filter(function (n) { return n.nodeType === 3; })
+      .map(function (n) { return n.nodeValue || ''; })
+      .join('').trim();
+  }
+
   function okBadge(text)      { return badge('badge-ok', 'check', text); }
   function waitBadge(text)    { return badge('badge-wait', 'dot', text); }
   function stopBadge(text)    { return badge('badge-stop', 'alert', text); }
@@ -760,7 +775,7 @@ var UI = (function () {
 
   return {
     $: $, $$: $$, el: el,
-    badge: badge, okBadge: okBadge, waitBadge: waitBadge,
+    badge: badge, badgeText: badgeText, okBadge: okBadge, waitBadge: waitBadge,
     stopBadge: stopBadge, neutralBadge: neutralBadge, phraseBadge: phraseBadge,
     dueBadge: dueBadge,
     chip: chip, checkedValues: checkedValues, pickedValue: pickedValue,

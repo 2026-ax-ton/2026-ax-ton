@@ -367,9 +367,9 @@
       li.appendChild(body);
 
       // 처리 상태 — 알린 것이 어떻게 됐는지 보여야 다음에도 알린다
-      if (r.status === 'resolved') li.appendChild(UI.okBadge('조치됨'));
-      else if (r.status === 'urgent') li.appendChild(UI.stopBadge('긴급'));
-      else li.appendChild(UI.waitBadge('확인 중'));
+      if (r.status === 'resolved') li.appendChild(UI.okBadge(I18N.t('state.handled')));
+      else if (r.status === 'urgent') li.appendChild(UI.stopBadge(I18N.t('state.urgent')));
+      else li.appendChild(UI.waitBadge(I18N.t('state.checking')));
 
       list.appendChild(li);
     });

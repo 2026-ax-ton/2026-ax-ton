@@ -237,7 +237,7 @@ function pickTo(t, code) {
   const l = open('learn', { login: 'W-4821-31', voices: ['km-KH'] });
   ok('한국어 노동자 수강 화면에 오류 0건', l.errors.length === 0, l.errors.join(' | '));
   ok('★ 수강 화면에도 "번역 준비 중" 이 뜨지 않는다',
-    text(l.win.document.body).indexOf('내 언어 번역 준비 중') === -1);
+    text(l.win.document.body).indexOf(l.win.I18N.t('learn.transPending', 'ko')) === -1);
 
   /* ★★ 배지를 없앤 것이 아니라 한국어에만 안 띄운 것이다.
      이 짝이 없으면 "배지를 통째로 지웠다" 와 구분되지 않는다.
@@ -263,12 +263,14 @@ function pickTo(t, code) {
   }
   const seen = idNotes.join(' | ');
 
+  const pending = id.win.I18N.t('learn.transPending', 'id');
+  const reviewed = id.win.I18N.t('home.reviewedOk', 'id');
   ok('★★ 번역이 없는 사람에게는 그대로 알린다 (숨긴 것이 아니다)',
-    idNotes.some((n) => n.indexOf('내 언어 번역 준비 중') !== -1), seen);
+    idNotes.some((n) => n.indexOf(pending) !== -1), seen);
   ok('★ 번역이 있는 문구에서는 그 배지를 띄우지 않는다 (늘 뜨면 뜻이 없다)',
-    idNotes.some((n) => n.indexOf('내 언어 번역 준비 중') === -1), seen);
+    idNotes.some((n) => n.indexOf(pending) === -1), seen);
   ok('★ 어느 자리에서도 "검수 완료" 는 빠지지 않는다',
-    idNotes.every((n) => n.indexOf('검수 완료') !== -1), seen);
+    idNotes.every((n) => n.indexOf(reviewed) !== -1), seen);
 
   /* 판정이 두 화면에 같은 모양으로 있는지 — 한쪽만 고치면 두 화면이 다른 말을 한다 */
   const homejs = fs.readFileSync(path.join(SRC, 'worker/home.js'), 'utf8');

@@ -143,10 +143,10 @@
      ----------------------------------------------------------------- */
 
   function badgeFor(state) {
-    if (state === 'pass') return UI.okBadge('완료');
-    if (state === 'fail') return UI.stopBadge('다시 해야 합니다');
-    if (state === 'noquiz') return UI.waitBadge('확인이 남았습니다');
-    return UI.neutralBadge('아직 안 들었습니다');
+    if (state === 'pass') return UI.okBadge(I18N.t('state.done'));
+    if (state === 'fail') return UI.stopBadge(I18N.t('state.retry'));
+    if (state === 'noquiz') return UI.waitBadge(I18N.t('state.quizLeft'));
+    return UI.neutralBadge(I18N.t('state.notStarted'));
   }
 
   function renderHistory() {
@@ -292,7 +292,7 @@
       li.appendChild(b);
 
       // 색만으로 구분하지 않는다 — 아이콘 + 글자 + 색 3중
-      li.appendChild(UI.stopBadge('틀림'));
+      li.appendChild(UI.stopBadge(I18N.t('state.wrong')));
       ul.appendChild(li);
     });
     box.appendChild(ul);
@@ -343,9 +343,9 @@
         [r.ticket, UI.formatDate(r.createdAt)].filter(Boolean).join(' · ')));
       li.appendChild(body);
 
-      if (r.status === 'resolved') li.appendChild(UI.okBadge('조치됨'));
-      else if (r.status === 'urgent') li.appendChild(UI.stopBadge('긴급'));
-      else li.appendChild(UI.waitBadge('확인 중'));
+      if (r.status === 'resolved') li.appendChild(UI.okBadge(I18N.t('state.handled')));
+      else if (r.status === 'urgent') li.appendChild(UI.stopBadge(I18N.t('state.urgent')));
+      else li.appendChild(UI.waitBadge(I18N.t('state.checking')));
 
       list.appendChild(li);
     });

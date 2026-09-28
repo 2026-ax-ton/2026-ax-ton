@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v8';
+var VERSION = 'v9';
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.

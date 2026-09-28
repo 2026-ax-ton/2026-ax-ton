@@ -39,12 +39,12 @@
   <div id="view-list">
 
     <div class="pagehead">
-      <h1>물어보기</h1>
-      <p class="lead">교육 밖의 궁금한 것을 현장에서 바로 묻습니다. 이름을 감추고 쓸 수도 있습니다.</p>
+      <h1 data-i18n="talk.title">물어보기</h1>
+      <p class="lead" data-i18n="talk.lead">교육 밖의 궁금한 것을 현장에서 바로 묻습니다. 이름을 감추고 쓸 수도 있습니다.</p>
     </div>
 
     <div class="big-actions">
-      <button class="btn btn-primary" type="button" id="btn-new"><span class="ico" aria-hidden="true">✏</span> 새로 쓰기</button>
+      <button class="btn btn-primary" type="button" id="btn-new"><span class="ico" aria-hidden="true">✏</span> <span data-i18n="talk.new">새로 쓰기</span></button>
     </div>
 
     <ul class="post-list" id="post-list"></ul>
@@ -56,7 +56,7 @@
     <section class="card" aria-labelledby="t-write">
       <div class="sec-head">
         <div>
-          <h2 id="t-write">새로 쓰기</h2>
+          <h2 id="t-write" data-i18n="talk.new">새로 쓰기</h2>
           <p class="why">
             이름을 감추면 아이디가 저장되지 않습니다. 감추지 않으면 내 식별번호가 함께 보입니다.
           </p>
@@ -64,12 +64,12 @@
       </div>
 
       <div class="field">
-        <label for="w-title">제목</label>
+        <label for="w-title" data-i18n="talk.titleField">제목</label>
         <input type="text" id="w-title" placeholder="예) 프레스 교대 시간 바뀐 것 맞나요?">
       </div>
 
       <div class="field">
-        <label for="w-body">내용 (안 써도 됩니다)</label>
+        <label for="w-body" data-i18n="talk.bodyField">내용 (안 써도 됩니다)</label>
         <input type="text" id="w-body" placeholder="예) 오늘부터 30분 당겨진다고 들었습니다">
       </div>
 
@@ -79,8 +79,8 @@
       <p class="anon-warn" id="w-anonwarn" hidden></p>
 
       <div class="pair-actions">
-        <button class="btn btn-quiet" type="button" id="btn-write-cancel">그만두기</button>
-        <button class="btn btn-primary" type="button" id="btn-write-save">올리기</button>
+        <button class="btn btn-quiet" type="button" id="btn-write-cancel" data-i18n="talk.cancel">그만두기</button>
+        <button class="btn btn-primary" type="button" id="btn-write-save" data-i18n="talk.submit">올리기</button>
       </div>
     </section>
   </div>
@@ -100,18 +100,18 @@
 
       <hr class="hr">
 
-      <h3 class="card-title">댓글 <span id="p-count"></span></h3>
+      <h3 class="card-title"><span data-i18n="talk.comments">댓글</span> <span id="p-count"></span></h3>
       <ul class="comment-list" id="p-comments"></ul>
 
       <div class="field" style="margin-top:12px">
-        <label for="c-body">댓글 쓰기</label>
+        <label for="c-body" data-i18n="talk.comment">댓글 쓰기</label>
         <input type="text" id="c-body" placeholder="한 줄 남겨 주세요">
       </div>
       <div class="picker" id="pick-canon" role="group" aria-label="댓글 이름 감추기"></div>
 
       <div class="pair-actions">
-        <button class="btn btn-quiet" type="button" id="btn-post-back">목록으로</button>
-        <button class="btn btn-primary" type="button" id="btn-comment">댓글 올리기</button>
+        <button class="btn btn-quiet" type="button" id="btn-post-back" data-i18n="talk.toList">목록으로</button>
+        <button class="btn btn-primary" type="button" id="btn-comment" data-i18n="talk.commentSubmit">댓글 올리기</button>
       </div>
     </section>
   </div>

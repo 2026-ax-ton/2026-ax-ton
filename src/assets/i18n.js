@@ -80,6 +80,19 @@ var I18N = (function () {
     'home.nextPhrase':   { ko: '다음 안전 문구',          km: 'សារបន្ទាប់',     id: 'Pesan berikutnya', vi: 'Câu tiếp theo', ne: 'अर्को वाक्य', th: 'ข้อความถัดไป' },
     'home.badTrans':     { ko: '말이 이상하면 알려 주세요', km: 'បើពាក្យខុស សូមប្រាប់', id: 'Beri tahu jika terjemahan aneh', vi: 'Nếu câu chữ sai, hãy báo', ne: 'अनुवाद अनौठो भए भन्नुहोस्', th: 'ถ้าคำแปลผิด โปรดแจ้ง' },
     'home.listenStatus': { ko: '내 교육 상태 듣기',       km: 'ស្តាប់ស្ថានភាព',  id: 'Dengarkan status', vi: 'Nghe tình trạng', ne: 'अवस्था सुन्नुहोस्', th: 'ฟังสถานะ' },
+    'home.mustPass':     { ko: '이해도 검증을 통과해야 교육이 완료됩니다.', km: 'ការបណ្តុះបណ្តាលបញ្ចប់ នៅពេលអ្នកជាប់ការពិនិត្យការយល់ដឹង', id: 'Pelatihan selesai setelah Anda lulus pemeriksaan pemahaman.', vi: 'Khóa học hoàn thành khi bạn đạt phần kiểm tra hiểu biết.', ne: 'बुझाइ जाँच उत्तीर्ण गरेपछि मात्र तालिम पूरा हुन्छ।', th: 'การอบรมจะเสร็จเมื่อคุณผ่านการตรวจสอบความเข้าใจ' },
+    'home.notJustAttend':{ ko: '수강만으로는 완료로 기록되지 않습니다.', km: 'ការស្តាប់តែម្យ៉ាង មិនត្រូវបានកត់ត្រាថាបញ្ចប់ទេ', id: 'Hanya mengikuti saja tidak dicatat sebagai selesai.', vi: 'Chỉ tham dự thì không được ghi là hoàn thành.', ne: 'सुनेकै भरमा पूरा भएको मानिँदैन।', th: 'แค่เข้าฟังอย่างเดียวไม่ถูกบันทึกว่าเสร็จ' },
+    'home.stepLearn':    { ko: '듣기', km: 'ស្តាប់', id: 'Dengar', vi: 'Nghe', ne: 'सुन्नु', th: 'ฟัง' },
+    'home.stepQuiz':     { ko: '확인', km: 'ពិនិត្យ', id: 'Periksa', vi: 'Kiểm tra', ne: 'जाँच', th: 'ตรวจสอบ' },
+    'home.reviewedOk':   { ko: '검수 완료', km: 'បានត្រួតពិនិត្យ', id: 'Sudah diperiksa', vi: 'Đã kiểm duyệt', ne: 'जाँच सम्पन्न', th: 'ตรวจสอบแล้ว' },
+    'home.koreanNote':   { ko: '담당자가 한국어로 남긴 말', km: 'សាររបស់អ្នកគ្រប់គ្រង ជាភាសាកូរ៉េ', id: 'Pesan penanggung jawab dalam bahasa Korea', vi: 'Lời nhắn của người phụ trách bằng tiếng Hàn', ne: 'जिम्मेवार व्यक्तिले कोरियनमा छाडेको सन्देश', th: 'ข้อความจากผู้รับผิดชอบเป็นภาษาเกาหลี' },
+    'home.coursesLeft':  { ko: '남은 교육', km: 'ការបណ្តុះបណ្តាលនៅសល់', id: 'Sisa pelatihan', vi: 'Khóa còn lại', ne: 'बाँकी तालिम', th: 'อบรมที่เหลือ' },
+    'home.anonAccept':   { ko: '익명으로 접수', km: 'ទទួលដោយអនាមិក', id: 'Diterima anonim', vi: 'Tiếp nhận ẩn danh', ne: 'गुमनाम रूपमा प्राप्त', th: 'รับแบบไม่ระบุชื่อ' },
+    'home.officialMark': { ko: '공식 답변 표시', km: 'បង្ហាញចម្លើយផ្លូវការ', id: 'Tanda jawaban resmi', vi: 'Hiển thị trả lời chính thức', ne: 'आधिकारिक जवाफ चिन्ह', th: 'แสดงคำตอบทางการ' },
+    'home.proofPrint':   { ko: '증빙 출력', km: 'បោះពុម្ពភស្តុតាង', id: 'Cetak bukti', vi: 'In chứng nhận', ne: 'प्रमाण छपाइ', th: 'พิมพ์หลักฐาน' },
+    'home.unreviewedMarked': { ko: '검수되지 않은 번역은 화면에 따로 표시됩니다.', km: 'ការបកប្រែដែលមិនទាន់ត្រួតពិនិត្យ ត្រូវបានសម្គាល់ដាច់ដោយឡែក', id: 'Terjemahan yang belum diperiksa ditandai terpisah di layar.', vi: 'Bản dịch chưa kiểm duyệt được đánh dấu riêng trên màn hình.', ne: 'जाँच नभएको अनुवाद पर्दामा छुट्टै देखाइन्छ।', th: 'คำแปลที่ยังไม่ตรวจสอบจะถูกทำเครื่องหมายแยกไว้' },
+    'home.unreviewedNotUsed': { ko: '안전 지시로 쓰지 않습니다.', km: 'មិនប្រើជាការណែនាំសុវត្ថិភាពទេ', id: 'Tidak dipakai sebagai instruksi keselamatan.', vi: 'Không dùng làm chỉ dẫn an toàn.', ne: 'सुरक्षा निर्देशनका रूपमा प्रयोग गरिँदैन।', th: 'ไม่ใช้เป็นคำสั่งด้านความปลอดภัย' },
+    'home.menuLearn':    { ko: '안전교육 듣기', km: 'ស្តាប់ការបណ្តុះបណ្តាលសុវត្ថិភាព', id: 'Dengarkan pelatihan keselamatan', vi: 'Nghe đào tạo an toàn', ne: 'सुरक्षा तालिम सुन्नुहोस्', th: 'ฟังการอบรมความปลอดภัย' },
     'home.offlineOk':    { ko: '오프라인 가능',           km: 'ប្រើបានគ្មានអ៊ីនធឺណិត', id: 'Bisa tanpa internet', vi: 'Dùng được khi mất mạng', ne: 'इन्टरनेट बिना चल्छ', th: 'ใช้ได้แบบออฟไลน์' },
 
     /* 교육 */
@@ -88,6 +101,8 @@ var I18N = (function () {
     'learn.notYet':       { ko: '아직 들을 수 없습니다',  km: 'មិនទាន់អាចស្តាប់', id: 'Belum bisa diikuti', vi: 'Chưa thể học', ne: 'अझै सुन्न सकिँदैन', th: 'ยังเรียนไม่ได้' },
     'learn.listenAgain':  { ko: '이 문구를 다시 듣기',    km: 'ស្តាប់សារនេះម្តងទៀត', id: 'Dengarkan lagi', vi: 'Nghe lại câu này', ne: 'फेरि सुन्नुहोस्', th: 'ฟังอีกครั้ง' },
     'learn.startQuiz':    { ko: '이해도 검증 시작',       km: 'ចាប់ផ្តើមត្រួតពិនិត្យ', id: 'Mulai uji pemahaman', vi: 'Bắt đầu kiểm tra', ne: 'जाँच सुरु गर्नुहोस्', th: 'เริ่มตรวจความเข้าใจ' },
+    'learn.lead':         { ko: '내 공정의 설비 교육을, 내 언어의 음성과 그림으로 듣습니다.', km: 'ស្តាប់ការបណ្តុះបណ្តាលម៉ាស៊ីនក្នុងផ្នែករបស់អ្នក ជាសំឡេង និងរូបភាពក្នុងភាសារបស់អ្នក', id: 'Dengarkan pelatihan mesin di proses Anda, lewat suara dan gambar dalam bahasa Anda.', vi: 'Nghe đào tạo thiết bị trong công đoạn của bạn, bằng giọng nói và hình ảnh tiếng của bạn.', ne: 'आफ्नो प्रक्रियाको उपकरण तालिम, आफ्नै भाषाको आवाज र चित्रमा सुन्नुहोस्।', th: 'ฟังการอบรมเครื่องจักรในกระบวนการของคุณ ด้วยเสียงและภาพในภาษาของคุณ' },
+    'learn.excluded':     { ko: '검수 대기 제외', km: 'មិនរាប់បញ្ចូល (រង់ចាំត្រួតពិនិត្យ)', id: 'Dikecualikan (menunggu pemeriksaan)', vi: 'Đã loại trừ (chờ kiểm duyệt)', ne: 'बाहेक गरिएको (जाँच पर्खाइमा)', th: 'ไม่รวม (รอตรวจสอบ)' },
     'learn.transPending': { ko: '내 언어 번역 준비 중',   km: 'កំពុងរៀបចំការបកប្រែ', id: 'Terjemahan disiapkan', vi: 'Đang chuẩn bị bản dịch', ne: 'अनुवाद तयारीमा', th: 'กำลังเตรียมคำแปล' },
 
     /* 이해도 검증 */
@@ -104,6 +119,13 @@ var I18N = (function () {
     'report.thanks':    { ko: '알려 주셔서 고맙습니다',  km: 'អរគុណសម្រាប់ការជូនដំណឹង', id: 'Terima kasih atas laporannya', vi: 'Cảm ơn bạn đã báo', ne: 'जानकारीका लागि धन्यवाद', th: 'ขอบคุณที่แจ้ง' },
     'report.again':     { ko: '또 알리기',               km: 'ជូនដំណឹងម្តងទៀត', id: 'Lapor lagi',     vi: 'Báo tiếp',   ne: 'फेरि जनाउनु', th: 'แจ้งอีก' },
     'report.listTitle': { ko: '우리 현장에 들어온 신고', km: 'របាយការណ៍នៅកន្លែងធ្វើការ', id: 'Laporan di lokasi kami', vi: 'Báo cáo tại công trường', ne: 'हाम्रो कार्यस्थलका सूचना', th: 'รายงานในไซต์งาน' },
+    'report.anonBody1': { ko: '누가 알렸는지는 저장하지 않습니다.', km: 'យើងមិនរក្សាទុកថាអ្នកណាបានរាយការណ៍ទេ', id: 'Siapa yang melapor tidak disimpan.', vi: 'Chúng tôi không lưu ai đã báo.', ne: 'कसले सूचना दियो भन्ने कुरा सुरक्षित गरिँदैन।', th: 'ไม่มีการเก็บว่าใครเป็นผู้แจ้ง' },
+    'report.anonBody2': { ko: '관리자도 알 수 없습니다. 걱정하지 말고 알려 주세요.', km: 'សូម្បីតែអ្នកគ្រប់គ្រងក៏មិនដឹងដែរ។ សូមកុំបារម្ភ ហើយប្រាប់មកយើង', id: 'Pengelola pun tidak bisa tahu. Jangan khawatir, laporkan saja.', vi: 'Người quản lý cũng không biết được. Đừng lo, hãy báo cho chúng tôi.', ne: 'प्रबन्धकले पनि थाहा पाउँदैनन्। नडराई जानकारी दिनुहोस्।', th: 'แม้แต่ผู้ดูแลก็ไม่ทราบ ไม่ต้องกังวล แจ้งได้เลย' },
+    'report.ticketWhy': { ko: '이 번호를 적어 두시면 나중에 어떻게 됐는지 물어볼 수 있습니다. 번호에는 누구인지가 들어 있지 않습니다.', km: 'កត់ត្រាលេខនេះទុក អ្នកអាចសួរពីលទ្ធផលពេលក្រោយ។ លេខនេះមិនមានព័ត៌មានអ្នកណាទេ', id: 'Catat nomor ini agar nanti bisa menanyakan hasilnya. Nomor ini tidak memuat identitas siapa pun.', vi: 'Ghi lại số này để sau có thể hỏi kết quả. Số này không chứa thông tin về bạn.', ne: 'यो नम्बर टिपेर राख्नुहोस्, पछि नतिजा सोध्न सकिन्छ। नम्बरमा को हो भन्ने जानकारी हुँदैन।', th: 'จดหมายเลขนี้ไว้ เพื่อสอบถามผลภายหลังได้ หมายเลขไม่มีข้อมูลว่าเป็นใคร' },
+    'report.pickPict':  { ko: '그림을 눌러 고르세요.', km: 'ចុចរូបភាពដើម្បីជ្រើសរើស', id: 'Tekan gambar untuk memilih.', vi: 'Nhấn vào hình để chọn.', ne: 'चित्र थिचेर छान्नुहोस्।', th: 'กดที่รูปเพื่อเลือก' },
+    'report.notPicked': { ko: '미선택', km: 'មិនទាន់ជ្រើស', id: 'Belum dipilih', vi: 'Chưa chọn', ne: 'छानिएको छैन', th: 'ยังไม่ได้เลือก' },
+    'report.memoLabel': { ko: '내용', km: 'ខ្លឹមសារ', id: 'Isi', vi: 'Nội dung', ne: 'विवरण', th: 'เนื้อหา' },
+    'report.memoHint':  { ko: '예) 덮개가 흔들립니다', km: 'ឧ. គម្របកំពុងរង្គើ', id: 'Contoh) Penutupnya goyang', vi: 'VD) Nắp bị rung lắc', ne: 'उदा.) ढकन हल्लिरहेको छ', th: 'เช่น) ฝาครอบสั่น' },
     'report.ticketNo':  { ko: '접수 번호',               km: 'លេខទទួល',        id: 'Nomor laporan',  vi: 'Số tiếp nhận', ne: 'दर्ता नम्बर', th: 'หมายเลขรับแจ้ง' },
 
     /* 소통 */
@@ -115,6 +137,9 @@ var I18N = (function () {
     'talk.submit':     { ko: '올리기',                km: 'ផ្ញើ',           id: 'Kirim',         vi: 'Đăng',        ne: 'पठाउनुहोस्',  th: 'ส่ง' },
     'talk.comment':    { ko: '댓글 쓰기',             km: 'សរសេរមតិ',      id: 'Tulis komentar', vi: 'Viết bình luận', ne: 'टिप्पणी लेख्नुहोस्', th: 'เขียนความเห็น' },
     'talk.toList':     { ko: '목록으로',              km: 'ទៅបញ្ជី',        id: 'Ke daftar',     vi: 'Về danh sách', ne: 'सूचीमा',     th: 'ไปที่รายการ' },
+    'talk.lead':       { ko: '교육 밖의 궁금한 것을 현장에서 바로 묻습니다. 이름을 감추고 쓸 수도 있습니다.', km: 'សួរសំណួរនៅនឹងកន្លែង។ អ្នកអាចលាក់ឈ្មោះបាន', id: 'Tanyakan langsung di lokasi. Anda juga bisa menyembunyikan nama.', vi: 'Hỏi ngay tại hiện trường. Bạn cũng có thể ẩn tên.', ne: 'साइटमै सोध्नुहोस्। नाम लुकाउन पनि सक्नुहुन्छ।', th: 'ถามได้ทันทีที่หน้างาน ซ่อนชื่อได้' },
+    'talk.comments':   { ko: '댓글', km: 'មតិយោបល់', id: 'Komentar', vi: 'Bình luận', ne: 'टिप्पणी', th: 'ความคิดเห็น' },
+    'talk.commentSubmit': { ko: '댓글 올리기', km: 'ផ្ញើមតិ', id: 'Kirim komentar', vi: 'Gửi bình luận', ne: 'टिप्पणी पठाउने', th: 'ส่งความคิดเห็น' },
     'talk.official':   { ko: '공식 답변',             km: 'ចម្លើយផ្លូវការ',  id: 'Jawaban resmi', vi: 'Trả lời chính thức', ne: 'आधिकारिक जवाफ', th: 'คำตอบทางการ' },
 
     /* 마이 */
@@ -123,7 +148,12 @@ var I18N = (function () {
     'my.courses':  { ko: '받은 교육',      km: 'ការបណ្តុះបណ្តាលដែលបានទទួល', id: 'Pelatihan yang diikuti', vi: 'Khóa đã học', ne: 'प्राप्त तालिम', th: 'การอบรมที่ได้รับ' },
     'my.proof':    { ko: '내 수강 증빙',   km: 'ភស្តុតាងចូលរួម',  id: 'Bukti pelatihan', vi: 'Chứng nhận đã học', ne: 'तालिम प्रमाण', th: 'หลักฐานการอบรม' },
     'my.print':    { ko: '증빙 출력하기',  km: 'បោះពុម្ពភស្តុតាង', id: 'Cetak bukti',    vi: 'In chứng nhận', ne: 'प्रमाण छाप्नुहोस्', th: 'พิมพ์หลักฐาน' },
-    'my.myLang':   { ko: '내 언어',        km: 'ភាសារបស់ខ្ញុំ',    id: 'Bahasa saya',    vi: 'Ngôn ngữ của tôi', ne: 'मेरो भाषा',   th: 'ภาษาของฉัน' },
+    'my.myLang':   { ko: '내 언어 바꾸기', km: 'ប្តូរភាសារបស់ខ្ញុំ', id: 'Ubah bahasa saya', vi: 'Đổi ngôn ngữ của tôi', ne: 'मेरो भाषा बदल्नुहोस्', th: 'เปลี่ยนภาษาของฉัน' },
+    'my.lead':       { ko: '내가 받은 교육과 확인 결과입니다.', km: 'ការបណ្តុះបណ្តាល និងលទ្ធផលពិនិត្យរបស់អ្នក', id: 'Pelatihan yang Anda ikuti dan hasil pemeriksaannya.', vi: 'Các khóa đào tạo bạn đã học và kết quả kiểm tra.', ne: 'तपाईंले लिनुभएको तालिम र जाँचको नतिजा।', th: 'การอบรมที่คุณได้รับและผลการตรวจสอบ' },
+    'my.historyWhy': { ko: '통과하지 못한 것도 그대로 보입니다. 다시 하면 됩니다.', km: 'អ្វីដែលមិនបានជាប់ក៏បង្ហាញដែរ។ អ្នកអាចធ្វើម្តងទៀត', id: 'Yang belum lulus juga tetap ditampilkan. Anda bisa mengulang.', vi: 'Phần chưa đạt cũng hiển thị. Bạn có thể làm lại.', ne: 'उत्तीर्ण नभएको पनि देखिन्छ। फेरि गर्न सकिन्छ।', th: 'สิ่งที่ยังไม่ผ่านก็แสดงตามจริง ทำใหม่ได้' },
+    'my.proofPaper': { ko: '내 교육 기록을 종이나 PDF 로 뽑습니다.', km: 'បោះពុម្ពកំណត់ត្រាបណ្តុះបណ្តាលរបស់អ្នក ជាក្រដាស ឬ PDF', id: 'Cetak catatan pelatihan Anda ke kertas atau PDF.', vi: 'In hồ sơ đào tạo của bạn ra giấy hoặc PDF.', ne: 'आफ्नो तालिम अभिलेख कागज वा PDF मा निकाल्नुहोस्।', th: 'พิมพ์บันทึกการอบรมของคุณเป็นกระดาษหรือ PDF' },
+    'my.proofWhy':   { ko: '못 들은 교육을 빼고 뽑는 기능은 없습니다. 있는 그대로 나옵니다.', km: 'គ្មានមុខងារដកការបណ្តុះបណ្តាលដែលមិនបានស្តាប់ចេញទេ។ បង្ហាញតាមការពិត', id: 'Tidak ada fitur menyembunyikan pelatihan yang belum diikuti. Ditampilkan apa adanya.', vi: 'Không có chức năng loại bỏ khóa chưa học. Hiển thị đúng như thực tế.', ne: 'नसुनेको तालिम हटाएर निकाल्ने सुविधा छैन। जस्तो छ त्यस्तै देखिन्छ।', th: 'ไม่มีฟังก์ชันตัดการอบรมที่ยังไม่ได้เรียนออก แสดงตามจริง' },
+    'my.reports':    { ko: '위험 신고', km: 'របាយការណ៍គ្រោះថ្នាក់', id: 'Laporan bahaya', vi: 'Báo cáo nguy hiểm', ne: 'जोखिम सूचना', th: 'แจ้งอันตราย' },
     'my.fontSize': { ko: '글자 크기',      km: 'ទំហំអក្សរ',       id: 'Ukuran huruf',   vi: 'Cỡ chữ',      ne: 'अक्षर आकार',  th: 'ขนาดตัวอักษร' },
 
     /* 말로만 나가는 안내 — 화면에 글자로는 없고 음성으로만 흐른다.
@@ -132,6 +162,10 @@ var I18N = (function () {
     'speech.anonNotice':  { ko: '알려 주신 분이 누구인지는 기록하지 않습니다.', km: 'យើងមិនកត់ត្រាថាអ្នកណាបានប្រាប់ទេ។', id: 'Kami tidak mencatat siapa yang melapor.', vi: 'Chúng tôi không ghi lại ai đã báo.', ne: 'कसले जानकारी दियो भन्ने राखिँदैन।', th: 'เราไม่บันทึกว่าใครเป็นผู้แจ้ง' },
 
     'speech.anonReport':  { ko: '누가 알렸는지는 저장하지 않습니다. 관리자도 알 수 없습니다. 걱정하지 말고 알려 주세요.', km: 'យើងមិនរក្សាទុកថាអ្នកណាបានប្រាប់ទេ។ អ្នកគ្រប់គ្រងក៏មិនដឹងដែរ។ សូមកុំបារម្ភ ហើយប្រាប់មក។', id: 'Kami tidak menyimpan siapa yang melapor. Pengelola pun tidak tahu. Jangan khawatir, laporkan saja.', vi: 'Chúng tôi không lưu ai đã báo. Người quản lý cũng không biết. Đừng lo, hãy báo cho chúng tôi.', ne: 'कसले जनायो भन्ने सुरक्षित गरिँदैन। प्रबन्धकले पनि थाहा पाउँदैन। नडराई जानकारी दिनुहोस्।', th: 'เราไม่เก็บว่าใครเป็นผู้แจ้ง ผู้ดูแลก็ไม่ทราบ ไม่ต้องกังวล แจ้งได้เลย' },
+    'speech.menuLearn':   { ko: '안전교육을 듣습니다', km: 'ស្តាប់ការបណ្តុះបណ្តាលសុវត្ថិភាព', id: 'Mendengarkan pelatihan keselamatan', vi: 'Nghe đào tạo an toàn', ne: 'सुरक्षा तालिम सुन्ने', th: 'ฟังการอบรมความปลอดภัย' },
+    'speech.menuReport':  { ko: '위험한 곳을 알립니다. 이름은 남지 않습니다', km: 'ជូនដំណឹងពីកន្លែងគ្រោះថ្នាក់។ ឈ្មោះមិនត្រូវបានរក្សាទុកទេ', id: 'Melaporkan tempat berbahaya. Nama tidak disimpan', vi: 'Báo nơi nguy hiểm. Tên không được lưu', ne: 'जोखिमपूर्ण ठाउँको सूचना दिने। नाम सुरक्षित गरिँदैन', th: 'แจ้งจุดอันตราย ไม่มีการเก็บชื่อ' },
+    'speech.menuTalk':    { ko: '궁금한 것을 물어봅니다', km: 'សួរអ្វីដែលអ្នកចង់ដឹង', id: 'Menanyakan hal yang ingin diketahui', vi: 'Hỏi điều bạn muốn biết', ne: 'जान्न चाहेको कुरा सोध्ने', th: 'ถามสิ่งที่อยากรู้' },
+    'speech.menuMy':      { ko: '내 교육 기록을 봅니다', km: 'មើលកំណត់ត្រាបណ្តុះបណ្តាលរបស់ខ្ញុំ', id: 'Melihat catatan pelatihan saya', vi: 'Xem hồ sơ đào tạo của tôi', ne: 'मेरो तालिम अभिलेख हेर्ने', th: 'ดูบันทึกการอบรมของฉัน' },
     'speech.badTrans':    { ko: '안전 문구의 말이 이상하면 관리자에게 알려 주세요. 알려 주신 분이 누구인지는 기록하지 않습니다.', km: 'បើពាក្យក្នុងសារសុវត្ថិភាពខុស សូមប្រាប់អ្នកគ្រប់គ្រង។ យើងមិនកត់ត្រាថាអ្នកណាបានប្រាប់ទេ។', id: 'Jika kalimat pesan keselamatan terasa aneh, beri tahu pengelola. Kami tidak mencatat siapa yang memberi tahu.', vi: 'Nếu câu chữ trong thông điệp an toàn có vẻ sai, hãy báo cho người quản lý. Chúng tôi không ghi lại ai đã báo.', ne: 'सुरक्षा वाक्यको भाषा अनौठो लागे प्रबन्धकलाई भन्नुहोस्। कसले भन्यो भन्ने राखिँदैन।', th: 'หากข้อความความปลอดภัยดูผิดเพี้ยน โปรดแจ้งผู้ดูแล เราไม่บันทึกว่าใครเป็นผู้แจ้ง' },
     'action.listenGuide': { ko: '설명 듣기',        km: 'ស្តាប់ការពន្យល់',  id: 'Dengarkan penjelasan', vi: 'Nghe giải thích', ne: 'व्याख्या सुन्नुहोस्', th: 'ฟังคำอธิบาย' },
     'report.listenDone':  { ko: '접수 안내 듣기',   km: 'ស្តាប់ការជូនដំណឹង', id: 'Dengarkan info laporan', vi: 'Nghe thông báo tiếp nhận', ne: 'दर्ता जानकारी सुन्नुहोस्', th: 'ฟังข้อมูลการรับแจ้ง' },
@@ -237,6 +271,12 @@ var I18N = (function () {
        화면은 크메르어인데 읽어 주는 이름만 한국어면 화면 낭독기가 헷갈린다. */
     Array.prototype.slice.call(scope.querySelectorAll('[data-i18n-aria]')).forEach(function (node) {
       node.setAttribute('aria-label', t(node.getAttribute('data-i18n-aria'), l));
+    });
+
+    /* 입력칸의 예시 글자(placeholder)도 같은 언어여야 한다.
+       칸 이름만 번역되고 예시가 한국어로 남으면, 무엇을 쓰라는 것인지 못 읽는다. */
+    Array.prototype.slice.call(scope.querySelectorAll('[data-i18n-ph]')).forEach(function (node) {
+      node.setAttribute('placeholder', t(node.getAttribute('data-i18n-ph'), l));
     });
 
     /* 문서 언어를 알려 준다. 브라우저가 글꼴과 줄바꿈을 그 언어에 맞춘다. */

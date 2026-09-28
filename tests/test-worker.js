@@ -65,7 +65,7 @@ function open(page, opts = {}) {
   });
   has('아직 안 들었다고 말한다', text(t2.$('stage-say')), '아직 듣지 않았습니다');
   const now = [...t2.$('stage-track').children].find((li) => li.getAttribute('data-state') === 'now');
-  has('듣기 단계가 지금 차례', text(now), '듣기');
+  has('듣기 단계가 지금 차례', text(now), t2.win.I18N.t('home.stepLearn', 'km'));
   has('교육으로 가는 버튼', t2.$('stage-actions').innerHTML, 'learn.html');
 
   /* --- 검수된 문구가 없으면 --- */
@@ -87,8 +87,8 @@ function open(page, opts = {}) {
 
   // 익명 고지가 맨 위에
   const anon = t.win.document.querySelector('.anon-note');
-  has('이름을 남기지 않는다고 크게 적는다', text(anon), '이름을 남기지 않습니다');
-  has('관리자도 알 수 없다고 말한다', text(anon), '관리자도 알 수 없습니다');
+  has('이름을 남기지 않는다고 크게 적는다', text(anon), t.win.I18N.t('report.anon', 'km'));
+  has('관리자도 알 수 없다고 말한다', text(anon), t.win.I18N.t('report.anonBody2', 'km'));
   ok('안내를 소리로도 들을 수 있다', !!anon.querySelector('.btn-audio'));
 
   // 그림으로 고른다
@@ -145,7 +145,7 @@ function open(page, opts = {}) {
   eq('접수 화면이 뜬다', t.$('view-done').hidden, false);
   eq('신고 폼은 숨는다', t.$('view-form').hidden, true);
   eq('접수 번호를 보여 준다', text(t.$('ticket')), made.ticket);
-  has('번호에 누구인지가 없다고 말한다', text(t.$('view-done')), '누구인지가 들어 있지 않습니다');
+  has('번호에 누구인지가 없다고 말한다', text(t.$('view-done')), t.win.I18N.t('report.ticketWhy', 'km'));
   ok('접수 안내를 소리로 들을 수 있다', !!t.$('done-listen').querySelector('.btn-audio'));
 
   // 목록에 뜨고, 왜 "내 신고" 를 못 보는지 설명한다
@@ -252,7 +252,7 @@ function open(page, opts = {}) {
   // 받은 교육
   const rows = [...t.$('history-list').querySelectorAll('.course-card')];
   eq('받은 교육 1건', rows.length, 1);
-  has('완료로 보인다', text(rows[0]), '완료');
+  has('완료로 보인다', text(rows[0]), t.win.I18N.t('state.done', 'km'));
   has('점수도 보인다', text(rows[0]), '100점');
 
   /* --- 통과하지 못한 것도 그대로 보이고, 다시 할 길을 준다 --- */
@@ -266,14 +266,14 @@ function open(page, opts = {}) {
     },
   });
   const row2 = t2.$('history-list').querySelector('.course-card');
-  has('★ 통과하지 못한 것도 숨기지 않는다', text(row2), '다시 해야 합니다');
+  has('★ 통과하지 못한 것도 숨기지 않는다', text(row2), t2.win.I18N.t('state.retry', 'km'));
   has('점수도 그대로', text(row2), '33점');
   has('다시 할 길을 준다', row2.innerHTML, 'learn.html');
 
   // ★ 증빙 — 숨기는 경로가 없다
   const proofCard = t.$('btn-print').closest('.card');
   has('★ 빼고 뽑는 기능이 없다고 적는다',
-    text(proofCard), '못 들은 교육을 빼고 뽑는 기능은 없습니다');
+    text(proofCard), t.win.I18N.t('my.proofWhy', 'km'));
 
   const proofRows = [...t.$('proof-rows').querySelectorAll('tr')];
   eq('증빙에 받은 교육 전부', proofRows.length, 1);
@@ -375,7 +375,7 @@ function open(page, opts = {}) {
   ok('★ 픽토그램이 함께 보인다 (색·글자만으로 구분하지 않는다)',
     items.every((li) => !!li.querySelector('.ico') && li.querySelector('.ico').textContent.trim()),
     all);
-  ok('★ 틀렸다는 것을 배지로도 적는다', all.includes('틀림'), all);
+  ok('★ 틀렸다는 것을 배지로도 적는다', all.includes(t.win.I18N.t('state.wrong', 'km')), all);
 
   has('★ 노동자의 실패가 아니라고 적는다', text(stuck), '교육의 실패로 기록됩니다');
 
@@ -669,7 +669,7 @@ function openPostByTitle(t, title) {
       });
     },
   });
-  has('번역이 없으면 배지를 띄운다', text(t.$('today-note')), '번역 준비 중');
+  has('번역이 없으면 배지를 띄운다', text(t.$('today-note')), t.win.I18N.t('learn.transPending', 'km'));
 
   click(t.win, t.$('today-next'));
   click(t.win, t.$('today-prev'));
@@ -779,7 +779,7 @@ const asAdmin = (opts = {}) =>
 
   const official = items.filter((li) => li.getAttribute('data-official') === 'yes');
   eq('★ 담당자 댓글이 공식 답변으로 표시된다', official.length, 1);
-  has('글자로도 적는다 — 색만으로 구분하지 않는다', text(official[0]), '공식 답변');
+  has('글자로도 적는다 — 색만으로 구분하지 않는다', text(official[0]), t.win.I18N.t('talk.official', 'km'));
   has('누가 한 말인지 드러난다', text(official[0]), '김현수');
   ok('★ 아이디가 아니라 이름으로 보인다',
     !text(official[0]).includes('kim@daesung.co.kr'), text(official[0]));
@@ -912,24 +912,25 @@ const asAdmin = (opts = {}) =>
   const main = text(t.win.document.querySelector('main'));
 
   /* ★ 이 제품이 서 있는 자리 */
-  has('★ 검증을 통과해야 완료라고 적는다', main, '이해도 검증을 통과해야 교육이 완료됩니다');
-  has('★ 수강만으로는 완료가 아니라고 적는다', main, '수강만으로는 완료로 기록되지 않습니다');
+  has('★ 검증을 통과해야 완료라고 적는다', main, t.win.I18N.t('home.mustPass', 'km'));
+  has('★ 수강만으로는 완료가 아니라고 적는다', main, t.win.I18N.t('home.notJustAttend', 'km'));
 
   /* ★ 검수되지 않은 번역을 어떻게 다루는지 노동자 쪽에서도 말한다 */
-  has('★ 검수 안 된 번역은 안전 지시로 쓰지 않는다고 적는다', main, '안전 지시로 쓰지 않습니다');
+  has('★ 검수 안 된 번역은 안전 지시로 쓰지 않는다고 적는다', main, t.win.I18N.t('home.unreviewedNotUsed', 'km'));
 
   /* 오늘의 문구가 검수를 지난 것임을 화면에 적는다 */
-  has('★ 오늘의 문구에 검수 완료를 적는다', text(t.$('today-note')), '검수 완료');
+  has('★ 오늘의 문구에 검수 완료를 적는다', text(t.$('today-note')), t.win.I18N.t('home.reviewedOk', 'km'));
 
   /* 메뉴 배지 — 들어가기 전에 무엇이 기다리는지 */
   const cells = [...t.$('bigmenu').querySelectorAll('.bigmenu-cell')];
   const byHref = (h) => cells.find((c) => c.querySelector('a').getAttribute('href') === h);
   has('★ 신고가 익명이라는 것을 누르기 전에 말한다',
-    text(byHref('report.html')), '익명으로 접수');
+    text(byHref('report.html')), t.win.I18N.t('home.anonAccept', 'km'));
   has('마이페이지에서 증빙을 뽑을 수 있다고 알린다',
-    text(byHref('my.html')), '증빙 출력');
+    text(byHref('my.html')), t.win.I18N.t('home.proofPrint', 'km'));
   ok('★ 남은 교육 수를 배지로 알려 준다',
-    /\d개 중 \d개 남음|모두 마침/.test(text(byHref('learn.html'))),
+    [t.win.I18N.t('home.coursesLeft', 'km'), t.win.I18N.t('state.allDone', 'km')]
+      .some((w) => text(byHref('learn.html')).includes(w)),
     text(byHref('learn.html')));
 
   /* ★ 배지를 붙였으면 소리에도 넣는다.
@@ -939,7 +940,10 @@ const asAdmin = (opts = {}) =>
     before(win) {
       win.speechSynthesis = {
         cancel() {},
-        getVoices() { return [{ lang: 'ko-KR' }]; },
+        /* 이 노동자는 크메르어다. 한국어 음성만 주면 UI.speak 이 (규칙대로)
+           소리를 내지 않아, 여기서 보려던 '배지도 읽어 주는가' 를 못 본다.
+           음성이 없을 때의 동작은 test-voicefallback.js 가 따로 본다. */
+        getVoices() { return [{ lang: 'km-KH' }, { lang: 'ko-KR' }]; },
         addEventListener() {}, removeEventListener() {},
         speak(u) { spoken.push(String(u.text)); if (u.onstart) u.onstart(); if (u.onend) u.onend(); },
       };
@@ -949,7 +953,7 @@ const asAdmin = (opts = {}) =>
   const reportCell = [...t2.$('bigmenu').querySelectorAll('.bigmenu-cell')]
     .find((c) => c.querySelector('a').getAttribute('href') === 'report.html');
   click(t2.win, reportCell.querySelector('.btn-audio'));
-  has('★ 배지 내용도 소리로 읽어 준다', spoken.join(' '), '익명으로 접수');
+  has('★ 배지 내용도 소리로 읽어 준다', spoken.join(' '), t2.win.I18N.t('home.anonAccept', 'km'));
   ok('★ 아이콘은 읽지 않는다',
     !spoken.join(' ').includes('🕶') && !spoken.join(' ').includes('●'),
     JSON.stringify(spoken));
@@ -961,7 +965,7 @@ const asAdmin = (opts = {}) =>
   const learn = [...t.$('bigmenu').querySelectorAll('.bigmenu-cell')]
     .find((c) => c.querySelector('a').getAttribute('href') === 'learn.html');
   ok('★ 받을 교육이 없으면 "0개 남음" 같은 말을 지어내지 않는다',
-    !text(learn).includes('남음'), text(learn));
+    !text(learn).includes(t.win.I18N.t('home.coursesLeft', 'km')), text(learn));
 }
 
 /* =================================================================
@@ -986,7 +990,7 @@ const asWorker11 = (opts = {}) => open('home', Object.assign({ login: 'W-4821-11
   has('담당자가 남긴 말이 보인다', text(item), '환기팬');
 
   /* ★ 한국어라는 것을 적는다 */
-  has('★ 한국어로 남긴 말이라고 적는다', text(item), '한국어');
+  has('★ 한국어로 남긴 말이라고 적는다', text(item), t.win.I18N.t('home.koreanNote', 'id'));
 
   /* 글자를 한 자도 안 읽어도 무슨 일인지 알 수 있어야 한다 */
   ok('★ 소리로 들을 수 있다', !!item.querySelector('.btn-audio'));

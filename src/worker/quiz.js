@@ -225,7 +225,7 @@
     var note = $('prompt-note');
     note.textContent = '';
     if (!Store.qhas(q, me.lang)) {
-      note.appendChild(UI.waitBadge('내 언어 번역 준비 중'));
+      note.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
       note.hidden = false;
     } else {
       note.hidden = true;
@@ -633,7 +633,7 @@
       body.appendChild(UI.el('strong', null, qt(q, 'prompt')));
       body.appendChild(UI.el('p', 'meta', KIND[q.type].label));
       li.appendChild(body);
-      li.appendChild(run.answers[i] === 1 ? UI.okBadge('정답') : UI.stopBadge('오답'));
+      li.appendChild(run.answers[i] === 1 ? UI.okBadge(I18N.t('state.correct')) : UI.stopBadge(I18N.t('state.wrong')));
       review.appendChild(li);
     });
 

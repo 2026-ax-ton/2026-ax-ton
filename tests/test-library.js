@@ -222,7 +222,7 @@ function open(opts = {}) {
      ph-1 을 문구 전체 중지했으므로 3개로 줄어야 한다. */
   const card = learn.win.document.querySelector('#course-list .course-card');
   has('쓸 수 있는 문구가 4개에서 3개로 줄었다', text(card.querySelector('.meta')), '안전 문구 3개');
-  has('몇 개가 빠졌는지 밝힌다', text(card.querySelector('.tags')), '검수 대기 1개 제외');
+  has('몇 개가 빠졌는지 밝힌다', text(card.querySelector('.tags')), learn.win.I18N.t('learn.excluded', 'km') + ' 1');
 
   card.querySelector('.course-open').dispatchEvent(new learn.win.MouseEvent('click', { bubbles: true }));
   has('수강 화면도 3장으로 줄었다', text(learn.$('step-count')), '1 / 3');

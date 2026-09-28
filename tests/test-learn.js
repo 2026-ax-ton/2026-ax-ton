@@ -20,7 +20,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
      쓸 수 있다 — ph-3 은 인도네시아어만 중지됐고 크메르어는 검수 완료다. */
   has('내 언어로 쓸 수 있는 문구 4개', text(cards[0].querySelector('.meta')), '안전 문구 4개');
   // 예시 데이터에서 이 노동자는 c-press 를 이미 통과했다 → 완료로 보이는 것이 정상
-  has('이미 통과한 교육은 완료 배지', text(cards[0].querySelector('.tags')), '완료');
+  has('이미 통과한 교육은 완료 배지', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.done', 'km'));
 
   // 음성 버튼이 카드마다 있다 (60px 원형)
   eq('카드에 음성 버튼', cards[0].querySelectorAll('.btn-audio').length, 1);
@@ -85,7 +85,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
   const cards = doc.querySelectorAll('#course-list .course-card');
   eq('도장 공정에는 교육 1개', cards.length, 1);
   has('도장 부스 교육', text(cards[0].querySelector('strong')), '도장 부스 1 안전교육');
-  has('미통과 상태이므로 검증이 남았다', text(cards[0].querySelector('.tags')), '이해도 검증이 남았습니다');
+  has('미통과 상태이므로 검증이 남았다', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.quizLeft', 'id'));
 
   cards[0].querySelector('.course-open').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
   has('문구 2개', text(t.$('step-count')), '1 / 2');
@@ -98,7 +98,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
   has('번역이 없으면 한국어 원문을 띄운다',
     text(t.$('phrase-card').querySelector('.translated')), '비상정지 버튼');
   has('번역이 없다는 사실을 화면에 남긴다',
-    text(t.$('phrase-card')), '내 언어 번역 준비 중');
+    text(t.$('phrase-card')), t.win.I18N.t('learn.transPending', 'id'));
 }
 
 /* =================================================================
@@ -119,7 +119,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
   const cards = doc.querySelectorAll('#course-list .course-card');
   has('쓸 수 있는 문구가 0개', text(cards[0].querySelector('.meta')), '안전 문구 0개');
-  has('몇 개가 빠졌는지 밝힌다', text(cards[0].querySelector('.tags')), '검수 대기 4개 제외');
+  has('몇 개가 빠졌는지 밝힌다', text(cards[0].querySelector('.tags')), t.win.I18N.t('learn.excluded', 'km') + ' 4');
 
   cards[0].querySelector('.course-open').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
   eq('수강 화면으로 넘어가지 않는다', t.$('view-step').hidden, true);

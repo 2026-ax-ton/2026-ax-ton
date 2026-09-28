@@ -37,14 +37,14 @@
   <div id="view-list">
 
     <div class="pagehead">
-      <h1>안전교육 수강</h1>
-      <p class="lead">내 공정의 설비 교육을, 내 언어의 음성과 그림으로 듣습니다.</p>
+      <h1 data-i18n="learn.title">안전교육 수강</h1>
+      <p class="lead" data-i18n="learn.lead">내 공정의 설비 교육을, 내 언어의 음성과 그림으로 듣습니다.</p>
     </div>
 
     <section class="card" aria-labelledby="t-courses">
       <div class="sec-head">
         <div>
-          <h2 id="t-courses">내 교육</h2>
+          <h2 id="t-courses" data-i18n="home.myCourses">내 교육</h2>
           <p class="why" id="courses-why"></p>
         </div>
       </div>
@@ -68,8 +68,8 @@
     <div class="phrase-card" id="phrase-card"></div>
 
     <div class="step-nav">
-      <button class="btn btn-quiet" type="button" id="btn-prev">◀ 이전</button>
-      <button class="btn btn-primary wide" type="button" id="btn-next">다음 ▶</button>
+      <button class="btn btn-quiet" type="button" id="btn-prev"><span aria-hidden="true">◀ </span><span data-i18n="action.prev">이전</span></button>
+      <button class="btn btn-primary wide" type="button" id="btn-next"><span data-i18n="action.next">다음</span><span aria-hidden="true"> ▶</span></button>
     </div>
 
     <div class="big-actions">
@@ -87,10 +87,10 @@
   <div id="view-nophrase" class="learn-stage" hidden>
     <section class="card">
       <p class="pict" style="font-size:64px;text-align:center;margin:0" aria-hidden="true">🚧</p>
-      <h2 style="text-align:center">아직 들을 수 없습니다</h2>
+      <h2 style="text-align:center" data-i18n="learn.notYet">아직 들을 수 없습니다</h2>
       <p class="muted" id="nophrase-why"></p>
       <div class="big-actions">
-        <button class="btn btn-primary" type="button" id="btn-nophrase-back">교육 목록으로 돌아가기</button>
+        <button class="btn btn-primary" type="button" id="btn-nophrase-back" data-i18n="learn.backToList">교육 목록으로 돌아가기</button>
       </div>
     </section>
   </div>

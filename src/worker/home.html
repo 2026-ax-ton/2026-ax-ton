@@ -72,14 +72,14 @@
          들었다는 것만으로 교육을 마쳤다고 기록하지 않는다.
          빼면 이 화면은 그냥 진도표가 된다. -->
     <p class="muted policy-note">
-      <b>이해도 검증을 통과해야 교육이 완료됩니다.</b>
-      수강만으로는 완료로 기록되지 않습니다.
+      <b data-i18n="home.mustPass">이해도 검증을 통과해야 교육이 완료됩니다.</b>
+      <span data-i18n="home.notJustAttend">수강만으로는 완료로 기록되지 않습니다.</span>
     </p>
 
     <ol class="stage-track" id="stage-track">
-      <li data-step="learn"><span class="ico" aria-hidden="true">🎧</span><span class="name">듣기</span></li>
-      <li data-step="quiz"><span class="ico" aria-hidden="true">👆</span><span class="name">확인</span></li>
-      <li data-step="done"><span class="ico" aria-hidden="true">✅</span><span class="name">완료</span></li>
+      <li data-step="learn"><span class="ico" aria-hidden="true">🎧</span><span class="name" data-i18n="home.stepLearn">듣기</span></li>
+      <li data-step="quiz"><span class="ico" aria-hidden="true">👆</span><span class="name" data-i18n="home.stepQuiz">확인</span></li>
+      <li data-step="done"><span class="ico" aria-hidden="true">✅</span><span class="name" data-i18n="state.done">완료</span></li>
     </ol>
 
     <p class="stage-say" id="stage-say"></p>
@@ -108,7 +108,8 @@
          검수를 안 지난 말이 그냥 섞여 있는 것이 아니라 따로 표시되고
          안전 지시로 쓰이지 않는다는 것을, 노동자 쪽 화면에서도 말한다. -->
     <p class="muted">
-      검수되지 않은 번역은 화면에 <b>따로 표시</b>되며 <b>안전 지시로 쓰지 않습니다.</b>
+      <span data-i18n="home.unreviewedMarked">검수되지 않은 번역은 화면에 따로 표시됩니다.</span>
+      <b data-i18n="home.unreviewedNotUsed">안전 지시로 쓰지 않습니다.</b>
     </p>
     <div class="listen" id="badtrans-listen"></div>
   </section>

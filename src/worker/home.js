@@ -194,8 +194,8 @@
          문구는 전부 검수를 지난 것이다. 그 사실이 화면에 보여야
          노동자가 이 지시를 믿을 근거가 생긴다 — 검수를 지나지 않은 말은
          아예 안 나온다는 것이 이 제품의 약속이다. */
-    note.appendChild(UI.okBadge('검수 완료'));
-    if (!t && needsTranslation()) note.appendChild(UI.waitBadge('내 언어 번역 준비 중'));
+    note.appendChild(UI.okBadge(I18N.t('home.reviewedOk')));
+    if (!t && needsTranslation()) note.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
 
     var listen = $('today-listen');
     listen.textContent = '';
@@ -257,7 +257,7 @@
         item.appendChild(UI.el('p', 'order-note', x.order.note));
         // ★ 못 읽는 말을 못 읽는다고 적는다
         var mark = UI.el('p', 'order-lang');
-        mark.appendChild(UI.waitBadge('담당자가 한국어로 남긴 말'));
+        mark.appendChild(UI.waitBadge(I18N.t('home.koreanNote')));
         item.appendChild(mark);
       }
 
@@ -345,10 +345,10 @@
      ----------------------------------------------------------------- */
 
   var MENU = [
-    { icon: '🎧', label: '안전교육 듣기', href: 'learn.html', say: '안전교육을 듣습니다' },
-    { icon: '📷', label: '위험한 곳 알리기', href: 'report.html', say: '위험한 곳을 알립니다. 이름은 남지 않습니다' },
-    { icon: '💬', label: '물어보기', href: 'talk.html', say: '궁금한 것을 물어봅니다' },
-    { icon: '🙋', label: '내 기록', href: 'my.html', say: '내 교육 기록을 봅니다' }
+    { icon: '🎧', key: 'home.menuLearn', href: 'learn.html', sayKey: 'speech.menuLearn' },
+    { icon: '📷', key: 'report.title',   href: 'report.html', sayKey: 'speech.menuReport' },
+    { icon: '💬', key: 'talk.title',     href: 'talk.html',   sayKey: 'speech.menuTalk' },
+    { icon: '🙋', key: 'my.title',       href: 'my.html',     sayKey: 'speech.menuMy' }
   ];
 
   /* 메뉴 칸에 붙는 배지 (B4 — 목업에 있던 것).
@@ -368,12 +368,12 @@
       if (!courses.length) return null;
       var left = courses.filter(function (c) { return stateOf(c.id) !== 'done'; }).length;
       return left
-        ? UI.waitBadge(courses.length + '개 중 ' + left + '개 남음')
-        : UI.okBadge('모두 마침');
+        ? UI.waitBadge(I18N.t('home.coursesLeft') + ' ' + left + '/' + courses.length)
+        : UI.okBadge(I18N.t('state.allDone'));
     }
-    if (item.href === 'report.html') return UI.neutralBadge('익명으로 접수');
-    if (item.href === 'talk.html') return UI.neutralBadge('공식 답변 표시');
-    if (item.href === 'my.html') return UI.neutralBadge('증빙 출력');
+    if (item.href === 'report.html') return UI.neutralBadge(I18N.t('home.anonAccept'));
+    if (item.href === 'talk.html') return UI.neutralBadge(I18N.t('home.officialMark'));
+    if (item.href === 'my.html') return UI.neutralBadge(I18N.t('home.proofPrint'));
     return null;
   }
 
@@ -387,7 +387,7 @@
       var a = UI.el('a', 'bigmenu-link');
       a.href = item.href;
       a.appendChild(UI.iconBox(item.icon, 'ico'));
-      a.appendChild(UI.el('span', 'name', item.label));
+      a.appendChild(UI.el('span', 'name', I18N.t(item.key)));
 
       var badge = menuBadge(item);
       if (badge) a.appendChild(badge);
@@ -397,11 +397,15 @@
       /* 글자를 못 읽어도 무엇인지 알 수 있게.
          ★ 배지도 함께 읽어 준다. 배지만 붙이고 소리에서 빼면
            글을 못 읽는 사람에게는 그 정보가 아예 없는 것과 같다. */
-      var say = item.say +
-        (badge ? '. ' + badge.textContent.replace(/^[^가-힣\d]+/, '') : '');
+      var tail = badge ? '. ' + UI.badgeText(badge) : '';
+      var lang = I18N.lang();
       cell.appendChild(UI.audioButton(function () {
-        return { text: say, lang: 'ko' };
-      }, item.label + ' 설명 듣기'));
+        return {
+          text: I18N.t(item.sayKey, lang) + tail,
+          lang: lang,
+          ko: I18N.t(item.sayKey, 'ko') + tail
+        };
+      }, I18N.t(item.key) + ' ' + I18N.t('action.listenGuide')));
 
       box.appendChild(cell);
     });

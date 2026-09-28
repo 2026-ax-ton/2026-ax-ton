@@ -131,8 +131,8 @@ function openQuiz(opts) {
     text(t.$('result-fault')), '노동자의 실패가 아니라 교육의 실패로 기록됩니다');
 
   eq('문항별 복기 3줄', t.$('result-review').children.length, 3);
-  has('첫 문항은 오답', text(t.$('result-review').children[0]), '오답');
-  has('둘째 문항은 정답', text(t.$('result-review').children[1]), '정답');
+  has('첫 문항은 오답', text(t.$('result-review').children[0]), t.win.I18N.t('state.wrong', 'km'));
+  has('둘째 문항은 정답', text(t.$('result-review').children[1]), t.win.I18N.t('state.correct', 'km'));
 
   has('교육을 다시 들으러 갈 수 있다', t.$('result-actions').innerHTML, 'learn.html');
 
@@ -346,7 +346,7 @@ function openQuiz(opts) {
   // 문항 3 (match) — 번역을 일부러 넣지 않은 문항
   click(t.win, t.$('btn-next'));
   eq('★ 번역 없는 문항은 배지를 띄운다', t.$('prompt-note').hidden, false);
-  has('배지에 이유가 글자로 적힌다', text(t.$('prompt-note')), '내 언어 번역 준비 중');
+  has('배지에 이유가 글자로 적힌다', text(t.$('prompt-note')), t.win.I18N.t('learn.transPending', 'km'));
   has('★ 번역이 없으면 한국어를 띄운다 — 조용히 숨기지 않는다',
     text(t.$('quiz-prompt')), '작업에 맞는 보호구를 연결하세요');
 }
