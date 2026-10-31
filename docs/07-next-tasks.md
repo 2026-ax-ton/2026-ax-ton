@@ -374,7 +374,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: C06 D-005·D-023, A04 §7
   - **됐는지**: 미리보기 주소에서 화면이 열리고 `/docs/…` `/tests/…` `/CLAUDE.md` 는 404. 5개 언어 결과를 D07 STC-E16-008 에 기록
 
-- [ ] **T5. 에이전트 루프 + 경계 테스트** — `TK-2-06` `TK-2-07`
+- [x] **T5. 에이전트 루프 + 경계 테스트** — `TK-2-06` `TK-2-07` ✅ 2026-10-31
 
   - **어디**: 새 파일 `agent.js` (`src/assets` 아래, IIFE) · `tests/test-agent-boundary.js` · `admin/library.html` 에 스크립트 연결 · `src/sw.js` 미리 담기 목록
   - **무엇**: 언어별 상태 기계(번역→역번역→`Review.negationFlipped`·`newWordCount` 대조→재시도 2회→올림), 25초 시간 초과, 응답 모양 검사, 맨 위 상수 `API_BASE`·`MAX_RETRY`

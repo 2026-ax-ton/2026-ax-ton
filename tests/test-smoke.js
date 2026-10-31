@@ -265,14 +265,43 @@ PAGES.forEach(([html, js, login]) => {
        이것을 막으면 오프라인 캐시가 성립하지 않는다.
        예외를 열었으니 아래에서 "같은 오리진만 가로채는지" 를 따로 본다 —
        통째로 빼면 나중에 sw.js 에 CDN 호출을 넣어도 통과한다. */
-    const netRule = rel === 'sw.js'
+    /* ★ assets/agent.js 가 두 번째 fetch 예외다 (2026-10-31, T5 · C06 D-025).
+       운영자 화면에서 **같은 출처 `/api`** 를 부른다 — 제3자 요청이 아니다.
+       예외를 열었으니 아래에서 따로 본다: 부르는 주소가 `/api` 와 우리 배포
+       주소뿐인지, 그리고 **노동자 화면에는 실리지 않는지.**
+       통째로 빼면 나중에 CDN 호출을 넣어도 통과한다. */
+    const netRule = (rel === 'sw.js' || rel === 'assets/agent.js')
       ? /\b(XMLHttpRequest|WebSocket|EventSource)\s*\(/
       : /\b(fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/;
     if (netRule.test(body)) offenders.push(rel + ' — 네트워크 호출');
     if (/^\s*(import|export)\s/m.test(body) && f.endsWith('.js')) offenders.push(rel + ' — ES 모듈');
   });
 
-  ok('src 전체에 외부 요청이 0건이다', offenders.length === 0, offenders.join(' | '));
+  ok('src 전체에 제3자 요청이 0건이다', offenders.length === 0, offenders.join(' | '));
+
+  /* ── 예외를 연 만큼 좁게 본다 ──────────────────────────────────── */
+
+  /* 1) 에이전트가 쓰는 주소는 같은 출처 /api 와 우리 배포 주소뿐이다 */
+  {
+    const agent = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
+    const foreign = (agent.match(/https?:\/\/[^\s'"`)]+/g) || [])
+      .filter((u) => u.indexOf('https://2026-ax-ton.vercel.app') !== 0);
+    eq('★ 에이전트가 쓰는 주소는 우리 배포 주소뿐이다', foreign.join(', '), '');
+    ok('★ 에이전트는 같은 출처 /api 를 부른다',
+      /['"]\/api\/translate['"]/.test(agent) && /['"]\/api\/backtranslate['"]/.test(agent));
+    ok('★ 공급사(Gemini)를 브라우저에서 직접 부르지 않는다 — 키가 새면 끝이다',
+      !/googleapis|generativelanguage/.test(agent));
+  }
+
+  /* 2) ★★ 노동자 화면은 여전히 요청 0건이고 에이전트를 싣지 않는다 */
+  ['home', 'learn', 'quiz', 'report', 'talk', 'my'].forEach((name) => {
+    const html = fs.readFileSync(path.join(SRC, 'worker/' + name + '.html'), 'utf8');
+    const js = fs.readFileSync(path.join(SRC, 'worker/' + name + '.js'), 'utf8');
+    ok('노동자 ' + name + ': 에이전트를 싣지 않는다 (운영자 전용이다)',
+      html.indexOf('agent.js') === -1);
+    ok('노동자 ' + name + ': 네트워크 호출이 0건이다',
+      !/\b(fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/.test(js));
+  });
 
   /* sw.js 는 fetch 예외를 받았다. 그 대가로 여기서 더 조인다. */
   {
