@@ -70,14 +70,36 @@ export async function sweepSessions(sql) {
    ★ 왜 이유를 밖으로 내지 않나 — 질의문·표 이름·연결 문자열이 섞여 나올 수 있다.
      우리가 지은 한 마디만 내보내고, 자세한 것은 함수 로그에만 남긴다 (A02 §14.6). */
 
+/** 연결 문자열에서 **호스트만** 꺼낸다. 사용자 이름·비밀번호는 버린다. */
+export function dbHost() {
+  try {
+    return new URL(process.env.DATABASE_URL || '').host || '';
+  } catch (e) {
+    return '';
+  }
+}
+
 export function withDb(route, handler) {
   return async function (request) {
     try {
       return await handler(request);
     } catch (e) {
-      /* 메시지는 로그에만. 키·연결 문자열이 섞일 수 있어 본문에는 넣지 않는다 */
-      log({ route, status: 503, err: 'db', why: (e && e.message ? String(e.message) : '').slice(0, 120) });
-      return fail(503, 'db', 'DB에 닿지 못했습니다. 잠시 뒤 다시 시도해 주세요.');
+      const why = (e && e.message ? String(e.message) : '').slice(0, 120);
+      /* 자세한 것은 로그에만. 키·연결 문자열이 섞일 수 있어 본문에는 넣지 않는다 */
+      log({ route, status: 503, err: 'db', why });
+
+      /* ★ 운영이 아닐 때만 **어느 DB에 붙었는지**(호스트)를 한 줄 덧붙인다.
+         2026-11-01 에 "미리보기가 보는 DB 가 내가 시드한 DB 와 다르다" 를
+         알아내는 데 왕복을 여러 번 했다.
+
+         ★ 호스트만 넣는다 — 사용자 이름·비밀번호는 물론이고 **DB 오류 원문도
+           넣지 않는다.** 원문에는 표 이름·질의문이 섞여 나온다 (검사가 잡았다).
+           그건 로그에만 남는다. 운영에서는 이 줄 자체가 나오지 않는다. */
+      const hint = process.env.VERCEL_ENV === 'production'
+        ? ''
+        : ' [미리보기 진단 — 붙은 곳: ' + (dbHost() || '(DATABASE_URL 없음)') + ']';
+
+      return fail(503, 'db', 'DB에 닿지 못했습니다. 잠시 뒤 다시 시도해 주세요.' + hint);
     }
   };
 }

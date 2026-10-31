@@ -490,6 +490,11 @@ let workerToken = '';
   ok('★ 표 이름·질의문을 밖으로 내지 않는다',
     JSON.stringify(b).indexOf('accounts') === -1 && JSON.stringify(b).indexOf('relation') === -1);
   ok('자세한 것은 로그에만 남는다', logs.join(' ').indexOf('relation') !== -1);
+  /* 미리보기에서는 **어느 DB에 붙었는지**만 한 줄 덧붙인다 (2026-11-01 추가) */
+  ok('★ 미리보기 진단에 사용자 이름·비밀번호가 없다',
+    JSON.stringify(b).indexOf('postgresql://') === -1 && JSON.stringify(b).indexOf('@') === -1);
+  ok('붙은 곳(호스트)은 알려 준다 — 그래야 어느 DB 인지 안다',
+    b.message.indexOf('붙은 곳') !== -1, b.message);
 
   /* 로그아웃은 DB가 아파도 화면이 토큰을 버릴 수 있어야 한다 — 우리 모양으로 답한다 */
   const out = await logout.handle(post({}, { token: 'x'.repeat(64) }));
