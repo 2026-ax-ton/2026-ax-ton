@@ -12,6 +12,22 @@
 import { bearer, tokenHash } from './_auth.mjs';
 import { guardBasic, parseJson, fail, log } from './_shared.mjs';
 
+/* ── 어느 연결 문자열을 쓰나 ────────────────────────────────────────
+
+   ★ `SAFETY_DATABASE_URL` 이 있으면 그것을 먼저 쓴다. 없으면 `DATABASE_URL`.
+
+     Neon 의 Vercel 연동은 `DATABASE_URL` 을 **자기가 만들고 관리**해서
+     Vercel 화면에서 고칠 수 없고, **git 브랜치마다 다른 DB** 를 내려 준다.
+     그래서 미리보기를 열 때마다 빈 DB 를 보게 된다 (2026-11-01 에 겪음).
+
+     연동과 싸우는 대신 **우리 이름의 변수 하나**를 더 둔다. 이것만 Preview 에
+     넣어 두면 브랜치를 새로 파도 같은 미리보기 DB 를 본다.
+     운영에는 넣지 않는다 — 운영은 연동이 주는 `DATABASE_URL` 을 그대로 쓴다. */
+
+export function databaseUrl() {
+  return process.env.SAFETY_DATABASE_URL || process.env.DATABASE_URL || '';
+}
+
 let testSql = null;
 let cached = null;
 
@@ -25,7 +41,7 @@ export function setSqlForTest(fn) {
 export async function getSql() {
   if (testSql) return testSql;
   if (cached) return cached;
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
   if (!url) return null;
   const { neon } = await import('@neondatabase/serverless');
   cached = neon(url);
@@ -73,7 +89,7 @@ export async function sweepSessions(sql) {
 /** 연결 문자열에서 **호스트만** 꺼낸다. 사용자 이름·비밀번호는 버린다. */
 export function dbHost() {
   try {
-    return new URL(process.env.DATABASE_URL || '').host || '';
+    return new URL(databaseUrl()).host || '';
   } catch (e) {
     return '';
   }

@@ -458,10 +458,22 @@ let workerToken = '';
 }
 
 {
+  /* ★ 우리 이름의 변수를 먼저 본다 (Neon 연동이 DATABASE_URL 을 가져가서) */
+  db.setSqlForTest(null);
+  process.env.SAFETY_DATABASE_URL = 'postgresql://ours/ours';
+  process.env.DATABASE_URL = 'postgresql://theirs/theirs';
+  eq('★ SAFETY_DATABASE_URL 이 있으면 그것을 쓴다', db.dbHost(), 'ours');
+  delete process.env.SAFETY_DATABASE_URL;
+  eq('없으면 DATABASE_URL 로 내려간다', db.dbHost(), 'theirs');
+  db.setSqlForTest(fake.sql);
+}
+
+{
   /* DB 설정이 없으면 "사람이 틀렸다(401)" 가 아니라 "서버 설정(500)" 이다 */
   db.setSqlForTest(null);
   const keep = process.env.DATABASE_URL;
   delete process.env.DATABASE_URL;
+  delete process.env.SAFETY_DATABASE_URL;
   const res = await login.handle(post({ userId: 'W-4821-07', pw: '1234' }));
   const b = await body(res);
   eq('★ DB 주소가 없으면 500 (401 로 뭉개지 않는다)', res.status, 500);

@@ -166,10 +166,13 @@ async function main() {
     process.exit(1);
   }
 
-  const url = env.DATABASE_URL;
+  /* 서버(`api/_db.mjs`)와 **같은 순서**로 본다 — 안 그러면 내가 시드한 DB 와
+     서버가 쓰는 DB 가 또 갈린다 (2026-11-01 에 세 번 갈렸다). */
+  const url = env.SAFETY_DATABASE_URL || env.DATABASE_URL;
   if (!url) {
-    console.error('DATABASE_URL 이 없습니다. 저장소 루트 .env.local 에 Neon **미리보기 브랜치**의');
-    console.error('연결 문자열을 DATABASE_URL= 로 적어 주세요 (값은 대화·명령줄에 남기지 않습니다).');
+    console.error('연결 문자열이 없습니다. 저장소 루트 .env.local 에 Neon **미리보기 브랜치**의');
+    console.error('연결 문자열을 SAFETY_DATABASE_URL= (또는 DATABASE_URL=) 로 적어 주세요.');
+    console.error('(값은 대화·명령줄에 남기지 않습니다.)');
     process.exit(1);
   }
 
