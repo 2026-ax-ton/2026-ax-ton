@@ -24,9 +24,17 @@
 - `base + 'content.html'` 같은 문자열 이어붙이기를 그대로 두고 `SRC` 만 갈아 끼웠다.
   Node 는 `C:\…\src/admin/` 처럼 구분자가 섞여도 읽는다 — 리눅스 CI 에서도 같다
 
+- 이어서 **CI** 를 붙였다 (T2 · TK-2-02). `.github/workflows/test.yml` — PR 마다
+  우분투에서 전체 검사를 돌린다. 저장소 안에서 `npm install` 을 하지 않으려고
+  jsdom 은 `$RUNNER_TEMP/jsdom-box` 에 버전을 박아 깔고 `NODE_PATH` 로 가리켰다.
+  **PR #2 에서 16묶음 1,619건이 우분투에서 그대로 통과했다** — T1 이 됐다는
+  제일 확실한 증거가 여기서 나왔다 (내 PC 가 아닌 곳에서 돌았다)
+- 검사를 하나 일부러 깨 보고 `run-all.js` 가 종료 코드 1 을 내는 것까지 확인했다
+  (PR 을 더럽히지 않으려고 로컬에서 했다)
+
 **다음에 할 것**
 
-- T2. CI — `.github/workflows/test.yml` 로 PR 마다 전체 테스트 (`TK-2-02`)
+- T3. `/api/translate` · `/api/backtranslate` + `tests/test-api.mjs` (`TK-2-03`·`TK-2-04`)
 
 ---
 

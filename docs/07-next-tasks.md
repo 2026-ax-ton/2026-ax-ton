@@ -353,7 +353,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: C05 IMP-1, D07 §4.2
   - **됐는지**: 저장소를 다른 경로에 복사해도 `tests/run-all.js` 가 16묶음 1,619건 그대로 통과
 
-- [ ] **T2. CI — PR마다 전체 테스트** — `TK-2-02`
+- [x] **T2. CI — PR마다 전체 테스트** — `TK-2-02` ✅ 2026-10-31
 
   - **어디**: 새 파일 `.github/workflows/test.yml`
   - **무엇**: Node 22, 저장소 밖 임시 폴더에 jsdom(버전 고정) 설치 → `NODE_PATH` 로 `node tests/run-all.js`. PR·`develop` push 때 실행
