@@ -32,7 +32,7 @@ const CORS_NULL = {
   'Access-Control-Allow-Origin': 'null',
   // Authorization — 로그인 토큰 (T11). file:// 시연에서도 로그인이 되어야 한다
   'Access-Control-Allow-Headers': 'Content-Type, X-Agent-Pass, Authorization',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
   'Vary': 'Origin',
 };
 
@@ -113,6 +113,8 @@ export function allowedOrigins() {
 export async function guardBasic(request, opts) {
   const beforeBody = opts && opts.beforeBody;
   const maxBytes = (opts && opts.maxBytes) || MAX_BODY_BYTES;
+  /* 받을 메서드. 기본은 POST 하나다. 동기화(T12)는 GET·PUT 도 받는다 */
+  const methods = (opts && opts.methods) || ['POST'];
   const origin = request.headers.get('origin');
   const allowFile = process.env.ALLOW_FILE_ORIGIN === '1';
 
@@ -128,8 +130,8 @@ export async function guardBasic(request, opts) {
     return { done: new Response(null, { status: 204, headers: { ...CORS_NULL, 'Cache-Control': 'no-store' } }) };
   }
 
-  if (request.method !== 'POST') {
-    return { done: fail(405, 'method', 'POST 만 받습니다.', cors) };
+  if (methods.indexOf(request.method) === -1) {
+    return { done: fail(405, 'method', methods.join('·') + ' 만 받습니다.', cors) };
   }
 
   if (!sameOrigin && !nullOrigin) {
@@ -148,7 +150,8 @@ export async function guardBasic(request, opts) {
     if (stop) return { done: stop };
   }
 
-  const text = await request.text();
+  /* GET 에는 본문이 없다 */
+  const text = request.method === 'GET' ? '' : await request.text();
   if (byteLength(text) > maxBytes) {
     return { done: fail(413, 'too_large', '보낸 내용이 너무 깁니다.', cors) };
   }

@@ -773,7 +773,49 @@ var UI = (function () {
   registerSW();
   renderOffline();
 
+  /* ── 서버와 끊겼을 때 (T12 · A02 §14.5) ──────────────────────────────
+
+     ★ 화면을 비우지 않는다. 캐시로 계속 그리고 **위에 한 줄만** 띄운다.
+       "저장이 안 됐다" 가 아니라 **"이 기기에 저장 중"** 이라고 적는다 —
+       실제로 잃은 것이 없기 때문이다. 다시 연결되면 쌓인 것이 올라간다.
+     ★ 색만으로 알리지 않는다 (C05 T-7). 아이콘 + 글자 + 색 셋이다. */
+
+  function syncBadge() {
+    if (typeof Store === 'undefined' || !Store.sync || !Store.sync.on()) return null;
+
+    var bar = el('p', 'syncbar');
+    bar.hidden = true;
+    bar.setAttribute('role', 'status');
+    bar.setAttribute('aria-live', 'polite');
+
+    var icon = iconBox('wifi-off', 'ico');
+    bar.appendChild(icon);
+    var text = el('span', null, '');
+    bar.appendChild(text);
+
+    /* ★ 노동자 화면에서는 **그 사람의 언어**로 나간다 (C05 T-10).
+       i18n.js 가 안 실린 화면(관리자)에서는 한국어로 자세히 적는다. */
+    function paint() {
+      var off = Store.sync.state() === 'offline';
+      var waiting = Store.sync.pending().length;
+      bar.hidden = !off;
+      if (!off) { text.textContent = ''; return; }
+
+      if (typeof I18N !== 'undefined') {
+        text.textContent = I18N.t('sync.offline');
+        return;
+      }
+      text.textContent = '서버와 연결이 끊겨 이 기기에 저장 중입니다'
+        + (waiting ? ' (보낼 것 ' + waiting + '개)' : '') + '. 다시 연결되면 올라갑니다.';
+    }
+
+    Store.sync.onChange(paint);
+    paint();
+    return bar;
+  }
+
   return {
+    syncBadge: syncBadge,
     $: $, $$: $$, el: el,
     badge: badge, badgeText: badgeText, okBadge: okBadge, waitBadge: waitBadge,
     stopBadge: stopBadge, neutralBadge: neutralBadge, phraseBadge: phraseBadge,

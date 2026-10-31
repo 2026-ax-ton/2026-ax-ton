@@ -69,6 +69,14 @@ var I18N = (function () {
     'state.wrong':      { ko: '틀림',                   km: 'ខុស',         id: 'Salah',         vi: 'Sai',        ne: 'गलत',          th: 'ผิด' },
     'state.checking':   { ko: '확인 중',                km: 'កំពុងពិនិត្យ',  id: 'Diperiksa',     vi: 'Đang xử lý', ne: 'जाँच हुँदै',    th: 'กำลังตรวจสอบ' },
     'state.handled':    { ko: '조치됨',                 km: 'បានដោះស្រាយ', id: 'Ditangani',     vi: 'Đã xử lý',   ne: 'समाधान भयो',   th: 'ดำเนินการแล้ว' },
+    /* 서버와 끊겼을 때 (T12). 노동자 화면에도 뜨므로 6개 언어를 다 채운다 (C05 T-10).
+       ★ "저장이 안 됐다" 가 아니라 "이 기기에 저장 중" 이다 — 실제로 잃은 것이 없다. */
+    'sync.offline':     { ko: '연결이 끊겨 이 휴대폰에 저장하고 있습니다. 다시 연결되면 올라갑니다.',
+                          km: 'ការតភ្ជាប់ផ្តាច់។ កំពុងរក្សាទុកក្នុងទូរសព្ទនេះ។ នឹងផ្ញើពេលតភ្ជាប់ឡើងវិញ។',
+                          id: 'Koneksi terputus. Disimpan di ponsel ini dan akan dikirim saat tersambung lagi.',
+                          vi: 'Mất kết nối. Đang lưu trên điện thoại này và sẽ gửi khi kết nối lại.',
+                          ne: 'जडान टुट्यो। यो फोनमा सुरक्षित गरिँदैछ। फेरि जोडिएपछि पठाइनेछ।',
+                          th: 'การเชื่อมต่อหลุด กำลังบันทึกในเครื่องนี้ และจะส่งเมื่อเชื่อมต่อได้อีกครั้ง' },
     'state.urgent':     { ko: '긴급',                   km: 'បន្ទាន់',      id: 'Mendesak',      vi: 'Khẩn cấp',   ne: 'अत्यावश्यक',   th: 'ด่วน' },
 
     /* 홈 */

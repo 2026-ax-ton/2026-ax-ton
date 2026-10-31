@@ -267,9 +267,12 @@ const USER = {
      8. 노동자 화면은 서버를 부를 수단조차 없다
      ================================================================= */
   {
+    /* 2026-11-01 개정 (C06 D-032) — 노동자 화면도 우리 서버와 주고받는다.
+       로그인에 대해 남는 보증: **로그인 화면 말고는 로그인 API 를 부르지 않는다** */
     ['home', 'learn', 'quiz', 'report', 'talk', 'my'].forEach((name) => {
-      const html = fs.readFileSync(path.join(SRC, 'worker/' + name + '.html'), 'utf8');
-      ok('노동자 ' + name + ': net.js 를 싣지 않는다', html.indexOf('net.js') === -1);
+      const js = fs.readFileSync(path.join(SRC, 'worker/' + name + '.js'), 'utf8');
+      ok('노동자 ' + name + ': 로그인 API 를 직접 부르지 않는다', js.indexOf('/api/auth/') === -1);
+      ok('노동자 ' + name + ': 화면 코드가 직접 부르지 않는다', !/\bfetch\s*\(/.test(js));
     });
 
     const auth = fs.readFileSync(path.join(SRC, 'assets/auth.js'), 'utf8');

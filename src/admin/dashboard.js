@@ -662,5 +662,21 @@
         e.key === Store.orders.KEY) render();
   });
 
+  /* ── 서버 모드 — 20초마다 당겨온다 (T12 · A02 §14.5) ─────────────────
+
+     ★ 담당자는 이 화면을 띄워 두고 현장을 본다. 노동자 폰에서 푼 결과가
+       **20초 안에** 여기에 떠야 "지금 누가 안 들었나" 가 쓸모 있어진다.
+     ★ 끊기면 화면을 비우지 않는다. 캐시로 계속 그리고 위에 배지만 띄운다. */
+
+  if (Store.sync.on()) {
+    var bar = UI.syncBadge();
+    var main = document.querySelector('main');
+    if (bar && main) main.insertBefore(bar, main.firstChild);
+
+    Store.sync.onChange(function () { render(); });
+    Store.sync.pull();                 // 열자마자 한 번
+    Store.sync.every(20000);           // 그 뒤로는 20초마다
+  }
+
   render();
 })();

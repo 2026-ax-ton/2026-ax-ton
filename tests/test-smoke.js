@@ -302,17 +302,29 @@ PAGES.forEach(([html, js, login]) => {
       !/googleapis|generativelanguage/.test(agent));
   }
 
-  /* 2) ★★ 노동자 화면은 여전히 요청 0건이고 에이전트를 싣지 않는다 */
+  /* 2) ★★ 노동자 화면 — 2026-11-01 개정 (C06 D-032)
+
+     노동자 화면도 **우리 서버**와는 주고받는다 (기기 간 동기화, D-023).
+     「요청 0건」이 사라진 대신 아래 셋을 지킨다. 셋 다 검사가 본다.
+
+       ① 화면 코드가 **직접** 부르지 않는다 — `net.js` 한 곳을 거친다 (D-030)
+       ② **제3자 주소가 0건**이다 — 우리 배포 주소 말고는 없다
+       ③ 운영자 전용 에이전트는 여전히 싣지 않는다
+
+     오프라인 우선(캐시로 먼저 그리고 끊겨도 끝까지 간다)은
+     `tests/test-sync-client.js` 와 `tests/test-offline.js` 가 본다. */
   ['home', 'learn', 'quiz', 'report', 'talk', 'my'].forEach((name) => {
     const html = fs.readFileSync(path.join(SRC, 'worker/' + name + '.html'), 'utf8');
     const js = fs.readFileSync(path.join(SRC, 'worker/' + name + '.js'), 'utf8');
     ok('노동자 ' + name + ': 에이전트를 싣지 않는다 (운영자 전용이다)',
       html.indexOf('agent.js') === -1);
-    /* ★★ 서버를 부르는 자리조차 싣지 않는다 — 그래서 "요청 0건" 이 약속이 아니라 사실이다 */
-    ok('노동자 ' + name + ': net.js 를 싣지 않는다 (서버를 부를 수단 자체가 없다)',
-      html.indexOf('net.js') === -1);
-    ok('노동자 ' + name + ': 네트워크 호출이 0건이다',
+    ok('노동자 ' + name + ': 화면 코드가 직접 부르지 않는다 (net.js 를 거친다)',
       !/\b(fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/.test(js));
+
+    const urls = (html + js).match(/https?:\/\/[^\s'"`)<]+/g) || [];
+    const foreign3 = urls.filter((u) => u.indexOf('https://2026-ax-ton.vercel.app') !== 0
+      && u.indexOf('http://www.w3.org') !== 0);
+    eq('노동자 ' + name + ': ★ 제3자 주소가 0건이다', foreign3.join(', '), '');
   });
 
   /* sw.js 는 fetch 예외를 받았다. 그 대가로 여기서 더 조인다. */

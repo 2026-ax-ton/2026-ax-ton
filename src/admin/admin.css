@@ -838,3 +838,21 @@ table.data .chips .badge { font-size: .68em; }
 }
 
 .hand-fix .field { margin-bottom: .5rem; }
+
+/* ── 서버와 끊겼을 때 뜨는 한 줄 (T12 · A02 §14.5) ─────────────────────
+   화면을 비우지 않고 위에 얹는다. 색만으로 알리지 않는다 (아이콘+글자+색). */
+.syncbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #d9a441;
+  border-left: 4px solid #d9a441;
+  border-radius: 8px;
+  background: #fdf6e7;
+  color: #6b4a06;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.syncbar .ico { flex: 0 0 auto; }

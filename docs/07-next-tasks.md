@@ -494,7 +494,16 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: A02 §14.3·§14.6, PRD-CM-01, FR-AD-01-06·07
   - **됐는지**: STC-E25-001~003·014 통과. DB에 비밀번호 원문이 없다
 
-- [ ] **T12. `Store` 서버 모드 · 동기화** — `TK-3-03` · ⚠️ **데이터 모양 변경 (새 키 `safety.outbox.v1`) — 시작 전 사용자 확인**
+- [x] **T12. `Store` 서버 모드 · 동기화** — `TK-3-03` ✅ 2026-11-01 (사용자 확인 받음 — 새 키 `safety.outbox.v1` 더하기만, 옛 키 10개 그대로)
+
+  - ✅ `api/store.mjs` — `GET /api/store?keys=…`(당겨오기) · `PUT /api/store?key=…`(보내기). 역할·사업장은 토큰에서만
+  - ✅ `api/_merge.mjs` — **행 단위** 합치기. 두 기기가 동시에 저장해도 **행이 사라지지 않는다** (C05 P-4). `setup` 만 판으로 막고 409
+  - ✅ `Store.sync` — 캐시 우선(읽기는 동기) · 보낼 대기열 · 409 재시도 · 끊김 배지 · 20초 당겨오기(대시보드)
+  - ✅ 🆕 새 키 **`safety.outbox.v1`**(보낼 것) · `safety.sync.v1`(내가 본 판). 옛 10개 키는 모양 그대로
+  - ✅ **규칙 개정 T-1″** (C06 **D-032**, 사용자 확인) — 노동자 화면도 **우리 서버**와 주고받는다. 대신 제3자 0건 · 화면 코드는 `net.js` 를 거침 · 캐시 우선 · 끊겨도 안 잃음 · 끊김 안내는 **그 사람 언어로**(`sync.offline` 6개 언어) · `file://` 에서는 서버 모드 꺼짐
+  - ✅ 검사 **104건** (`tests/test-api-store.mjs` 45 가짜 sql · `tests/test-sync-client.js` 59 가짜 fetch). 전체 **23묶음 2,310건** 통과. `sw.js` `v11` → `v12`
+  - ⬜ **남은 것**: 실물 확인은 Vercel Preview `DATABASE_URL` 이 정리된 뒤 (T11 과 같은 건)
+  - **남는 한계**: 익명 신고(`reports`)는 아직 이 길로 가지 않는다 — 별도 경로로 T13 에서 만든다
 
   - **어디**: `api/store*` · `assets/store.js` · `admin/dashboard.js` (20초 당겨오기)
   - **무엇**: https + 토큰이면 서버 모드(캐시 읽기 → 백그라운드 당겨오기 → 보낼 대기열 → 409 재시도 → 끊김 배지), `file://` 이면 지금과 같은 로컬 모드. 서버는 id 기준 합치기

@@ -54,6 +54,11 @@ var Net = (function () {
    *    { ok: false, status: 0,   failed: 'network' | 'timeout' }  닿지 못함
    */
   function post(path, body, opts) {
+    return request('POST', path, body, opts);
+  }
+
+  /** 메서드를 골라 부른다. 동기화(T12)가 GET·PUT 을 쓴다. */
+  function request(method, path, body, opts) {
     var o = opts || {};
     var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = setTimeout(function () { if (ac) ac.abort(); },
@@ -71,11 +76,11 @@ var Net = (function () {
     /* 토큰은 헤더로만 보낸다. 주소에 붙이면 로그·기록에 그대로 남는다 (A02 §14.6) */
     if (o.token) headers.Authorization = 'Bearer ' + o.token;
 
-    var fetchOpts = {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(body === undefined ? {} : body)
-    };
+    var fetchOpts = { method: method, headers: headers };
+    /* GET 에는 본문을 붙이지 않는다 — 붙이면 브라우저가 요청을 만들지 못한다 */
+    if (method !== 'GET' && body !== null) {
+      fetchOpts.body = JSON.stringify(body === undefined ? {} : body);
+    }
     if (ac) fetchOpts.signal = ac.signal;
 
     /* ★ 던지지 않는다. fetch 가 아예 없는 브라우저(아주 오래된 인앱 브라우저)에서도
@@ -101,6 +106,7 @@ var Net = (function () {
 
   return {
     post: post,
+    request: request,
     available: available,
     apiUrl: apiUrl,
     API_BASE: API_BASE,

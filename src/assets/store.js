@@ -101,6 +101,200 @@ var Store = (function () {
      normalize(data) 는 읽어 온 값을 화면이 기대하는 모양으로 다듬는다.
      빠진 필드를 채우고, 배열이어야 할 것이 아니면 배열로 바꾼다.
      ----------------------------------------------------------------- */
+  /* ===================================================================
+     Sync — 서버 모드 (T12 · A02 §14.5)
+
+     ★ 읽기는 **언제나 이 기기의 캐시**에서 동기로 한다. 화면은 기다리지 않는다.
+       서버는 뒤에서 당겨오고(pull), 바뀐 것이 있으면 캐시를 고치고 **한 번만**
+       다시 그리게 알린다. 끊겨도 화면은 그대로 돈다.
+
+     ★ 쓰기는 캐시에 먼저 쓰고 **보낼 대기열**(safety.outbox.v1)에 키 이름만 넣는다.
+       한 키를 열 번 고쳐도 보낼 것은 한 번이다 (나중에 캐시째 보낸다).
+       오프라인이면 쌓였다가 다시 연결될 때 간다. **조용히 잃지 않는다.**
+
+     ★ 서버를 부르는 일은 net.js 가 한다 (C06 D-030). net.js 가 안 실린 화면에서는
+       Sync 가 통째로 꺼진다 — 그 화면은 예전처럼 이 기기에만 쌓인다.
+     =================================================================== */
+
+  /** 이름으로 저장소를 찾는다. 저장소들은 아래에서 만들어지고, 이 함수는
+      실제로 불릴 때(동기화할 때) 찾으므로 순서 문제가 없다. */
+  function byName(name) {
+    return (typeof Store !== 'undefined' && Store && Store[name]) ? Store[name] : null;
+  }
+
+  var OUTBOX_KEY = PREFIX + 'outbox.v1';   // ⚠️ 2026-11-01 새 키 (T12, 사용자 확인 받음)
+  var META_KEY = PREFIX + 'sync.v1';       // 키별로 "내가 본 판"
+
+  /* 서버와 주고받는 키. accounts·session 은 서버 테이블이 대신하고,
+     prefs(글자 크기)는 그 기기의 설정이라 올리지 않는다. reports 는 익명이라 별도 경로다 */
+  var SYNC_KEYS = ['setup', 'courses', 'progress', 'posts', 'orders', 'library'];
+
+  var Sync = (function () {
+    var listeners = [];
+    var state = 'idle';     // idle | ok | offline
+    var sending = false;
+
+    function readJson(key, fallback) {
+      try {
+        var raw = localStorage.getItem(key);
+        var v = raw ? JSON.parse(raw) : null;
+        return v === null || v === undefined ? fallback : v;
+      } catch (e) { return fallback; }
+    }
+
+    function writeJson(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; }
+    }
+
+    function meta() { return readJson(META_KEY, {}); }
+    function outbox() { var v = readJson(OUTBOX_KEY, []); return Array.isArray(v) ? v : []; }
+
+    /** 서버 모드인가. 셋이 다 맞아야 한다 (A02 §14.5) */
+    function on() {
+      return typeof Net !== 'undefined' && Net.available()
+        && typeof location !== 'undefined' && location.protocol === 'https:'
+        && typeof Auth !== 'undefined' && !!Auth.token();
+    }
+
+    /** 바뀐 것이 있을 때 한 번만 알린다. 화면은 여기서 다시 그린다 */
+    function onChange(fn) { listeners.push(fn); }
+    function fire(keys) {
+      listeners.forEach(function (fn) {
+        try { fn(keys); } catch (e) { /* 한 화면이 터져도 나머지는 돈다 */ }
+      });
+    }
+
+    /* 상태만 바꾸고 알리지는 않는다 — 알리는 때는 부르는 쪽이 정한다.
+       여기서 바로 알리면 한 번 당겨올 때 화면이 두 번 그려진다
+       (상태 때문에 한 번, 바뀐 자료 때문에 한 번). 20초마다 깜빡이면 못 쓴다. */
+    function setState(next) {
+      var changed = state !== next;
+      state = next;
+      return changed;
+    }
+
+    function queue(name) {
+      if (!on() || SYNC_KEYS.indexOf(name) === -1) return;
+      var box = outbox();
+      if (box.indexOf(name) === -1) box.push(name);
+      writeJson(OUTBOX_KEY, box);
+      send();
+    }
+
+    /* ── 보내기 ─────────────────────────────────────────────────── */
+
+    function send() {
+      if (!on() || sending) return Promise.resolve();
+      var box = outbox();
+      if (!box.length) return Promise.resolve();
+
+      sending = true;
+      var name = box[0];
+      var store = byName(name);
+      if (!store) { dropFirst(); sending = false; return Promise.resolve(); }
+
+      var m = meta();
+      return Net.request('PUT', '/api/store?key=' + encodeURIComponent(name),
+        { data: store.load(), baseVersion: m[name] || 0 }, { token: Auth.token() }
+      ).then(function (r) {
+        sending = false;
+
+        // 쌓아 둔다. 다음에 다시 보낸다 — 조용히 잃지 않는다
+        if (r.failed) { if (setState('offline')) fire([]); return; }
+
+        if (r.status === 409) {
+          /* 다른 기기가 먼저 바꿨다 — 서버 것을 받아 캐시에 적고 다시 보낸다 */
+          if (applyFromServer(name, r.data && r.data.data, r.data && r.data.version)) fire([name]);
+          return send();
+        }
+        // 토큰이 만료됐다. 화면이 다음 가드에서 로그인으로 보낸다
+        if (r.status === 401) { if (setState('offline')) fire([]); return; }
+        // 우리가 보낸 것이 틀렸다 (400·403). 쌓아 두면 영영 안 빠진다
+        if (!r.ok) { dropFirst(); if (setState('ok')) fire([]); return; }
+
+        var moved = applyFromServer(name, r.data.data, r.data.version);
+        dropFirst();
+        var stateMoved = setState('ok');
+        if (moved) fire([name]);
+        else if (stateMoved) fire([]);
+        return send();
+      });
+    }
+
+    function dropFirst() {
+      var box = outbox();
+      box.shift();
+      writeJson(OUTBOX_KEY, box);
+    }
+
+    /* ── 당겨오기 ───────────────────────────────────────────────── */
+
+    function pull(names) {
+      if (!on()) return Promise.resolve(false);
+      var list = (names && names.length ? names : SYNC_KEYS)
+        .filter(function (n) { return SYNC_KEYS.indexOf(n) !== -1; });
+      if (!list.length) return Promise.resolve(false);
+
+      return Net.request('GET', '/api/store?keys=' + encodeURIComponent(list.join(',')),
+        null, { token: Auth.token() }
+      ).then(function (r) {
+        if (r.failed || !r.ok) {
+          if (setState('offline')) fire([]);
+          return false;
+        }
+        var stateMoved = setState('ok');
+
+        var changed = [];
+        list.forEach(function (name) {
+          var got = r.data && r.data[name];
+          if (!got) return;
+          if (applyFromServer(name, got.data, got.version)) changed.push(name);
+        });
+        /* 바뀐 것이 있으면 한 번만 알린다. 없으면 배지만 고치면 된다 */
+        if (changed.length) fire(changed);
+        else if (stateMoved) fire([]);
+        return changed.length > 0;
+      });
+    }
+
+    /** 서버가 준 것을 캐시에 적는다. 달라졌으면 참. */
+    function applyFromServer(name, data, version) {
+      var store = byName(name);
+      if (!store || data === undefined || data === null) return false;
+
+      var before = JSON.stringify(store.load());
+      var after = JSON.stringify(data);
+      var m = meta();
+      m[name] = version;
+      writeJson(META_KEY, m);
+      if (before === after) return false;
+
+      store.save(data, { fromServer: true });
+      return true;
+    }
+
+    /* 20초마다 당겨온다 (대시보드). 화면이 닫히면 멈춘다 */
+    function every(ms, names) {
+      if (!on()) return function () {};
+      var timer = setInterval(function () { pull(names); }, ms);
+      return function () { clearInterval(timer); };
+    }
+
+    function reset() {
+      try { localStorage.removeItem(OUTBOX_KEY); localStorage.removeItem(META_KEY); } catch (e) {}
+      state = 'idle';
+    }
+
+    return {
+      on: on, queue: queue, send: send, pull: pull, every: every,
+      onChange: onChange, reset: reset,
+      state: function () { return state; },
+      pending: function () { return outbox(); },
+      versions: meta,
+      KEYS: SYNC_KEYS, OUTBOX_KEY: OUTBOX_KEY, META_KEY: META_KEY
+    };
+  })();
+
   function makeStore(name, makeDefault, normalize) {
     var KEY = PREFIX + name + '.v' + VERSION;
 
@@ -123,17 +317,21 @@ var Store = (function () {
       }
     }
 
-    function save(data) {
+    function save(data, opts) {
       try {
         localStorage.setItem(KEY, JSON.stringify({
           v: VERSION,
           updatedAt: new Date().toISOString(),
           data: data
         }));
-        return true;
       } catch (e) {
         return false;
       }
+      /* ★ 서버 모드면 **보낼 대기열**에 넣는다 (T12).
+         저장은 늘 이 기기에 먼저 끝난다 — 서버가 느리거나 끊겨도 화면은 기다리지 않는다.
+         opts.fromServer 는 서버가 준 것을 캐시에 적는 경우라 되돌려 보내지 않는다. */
+      if (!(opts && opts.fromServer)) Sync.queue(name);
+      return true;
     }
 
     /* 읽기 → 고치기 → 저장 한 사이클. 화면 코드는 되도록 이것만 쓴다. */
@@ -700,6 +898,9 @@ var Store = (function () {
     env: ENV, isDev: ENV === 'dev',
     VOICE_FALLBACKS: VOICE_FALLBACKS,
     orderOpen: orderOpen, askedQuestion: askedQuestion,
+
+    // 서버 모드 (T12) — 화면은 Sync.onChange 로 "다시 그려야 한다" 만 받는다
+    sync: Sync,
 
     // 공통
     uid: uid, available: available,

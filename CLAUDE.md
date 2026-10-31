@@ -257,9 +257,9 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 | 노동자 | `src/worker/home.* learn.* quiz.* report.* talk.* my.*` + `worker.css` |
 | 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` + `admin.css` |
 | 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
-| 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 노동자 화면 6개에는 싣지 않습니다 |
+| 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 11개 화면 전부가 싣습니다 (D-032) |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
-| 서버 | `api/translate.mjs backtranslate.mjs _shared.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` + `api/_auth.mjs`(비밀번호·토큰) `_db.mjs`(연결·토큰 확인) + 루트 `package.json` (드라이버 1개) |
+| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + 루트 `package.json` (드라이버 1개) |
 | DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
 | 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
@@ -332,9 +332,14 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
   **우리 서버(같은 출처 `/api`)만 부를 수 있습니다** (2026-10-31 개정, C06 D-025 · C05 T-1′).
   **픽토그램은 `assets/icons.js` 의 선 아이콘입니다** (좌표만 든 인라인 SVG).
   덕분에 인터넷 없이 `file://` 로 열려 확인이 가장 빠릅니다
-  - **★ 노동자 화면 6개는 요청이 아예 0건입니다.** 이건 안 바뀌었습니다.
-    `net.js` 를 싣지도 않아서 **부를 수단 자체가 없습니다.**
-    `tests/test-smoke.js` 가 화면마다 따로 확인합니다
+  - **★ 노동자 화면 6개** — 2026-11-01 개정 (C06 **D-032**, C05 T-1″).
+    기기 간 동기화 때문에 **우리 서버와는 주고받습니다.** 대신 이것들을 지킵니다:
+    **제3자 주소 0건** · 화면 코드는 직접 부르지 않고 `net.js` 를 거침 ·
+    **읽기는 캐시에서 동기로**(화면이 서버를 기다리지 않음) · 끊겨도 대기열에 쌓여
+    잃지 않음 · 끊김 안내는 **그 사람 언어로**(`sync.offline`) ·
+    `file://` 와 fetch 없는 브라우저에서는 서버 모드가 꺼짐.
+    `tests/test-smoke.js` 와 `tests/test-sync-client.js` 가 화면마다 확인합니다.
+    **발표에서는 「외부 요청 0건」이 아니라 「제3자 0건 · 우리 서버만 · 인터넷이 없어도 끝까지」로 말합니다**
   - **예외 셋.** ① `sw.js` 의 `fetch(req)`(같은 오리진 요청을 그대로 흘려보내는 것)
     ② **신고 화면의 받아쓰기**(브라우저가 소리를 인식 서버로 보냅니다)
     ③ **`assets/net.js`** — **브라우저에서 우리 서버를 부르는 유일한 파일**입니다

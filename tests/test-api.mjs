@@ -173,7 +173,7 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   eq('허용을 켜면 null 출처가 통과', nullOn.status, 200);
   eq('CORS 허용 출처가 null', nullOn.headers.get('access-control-allow-origin'), 'null');
   eq('CORS 허용 헤더에 X-Agent-Pass · Authorization', nullOn.headers.get('access-control-allow-headers'), 'Content-Type, X-Agent-Pass, Authorization');
-  eq('CORS 허용 메서드', nullOn.headers.get('access-control-allow-methods'), 'POST, OPTIONS');
+  eq('CORS 허용 메서드', nullOn.headers.get('access-control-allow-methods'), 'GET, POST, PUT, OPTIONS');
   eq('Vary: Origin', nullOn.headers.get('vary'), 'Origin');
 }
 

@@ -483,5 +483,23 @@
         e.key === Store.progress.KEY || e.key === Store.setup.KEY) render();
   });
 
+  /* ── 서버 모드 — 들어올 때 한 번 당겨온다 (T12 · C06 D-032) ──────────
+
+     ★ **오프라인 우선은 그대로다.** 화면은 이미 캐시로 그려져 있고, 여기서는
+       뒤에서 당겨와 **달라진 것이 있을 때만** 다시 그린다. 서버가 죽어 있어도
+       교육은 끝까지 된다 — 그것이 이 제품의 전제다 (C05 원칙 3).
+     ★ 보내는 것은 따로 부르지 않는다. `Store` 에 저장하면 대기열에 들어가
+       알아서 올라간다. 끊겨 있으면 쌓였다가 연결될 때 간다.
+     ★ 끊기면 화면을 비우지 않고 위에 한 줄만 띄운다 — **그 사람의 언어로** 적는다. */
+
+  if (Store.sync.on()) {
+    var bar = UI.syncBadge();
+    var main = document.querySelector('main');
+    if (bar && main) main.insertBefore(bar, main.firstChild);
+
+    Store.sync.onChange(function () { render(); });
+    Store.sync.pull();
+  }
+
   render();
 })();

@@ -1556,3 +1556,22 @@
     border-radius: 14px 14px 0 0;
   }
 }
+
+/* ── 서버와 끊겼을 때 뜨는 한 줄 (T12 · A02 §14.5) ─────────────────────
+   ★ 노동자 화면은 **글을 못 읽는 사람**이 쓴다. 그래서 글자만 두지 않고
+     아이콘을 함께 놓고, 글자도 그 사람 언어로 나간다 (i18n sync.offline).
+   ★ 화면을 비우지 않는다 — 들을 교육은 캐시에 이미 있다. */
+.syncbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 2px solid #d9a441;
+  border-radius: 10px;
+  background: #fdf6e7;
+  color: #6b4a06;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.syncbar .ico { flex: 0 0 auto; }
