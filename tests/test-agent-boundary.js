@@ -343,6 +343,73 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
 }
 
 /* =================================================================
+   15. 문구 하나가 쓸 수 있는 호출에 천장이 있다 (T8 · FR-AD-03-09 · A02 §6.4)
+   ================================================================= */
+{
+  const t = open();
+  eq('천장은 30번 (언어 5 × 2단계 × 3시도)', t.win.Agent.MAX_CALLS_PER_PHRASE, 30);
+
+  /* 5개 언어가 전부 사람에게 올라가는 최악의 경우 = 딱 30번 */
+  fake(t, pair('កុំដាក់ដៃ', '롤러에 손을 넣어도 됩니다.'));
+  t.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th']).then((out) => {
+    eq('★★ 최악의 경우에도 30번을 넘지 않는다', t.calls.length, 30);
+    ok('다섯 언어 모두 사람에게 올라갔다', out.results.every((r) => r.ok && r.escalated));
+    eq('지갑을 다 썼다', out.callsLeft, 0);
+  });
+
+  /* ★ 언어가 늘어도 천장은 그대로다 — 설정 사고로 요금이 터지지 않게 */
+  const t2 = open();
+  fake(t2, pair('x', '손을 넣어도 됩니다.'));
+  t2.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th', 'km', 'id', 'vi']).then((out) => {
+    ok('★★ 언어를 8개로 늘려도 30번에서 멈춘다', t2.calls.length <= 30, t2.calls.length + '번');
+    ok('천장에 걸린 언어는 이유를 받는다',
+      out.results.some((r) => !r.ok && r.code === 'budget'));
+    ok('★ 천장에 걸려도 손 입력으로 이어 갈 수 있게 이유를 준다',
+      out.results.filter((r) => r.code === 'budget').every((r) => /직접 입력/.test(r.message)));
+  });
+
+  /* 지갑을 작게 주면 그만큼만 쓴다 */
+  const t3 = open();
+  fake(t3, pair('x', '롤러에 손을 넣지 마십시오.'));
+  const small = t3.win.Agent.newBudget(1);
+  t3.win.Agent.runLang(phrase, 'km', null, small).then((r) => {
+    eq('지갑이 1이면 역번역 전에 멈춘다', t3.calls.length, 1);
+    eq('실패로 돌아온다', r.ok, false);
+    eq('천장 때문이라고 적는다', r.code, 'budget');
+  });
+
+  const t4 = open();
+  fake(t4, pair('x', '롤러에 손을 넣지 마십시오.'));
+  const none = t4.win.Agent.newBudget(0);
+  t4.win.Agent.runLang(phrase, 'km', null, none).then((r) => {
+    eq('★ 지갑이 비었으면 한 번도 부르지 않는다', t4.calls.length, 0);
+    eq('천장 때문이라고 적는다', r.code, 'budget');
+  });
+}
+
+/* =================================================================
+   16. file:// 로 열면 배포 주소로 부른다 (T8 · C06 D-019 · C08 §7)
+   ================================================================= */
+{
+  const t = open();
+  /* agent.js 는 location.protocol 을 보고 고른다. 하네스는 https 로 띄운다. */
+  eq('https 로 열면 상대 경로', t.win.Agent.apiUrl('/api/translate'), '/api/translate');
+
+  const fs = require('fs');
+  const path = require('path');
+  const code = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
+  ok('★ file: 일 때만 배포 주소를 붙인다', /location\.protocol === 'file:'/.test(code));
+  ok('그 밖에는 같은 출처를 부른다 (제3자 요청 0건)',
+    /\(file \? API_BASE : ''\)/.test(code));
+
+  /* 서버 쪽 짝 — file:// 의 Origin: null 은 허용을 켰을 때만 통과한다 */
+  const shared = fs.readFileSync(path.join(ROOT, 'api/_shared.mjs'), 'utf8');
+  ok('★ 서버는 ALLOW_FILE_ORIGIN=1 일 때만 null 출처를 받는다',
+    /ALLOW_FILE_ORIGIN.*===.*'1'/.test(shared));
+  ok('★ 시연 기간에만 켠다고 적어 두었다', /시연 기간에만/.test(shared));
+}
+
+/* =================================================================
    12. 키가 브라우저 코드에 없다 (경계 7) — STC-E19-001
    ================================================================= */
 {

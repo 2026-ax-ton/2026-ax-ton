@@ -38,6 +38,14 @@ var Agent = (function () {
   var MAX_RETRY = 2;              // A02 §6.2 — 첫 시도 + 재시도 2회 = 최대 3번
   var CALL_TIMEOUT_MS = 25000;    // A02 §6.2 — 서버는 20초, 여기는 조금 더 준다
   var MAX_BACK = 600;             // A02 §5.4 — 역번역에 넘길 글자 수 상한
+
+  /* ★ 문구 하나에 쓸 수 있는 호출 수의 천장 (A02 §6.4 · FR-AD-03-09).
+     언어 5 × 2단계 × (첫 시도 + 재시도 2) = 30.
+
+     언어마다 따로 세면 「언어 수가 늘면 비용도 같이 는다」를 아무도 못 막는다.
+     문구 하나가 쓸 수 있는 총량을 여기서 한 번에 막는다 — 설정이 잘못돼
+     언어가 20개가 돼도 이 천장은 그대로다. 공급사 요금은 사고로 늘어난다. */
+  var MAX_CALLS_PER_PHRASE = 30;
   var PASS_KEY = 'safety.agentPass';
 
   /* ── 운영자 통과 문구 (A02 §5.6 2층) ───────────────────────────────
@@ -151,6 +159,11 @@ var Agent = (function () {
     if (typeof onStep === 'function') onStep(lang, state, attempt);
   }
 
+  /** 문구 하나가 쓸 수 있는 호출 지갑. 언어들이 **같은 지갑**을 나눠 쓴다. */
+  function newBudget(limit) {
+    return { left: typeof limit === 'number' ? limit : MAX_CALLS_PER_PHRASE };
+  }
+
   /**
    * 한국어 문구 하나를 한 언어로 번역하고 스스로 검사한다.
    *
@@ -160,23 +173,36 @@ var Agent = (function () {
    *
    * ★ status 를 돌려주지 않는다. 저장 상태는 화면이 'waiting' 으로 넣는다.
    */
-  function runLang(phrase, lang, onStep) {
+  function runLang(phrase, lang, onStep, budget) {
     var ko = phrase && typeof phrase.ko === 'string' ? phrase.ko.trim() : '';
     if (!ko) {
       return Promise.resolve(fail(lang, 'bad_request', '번역할 한국어 문구가 없습니다.', 0));
     }
 
+    var wallet = budget || newBudget();
     var hint = '';
     var attempt = 0;
 
+    /** 지갑에서 한 번 꺼낸다. 비었으면 던진다 — 부르기 전에 막는다. */
+    function spend() {
+      if (wallet.left <= 0) {
+        throw agentError('budget', '이 문구에 쓸 수 있는 AI 호출을 다 썼습니다. 직접 입력해 주세요.');
+      }
+      wallet.left -= 1;
+    }
+
     function round() {
       step(onStep, lang, 'translating', attempt);
-      return call('/api/translate', { ko: ko, lang: lang, attempt: attempt, hint: hint })
+      return Promise.resolve().then(function () {
+        spend();
+        return call('/api/translate', { ko: ko, lang: lang, attempt: attempt, hint: hint });
+      })
         .then(function (t) {
           var text = takeText(t, 'text');
           step(onStep, lang, 'backtranslating', attempt);
 
           /* ★ 역번역에는 번역문만 보낸다. 한국어 원문은 넣지 않는다 (A02 §5.4) */
+          spend();
           return call('/api/backtranslate', { text: text.slice(0, MAX_BACK), lang: lang })
             .then(function (b) {
               var back = takeText(b, 'back');
@@ -259,8 +285,12 @@ var Agent = (function () {
       });
     }
 
-    return Promise.all(todo.map(function (l) { return runLang(phrase, l, onStep); }))
-      .then(function (results) { return { results: results, skipped: skipped }; });
+    /* ★ 언어들이 같은 지갑을 나눠 쓴다 — 문구 하나의 총량이 천장이다 */
+    var wallet = newBudget();
+    return Promise.all(todo.map(function (l) { return runLang(phrase, l, onStep, wallet); }))
+      .then(function (results) {
+        return { results: results, skipped: skipped, callsLeft: wallet.left };
+      });
   }
 
   /* ── 저장할 모양으로 바꾼다 (A02 §6.3) ─────────────────────────────
@@ -299,7 +329,9 @@ var Agent = (function () {
     setPass: setPass,
     hasPass: hasPass,
     apiUrl: apiUrl,
+    newBudget: newBudget,
     MAX_RETRY: MAX_RETRY,
+    MAX_CALLS_PER_PHRASE: MAX_CALLS_PER_PHRASE,
     CALL_TIMEOUT_MS: CALL_TIMEOUT_MS,
     API_BASE: API_BASE
   };

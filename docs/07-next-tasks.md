@@ -395,7 +395,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: PRD-AD-03 FR-08·13·14·15, SPEC-FE
   - **됐는지**: 운영자(`oper@safety.kr`)로 문구 하나를 넣고 버튼 → 5개 언어 진행이 보이고 `waiting` 으로 저장
 
-- [ ] **T8. 손 입력 복귀 · 상한 · `file://`** — `TK-2-10`
+- [x] **T8. 손 입력 복귀 · 상한 · `file://`** — `TK-2-10` ✅ 2026-10-31 (`file://` 실물 확인은 T16 시연 때 — `ALLOW_FILE_ORIGIN` 을 그때 켠다)
 
   - **어디**: `agent.js` · `admin/library.js` · `api/*.mjs`
   - **무엇**: 실패·오프라인이면 버튼을 숨기지 않고 이유 + 손 입력 칸. 문구당 호출 상한. `file://` 로 열면 `API_BASE` 로 호출, 서버는 `ALLOW_FILE_ORIGIN=1` 일 때만 `null` 출처 허용
