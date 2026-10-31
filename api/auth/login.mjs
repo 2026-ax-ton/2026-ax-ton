@@ -14,7 +14,7 @@
    근거: A02 §14.3·§14.6 · PRD-CM-01 FR-CM-01-06 */
 
 import { json, fail, log } from '../_shared.mjs';
-import { openRequest, sweepSessions } from '../_db.mjs';
+import { openRequest, sweepSessions , withDb } from '../_db.mjs';
 import {
   clean, verifyPassword, newToken, tokenHash, authConfig, publicUser,
   MAX_ID, MAX_PW,
@@ -22,7 +22,7 @@ import {
 
 export const config = { maxDuration: 30 };
 
-export async function handle(request) {
+async function run(request) {
   const started = Date.now();
   const opened = await openRequest(request);
   if (opened.done) return opened.done;
@@ -86,6 +86,10 @@ export async function handle(request) {
   log({ route: 'auth/login', role: acc.role, ms: Date.now() - started, status: 200, err: '' });
   return json(200, { token, user: publicUser(acc, acc.site_name), expiresAt }, cors);
 }
+
+/* ★ DB가 아파도 날것의 500 을 내지 않는다 — 화면이 로컬 모드로 이어갈 수 있게
+   우리 모양 `{error:'db'}` 로 바꿔 준다 (2026-11-01 미리보기에서 실물로 드러남) */
+export const handle = withDb('auth/login', run);
 
 /* default 를 내보내지 않는다 — Vercel 이 옛 Node 방식으로 불러 터진다 (2차에서 겪음) */
 export const GET = handle;

@@ -271,10 +271,14 @@ var Auth = (function () {
     }
     if (!r.ok) {
       var code = (r.data && r.data.error) ? String(r.data.error) : 'error';
-      /* 서버 설정이 덜 된 것도 사람 탓이 아니다 — 로컬 모드로 이어갈 수 있게 알린다 */
+      /* ★ 사람이 고칠 수 없는 이유는 전부 '닿지 못함' 으로 본다 —
+         서버 설정이 덜 됐거나(config) DB가 아프면(db) 사람 탓이 아니다.
+         그것으로 교육을 멈추면, 설정 실수 하나가 현장 교육을 멈춘다 (C06 D-031).
+         ★ 반대로 401·423(틀림·잠김)은 여기 넣지 않는다 — 넣으면 목업 뒷문이 된다. */
+      var cannotFix = (code === 'config' || code === 'db');
       done({
         ok: false,
-        code: code === 'config' ? 'offline' : code,
+        code: cannotFix ? 'offline' : code,
         reason: (r.data && r.data.message) ? String(r.data.message) : '로그인하지 못했습니다.'
       });
       return;

@@ -12,7 +12,7 @@
    근거: A02 §14.3·§14.6 · PRD-AD-01 FR-AD-01-06·07 */
 
 import { json, fail, log } from '../_shared.mjs';
-import { openRequest } from '../_db.mjs';
+import { openRequest , withDb } from '../_db.mjs';
 import {
   clean, hashPassword, newToken, tokenHash, authConfig, publicUser,
   SIGNUP_ROLES, MAX_ID, MAX_PW, MIN_PW, MAX_NAME,
@@ -34,7 +34,7 @@ function makeJoinCode() {
   return out;
 }
 
-export async function handle(request) {
+async function run(request) {
   const started = Date.now();
   const opened = await openRequest(request);
   if (opened.done) return opened.done;
@@ -81,6 +81,10 @@ export async function handle(request) {
   log({ route: 'auth/signup-workplace', ms: Date.now() - started, status: 200, err: '' });
   return json(200, { token, user: publicUser(acc, siteName), joinCode, expiresAt }, cors);
 }
+
+/* ★ DB가 아파도 날것의 500 을 내지 않는다 — 화면이 로컬 모드로 이어갈 수 있게
+   우리 모양 `{error:'db'}` 로 바꿔 준다 (2026-11-01 미리보기에서 실물로 드러남) */
+export const handle = withDb('auth/signup-workplace', run);
 
 export const GET = handle;
 export const POST = handle;

@@ -152,6 +152,17 @@ const USER = {
     eq('★ 서버 설정 오류일 때도 교육은 계속된다', t.nav[t.nav.length - 1], 'worker/home.html');
   }
 
+  {
+    /* DB가 잠들었거나 아픈 것(503 db)도 마찬가지다 (2026-11-01 미리보기에서 실물로 드러남) */
+    const t = openLogin([{ status: 503, body: { error: 'db', message: 'DB에 닿지 못했습니다. 잠시 뒤 다시 시도해 주세요.' } }]);
+    t.$('login-id').value = 'W-4821-07';
+    t.$('login-pw').value = '1234';
+    t.$('form-login').dispatchEvent(new t.win.Event('submit'));
+    await tick();
+    eq('★ DB가 아플 때도 교육은 계속된다', t.nav[t.nav.length - 1], 'worker/home.html');
+    has('목업으로 확인했다고 적는다', t.$('login-mode').textContent, '목업');
+  }
+
   /* =================================================================
      4. fetch 가 없는 브라우저 — 묻지도 않고 로컬 모드
      ================================================================= */

@@ -10,12 +10,12 @@
    근거: A02 §14.3·§14.6 · PRD-CM-01 · A04 2-5 (공용 폰) */
 
 import { json } from '../_shared.mjs';
-import { openRequest } from '../_db.mjs';
+import { openRequest , withDb } from '../_db.mjs';
 import { bearer, tokenHash } from '../_auth.mjs';
 
 export const config = { maxDuration: 30 };
 
-export async function handle(request) {
+async function run(request) {
   const opened = await openRequest(request);
   if (opened.done) return opened.done;
   const { cors, sql } = opened;
@@ -27,6 +27,10 @@ export async function handle(request) {
 
   return json(200, { ok: true }, cors);
 }
+
+/* ★ DB가 아파도 날것의 500 을 내지 않는다 — 화면이 로컬 모드로 이어갈 수 있게
+   우리 모양 `{error:'db'}` 로 바꿔 준다 (2026-11-01 미리보기에서 실물로 드러남) */
+export const handle = withDb('auth/logout', run);
 
 export const GET = handle;
 export const POST = handle;

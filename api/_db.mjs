@@ -10,7 +10,7 @@
    근거: A02 §14.3·§14.6·§14.8 */
 
 import { bearer, tokenHash } from './_auth.mjs';
-import { guardBasic, parseJson, fail } from './_shared.mjs';
+import { guardBasic, parseJson, fail, log } from './_shared.mjs';
 
 let testSql = null;
 let cached = null;
@@ -58,6 +58,28 @@ export async function authed(sql, request) {
 /** 만료된 세션을 치운다. 로그인할 때 한 번씩 부른다 (따로 도는 것을 두지 않는다). */
 export async function sweepSessions(sql) {
   await sql`delete from sessions where expires_at < now()`;
+}
+
+/* ── DB가 아플 때 (2026-11-01 미리보기에서 실물로 드러남) ────────────
+
+   ★ 질의가 던지면 플랫폼이 **날것의 500 「Internal Server Error」** 를 낸다.
+     그건 JSON 이 아니라서 화면이 읽지 못하고, 화면은 "뭔가 터졌다" 만 안다.
+     우리 모양 `{error, message}` 으로 바꿔 줘야 화면이 **로컬 모드로 이어갈지**
+     고를 수 있다 (C05 원칙 2 · C06 D-031).
+
+   ★ 왜 이유를 밖으로 내지 않나 — 질의문·표 이름·연결 문자열이 섞여 나올 수 있다.
+     우리가 지은 한 마디만 내보내고, 자세한 것은 함수 로그에만 남긴다 (A02 §14.6). */
+
+export function withDb(route, handler) {
+  return async function (request) {
+    try {
+      return await handler(request);
+    } catch (e) {
+      /* 메시지는 로그에만. 키·연결 문자열이 섞일 수 있어 본문에는 넣지 않는다 */
+      log({ route, status: 503, err: 'db', why: (e && e.message ? String(e.message) : '').slice(0, 120) });
+      return fail(503, 'db', 'DB에 닿지 못했습니다. 잠시 뒤 다시 시도해 주세요.');
+    }
+  };
 }
 
 /* ── 요청 열기 — `/api/auth/*` 네 함수가 똑같이 하는 앞부분 ──────────

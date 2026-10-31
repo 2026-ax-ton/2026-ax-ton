@@ -472,6 +472,33 @@ let workerToken = '';
 }
 
 /* ===================================================================
+   7-2. DB가 아플 때 — 날것의 500 을 내지 않는다
+        (2026-11-01 미리보기에서 실물로 드러났다: 표가 없는 DB에 물어보니
+         플랫폼이 JSON 이 아닌 「Internal Server Error」를 냈고, 화면은
+         그것을 읽지 못해 로컬 모드로 이어갈 수조차 없었다)
+   =================================================================== */
+
+{
+  const angry = () => { throw new Error('relation "accounts" does not exist'); };
+  angry.query = () => Promise.resolve([]);
+  db.setSqlForTest(angry);
+
+  const res = await login.handle(post({ userId: 'W-4821-07', pw: '1234' }));
+  const b = await body(res);
+  eq('★ DB가 던져도 우리 모양으로 답한다 (503)', res.status, 503);
+  eq('화면이 읽을 수 있는 코드다', b.error, 'db');
+  ok('★ 표 이름·질의문을 밖으로 내지 않는다',
+    JSON.stringify(b).indexOf('accounts') === -1 && JSON.stringify(b).indexOf('relation') === -1);
+  ok('자세한 것은 로그에만 남는다', logs.join(' ').indexOf('relation') !== -1);
+
+  /* 로그아웃은 DB가 아파도 화면이 토큰을 버릴 수 있어야 한다 — 우리 모양으로 답한다 */
+  const out = await logout.handle(post({}, { token: 'x'.repeat(64) }));
+  eq('로그아웃도 날것의 500 을 내지 않는다', out.status, 503);
+
+  db.setSqlForTest(fake.sql);
+}
+
+/* ===================================================================
    8. 로그 — 아이디·비밀번호·토큰을 남기지 않는다 (A02 §14.6)
    =================================================================== */
 

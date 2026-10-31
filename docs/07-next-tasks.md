@@ -484,7 +484,8 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - ✅ 화면 — `index.html`·`signup.html`·`auth.js`·`login.js`·`signup.js`. **11개 화면은 고치지 않았다** (`Auth.current()` 가 두 모드를 모두 동기로 답한다)
   - ✅ **넘지 않은 선 (C06 D-031)** — 서버가 401·423 으로 거절하면 **목업으로 새지 않는다**(뒷문 없음). 로컬로 되돌아가는 것은 **닿지 못했을 때**(끊김·`500 config`)뿐이고 그때는 화면에 「목업으로 확인했다」를 적는다
   - ✅ 공용 폰 — 토큰은 `sessionStorage` 에만. 서버 로그인은 **`Store.session` 에 아무것도 쓰지 않는다** → 탭을 닫으면 로그인이 사라진다
-  - ✅ 검사 **153건** (`tests/test-api-auth.mjs` 100 가짜 sql · `tests/test-auth-client.js` 53 가짜 fetch). 전체 **21묶음 2,189건** 통과
+  - ✅ 검사 **160건** (`tests/test-api-auth.mjs` 105 가짜 sql · `tests/test-auth-client.js` 55 가짜 fetch). 전체 **21묶음 2,196건** 통과
+  - ✅ **미리보기 실물에서 하나 드러나 고침** — DB 질의가 던지면 플랫폼이 **JSON 이 아닌 날것의 500** 을 냈다. 화면이 읽지 못해 로컬 모드로 이어갈 수조차 없었다 → `503 {error:'db'}` 로 바꾸고 화면이 「닿지 못함」으로 다루게 했다 (STC-E25-028)
   - ⬜ **남은 것(사용자)**: Vercel 환경변수 `DATABASE_URL` 이 **Production·Preview 양쪽**에 있는지 확인 (한쪽만 넣으면 그 환경에서만 조용히 안 된다). 미리보기 주소에서 실제 로그인 확인은 그다음
   - **남는 한계**: 노동자 화면에서 로그아웃하면 **이 기기의 토큰만** 버린다 (그 화면엔 `net.js` 가 없다). 서버 세션은 만료(12시간)나 다음 로그인 때 정리된다
 
