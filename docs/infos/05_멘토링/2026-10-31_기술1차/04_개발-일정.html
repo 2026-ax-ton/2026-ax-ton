@@ -40,6 +40,7 @@ hr{border:0;border-top:1px solid var(--line);margin:28px 0}
 <a href="../../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
 <div class="sub">2026-10-31_기술1차</div>
 <a href="README.html">이 폴더 안내</a>
+<a href="00_%EC%A7%80%EA%B8%88-%EC%9D%B4%EA%B2%83%EB%A7%8C.html">00 지금-이것만</a>
 <a href="01_10%EB%B6%84-%EC%84%A4%EB%AA%85.html">01 10분-설명</a>
 <a href="02_%EC%B5%9C%EC%A2%85-%EA%B0%9C%EB%B0%9C-%EC%84%A4%EA%B3%84.html">02 최종-개발-설계</a>
 <a href="03_%ED%98%84%EC%9E%AC-%EC%83%81%ED%99%A9%EA%B3%BC-%EC%88%98%EC%A4%80.html">03 현재-상황과-수준</a>
@@ -53,6 +54,7 @@ hr{border:0;border-top:1px solid var(--line);margin:28px 0}
 <h1 id="04--개발-일정--111--1128">04 · 개발 일정 — 11/1 ~ 11/28</h1>
 <blockquote><p><strong>기준일</strong> 2026-10-31 · <strong>작성</strong> byeonsoyun · <strong>원본</strong> <a href="A03_최종범위와-일정-컨펌-2026-10-31.html">A03 §4</a> (초안) → 이 문서가 최신 · 태스크 정답은 멘토링 뒤 <a href="../../../documentations/40_캡스톤산출물/D05_스프린트백로그.md">D05</a>에 옮긴다<br><strong>이 문서가 답하는 질문</strong> 날짜마다 무엇을 하나 · 넘으면 안 되는 날짜는 언제인가 · 밀리면 무엇부터 버리나 · 발표팀은 그동안 무엇을 하나</p></blockquote>
 <hr>
+<blockquote><p>🆕 <strong>2026-10-31 21시 업데이트 — 2차 개발 완료.</strong> T1~T9 전부 끝, <strong>M0·M1 달성(계획 11/8 → 10/31, 8일 빠름)</strong>, 운영 배포에서 실제 AI 번역 동작, 테스트 <strong>18묶음 1,943건</strong> 통과, CI 가동, 실측 <strong>150/150 (100%)·재시도율 0.7%·평균 2.9초</strong>. 새 결정 D-024(역번역 같은 모델·다른 프롬프트)·D-025(제3자 요청 0건). 다음은 3차 DB(T10~). 상세는 <a href="../../04_기술스택/전체-스펙-설명서.html">전체 스펙 설명서 §0</a>.</p></blockquote>
 <h2 id="1-넘으면-안-되는-날짜-표-1">1. 넘으면 안 되는 날짜 (표 1)</h2>
 <div class="tbl"><table><thead><tr><th>날짜</th><th>마일스톤</th><th>끝났다는 기준</th></tr></thead><tbody><tr><td><strong>11/3(화)</strong></td><td>M0 실물 확인</td><td>Vercel 설정(Root Directory = 저장소 루트·출력 <code>src</code>, Neon 연결) 뒤 미리보기 배포의 <code>api/</code> 함수가 실제 Gemini로 5개 언어 응답을 준다. <code>docs/</code>·<code>tests/</code>는 404</td></tr><tr><td><strong>11/8(일)</strong></td><td><strong>M1 AI 동작</strong></td><td>운영자 화면에서 [AI 번역 받기] → 5개 언어 번역·역번역·대조·재시도·올림·<code>waiting</code> 저장까지 실제로 돈다. 경계 테스트 통과. 배포</td></tr><tr><td>🆕 <strong>11/13(금)</strong></td><td><strong>M1.5 두 기기</strong></td><td>노동자 폰 풀이 → 담당자 PC 대시보드 20초 안에 반영, 다른 사업장 데이터 차단 (DB·로그인·동기화)</td></tr><tr><td><strong>11/16(일)</strong></td><td><strong>M2 기능 동결</strong></td><td>이후 버그 수정만. 전체 테스트 통과, 배포</td></tr><tr><td><strong>11/18(화)</strong></td><td>M3 시연 완성</td><td>시연 HTML이 크롬 더블클릭으로 끝까지 된다. 시연 영상 녹화 완료</td></tr><tr><td><strong>11/22(일)</strong></td><td>제출</td><td>PPTX·PDF·영상·HTML 메일 발송 (마감 11/23 23:59)</td></tr><tr><td>11/28(토)</td><td>오프라인 해커톤</td><td>—</td></tr></tbody></table></div>
 <h2 id="2-날짜별-개발-계획-표-2">2. 날짜별 개발 계획 (표 2)</h2>
