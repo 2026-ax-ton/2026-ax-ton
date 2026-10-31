@@ -1,6 +1,6 @@
 # 개발일지 — 변소윤
 
-브랜치 `feat/agent-prd-v1` (2차 완료 · `develop`·`main` 에 머지됨). 옛 작업은 `feature/byeonsoyun`
+브랜치 `feat/agent-prd-v1` (2차는 `develop`·`main` 에 머지됨. **3차 T10~T12 는 이 브랜치에만** 있다). 옛 작업은 `feature/byeonsoyun`
 담당: `src/` 전체 (2026-08-21 부터 개인 개발. 포지션 구분 없음)
 다음 할 일은 `docs/07-next-tasks.md` 하나만 봅니다
 
