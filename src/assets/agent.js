@@ -30,10 +30,10 @@ var Agent = (function () {
 
   /* ── 결정에 걸린 값 — 한 곳에 모은다 ──────────────────────────────
 
-     API_BASE 는 보통 빈 문자열이다 = 같은 출처 '/api/...' 를 부른다.
-     제출 HTML 을 file:// 로 더블클릭해 여는 현장 시연에서만 배포 주소가 필요하다
-     (C08 §7 · C06 D-019). 그때 서버는 ALLOW_FILE_ORIGIN=1 이어야 받아 준다. */
-  var API_BASE = 'https://2026-ax-ton.vercel.app';  // A02 §5.2 · C06 D-019
+     ★ 서버를 부르는 일 자체는 `assets/net.js` 가 한다 (2026-11-01, C06 D-030).
+       브라우저에서 우리 서버를 부르는 자리를 한 곳에 모아, 「제3자 요청 0건」을
+       검사가 파일 하나만 보고 지킬 수 있게 했다. 배포 주소·file:// 처리도 거기 있다. */
+  var API_BASE = Net.API_BASE;      // A02 §5.2 · C06 D-019 · D-030
 
   var MAX_RETRY = 2;              // A02 §6.2 — 첫 시도 + 재시도 2회 = 최대 3번
   var CALL_TIMEOUT_MS = 25000;    // A02 §6.2 — 서버는 20초, 여기는 조금 더 준다
@@ -98,40 +98,26 @@ var Agent = (function () {
   /* ── 한 번 부르기 ────────────────────────────────────────────────── */
 
   function apiUrl(path) {
-    var file = typeof location !== 'undefined' && location.protocol === 'file:';
-    return (file ? API_BASE : '') + path;
+    return Net.apiUrl(path);
   }
 
-  /** 서버를 한 번 부른다. 실패는 전부 { code, message } 를 담아 던진다. */
+  /** 서버를 한 번 부른다. 실패는 전부 { code, message } 를 담아 던진다.
+      부르는 일은 net.js 가 하고, 여기서는 **AI 의 말로 바꾸는 것**만 한다. */
   function call(path, body) {
-    var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ac) ac.abort(); }, CALL_TIMEOUT_MS);
-    var opts = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Agent-Pass': getPass() },
-      body: JSON.stringify(body)
-    };
-    if (ac) opts.signal = ac.signal;
-
-    return fetch(apiUrl(path), opts).then(function (res) {
-      return res.json().catch(function () { return {}; }).then(function (data) {
-        if (!res.ok) {
-          throw agentError(data && data.error ? String(data.error) : 'model',
-            data && data.message ? String(data.message) : '서버가 응답하지 못했습니다.');
-        }
-        return data;
-      });
-    }, function (e) {
+    return Net.post(path, body, {
+      timeoutMs: CALL_TIMEOUT_MS,
+      headers: { 'X-Agent-Pass': getPass() }
+    }).then(function (r) {
       // 끊김·시간 초과 — 둘 다 손 입력으로 돌아간다
-      var timedOut = (ac && ac.signal.aborted) || (e && e.name === 'AbortError');
-      throw agentError(timedOut ? 'timeout' : 'network',
-        timedOut ? 'AI 가 제시간에 답하지 못했습니다.' : 'AI 서버에 닿지 못했습니다.');
-    }).then(function (data) {
-      clearTimeout(timer);
-      return data;
-    }, function (e) {
-      clearTimeout(timer);
-      throw e;
+      if (r.failed) {
+        throw agentError(r.failed === 'timeout' ? 'timeout' : 'network',
+          r.failed === 'timeout' ? 'AI 가 제시간에 답하지 못했습니다.' : 'AI 서버에 닿지 못했습니다.');
+      }
+      if (!r.ok) {
+        throw agentError(r.data && r.data.error ? String(r.data.error) : 'model',
+          r.data && r.data.message ? String(r.data.message) : '서버가 응답하지 못했습니다.');
+      }
+      return r.data;
     });
   }
 

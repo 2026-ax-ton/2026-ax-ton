@@ -20,8 +20,14 @@
 
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+
+/* ★ 비밀번호 형식의 정답은 `api/_auth.mjs` 한 곳이다 (T11).
+     여기서 따로 해시하면 시연 계정으로 로그인이 안 된다.
+     `_auth.mjs` 는 바깥을 부르지 않는 순수 계산이라 드라이버 없이 불러올 수 있다. */
+import { hashPassword } from '../api/_auth.mjs';
+
+export { hashPassword };
 
 /* ★ 드라이버는 실제로 넣을 때만 불러온다 (main 안에서 동적 import).
      맨 위에서 불러오면 `npm install` 을 안 한 사람은 `tests/test-db.mjs` 조차
@@ -32,17 +38,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 /* ── 결정에 걸린 값 (A02 §14.2·§14.6) ──────────────────────────────── */
 
 const DEMO_JOIN_CODE = 'DEMO-4821';   // 시연 사업장 가입 코드 (workplaces.join_code)
-const SCRYPT_KEYLEN = 64;             // 비밀번호 해시 길이 (바이트)
-const SCRYPT_SALT_BYTES = 16;         // 계정별 salt 길이 (바이트)
-
-/* ★ T11(api/auth)에서 로그인을 만들 때 **이 형식을 그대로** 쓴다.
-     여기와 로그인이 다른 방식으로 해시하면 시연 계정으로 로그인이 안 된다.
-     `tests/test-db.mjs` 가 이 세 값을 고정해 둔다. */
-export function hashPassword(pw) {
-  const salt = crypto.randomBytes(SCRYPT_SALT_BYTES).toString('hex');
-  const hash = crypto.scryptSync(pw, salt, SCRYPT_KEYLEN).toString('hex');
-  return { hash, salt };
-}
 
 /* ── .env.local 읽기 (의존성 0 — measure-ai.mjs 와 같은 방식) ──────── */
 

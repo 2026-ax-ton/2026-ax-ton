@@ -437,10 +437,14 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
 
   const fs = require('fs');
   const path = require('path');
-  const code = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
+  /* 2026-11-01 — 부르는 일은 net.js 가 한다 (C06 D-030). 규칙은 그대로 거기서 지켜진다 */
+  const code = fs.readFileSync(path.join(SRC, 'assets/net.js'), 'utf8');
   ok('★ file: 일 때만 배포 주소를 붙인다', /location\.protocol === 'file:'/.test(code));
   ok('그 밖에는 같은 출처를 부른다 (제3자 요청 0건)',
     /\(file \? API_BASE : ''\)/.test(code));
+  const agentCode = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
+  ok('★ 에이전트는 그 자리를 거쳐서만 부른다', /Net\.(post|apiUrl)\(/.test(agentCode)
+    && !/fetch\s*\(/.test(agentCode));
 
   /* 서버 쪽 짝 — file:// 의 Origin: null 은 허용을 켰을 때만 통과한다 */
   const shared = fs.readFileSync(path.join(ROOT, 'api/_shared.mjs'), 'utf8');
@@ -484,9 +488,12 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
 
   const fs = require('fs');
   const path = require('path');
-  const agent = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
+  const net = fs.readFileSync(path.join(SRC, 'assets/net.js'), 'utf8');
   eq('API_BASE 는 한 번만 적혀 있다 (여기저기 박아 두지 않는다)',
-    (agent.match(/https:\/\/2026-ax-ton\.vercel\.app/g) || []).length, 1);
+    (net.match(/https:\/\/2026-ax-ton\.vercel\.app/g) || []).length, 1);
+  const agent2 = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
+  eq('★ 에이전트에는 배포 주소가 적혀 있지 않다 (한 곳에서 가져온다)',
+    (agent2.match(/https:\/\/2026-ax-ton\.vercel\.app/g) || []).length, 0);
 }
 
 /* =================================================================

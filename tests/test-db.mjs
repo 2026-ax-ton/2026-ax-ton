@@ -210,6 +210,12 @@ ok('인덱스도 if not exists 로 만든다',
    ─────────────────────────────────────────────────────────────────── */
 
 {
+  /* ★ 비밀번호 형식의 정답은 `api/_auth.mjs` 한 곳이다 (T11).
+     시연 데이터와 로그인이 다른 방식으로 해시하면 시연 계정으로 로그인이 안 된다. */
+  has('★ 시연 데이터가 비밀번호 형식을 따로 적지 않고 api/_auth.mjs 를 쓴다',
+    seedSrc, "from '../api/_auth.mjs'");
+  ok('시연 스크립트 안에 scrypt 를 다시 쓰지 않았다', !/scryptSync/.test(seedSrc));
+
   const a = seedMod.hashPassword('1234');
   const b = seedMod.hashPassword('1234');
   eq('해시는 64바이트(hex 128자)다', a.hash.length, 128);

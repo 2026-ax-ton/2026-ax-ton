@@ -265,12 +265,13 @@ PAGES.forEach(([html, js, login]) => {
        이것을 막으면 오프라인 캐시가 성립하지 않는다.
        예외를 열었으니 아래에서 "같은 오리진만 가로채는지" 를 따로 본다 —
        통째로 빼면 나중에 sw.js 에 CDN 호출을 넣어도 통과한다. */
-    /* ★ assets/agent.js 가 두 번째 fetch 예외다 (2026-10-31, T5 · C06 D-025).
-       운영자 화면에서 **같은 출처 `/api`** 를 부른다 — 제3자 요청이 아니다.
+    /* ★ assets/net.js 가 두 번째 fetch 예외다 (2026-11-01, T11 · C06 D-030).
+       **브라우저에서 우리 서버를 부르는 자리는 이 파일 하나다** — 로그인(T11)이
+       생기면서 둘이 될 뻔해 한 곳으로 모았다. 제3자 요청이 아니다.
        예외를 열었으니 아래에서 따로 본다: 부르는 주소가 `/api` 와 우리 배포
        주소뿐인지, 그리고 **노동자 화면에는 실리지 않는지.**
        통째로 빼면 나중에 CDN 호출을 넣어도 통과한다. */
-    const netRule = (rel === 'sw.js' || rel === 'assets/agent.js')
+    const netRule = (rel === 'sw.js' || rel === 'assets/net.js')
       ? /\b(XMLHttpRequest|WebSocket|EventSource)\s*\(/
       : /\b(fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/;
     if (netRule.test(body)) offenders.push(rel + ' — 네트워크 호출');
@@ -281,15 +282,23 @@ PAGES.forEach(([html, js, login]) => {
 
   /* ── 예외를 연 만큼 좁게 본다 ──────────────────────────────────── */
 
-  /* 1) 에이전트가 쓰는 주소는 같은 출처 /api 와 우리 배포 주소뿐이다 */
+  /* 1) 서버를 부르는 자리(net.js)가 쓰는 주소는 같은 출처 /api 와 우리 배포 주소뿐이다 */
   {
-    const agent = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
-    const foreign = (agent.match(/https?:\/\/[^\s'"`)]+/g) || [])
+    const net = fs.readFileSync(path.join(SRC, 'assets/net.js'), 'utf8');
+    const foreign = (net.match(/https?:\/\/[^\s'"`)]+/g) || [])
       .filter((u) => u.indexOf('https://2026-ax-ton.vercel.app') !== 0);
-    eq('★ 에이전트가 쓰는 주소는 우리 배포 주소뿐이다', foreign.join(', '), '');
+    eq('★ 서버를 부르는 자리가 쓰는 주소는 우리 배포 주소뿐이다', foreign.join(', '), '');
+    ok('★ 공급사(Gemini)를 브라우저에서 직접 부르지 않는다 — 키가 새면 끝이다',
+      !/googleapis|generativelanguage/.test(net));
+    ok('★ 토큰을 주소가 아니라 헤더로 보낸다 (주소는 로그에 남는다)',
+      /Authorization/.test(net) && !/token=/.test(net));
+
+    const agent = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
     ok('★ 에이전트는 같은 출처 /api 를 부른다',
       /['"]\/api\/translate['"]/.test(agent) && /['"]\/api\/backtranslate['"]/.test(agent));
-    ok('★ 공급사(Gemini)를 브라우저에서 직접 부르지 않는다 — 키가 새면 끝이다',
+    ok('★ 에이전트는 이제 직접 부르지 않는다 (net.js 를 거친다)',
+      !/fetch\s*\(/.test(agent) && /Net\.post\(/.test(agent));
+    ok('★ 공급사(Gemini)를 에이전트도 직접 부르지 않는다',
       !/googleapis|generativelanguage/.test(agent));
   }
 
@@ -299,6 +308,9 @@ PAGES.forEach(([html, js, login]) => {
     const js = fs.readFileSync(path.join(SRC, 'worker/' + name + '.js'), 'utf8');
     ok('노동자 ' + name + ': 에이전트를 싣지 않는다 (운영자 전용이다)',
       html.indexOf('agent.js') === -1);
+    /* ★★ 서버를 부르는 자리조차 싣지 않는다 — 그래서 "요청 0건" 이 약속이 아니라 사실이다 */
+    ok('노동자 ' + name + ': net.js 를 싣지 않는다 (서버를 부를 수단 자체가 없다)',
+      html.indexOf('net.js') === -1);
     ok('노동자 ' + name + ': 네트워크 호출이 0건이다',
       !/\b(fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/.test(js));
   });

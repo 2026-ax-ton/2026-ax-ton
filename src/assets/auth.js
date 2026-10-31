@@ -1,21 +1,83 @@
 /* ===================================================================
    auth.js — 로그인 · 세션 · 화면 가드
 
-   ★ 이것은 진짜 인증이 아니다.
-     서버가 없으므로 비밀번호가 브라우저에 평문으로 들어간다.
-     감출 방법이 없고, 감춘 척하는 게 더 나쁘므로 화면에 목업이라고 적는다.
-     실제 서비스가 되려면 이 파일 전체가 서버 API 호출로 바뀐다.
+   ★ 2026-11-01 (T11) — 길이 둘이 됐다.
+
+     ① 서버 모드 (https + net.js 가 실려 있을 때)
+        진짜 로그인이다. 비밀번호는 서버에서 scrypt 로 해시해 저장하고,
+        브라우저에는 **토큰만** 온다. 토큰은 sessionStorage 에 둔다 —
+        탭을 닫으면 로그아웃이다 (공용 폰 대응, A02 §14.3).
+
+     ② 로컬 모드 (file:// · 서버에 닿지 못할 때)
+        예전 그대로의 목업이다. 비밀번호가 브라우저에 평문으로 들어간다.
+        감출 방법이 없고 감춘 척하는 게 더 나쁘므로 화면에 목업이라고 적는다.
+        **이 길을 없애지 않는다** — 현장 시연은 제출 HTML 더블클릭이고(C08 §7),
+        서버가 죽어도 교육은 계속돼야 한다 (C05 원칙 2).
+
+   ★ 화면 가드는 두 모드에서 똑같이 동기로 돈다. 11개 화면은 고치지 않았다.
 
    쓰는 곳
-     로그인 화면      Auth.login(userId, pw)
-     회원가입 화면    Auth.signup({...})
+     로그인 화면      Auth.login(userId, pw)            ← 로컬
+                      Auth.loginServer(id, pw, done)    ← 서버 (net.js 필요)
+     회원가입 화면    Auth.signup({...}) · Auth.signupServer({...}, done)
      나머지 모든 화면 Auth.require('worker')   ← <head> 에서 한 줄
 
-   store.js 가 먼저 읽혀 있어야 한다.
+   store.js 가 먼저 읽혀 있어야 한다. 서버 모드는 net.js 도 필요하다.
    =================================================================== */
 
 var Auth = (function () {
   'use strict';
+
+  /* ── 서버 모드 (T11) ──────────────────────────────────────────────
+
+     토큰과 사용자 정보는 **sessionStorage** 에 둔다 (localStorage 가 아니다).
+     공용 폰에서 탭을 닫으면 다음 사람에게 남지 않아야 한다 (A02 §14.3).
+     저장 키를 Store 10개 키에 더하지 않는 이유도 같다 — 저 키들은 남는 데이터고
+     이것은 **이 탭에서만 사는 값**이다. */
+
+  var TOKEN_KEY = 'safety.token.v1';
+  var USER_KEY = 'safety.user.v1';
+
+  /** 서버를 부를 수 있는 자리인가. 셋이 다 맞아야 한다.
+      ① net.js 가 실려 있다 (노동자 화면 6개에는 없다 — 요청 0건이 사실이려면)
+      ② 부를 수단이 있다 (아주 오래된 인앱 브라우저에는 fetch 가 없다)
+      ③ https 다 (file:// 시연은 로컬 모드다, A02 §14.5) */
+  function canServer() {
+    return typeof Net !== 'undefined' && Net.available()
+      && typeof location !== 'undefined' && location.protocol === 'https:';
+  }
+
+  function token() {
+    try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function serverUser() {
+    try {
+      var raw = sessionStorage.getItem(USER_KEY);
+      var u = raw ? JSON.parse(raw) : null;
+      return (u && u.userId && u.role) ? u : null;
+    } catch (e) { return null; }
+  }
+
+  /* ★ 서버로 로그인하면 **이 기기에 남는 자리(Store.session)에는 아무것도 쓰지 않는다.**
+     탭을 닫으면 sessionStorage 가 사라지고, 그러면 로그인도 사라진다 —
+     공용 폰에서 다음 사람이 앞 사람 화면으로 들어가지 못한다 (A02 §14.3).
+     화면 가드가 이것을 보는 것은 current() 가 서버 쪽을 먼저 보기 때문이다.
+     (Store.session 을 읽는 곳은 이 파일뿐이라 11개 화면은 고치지 않았다.) */
+  function keepServer(tok, user) {
+    try {
+      sessionStorage.setItem(TOKEN_KEY, tok);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    } catch (e) { return false; }
+    return true;
+  }
+
+  function dropServer() {
+    try {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(USER_KEY);
+    } catch (e) { /* 저장이 막힌 브라우저 — 어차피 넣지도 못했다 */ }
+  }
 
   /* 이 페이지가 src/ 에서 몇 칸 안에 있는지.
      worker/home.html 은 한 칸 안이라 로그인 화면이 ../index.html 이다.
@@ -26,6 +88,11 @@ var Auth = (function () {
   }
 
   function current() {
+    /* 서버 모드가 먼저다. 토큰이 있으면 그 사람이 로그인한 사람이다.
+       ★ 동기로 돈다 — 화면 가드가 기다릴 수 없기 때문이다 (A02 §14.5). */
+    var su = serverUser();
+    if (token() && su) return su;
+
     var s = Store.session.load();
     if (!s.userId || !s.role) return null;
 
@@ -96,7 +163,15 @@ var Auth = (function () {
     return { ok: true, account: acc, landing: Store.role(acc.role).landing };
   }
 
+  /* ★ 로그아웃은 실패하면 안 된다 (공용 폰).
+     서버에 알리는 것은 할 수 있으면 하고, 못 해도 이 기기의 토큰은 반드시 버린다.
+     서버에 남은 세션은 만료(12시간)나 다음 로그인 때 정리된다. */
   function logout() {
+    var tok = token();
+    if (tok && canServer()) {
+      Net.post('/api/auth/logout', {}, { token: tok, timeoutMs: 3000 });
+    }
+    dropServer();
     Store.session.clear();
     location.href = baseDir() + 'index.html';
   }
@@ -178,10 +253,73 @@ var Auth = (function () {
     return user;
   }
 
+  /* ── 서버 모드 호출 (T11) ─────────────────────────────────────────
+     done(result) 로 알린다. result 는 로컬 모드와 같은 모양이다:
+       { ok: true, account, landing } · { ok: false, reason, code }
+     code 가 'offline' 이면 **서버에 닿지 못한 것**이라 부르는 쪽이
+     로컬 모드로 이어갈 수 있다 (C05 원칙 2 — 기존 길을 없애지 않는다). */
+
+  function landingFor(role) {
+    var r = Store.role(role);
+    return r ? r.landing : 'index.html';
+  }
+
+  function finishServer(r, done) {
+    if (r.failed) {
+      done({ ok: false, code: 'offline', reason: '서버에 닿지 못했습니다.' });
+      return;
+    }
+    if (!r.ok) {
+      var code = (r.data && r.data.error) ? String(r.data.error) : 'error';
+      /* 서버 설정이 덜 된 것도 사람 탓이 아니다 — 로컬 모드로 이어갈 수 있게 알린다 */
+      done({
+        ok: false,
+        code: code === 'config' ? 'offline' : code,
+        reason: (r.data && r.data.message) ? String(r.data.message) : '로그인하지 못했습니다.'
+      });
+      return;
+    }
+    var user = r.data.user;
+    if (!user || !keepServer(r.data.token, user)) {
+      done({ ok: false, code: 'offline', reason: '이 브라우저에 로그인 상태를 저장할 수 없습니다.' });
+      return;
+    }
+    done({ ok: true, account: user, landing: landingFor(user.role), joinCode: r.data.joinCode });
+  }
+
+  function loginServer(userId, pw, done) {
+    if (!canServer()) { done({ ok: false, code: 'offline', reason: '서버를 부를 수 없습니다.' }); return; }
+    Net.post('/api/auth/login', { userId: (userId || '').trim(), pw: pw || '' })
+      .then(function (r) { finishServer(r, done); });
+  }
+
+  /** 노동자 가입 — 담당자에게 받은 가입 코드가 필요하다. */
+  function signupServer(input, done) {
+    if (!canServer()) { done({ ok: false, code: 'offline', reason: '서버를 부를 수 없습니다.' }); return; }
+    Net.post('/api/auth/signup', {
+      joinCode: input.joinCode, userId: input.userId, pw: input.pw,
+      lang: input.lang, processId: input.processId, name: input.name
+    }).then(function (r) { finishServer(r, done); });
+  }
+
+  /** 사업장 등록 — 담당자 계정이 함께 생기고 가입 코드를 받는다. */
+  function signupWorkplaceServer(input, done) {
+    if (!canServer()) { done({ ok: false, code: 'offline', reason: '서버를 부를 수 없습니다.' }); return; }
+    Net.post('/api/auth/signup-workplace', {
+      siteName: input.siteName, sizeBand: input.sizeBand,
+      userId: input.userId, pw: input.pw, name: input.name, title: input.title
+    }).then(function (r) { finishServer(r, done); });
+  }
+
   return {
     current: current,
     signup: signup,
     login: login,
+    canServer: canServer,
+    token: token,
+    loginServer: loginServer,
+    signupServer: signupServer,
+    signupWorkplaceServer: signupWorkplaceServer,
     logout: logout,
     go: go,
     require: require,

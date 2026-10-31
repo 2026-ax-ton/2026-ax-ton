@@ -71,6 +71,12 @@
 
         <!-- 노동자 전용 -->
         <div id="fields-worker" hidden>
+          <!-- 서버 모드에서만 보인다 (T11). 담당자가 알려 준 코드로 사업장이 정해진다 -->
+          <div class="field" id="field-code" hidden>
+            <label for="join-code">가입 코드</label>
+            <input id="join-code" type="text" placeholder="ABCD-EFGH" maxlength="20" autocomplete="off">
+            <p class="field-hint">담당자에게 받은 코드입니다. 이 코드로 어느 사업장인지 정해집니다.</p>
+          </div>
           <div class="field">
             <label for="join-lang">사용 언어</label>
             <select id="join-lang"></select>
@@ -87,6 +93,7 @@
         </div>
 
         <p class="loginerror" id="join-error" hidden></p>
+        <p class="why" id="join-mode" hidden></p>
 
         <div style="height:6px"></div>
         <button class="btn btn-primary" type="submit">
@@ -100,7 +107,7 @@
         이후 모든 교육이 그 구성을 기준으로 만들어집니다.
         <b>여기서 넣지 않은 언어는 어떤 화면에서도 제공되지 않습니다.</b>
       </p>
-      <p class="muted" style="margin-top:10px">
+      <p class="muted" style="margin-top:10px" id="join-note">
         비밀번호는 이 브라우저에 그대로 저장됩니다. <b>시연용 목업</b>이며 실제 인증이 아닙니다.
       </p>
     </div>
@@ -114,6 +121,7 @@
 <script src="assets/auth.js"></script>
 <script src="assets/icons.js"></script>
 <script src="assets/ui.js"></script>
+<script src="assets/net.js"></script>
 <script src="assets/signup.js"></script>
 </body>
 </html>

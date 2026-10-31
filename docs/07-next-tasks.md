@@ -475,7 +475,18 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: A02 §14.1·§14.2, C06 D-023, C05 T-1′·T-5′
   - **됐는지**: 미리보기 Neon 브랜치에 테이블이 있고 시연 데이터가 들어간다. 전체 테스트 통과
 
-- [ ] **T11. 진짜 로그인 + 서버 권한 검사** — `TK-3-02`
+- [x] **T11. 진짜 로그인 + 서버 권한 검사** — `TK-3-02` ✅ 2026-11-01
+
+  - ✅ `api/auth/` 넷 — `login` · `logout` · `signup`(노동자, 가입 코드) · `signup-workplace`(담당자, 사업장 생성 + 가입 코드 발급)
+  - ✅ `api/_auth.mjs` — 비밀번호(scrypt 64바이트 + 계정별 salt 16바이트) · 토큰(32바이트, DB엔 sha256만) · 12시간 만료 · 5회 실패 10분 잠금. **바깥을 부르지 않는 순수 계산**이라 드라이버 없이 검사된다
+  - ✅ `api/_db.mjs` — 연결(지연 로딩) · 토큰→계정 · `setSqlForTest()`(검사용 가짜 sql)
+  - ✅ 🆕 **`src/assets/net.js`** — 브라우저에서 우리 서버를 부르는 **유일한 자리** (C06 **D-030**). `agent.js` 도 이제 여기를 거친다. **노동자 화면 6개에는 싣지 않는다** — 부를 수단 자체가 없어야 「요청 0건」이 사실이다
+  - ✅ 화면 — `index.html`·`signup.html`·`auth.js`·`login.js`·`signup.js`. **11개 화면은 고치지 않았다** (`Auth.current()` 가 두 모드를 모두 동기로 답한다)
+  - ✅ **넘지 않은 선 (C06 D-031)** — 서버가 401·423 으로 거절하면 **목업으로 새지 않는다**(뒷문 없음). 로컬로 되돌아가는 것은 **닿지 못했을 때**(끊김·`500 config`)뿐이고 그때는 화면에 「목업으로 확인했다」를 적는다
+  - ✅ 공용 폰 — 토큰은 `sessionStorage` 에만. 서버 로그인은 **`Store.session` 에 아무것도 쓰지 않는다** → 탭을 닫으면 로그인이 사라진다
+  - ✅ 검사 **153건** (`tests/test-api-auth.mjs` 100 가짜 sql · `tests/test-auth-client.js` 53 가짜 fetch). 전체 **21묶음 2,189건** 통과
+  - ⬜ **남은 것(사용자)**: Vercel 환경변수 `DATABASE_URL` 이 **Production·Preview 양쪽**에 있는지 확인 (한쪽만 넣으면 그 환경에서만 조용히 안 된다). 미리보기 주소에서 실제 로그인 확인은 그다음
+  - **남는 한계**: 노동자 화면에서 로그아웃하면 **이 기기의 토큰만** 버린다 (그 화면엔 `net.js` 가 없다). 서버 세션은 만료(12시간)나 다음 로그인 때 정리된다
 
   - **어디**: `api/auth/*` · `assets/auth.js` · `assets/login.js` · `assets/signup.js` · `src/index.html` · `src/signup.html`
   - **무엇**: 사업장 등록·가입 코드·노동자 가입·로그인·로그아웃, scrypt·토큰(12시간, `sessionStorage`)·5회 잠금, 토큰으로만 역할·사업장 판단하는 공통 검사

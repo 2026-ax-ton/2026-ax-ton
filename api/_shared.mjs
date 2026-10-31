@@ -30,7 +30,8 @@ export const LANG_NAMES = {
 
 const CORS_NULL = {
   'Access-Control-Allow-Origin': 'null',
-  'Access-Control-Allow-Headers': 'Content-Type, X-Agent-Pass',
+  // Authorization — 로그인 토큰 (T11). file:// 시연에서도 로그인이 되어야 한다
+  'Access-Control-Allow-Headers': 'Content-Type, X-Agent-Pass, Authorization',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Vary': 'Origin',
 };
@@ -106,7 +107,12 @@ export function allowedOrigins() {
    돌려주는 값: { done: Response } 면 여기서 끝난 것이고,
                 { cors, text } 면 통과한 것이다. */
 
-export async function guard(request) {
+/** 통과 문구는 보지 않는 기본 검사 — 출처·메서드·본문 크기만 본다.
+ *  `/api/auth/*` 처럼 **로그인하기 전**에 부르는 함수가 쓴다 (T11).
+ *  `beforeBody` 를 주면 본문을 읽기 전에 한 번 더 막을 기회를 준다. */
+export async function guardBasic(request, opts) {
+  const beforeBody = opts && opts.beforeBody;
+  const maxBytes = (opts && opts.maxBytes) || MAX_BODY_BYTES;
   const origin = request.headers.get('origin');
   const allowFile = process.env.ALLOW_FILE_ORIGIN === '1';
 
@@ -137,20 +143,31 @@ export async function guard(request) {
      앞은 서버 설정이 덜 된 것(500)이고 뒤는 사람이 다시 넣으면 되는 것(401)이다.
      둘을 같이 401 로 내면 "환경변수를 Preview 에 안 넣었다" 를 영영 모른다
      (2026-10-31 설정 중에 겪음). 어느 쪽이든 문구 값은 내지 않는다. */
-  const pass = (process.env.AGENT_PASS || '').trim();
-  if (!pass) {
-    return { done: fail(500, 'config', '서버 설정 오류입니다.', cors) };
-  }
-  if ((request.headers.get('x-agent-pass') || '').trim() !== pass) {
-    return { done: fail(401, 'pass_required', '운영자 통과 문구를 입력하세요.', cors) };
+  if (beforeBody) {
+    const stop = beforeBody(cors, request);
+    if (stop) return { done: stop };
   }
 
   const text = await request.text();
-  if (byteLength(text) > MAX_BODY_BYTES) {
+  if (byteLength(text) > maxBytes) {
     return { done: fail(413, 'too_large', '보낸 내용이 너무 깁니다.', cors) };
   }
 
   return { cors, text };
+}
+
+/** AI 함수(`/api/translate`·`/api/backtranslate`)용 검사 — 기본 검사 + 통과 문구. */
+export async function guard(request) {
+  return guardBasic(request, { beforeBody: passCheck });
+}
+
+function passCheck(cors, request) {
+  const pass = (process.env.AGENT_PASS || '').trim();
+  if (!pass) return fail(500, 'config', '서버 설정 오류입니다.', cors);
+  if ((request.headers.get('x-agent-pass') || '').trim() !== pass) {
+    return fail(401, 'pass_required', '운영자 통과 문구를 입력하세요.', cors);
+  }
+  return null;
 }
 
 export function byteLength(s) {

@@ -93,18 +93,65 @@
     });
   }
 
-  $('form-login').addEventListener('submit', function (e) {
-    e.preventDefault();
-    clearError();
+  /* ── 들어가기 — 서버 먼저, 안 되면 이 기기 (T11) ────────────────────
 
+     ★ 서버가 "아이디·비밀번호가 틀렸다" 고 하면 **거기서 끝낸다.**
+       그때 로컬 목업으로 되돌아가면 목업 비밀번호로 들어가지는 뒷문이 된다.
+       되돌아가는 것은 **서버에 닿지 못했을 때(offline)** 뿐이다 (C05 원칙 2). */
+
+  function showMode(msg) {
+    var box = $('login-mode');
+    box.textContent = msg;
+    box.hidden = !msg;
+  }
+
+  function setBusy(on) {
+    var btn = $('btn-login');
+    btn.disabled = on;
+    showMode(on ? '서버에 확인하는 중입니다…' : '');
+  }
+
+  function land(result) {
+    /* 찍고 들어온 자리가 있으면 그리로. 없거나 남의 역할 화면이면 자기 첫 화면으로. */
+    location.href = Auth.nextFor(result.account.role, wanted) || result.landing;
+  }
+
+  function loginHere(fallbackNote) {
     var result = Auth.login($('login-id').value, $('login-pw').value);
     if (!result.ok) {
       showError(result.reason);
+      if (fallbackNote) showMode(fallbackNote);
       $('login-pw').focus();
       return;
     }
-    /* 찍고 들어온 자리가 있으면 그리로. 없거나 남의 역할 화면이면 자기 첫 화면으로. */
-    location.href = Auth.nextFor(result.account.role, wanted) || result.landing;
+    land(result);
+  }
+
+  $('form-login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearError();
+    showMode('');
+
+    if (!Auth.canServer()) { loginHere(); return; }
+
+    setBusy(true);
+    Auth.loginServer($('login-id').value, $('login-pw').value, function (r) {
+      setBusy(false);
+      if (r.ok) { land(r); return; }
+
+      if (r.code === 'offline') {
+        /* 서버가 없거나 닿지 못한다 — 교육이 멈추면 안 되므로 이 기기 계정으로 간다.
+           숨기지 않고 **먼저 적고** 넘어간다. 어느 길로 들어왔는지 모르면
+           데이터가 어디 있는지도 모른다 (이 기기에만 쌓인다). */
+        var note = '서버에 닿지 못해 이 기기에 저장된 계정으로 확인했습니다 (목업).';
+        showMode(note);
+        loginHere(note);
+        return;
+      }
+
+      showError(r.reason);
+      $('login-pw').focus();
+    });
   });
 
   $('btn-seed').addEventListener('click', function () {

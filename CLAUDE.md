@@ -257,8 +257,9 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 | 노동자 | `src/worker/home.* learn.* quiz.* report.* talk.* my.*` + `worker.css` |
 | 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` + `admin.css` |
 | 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
+| 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 노동자 화면 6개에는 싣지 않습니다 |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
-| 서버 | `api/translate.mjs backtranslate.mjs _shared.mjs` + 루트 `package.json` (드라이버 1개) |
+| 서버 | `api/translate.mjs backtranslate.mjs _shared.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` + `api/_auth.mjs`(비밀번호·토큰) `_db.mjs`(연결·토큰 확인) + 루트 `package.json` (드라이버 1개) |
 | DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
 | 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
@@ -332,14 +333,16 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
   **픽토그램은 `assets/icons.js` 의 선 아이콘입니다** (좌표만 든 인라인 SVG).
   덕분에 인터넷 없이 `file://` 로 열려 확인이 가장 빠릅니다
   - **★ 노동자 화면 6개는 요청이 아예 0건입니다.** 이건 안 바뀌었습니다.
+    `net.js` 를 싣지도 않아서 **부를 수단 자체가 없습니다.**
     `tests/test-smoke.js` 가 화면마다 따로 확인합니다
   - **예외 셋.** ① `sw.js` 의 `fetch(req)`(같은 오리진 요청을 그대로 흘려보내는 것)
     ② **신고 화면의 받아쓰기**(브라우저가 소리를 인식 서버로 보냅니다)
-    ③ **`assets/agent.js`** — 운영자 화면에서 **우리 `/api`** 를 부릅니다 (AI 번역).
-    셋 다 **화면과 주석에 그 사실을 적어 뒀고**, 검사가 "그 밖의 주소는 0건" 과
-    "에이전트가 쓰는 주소는 우리 배포 주소뿐" 을 지킵니다.
+    ③ **`assets/net.js`** — **브라우저에서 우리 서버를 부르는 유일한 파일**입니다
+    (2026-11-01 개정, C06 **D-030**). AI 번역(`agent.js`)도 로그인(`auth.js`)도
+    여기를 거칩니다. 셋 다 **화면과 주석에 그 사실을 적어 뒀고**, 검사가
+    "그 밖의 주소는 0건" 과 "`net.js` 가 쓰는 주소는 우리 배포 주소뿐" 을 지킵니다.
     **공급사(Gemini)를 브라우저에서 직접 부르지 않습니다 — 키가 새면 끝입니다.**
-    **예외를 넷으로 늘리지 마세요**
+    **예외를 넷으로 늘리지 마세요** — 새로 서버를 불러야 하면 `net.js` 에 더하세요
 - **`src/` 는 의존성 0, 서버 `api/` 만 드라이버 1개** (2026-10-31 개정, C06 D-023 · C05 T-5′).
   브라우저에 가는 `src/` 에는 **npm 패키지를 하나도 넣지 않습니다** — `src/` 아래에
   `package.json` 도 `node_modules` 도 없습니다. 서버 함수(`api/`)가 쓰는 것만
