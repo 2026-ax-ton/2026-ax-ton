@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이전 버전 설명 - 아이디어톤 v1.0</title>
+<style>
+:root{--brand:#5a45c2;--brand-deep:#3e2d87;--brand-soft:#f1eefe;--worker:#c0392c;--worker-soft:#fdeeeb;--ink:#14181d;--ink2:#4a545f;--ink3:#78838f;--line:#e2e5eb;--bg:#f5f6f9;--surface:#fff;--ok:#1c6b3a;--ok-soft:#e6f4ea;--warn:#8a5a00;--warn-soft:#fff4dc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.7;font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px 64px}
+header.hero{background:linear-gradient(135deg,var(--brand-deep),var(--brand));color:#fff;padding:48px 16px 40px}
+header.hero .in{max-width:880px;margin:0 auto}
+.tag{display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:2px 12px;font-size:13px;font-weight:700}
+h1{font-size:30px;line-height:1.35;margin:12px 0 8px}
+header.hero p{margin:0;opacity:.92;max-width:640px}
+nav{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);z-index:5}
+nav .in{max-width:880px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:12px 10px;font-size:14px;color:var(--ink2);text-decoration:none;white-space:nowrap;font-weight:600}
+nav a:hover{color:var(--brand)}
+section{margin-top:40px}
+h2{font-size:22px;margin:0 0 6px;color:var(--brand-deep)}
+.lead{color:var(--ink2);margin:0 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.quote{background:var(--brand-soft);border-left:5px solid var(--brand);border-radius:10px;padding:18px 20px;font-size:19px;font-weight:700;color:var(--brand-deep)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.stat{text-align:center}
+.stat b{display:block;font-size:30px;color:var(--brand)}
+.stat span{font-size:13px;color:var(--ink2)}
+.flow{list-style:none;margin:0;padding:0;counter-reset:s}
+.flow li{counter-increment:s;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 56px;margin-bottom:10px}
+.flow li::before{content:counter(s);position:absolute;left:14px;top:14px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;text-align:center;line-height:30px}
+.flow li b{display:block}
+.flow li span{color:var(--ink2);font-size:15px}
+.role h3{margin:0 0 4px;font-size:17px}
+.role.w{border-top:5px solid var(--worker)}
+.role.a{border-top:5px solid var(--brand)}
+.role.o{border-top:5px solid var(--brand-deep)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:1px 9px;border-radius:999px;margin-right:4px}
+.pill.w{background:var(--worker-soft);color:var(--worker)}
+.pill.a{background:var(--brand-soft);color:var(--brand)}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--brand-soft);color:var(--brand-deep);font-size:14px}
+tr:last-child td{border-bottom:0}
+.ok{color:var(--ok);font-weight:700}
+.no{color:var(--warn);font-weight:700}
+.box{border-radius:12px;padding:16px 18px}
+.box.ok{background:var(--ok-soft);color:#14401f;font-weight:400}
+.box.no{background:var(--warn-soft);color:#4d3300;font-weight:400}
+.box h3{margin:0 0 6px;font-size:16px}
+.box ul{margin:0;padding-left:20px}
+.gap{background:var(--surface);border:2px dashed var(--brand);border-radius:14px;padding:20px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.cmp{grid-template-columns:1fr}h1{font-size:25px}}
+.cmp div{background:var(--bg);border-radius:10px;padding:12px 14px;font-size:15px}
+.cmp b{display:block;font-size:13px;color:var(--ink3);margin-bottom:2px}
+footer{margin-top:48px;color:var(--ink3);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero"><div class="in">
+<span class="tag">이전 버전 · 아이디어톤 v1.0</span>
+<h1>지금까지 만든 것: 이주노동자 안전교육 이해도 검증 플랫폼</h1>
+<p>해커톤에서 무엇을 바꿀지 이야기하려면, 먼저 "지금 무엇이 있고 무엇이 없는지"를 같이 알아야 합니다. 이 문서는 비전공자 팀원을 위한 현재 상태 설명입니다.</p>
+</div></header>
+<nav><div class="in">
+<a href="#problem">문제</a><a href="#flow">동작 흐름</a><a href="#people">사용자 3종</a><a href="#screens">화면 11개</a><a href="#can">되는 것/안 되는 것</a><a href="#ai">AI 공백</a><a href="#rules">지키는 원칙</a>
+</div></nav>
+<div class="wrap">
+
+<section id="problem">
+<h2>1. 풀려는 문제</h2>
+<p class="lead">안전교육은 매년 하는데, 외국인 노동자가 내용을 이해했는지는 아무도 확인하지 못합니다.</p>
+<div class="quote">서명은 참석의 증거일 뿐, 이해의 증거가 아니다.</div>
+<div class="grid g2" style="margin-top:12px">
+<div class="card"><b>지금 현장은</b><br>교육 시간에 한국어로 설명하고, 출석부에 서명을 받으면 끝납니다. 말이 통하지 않아도 서명은 됩니다.</div>
+<div class="card"><b>그래서 생기는 일</b><br>이해하지 못한 채 위험한 작업에 들어갑니다. 사고가 나면 "교육했다"는 서명만 남습니다.</div>
+</div>
+</section>
+
+<section id="flow">
+<h2>2. 이 플랫폼이 일하는 순서</h2>
+<p class="lead">글을 못 읽어도 끝까지 할 수 있게, 소리와 그림 중심으로 만들었습니다.</p>
+<ol class="flow">
+<li><b>사업장 등록</b><span>담당자가 회사와 노동자, 사용 언어를 입력합니다.</span></li>
+<li><b>번역 검수 (관문)</b><span>운영자가 번역문과 역번역(다시 한국어로 옮긴 글)을 비교해 승인합니다. 승인된 문장만 교육에 쓰입니다.</span></li>
+<li><b>교육 만들기</b><span>승인된 문장으로 교육 자료와 문제를 구성합니다.</span></li>
+<li><b>노동자 음성 수강</b><span>노동자가 자기 언어로 소리를 들으며 교육을 받습니다.</span></li>
+<li><b>그림으로 이해도 확인</b><span>글 대신 그림 문제(위험한 곳 누르기, 고르기, 짝 맞추기)로 이해를 확인합니다.</span></li>
+<li><b>대시보드로 약한 곳 파악</b><span>담당자가 어떤 항목에서 많이 틀리는지 봅니다.</span></li>
+<li><b>증빙 인쇄</b><span>서명이 아니라 "이해했다는 기록"을 인쇄해 보관합니다.</span></li>
+</ol>
+<div class="card" style="margin-top:6px"><b>별도 기능</b><br>노동자가 현장 위험을 <b>익명으로 제보</b>할 수 있고, 담당자와 이야기하는 대화 화면이 있습니다.</div>
+</section>
+
+<section id="people">
+<h2>3. 쓰는 사람 3종류</h2>
+<div class="grid g3">
+<div class="card role w"><h3>노동자</h3><span class="pill w">코랄색 화면</span><p style="margin:6px 0 0;font-size:15px">교육을 듣고 문제를 풉니다. 제보도 합니다. 6개 언어를 지원합니다.</p></div>
+<div class="card role a"><h3>담당자</h3><span class="pill a">보라색 화면</span><p style="margin:6px 0 0;font-size:15px">사업장의 교육을 만들고 결과를 봅니다. 대시보드와 증빙을 다룹니다.</p></div>
+<div class="card role o"><h3>운영자</h3><span class="pill a">보라색 화면</span><p style="margin:6px 0 0;font-size:15px">번역 검수를 맡습니다. 승인 전에는 아무 문장도 교육에 나가지 않습니다.</p></div>
+</div>
+</section>
+
+<section id="screens">
+<h2>4. 화면 11개</h2>
+<table>
+<tr><th>누가</th><th>화면</th><th>하는 일</th></tr>
+<tr><td rowspan="6">노동자</td><td>홈</td><td>오늘 할 교육을 보여줍니다</td></tr>
+<tr><td>수강</td><td>음성으로 교육을 듣습니다</td></tr>
+<tr><td>문제</td><td>그림 문제 3종류(위험 위치 누르기, 고르기, 짝 맞추기)</td></tr>
+<tr><td>제보</td><td>위험 요소를 익명으로 알립니다</td></tr>
+<tr><td>대화</td><td>담당자와 이야기합니다</td></tr>
+<tr><td>내 정보</td><td>내 수강 기록과 설정</td></tr>
+<tr><td rowspan="5">담당자·운영자</td><td>등록</td><td>사업장, 노동자, 언어 입력</td></tr>
+<tr><td>번역 라이브러리</td><td>번역문 입력과 검수 (운영자)</td></tr>
+<tr><td>교육 만들기</td><td>교육 구성</td></tr>
+<tr><td>대시보드</td><td>이해도와 취약 항목 확인</td></tr>
+<tr><td>증빙</td><td>이해 기록 인쇄</td></tr>
+</table>
+</section>
+
+<section id="can">
+<h2>5. 지금 되는 것, 안 되는 것</h2>
+<div class="grid g2">
+<div class="box ok"><h3>되는 것</h3><ul>
+<li>끝까지 이어지는 전체 흐름 (등록에서 증빙까지)</li>
+<li>인터넷 없이도 동작 (오프라인 지원)</li>
+<li>서버 없이 인터넷 주소로 배포 (Vercel 자동 배포)</li>
+<li>자동 점검 테스트 1,613개 통과 (v1.0 시점)</li>
+<li>노동자 화면에서 외부로 나가는 요청 0건</li>
+</ul></div>
+<div class="box no"><h3>안 되는 것</h3><ul>
+<li>서버와 DB가 없어서 기기 간 데이터 공유가 안 됩니다</li>
+<li>로그인은 흉내(모의)만 냅니다</li>
+<li>사진과 음성 첨부 제보가 안 됩니다</li>
+<li>기한 알림이 없습니다</li>
+<li>휴대폰 카메라로 QR 읽기 시험과, 글 없이 끝까지 해보는 실사용 시험을 아직 못 했습니다</li>
+<li>문제 문장 자체의 검수는 아직 안 됐습니다</li>
+</ul></div>
+</div>
+</section>
+
+<section id="ai">
+<h2>6. 가장 큰 빈칸: AI가 없다</h2>
+<div class="gap">
+<p style="margin-top:0">이 프로젝트는 "AI 해커톤"에 나가지만, <b>현재 버전에는 AI가 실제로 일하는 곳이 없습니다.</b> 번역과 검수가 전부 사람 손입니다.</p>
+<div class="cmp">
+<div><b>번역문과 역번역</b>사람이 직접 입력합니다.</div>
+<div><b>검수 도구 (review.js)</b>단어를 규칙으로 비교하고 "아니다"가 뒤집혔는지 확인하는 정도입니다. AI가 아닙니다.</div>
+<div><b>문제 출제</b>사람이 하나씩 만듭니다.</div>
+<div><b>대시보드 해석</b>숫자는 보여주지만 "왜 그런지"와 "무엇을 할지"는 사람이 읽어냅니다.</div>
+</div>
+<p style="margin-bottom:0">이 빈칸이 해커톤에서 채울 부분입니다. 다음 문서(<b>개선 후</b>)에서 설명합니다.</p>
+</div>
+</section>
+
+<section id="rules">
+<h2>7. 절대 지키는 원칙</h2>
+<p class="lead">앞으로 무엇을 붙이든 이 선은 넘지 않습니다.</p>
+<div class="grid g2">
+<div class="card">검수된 문장만 안전 지시로 쓴다</div>
+<div class="card">위험 제보는 익명을 지킨다</div>
+<div class="card">교육을 끝내지 못한 사람을 숨기지 않는다</div>
+<div class="card">인사평가나 순위용 내보내기를 만들지 않는다</div>
+<div class="card">통과 못 함은 노동자의 실패가 아니라 교육의 실패로 본다</div>
+<div class="card">"면책"을 약속하는 표현을 쓰지 않는다</div>
+</div>
+</section>
+
+<footer>기준: v1.0-ideathon 태그 (2026-09). 개선 후 설명은 TOPIC-AFTER.html 에 있습니다.</footer>
+</div>
+</body>
+</html>

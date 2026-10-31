@@ -1,5 +1,5 @@
 /* 기능9 안전 문구 라이브러리 — 실제 DOM 검증 */
-const { boot, ok, eq, has, report } = require('./harness');
+const { boot, ok, eq, has, report, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -236,7 +236,7 @@ function open(opts = {}) {
    ================================================================= */
 {
   const fs = require('fs');
-  const base = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/admin/';
+  const base = SRC + '/admin/';
   const html = fs.readFileSync(base + 'library.html', 'utf8');
   const js = fs.readFileSync(base + 'library.js', 'utf8');
 
@@ -565,6 +565,308 @@ function addPhrase(t, { ko, category, lang, textIn, back }) {
   /* 이 화면의 무게 */
   has('★ 여기 판정이 전 사업장에 간다고 적는다', main, '전 사업장에 그대로 전달됩니다');
   has('보이지 않는 화면이라는 것을 밝힌다', main, '어느 쪽 화면에도 보이지 않지만');
+}
+
+/* =================================================================
+   판정 기록 — AI 가 한 일과 사람이 한 일을 갈라 둔다
+   🆕 2026-10-31 (T6 · STC-E16-009 · A02 §6.3 · FR-AD-02-09)
+   ================================================================= */
+{
+  /* --- 옛 데이터가 그대로 읽힌다 (칸 둘이 없는 상태) --- */
+  {
+    const t = open();
+    const old = { id: 'ph-old', ko: '손을 넣지 마세요', status: 'waiting',
+      translations: { km: { text: 'កុំ', back: '손을 넣지 마세요', status: 'waiting' } } };
+
+    eq('★ 옛 데이터에서 agent 를 읽어도 터지지 않는다', t.win.Store.phraseAgent(old, 'km'), null);
+    eq('★ 옛 데이터에서 judged 를 읽어도 터지지 않는다', t.win.Store.phraseJudged(old, 'km'), null);
+    eq('없는 언어도 안전하다', t.win.Store.phraseAgent(old, 'th'), null);
+    eq('문구가 없어도 안전하다', t.win.Store.phraseJudged(null, 'km'), null);
+    eq('옛 데이터의 상태 판정은 그대로다', t.win.Store.phraseStatus(old, 'km'), 'waiting');
+    ok('칸이 없으니 사람 확인이 필요한 것도 아니다', t.win.Store.needsHuman(old, 'km') === false);
+
+    /* 예시 데이터 6개도 칸 없이 그대로 읽힌다 */
+    const seeded = t.win.Store.library.load();
+    ok('예시 문구가 전부 읽힌다', seeded.length > 0);
+    seeded.forEach((p) => {
+      Object.keys(p.translations || {}).forEach((code) => {
+        ok(p.id + '/' + code + ': 옛 모양 그대로 읽힌다',
+          t.win.Store.phraseAgent(p, code) === null || typeof t.win.Store.phraseAgent(p, code) === 'object');
+      });
+    });
+  }
+
+  /* --- AI 가 남긴 기록을 읽는다. 그것만으로는 승인이 아니다 --- */
+  {
+    const t = open();
+    const p = { id: 'ph-ai', ko: '손을 넣지 마세요', status: 'waiting',
+      translations: { km: {
+        text: 'កុំ', back: '손을 넣어도 됩니다', status: 'waiting',
+        agent: { tries: 3, flipped: true, escalated: true, model: 'gemini-3.1-flash-lite', at: '2026-10-31T00:00:00.000Z' }
+      } } };
+
+    const a = t.win.Store.phraseAgent(p, 'km');
+    eq('몇 번 시도했는지 읽는다', a.tries, 3);
+    eq('뜻이 뒤집혔었다', a.flipped, true);
+    eq('사람에게 올렸다', a.escalated, true);
+    eq('어느 모델이었는지 남는다', a.model, 'gemini-3.1-flash-lite');
+
+    eq('★ 아직 아무도 안 봤다', t.win.Store.phraseJudged(p, 'km'), null);
+    ok('★★ AI 기록이 있어도 승인된 것이 아니다', t.win.Store.phraseOk(p, 'km') === false);
+    ok('★ 사람이 먼저 봐야 할 자리로 드러난다', t.win.Store.needsHuman(p, 'km') === true);
+
+    /* 사람이 보고 나면 더 이상 대기 줄에 없다 */
+    p.translations.km.judged = { by: 'oper@safety.kr', at: '2026-10-31T01:00:00.000Z' };
+    eq('누가 봤는지 남는다', t.win.Store.phraseJudged(p, 'km').by, 'oper@safety.kr');
+    ok('사람이 본 뒤에는 대기 줄에서 빠진다', t.win.Store.needsHuman(p, 'km') === false);
+
+    /* by 가 비면 판정으로 치지 않는다 — 빈 칸이 사람 승인으로 둔갑하면 안 된다 */
+    p.translations.km.judged = { by: '', at: '2026-10-31T01:00:00.000Z' };
+    eq('★ 누가 했는지 없는 판정 기록은 판정이 아니다', t.win.Store.phraseJudged(p, 'km'), null);
+  }
+
+  /* --- 운영자가 승인하면 judged 가 남는다 (STC-E16-009) --- */
+  {
+    const t = open();
+    const before = t.win.Store.library.load();
+    const target = before.find((p) => p.translations && p.translations.km && p.translations.km.status !== 'reviewed');
+
+    if (target) {
+      /* AI 가 내놓은 상태를 흉내 낸다 */
+      t.win.Store.library.update((list) => {
+        const p = list.find((x) => x.id === target.id);
+        p.translations.km.agent = { tries: 2, flipped: true, escalated: false, model: 'gemini-3.1-flash-lite', at: '2026-10-31T00:00:00.000Z' };
+      });
+
+      const t2 = open();
+      const sel = t2.$('phrase-lang-' + target.id + '-km') || null;
+      /* 화면 버튼 이름은 T7 에서 정해진다. 여기서는 저장 경로만 본다 —
+         library.js 의 setStatus 가 judged 를 남기는지. */
+      const js = require('fs').readFileSync(SRC + '/admin/library.js', 'utf8');
+      ok('★ 승인 경로가 judged 를 남긴다', /t\.judged\s*=\s*\{\s*by:\s*user\.userId/.test(js));
+      ok('★ 사람 아이디로 남긴다 (AI 이름이 아니다)', !/judged\s*=\s*\{\s*by:\s*['"]/.test(js));
+      ok('★ AI 는 judged 를 만들지 않는다',
+        !/judged/.test(require('fs').readFileSync(SRC + '/assets/agent.js', 'utf8')
+          .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')));
+      ok('기록을 더해도 상태 판정은 그대로다', typeof t2.win.Store.phraseStatus(target, 'km') === 'string');
+      if (sel) ok('화면이 떴다', true);
+    }
+  }
+
+  /* --- 저장 키와 봉투는 그대로다 --- */
+  {
+    const t = open();
+    const keys = Object.keys(t.win.localStorage).filter((k) => k.indexOf('safety.') === 0);
+    ok('★ 저장 키가 늘지 않았다 (10칸 안이다)', keys.length <= 10, keys.length + '칸');
+    const raw = t.win.localStorage.getItem('safety.library.v1');
+    ok('★ 저장 키 이름이 그대로다', !!raw);
+    const parsed = JSON.parse(raw);
+    ok('봉투 모양이 그대로다 (목록)', Array.isArray(parsed.data || parsed));
+  }
+}
+
+/* =================================================================
+   운영자 화면의 AI — 버튼 · 진행 · 올림 · 승인 막기
+   🆕 2026-10-31 (T7 · PRD-AD-03 FR-07·08·11·12·13·14·15)
+   ================================================================= */
+{
+  const PASS = 'agent-pass-2026';
+
+  /** 가짜 응답으로 운영자 화면을 돌린다 */
+  function openWithAi(reply) {
+    const t = open();
+    t.calls = [];
+    t.win.sessionStorage.setItem('safety.agentPass', PASS);
+    t.win.fetch = (url, init) => {
+      t.calls.push({ url: String(url), body: JSON.parse(init.body) });
+      const isBack = String(url).indexOf('backtranslate') !== -1;
+      const r = reply(t.calls.length - 1, isBack);
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(r) });
+    };
+    return t;
+  }
+
+  const good = (n, isBack) => (isBack
+    ? { back: '롤러에 손을 넣지 마십시오.' }
+    : { text: 'កុំដាក់ដៃ', model: 'gemini-3.1-flash-lite' });
+
+  const flipped = (n, isBack) => (isBack
+    ? { back: '롤러에 손을 넣어도 됩니다.' }
+    : { text: 'កុំដាក់ដៃ', model: 'gemini-3.1-flash-lite' });
+
+  /* --- 화면에 경계가 적혀 있다 (FR-12) --- */
+  {
+    const t = open();
+    const note = text(t.win.document.querySelector('.ai-note'));
+    has('AI 경계를 적는다', note, 'AI 여기까지');
+    has('승인은 사람이 한다고 적는다', note, '승인은 사람이 합니다');
+
+    const panels = [...t.win.document.querySelectorAll('.ai-panel')];
+    ok('판정이 필요한 문구마다 AI 칸이 있다', panels.length > 0, panels.length + '개');
+    has('받은 것은 검수 대기로 들어간다고 적는다', text(panels[0]), '검수 대기로 들어갑니다');
+
+    const btns = [...t.win.document.querySelectorAll('.ai-panel button')]
+      .filter((b) => text(b).indexOf('AI 번역 받기') === 0);
+    ok('[AI 번역 받기] 버튼이 있다', btns.length > 0);
+  }
+
+  /* --- 통과 문구가 없으면 버튼을 숨기지 않고 이유를 적는다 (FR-07) --- */
+  {
+    const t = open({ before: (win) => { win.sessionStorage.removeItem('safety.agentPass'); } });
+    const panel = t.win.document.querySelector('.ai-panel');
+    ok('★ 버튼이 사라지지 않는다', !!panel.querySelector('button'));
+    has('★ 왜 못 부르는지 적는다', text(panel.querySelector('.ai-why')), '통과 문구');
+    ok('통과 문구 칸이 화면에 있다', !!t.$('ai-pass'));
+    eq('★ 통과 문구 칸은 비밀번호 칸이다 (어깨너머로 안 보이게)', t.$('ai-pass').type, 'password');
+  }
+
+  /* --- 눌러서 받으면 waiting 으로 저장된다 (FR-06 · 됐는지) --- */
+  {
+    const t = openWithAi(good);
+    const target = t.win.Store.library.load().find((p) => p.status !== 'reviewed');
+    const panel = t.win.document.querySelector('.ai-panel');
+    const btn = [...panel.querySelectorAll('button')].find((b) => text(b).indexOf('AI 번역 받기') === 0);
+
+    click(t.win, btn);
+
+    setTimeout(() => {
+      const after = t.win.Store.library.load().find((p) => p.id === target.id);
+      const langs = Object.keys(after.translations || {});
+      ok('번역이 들어왔다', langs.length > 0, langs.join(','));
+      ok('★★ 전부 검수 대기로 저장된다 — AI 는 승인하지 않는다',
+        langs.every((c) => after.translations[c].status !== 'reviewed'
+          || t.win.Store.phraseJudged(after, c)));
+      langs.forEach((c) => {
+        const a = t.win.Store.phraseAgent(after, c);
+        if (a) ok(c + ': AI 기록이 남는다 (시도 ' + a.tries + ')', a.tries >= 1);
+      });
+      ok('★ 역번역 요청에 한국어 원문이 없다',
+        t.calls.filter((c) => c.url.indexOf('backtranslate') !== -1)
+          .every((c) => !('ko' in c.body)));
+    }, 30);
+  }
+
+  /* --- 사람에게 올린 언어는 그대로 승인할 수 없다 (FR-14) --- */
+  {
+    const t = openWithAi(flipped);
+    const p = {
+      id: 'ph-esc', ko: '손을 넣지 마세요', status: 'waiting',
+      translations: { km: {
+        text: 'AI 가 낸 번역', back: '손을 넣어도 됩니다', status: 'waiting',
+        agent: { tries: 3, flipped: true, escalated: true, model: 'm', at: '2026-10-31T00:00:00.000Z', text: 'AI 가 낸 번역' }
+      } }
+    };
+
+    ok('★★ 올린 언어는 승인이 막혀 있다', t.win.Store.approvalBlocked(p, 'km') === true);
+
+    /* 사람이 직접 고쳐 넣으면 열린다 */
+    p.translations.km.text = '사람이 고쳐 넣은 번역';
+    ok('★ 직접 고치면 승인이 열린다', t.win.Store.approvalBlocked(p, 'km') === false);
+
+    /* 올리지 않은 것은 애초에 막지 않는다 */
+    const okPhrase = { id: 'ph-ok', ko: '손을 넣지 마세요',
+      translations: { km: { text: 'x', status: 'waiting',
+        agent: { tries: 1, flipped: false, escalated: false, model: 'm', at: '', text: 'x' } } } };
+    ok('올리지 않은 언어는 막지 않는다', t.win.Store.approvalBlocked(okPhrase, 'km') === false);
+
+    /* 손으로 넣은 번역(AI 기록 없음)도 막지 않는다 */
+    const hand = { id: 'ph-hand', ko: '손을 넣지 마세요',
+      translations: { km: { text: 'x', status: 'waiting' } } };
+    ok('손으로 넣은 번역은 막지 않는다', t.win.Store.approvalBlocked(hand, 'km') === false);
+  }
+
+  /* --- 올린 언어가 화면에서 실제로 막히고, 직접 입력 칸이 열린다 --- */
+  {
+    /* 화면이 뜨기 전에 넣는다 — Store 를 고쳐도 열린 화면은 다시 그려지지 않는다 */
+    const t = open({ before: (win) => {
+      win.Store.library.update((list) => {
+        list.push({
+          id: 'ph-esc', ko: '회전 중인 롤러에 손을 넣지 마세요.', status: 'waiting',
+          translations: { km: {
+            text: 'AI 가 낸 번역', back: '롤러에 손을 넣어도 됩니다.', status: 'waiting',
+            agent: { tries: 3, flipped: true, escalated: true, model: 'gemini-3.1-flash-lite',
+              at: '2026-10-31T00:00:00.000Z', text: 'AI 가 낸 번역' }
+          } },
+          flags: []
+        });
+      });
+    } });
+
+    const body = text(t.win.document.getElementById('review-list'));
+    has('★ 사람에게 올렸다고 적는다', body, '사람에게 올렸습니다');
+    has('★ 그대로는 승인할 수 없다고 적는다', body, '그대로는 승인할 수 없습니다');
+    has('몇 번 시도했는지 보인다 (FR-13)', body, '3/3');
+
+    const buttons = [...t.win.document.querySelectorAll('#review-list button')].map(text);
+    ok('★★ 그 언어의 「검수 완료」 버튼이 없다',
+      !buttons.some((b) => b === '크메르어만 검수 완료'));
+    ok('★ 중지 버튼은 그대로 있다 (막을 길은 언제나 열려 있다)',
+      buttons.some((b) => b === '크메르어만 중지'));
+
+    ok('★ 직접 입력 칸이 열려 있다', !!t.$('fix-ph-esc-km-text'));
+    ok('역번역 칸도 함께 받는다', !!t.$('fix-ph-esc-km-back'));
+    eq('지금 번역문이 들어 있다', t.$('fix-ph-esc-km-text').value, 'AI 가 낸 번역');
+
+    /* 고쳐 넣으면 승인이 열린다 */
+    t.$('fix-ph-esc-km-text').value = '롤러가 돌 때 손을 넣지 마십시오.';
+    t.$('fix-ph-esc-km-back').value = '롤러가 돌 때 손을 넣지 마십시오.';
+    click(t.win, t.$('fix-ph-esc-km-save'));
+
+    const saved = t.win.Store.library.load().find((x) => x.id === 'ph-esc');
+    eq('손으로 넣은 번역이 저장된다', saved.translations.km.text, '롤러가 돌 때 손을 넣지 마십시오.');
+    eq('★ 손으로 고쳐도 검수 대기다 — 저장이 승인은 아니다', saved.translations.km.status, 'waiting');
+    ok('★ AI 가 한 일은 기록으로 남는다', !!saved.translations.km.agent);
+    ok('★★ 이제 승인이 열린다', t.win.Store.approvalBlocked(saved, 'km') === false);
+
+    const after = [...t.win.document.querySelectorAll('#review-list button')].map(text);
+    ok('화면에도 「검수 완료」 버튼이 돌아온다', after.some((b) => b === '크메르어만 검수 완료'));
+  }
+
+  /* --- 역번역 없이 저장하지 못한다 --- */
+  {
+    const t = open({ before: (win) => {
+      win.Store.library.update((list) => {
+        list.push({ id: 'ph-nb', ko: '손을 넣지 마세요', status: 'waiting',
+          translations: { km: { text: 'x', back: 'y', status: 'waiting' } }, flags: [] });
+      });
+    } });
+    t.$('fix-ph-nb-km-text').value = '새 번역';
+    t.$('fix-ph-nb-km-back').value = '';
+    click(t.win, t.$('fix-ph-nb-km-save'));
+    const row = t.win.Store.library.load().find((x) => x.id === 'ph-nb');
+    eq('★ 역번역이 없으면 저장되지 않는다 — 다음 사람이 대조할 수 없다', row.translations.km.text, 'x');
+  }
+
+  /* --- AI 출력은 textContent 로만 들어간다 (FR-11) --- */
+  {
+    const t = open({ before: (win) => {
+      win.Store.library.update((list) => {
+        list.push({ id: 'ph-evil', ko: '손을 넣지 마세요', status: 'waiting',
+          translations: { km: {
+            text: '<img src=x onerror=window.__pwned=1>',
+            back: '<b>손을 넣지 마십시오</b>', status: 'waiting'
+          } }, flags: [] });
+      });
+    } });
+    const box = t.win.document.getElementById('review-list');
+    ok('★★ AI 글자가 태그로 해석되지 않는다', box.querySelectorAll('img').length === 0);
+    ok('★★ 스크립트가 실행되지 않았다', t.win.__pwned === undefined);
+    has('글자 그대로 보인다', text(box), '<img src=x onerror=');
+  }
+
+  /* --- 화면 코드 규칙 --- */
+  {
+    const fs = require('fs');
+    const js = fs.readFileSync(SRC + '/admin/library.js', 'utf8');
+    const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+    ok('innerHTML 안 씀', !/innerHTML/.test(strip(js)));
+    ok('localStorage 직접 호출 안 함', !/localStorage/.test(strip(js)));
+    ok('★ 통과 문구를 Store 에 저장하지 않는다', !/Store\.\w+\.save\([^)]*pass/i.test(strip(js)));
+    ok('★ AI 결과를 저장할 때 상태는 글자 그대로 waiting 이다',
+      /status:\s*'waiting'/.test(strip(js)));
+    ok('★ 서버·AI 응답에서 상태를 가져오지 않는다',
+      !/status:\s*(r|t|out|res|data|result)\.status\b/.test(strip(js)));
+  }
 }
 
 report('기능9 안전 문구 라이브러리');

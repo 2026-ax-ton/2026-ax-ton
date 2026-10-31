@@ -1,5 +1,5 @@
 /* 기능2 교육 콘텐츠 생성 · 승인 — 실제 DOM 검증 */
-const { boot, ok, eq, has, report } = require('./harness');
+const { boot, ok, eq, has, report, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -309,7 +309,7 @@ const checkAll = (win, root, name, values) => {
    ================================================================= */
 {
   const fs = require('fs');
-  const base = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/admin/';
+  const base = SRC + '/admin/';
   const html = fs.readFileSync(base + 'content.html', 'utf8');
   const js = fs.readFileSync(base + 'content.js', 'utf8');
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -462,6 +462,32 @@ const checkAll = (win, root, name, values) => {
     R.negationFlipped('손을 넣지 마십시오', '손을 넣어도 됩니다'), true);
   eq('말만 바꿔 쓴 것은 뒤집힘이 아니다',
     R.negationFlipped('환기팬이 돌지 않으면 시작하지 마십시오', '팬이 꺼져 있으면 시작하지 마세요'), false);
+
+  /* ★ 2026-10-31 실측에서 걸린 헛경보 — 베트남어 역번역이 「~면 안 됩니다」로
+     돌아왔는데 금지가 살아 있는데도 뒤집힘으로 걸렸다 (STC-E16-008).
+     헛경보가 쌓이면 운영자가 표시를 무시하게 된다 (review.js 맨 위). */
+  [
+    ['안 됩니다', '손을 넣으면 안 됩니다'],
+    ['안된다',    '손을 넣으면 안된다'],
+    ['안 돼요',   '손을 넣으면 안 돼요'],
+    ['안 될',     '손을 넣으면 안 될 것입니다'],
+    ['안 됐다',   '손을 넣으면 안 됐다'],
+  ].forEach(function (c) {
+    eq('「' + c[0] + '」도 금지다 — 뒤집힘 아님',
+      R.negationFlipped('손을 넣지 마세요', c[1]), false);
+  });
+
+  /* 「안」 하나로 잡으면 안전·안내·안쪽이 전부 부정이 된다 */
+  [
+    ['안전', '안전모를 쓰세요', '안전모를 착용하십시오'],
+    ['안내', '안내문을 읽으세요', '안내문을 보세요'],
+    ['안쪽', '안쪽으로 들어가세요', '안쪽으로 가세요'],
+  ].forEach(function (c) {
+    eq('「' + c[0] + '」은 부정이 아니다', R.negationFlipped(c[1], c[2]), false);
+    eq('「' + c[0] + '」은 부정으로 세지 않는다', R.negationCount(c[2]), 0);
+  });
+
+  eq('없던 금지가 생겨도 뒤집힘', R.negationFlipped('장갑을 끼세요', '장갑을 끼지 마세요'), true);
 }
 
 /* =================================================================

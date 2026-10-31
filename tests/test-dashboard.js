@@ -1,5 +1,5 @@
 /* 기능6 담당자 대시보드 — 실제 DOM 검증 */
-const { boot, ok, eq, has, report } = require('./harness');
+const { boot, ok, eq, has, report, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -220,7 +220,7 @@ function open(opts = {}) {
    ================================================================= */
 {
   const fs = require('fs');
-  const base = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/admin/';
+  const base = SRC + '/admin/';
   const html = fs.readFileSync(base + 'dashboard.html', 'utf8');
   const js = fs.readFileSync(base + 'dashboard.js', 'utf8');
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');

@@ -1,5 +1,5 @@
 /* 기능5 교육 증빙 생성 — 실제 DOM 검증 */
-const { boot, ok, eq, has, report } = require('./harness');
+const { boot, ok, eq, has, report, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -228,7 +228,7 @@ const inBlock = (t, sel, i) => block(t, i).querySelector(sel);
     JSON.stringify(t.win.Store.progress.load()), before);
 
   const fs = require('fs');
-  const js = fs.readFileSync('C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/admin/proof.js', 'utf8');
+  const js = fs.readFileSync(SRC + '/admin/proof.js', 'utf8');
   const code = js.replace(/\/\*[\s\S]*?\*\//g, '');
   ok('★ 어떤 저장소에도 쓰지 않는다',
     !/\.(save|update)\s*\(/.test(code), '쓰기 호출이 있습니다');
@@ -239,7 +239,7 @@ const inBlock = (t, sel, i) => block(t, i).querySelector(sel);
    ================================================================= */
 {
   const fs = require('fs');
-  const base = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/admin/';
+  const base = SRC + '/admin/';
   const html = fs.readFileSync(base + 'proof.html', 'utf8');
   const js = fs.readFileSync(base + 'proof.js', 'utf8');
   const css = fs.readFileSync(base + 'admin.css', 'utf8');
@@ -293,7 +293,7 @@ const inBlock = (t, sel, i) => block(t, i).querySelector(sel);
 /* --- 인쇄에서도 옅게 만들지 않는다 --- */
 {
   const fs = require('fs');
-  const css = fs.readFileSync('C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/admin/admin.css', 'utf8');
+  const css = fs.readFileSync(SRC + '/admin/admin.css', 'utf8');
   const printBlock = css.slice(css.indexOf('@media print'));
 
   ok('제공 언어 줄이 인쇄에서 검게 나온다', /\.proof-qlang\s*\{\s*color:\s*#000/.test(printBlock));

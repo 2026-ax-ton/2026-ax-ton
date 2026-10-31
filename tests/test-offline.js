@@ -56,7 +56,7 @@ const ui = fs.readFileSync(path.join(SRC, 'assets/ui.js'), 'utf8');
   // 갈래별 개수 — 위 대조가 먼저 잡지만, 어느 갈래가 비었는지 바로 보이게 세어 둔다
   eq('화면 HTML 13개', listed.filter((f) => /\.html$/.test(f)).length, 13);
   eq('CSS 5개', listed.filter((f) => /\.css$/.test(f)).length, 5);
-  eq('JS 22개 (공용 11 · 화면 11)', listed.filter((f) => /\.js$/.test(f)).length, 22);
+  eq('JS 23개 (공용 12 · 화면 11)', listed.filter((f) => /\.js$/.test(f)).length, 23);
 }
 
 /* =================================================================

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>개선 후 설명 - 해커톤 AI Agent 버전</title>
+<style>
+:root{--brand:#5a45c2;--brand-deep:#3e2d87;--brand-soft:#f1eefe;--worker:#c0392c;--ag:#0f766e;--ag-soft:#e0f4f1;--ink:#14181d;--ink2:#4a545f;--ink3:#78838f;--line:#e2e5eb;--bg:#f5f6f9;--surface:#fff;--ok:#1c6b3a;--ok-soft:#e6f4ea;--warn:#8a5a00;--warn-soft:#fff4dc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.7;font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px 64px}
+header.hero{background:linear-gradient(135deg,#0b4f4a,var(--ag));color:#fff;padding:48px 16px 40px}
+header.hero .in{max-width:880px;margin:0 auto}
+.tag{display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 12px;font-size:13px;font-weight:700}
+h1{font-size:30px;line-height:1.35;margin:12px 0 8px}
+header.hero p{margin:0;opacity:.93;max-width:660px}
+nav{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);z-index:5}
+nav .in{max-width:880px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:12px 10px;font-size:14px;color:var(--ink2);text-decoration:none;white-space:nowrap;font-weight:600}
+nav a:hover{color:var(--ag)}
+section{margin-top:40px}
+h2{font-size:22px;margin:0 0 6px;color:#0b4f4a}
+.lead{color:var(--ink2);margin:0 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.notice{background:var(--warn-soft);border-left:5px solid #d99a00;border-radius:10px;padding:14px 18px;color:#4d3300;font-size:15px}
+.cand{display:inline-block;background:var(--warn-soft);color:var(--warn);font-size:12px;font-weight:800;padding:1px 9px;border-radius:999px;margin-left:6px}
+.fixed{display:inline-block;background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:800;padding:1px 9px;border-radius:999px;margin-left:6px}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--ag-soft);color:#0b4f4a;font-size:14px}
+tr:last-child td{border-bottom:0}
+td.b{color:var(--ink3)}
+td.a{font-weight:600}
+.agent{border-top:6px solid var(--ag)}
+.agent h3{margin:0 0 4px;font-size:18px}
+.agent .who{color:var(--ink2);font-size:14px;margin-bottom:8px}
+.steps{list-style:none;margin:8px 0 0;padding:0}
+.steps li{position:relative;padding:6px 0 6px 28px;font-size:15px}
+.steps li::before{content:"";position:absolute;left:6px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--ag)}
+.steps li.h::before{background:var(--brand);border-radius:2px}
+.steps li.h{font-weight:700;color:var(--brand-deep)}
+.legend{font-size:13px;color:var(--ink2);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;background:var(--ag);border-radius:50%;margin:0 4px 0 0}
+.legend i.sq{background:var(--brand);border-radius:2px;margin-left:12px}
+.zones{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+@media(max-width:560px){.zones{grid-template-columns:1fr}h1{font-size:25px}}
+.zone{border-radius:14px;padding:18px}
+.zone.w{background:#fdeeeb;border:1px solid #f4b8b0}
+.zone.a{background:var(--ag-soft);border:1px solid #9fd8d1}
+.zone h3{margin:0 0 6px;font-size:16px}
+.zone ul{margin:0;padding-left:20px;font-size:15px}
+.big{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-top:12px}
+.big b{color:var(--ag)}
+.score{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:15px}
+.score span.n{min-width:44px;text-align:center;background:var(--ag);color:#fff;border-radius:8px;font-weight:800;padding:1px 0}
+footer{margin-top:48px;color:var(--ink3);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero"><div class="in">
+<span class="tag">개선 후 · 해커톤 AI Agent 버전</span>
+<h1>해커톤에서 바꾸는 것: 사람 손으로 하던 일을 AI 에이전트가 먼저 해 둔다</h1>
+<p>기본 흐름과 원칙은 그대로 두고, 가장 손이 많이 가는 곳에 AI 에이전트를 붙입니다. 마지막 결정은 언제나 사람이 합니다.</p>
+</div></header>
+<nav><div class="in">
+<a href="#diff">한눈에 비교</a><a href="#what">에이전트란</a><a href="#agents">에이전트 후보 3개</a><a href="#struct">구조 변화</a><a href="#safe">안전장치</a><a href="#score">평가표</a><a href="#open">미정 사항</a>
+</div></nav>
+<div class="wrap">
+
+<section>
+<div class="notice"><b>먼저 알아둘 것.</b> 아래 에이전트는 모두 <b>후보</b>입니다. 해커톤 주제와 평가표가 공지되기 전까지 코드는 쓰지 않기로 했습니다. 확정된 것에는 <span class="fixed">확정</span>, 아직 정해지지 않은 것에는 <span class="cand">후보</span> 표시를 붙였습니다.</div>
+</section>
+
+<section id="diff">
+<h2>1. 이전과 이후, 한눈에 비교</h2>
+<table>
+<tr><th>부분</th><th>이전 (v1.0)</th><th>이후 (해커톤)</th></tr>
+<tr><td>번역과 역번역</td><td class="b">사람이 직접 입력</td><td class="a">AI가 번역하고 다시 한국어로 옮겨 비교까지 해 둠</td></tr>
+<tr><td>번역 검수</td><td class="b">규칙으로 단어 비교 (AI 아님)</td><td class="a">AI가 의미가 어긋난 곳을 찾고, 고쳐 보고, 안 되면 사람에게 넘김</td></tr>
+<tr><td>문제 출제</td><td class="b">사람이 하나씩 제작</td><td class="a">AI가 초안을 만들고 사람이 고름</td></tr>
+<tr><td>대시보드</td><td class="b">숫자만 보여줌</td><td class="a">AI가 "왜 이런지" 가설과 재교육 안을 제안</td></tr>
+<tr><td>제보 처리</td><td class="b">사람이 하나씩 읽음</td><td class="a">AI가 비슷한 제보를 묶어 정리</td></tr>
+<tr><td>승인</td><td class="b">사람</td><td class="a">여전히 사람 (AI는 제안까지만)</td></tr>
+<tr><td>노동자 화면</td><td class="b">외부 요청 0건</td><td class="a">그대로 0건 <span class="fixed">확정 방향</span></td></tr>
+</table>
+</section>
+
+<section id="what">
+<h2>2. 에이전트가 뭔가요</h2>
+<p class="lead">질문에 한 번 답하는 AI(챗봇)와 다릅니다.</p>
+<div class="grid g2">
+<div class="card"><b>챗봇</b><br>한 번 묻고 한 번 답합니다. 그다음은 사람이 다 합니다.</div>
+<div class="card"><b>에이전트</b><br>목표를 받으면 스스로 여러 단계를 밟습니다. 결과를 확인해서 틀렸으면 다시 시도하고, 그래도 안 되면 사람에게 넘깁니다.</div>
+</div>
+<div class="big">우리 에이전트의 원칙은 하나입니다. <b>AI는 "초안과 제안"까지만, 승인은 반드시 사람.</b> 에이전트가 만든 결과는 항상 <b>"대기"</b> 상태로 들어가고, 사람이 눌러야 효력이 생깁니다. 이 원칙은 이전 버전의 "AI 여기까지 · 승인은 사람"을 그대로 잇습니다.</div>
+</section>
+
+<section id="agents">
+<h2>3. 붙일 곳: 에이전트 후보 3개 <span class="cand">후보</span></h2>
+<p class="lead">셋을 모두 만들지, 하나만 깊게 만들지는 아직 정하지 않았습니다. 혼자 개발할 가능성을 감안하면 하나를 깊게 만드는 쪽이 현실적입니다.</p>
+<div class="legend"><i></i>AI가 하는 단계<i class="sq"></i>사람이 하는 단계</div>
+
+<div class="grid" style="margin-top:12px">
+<div class="card agent">
+<h3>A. 번역·검수 에이전트 <span class="cand">후보</span></h3>
+<div class="who">쓰는 사람: 운영자 · 줄이는 일: 번역 입력과 검수에 드는 수작업</div>
+<ul class="steps">
+<li>한국어 안전 문장을 6개 언어로 번역</li>
+<li>번역문을 다시 한국어로 옮김 (역번역)</li>
+<li>원문과 역번역을 비교 (기존 검수 도구 활용)</li>
+<li>어긋나면 다시 번역 (정해진 횟수까지)</li>
+<li class="h">그래도 안 되면 사람에게 넘김, 통과해도 사람이 최종 승인</li>
+</ul>
+<p style="margin:8px 0 0;font-size:14px;color:var(--ink2)">우리 제품의 핵심 관문(번역 검수)에 바로 붙기 때문에 설명하기 쉽고 심사에서 눈에 띄기 좋은 후보입니다.</p>
+</div>
+
+<div class="card agent">
+<h3>B. 문제 출제 에이전트 <span class="cand">후보</span></h3>
+<div class="who">쓰는 사람: 담당자 · 줄이는 일: 그림 문제 하나하나 만드는 시간</div>
+<ul class="steps">
+<li>검수된 교육 문장을 읽음</li>
+<li>그림 문제(위험 위치 누르기, 고르기, 짝 맞추기) 초안 작성</li>
+<li>위험 위치 좌표를 기존 좌표 도구로 지정</li>
+<li>문장 길이 등 기존 규칙에 맞는지 자동 확인</li>
+<li class="h">담당자가 보고 고르거나 고쳐서 채택</li>
+</ul>
+</div>
+
+<div class="card agent">
+<h3>C. 현장 신호 에이전트 <span class="cand">후보</span></h3>
+<div class="who">쓰는 사람: 담당자 · 줄이는 일: 숫자를 읽고 대책을 정하는 일</div>
+<ul class="steps">
+<li>대시보드의 진도와 익명 제보를 함께 분석</li>
+<li>"이 항목이 약한 이유" 가설 제시</li>
+<li>비슷한 제보를 묶어 중복 정리</li>
+<li>재교육 지시서 초안 작성</li>
+<li class="h">담당자가 판단하고 발행</li>
+</ul>
+<p style="margin:8px 0 0;font-size:14px;color:var(--ink2)">특정 개인을 가리키는 결과는 만들지 않습니다. 개인 평가 금지 원칙을 지키기 위해서입니다.</p>
+</div>
+</div>
+</section>
+
+<section id="struct">
+<h2>4. 구조는 어떻게 달라지나 <span class="cand">후보</span></h2>
+<p class="lead">지금은 서버가 없습니다. AI를 쓰려면 비밀 열쇠(API 키)를 안전하게 둘 곳이 필요해서, 작은 서버 기능 하나가 처음으로 들어옵니다.</p>
+<div class="zones">
+<div class="zone w"><h3>노동자 화면</h3><ul><li>그대로 둡니다</li><li>외부 요청 0건 유지</li><li>인터넷 없이도 동작</li><li>AI와 직접 연결하지 않음</li></ul></div>
+<div class="zone a"><h3>담당자·운영자 화면</h3><ul><li>AI 호출을 허용</li><li>호출은 Vercel의 작은 서버 기능(/api)을 거침</li><li>AI 키는 화면 코드가 아니라 서버 설정에만 보관</li><li>AI 실패 시 기존 수동 방법으로 되돌아감</li></ul></div>
+</div>
+<div class="big">서버 기능을 쓰려면 배포 설정(Root Directory)을 바꿔야 하고, 이는 소유자의 승인이 필요한 작업입니다. 그래서 실제 작업 전에 확인하기로 했습니다.</div>
+</section>
+
+<section id="safe">
+<h2>5. 안전장치: 바뀌지 않는 것</h2>
+<div class="grid g2">
+<div class="card"><b>사람이 결정한다.</b><br>에이전트 결과는 항상 "대기" 상태입니다.</div>
+<div class="card"><b>검수된 문장만 지시가 된다.</b><br>AI가 만든 문장도 검수를 통과해야만 교육에 나갑니다.</div>
+<div class="card"><b>AI가 고장 나도 서비스는 돈다.</b><br>실패하면 이전 방식(수동 입력)으로 돌아갑니다.</div>
+<div class="card"><b>익명과 개인 보호.</b><br>제보자를 식별하거나 개인을 평가하는 결과는 만들지 않습니다.</div>
+</div>
+<div class="big">시험도 방식이 바뀝니다. AI는 매번 답이 다르므로 "내용이 맞는가"를 시험하지 않고, <b>가짜 AI 응답을 넣어서 경계선(대기 상태 유지, 실패 시 복귀 등)이 지켜지는지</b>를 시험합니다.</div>
+</section>
+
+<section id="score">
+<h2>6. 평가표에 어떻게 대응하나</h2>
+<p class="lead">아이디어톤 평가표 기준입니다. 해커톤 평가표가 공지되면 다시 맞춥니다.</p>
+<div class="score"><span class="n">20</span>문제정의: 이해를 확인할 길이 없다는 문제는 그대로 유효</div>
+<div class="score"><span class="n">20</span>AI 활용: 지금 가장 약한 곳. 에이전트가 정확히 여기를 채움</div>
+<div class="score"><span class="n">30</span>해결방식: "사람이 승인하는 AI"가 차별점. 서버 기능으로 확장성도 설명 가능</div>
+<div class="score"><span class="n">30</span>실행력·발표: 실제 동작하는 시연 하나를 깊게 보여주는 것이 중요</div>
+</section>
+
+<section id="open">
+<h2>7. 아직 정해지지 않은 것</h2>
+<table>
+<tr><th>항목</th><th>상태</th></tr>
+<tr><td>해커톤 공식 주제와 평가표</td><td><span class="cand">공지 대기</span></td></tr>
+<tr><td>에이전트 A, B, C 중 무엇을 만들지</td><td><span class="cand">미정</span></td></tr>
+<tr><td>서버 기능(/api) 도입과 배포 설정 변경</td><td><span class="cand">승인 필요</span></td></tr>
+<tr><td>어떤 AI 서비스를 쓸지</td><td><span class="cand">미정</span></td></tr>
+<tr><td>팀 역할 분담 (개발자는 사실상 1명)</td><td><span class="cand">조정 중</span></td></tr>
+<tr><td>기존 흐름과 6대 원칙 유지</td><td><span class="fixed">확정</span></td></tr>
+<tr><td>사람이 최종 승인, AI 실패 시 수동 복귀</td><td><span class="fixed">확정</span></td></tr>
+</table>
+</section>
+
+<footer>기준: docs/12-hackathon-agent-plan.md (전부 후보 상태). 이전 상태 설명은 TOPIC-BEFORE.html 에 있습니다.</footer>
+</div>
+</body>
+</html>

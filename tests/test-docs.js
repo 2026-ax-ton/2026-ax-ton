@@ -5,9 +5,8 @@
    이 검사도 그것에 맞췄다. */
 const fs = require('fs');
 const path = require('path');
-const { ok, eq, has, report } = require('./harness');
+const { ok, eq, has, report, ROOT } = require('./harness');
 
-const ROOT = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton';
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
 /* =================================================================

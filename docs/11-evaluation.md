@@ -8,7 +8,7 @@
 
 ---
 
-> **★ 발표에서 무엇을 말할지는 [`presentation/`](presentation/README.md) 에 따로 정리했습니다.**
+> **★ 발표에서 무엇을 말할지는 [`presentation/`](발표/2026-09_아이디어톤/presentation/README.md) 에 따로 정리했습니다.**
 > 이 문서는 그 **근거 원본**입니다 — 시장조사 · 출처 링크 15건 · 자체 평가.
 
 ## 목차

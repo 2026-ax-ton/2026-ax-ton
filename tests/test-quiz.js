@@ -1,5 +1,5 @@
 /* 기능4 이해도 검증 — 실제 DOM 검증 */
-const { boot, ok, eq, has, report, iconName } = require('./harness');
+const { boot, ok, eq, has, report, iconName, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -306,7 +306,7 @@ function openQuiz(opts) {
    ================================================================= */
 {
   const fs = require('fs');
-  const base = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/worker/';
+  const base = SRC + '/worker/';
   const html = fs.readFileSync(base + 'quiz.html', 'utf8');
   const js = fs.readFileSync(base + 'quiz.js', 'utf8');
 

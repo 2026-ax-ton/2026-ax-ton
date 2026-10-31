@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08 · 결정과 문서 지도</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../README.html">처음 (사용법)</a>
+<a href="../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../05_%EB%A9%98%ED%86%A0%EB%A7%81/%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html" class="on">08 결정과 문서 지도</a>
+</nav>
+<main>
+<h1 id="08--결정과-문서-지도">08 · 결정과 문서 지도</h1>
+<blockquote><p><strong>기준일</strong> 2026-10-31 · <strong>원본</strong> <a href="../../documentations/00_개발컨벤션/C06_결정기록.md">C06 결정 기록</a> (결정의 정답) · <a href="../../documentations/00_개발컨벤션/C03_문서체계와-ID규칙.md">C03 문서 체계와 ID 규칙</a> · <a href="../../documentations/README.md">documentations/README</a> · <a href="../../README.md">docs/README</a><br><strong>이 문서가 답하는 질문</strong> 무엇이 이미 정해졌나 · 어떤 정보가 어느 문서에 있나 · 문서를 고칠 때 무엇을 같이 고치나 · ID와 상태 표기 규칙</p></blockquote>
+<hr>
+<h2 id="1-주요-결정-표-1-c06-요약">1. 주요 결정 (표 1, C06 요약)</h2>
+<div class="tbl"><table><thead><tr><th>ID</th><th>결정</th><th>상태</th></tr></thead><tbody><tr><td>D-001</td><td>새로 만들지 않고 아이디어톤 제품 위에서 이어간다</td><td>확정</td></tr><tr><td>D-002</td><td>노동자 화면 외부 요청 0건, 관리자·운영자 화면만 AI 호출</td><td>확정</td></tr><tr><td>D-003</td><td>공지 전 에이전트 코드 금지</td><td><strong>해제</strong> (10/23 평가표 공지)</td></tr><tr><td>D-004</td><td>브랜치 <code>main ← develop ← feat/agent-*</code>, PR 사용</td><td>확정</td></tr><tr><td>D-005</td><td>AI 호출은 Vercel 서버리스 <code>/api/*</code>, 키는 환경변수, 위치는 저장소 루트 <code>api/</code></td><td><strong>확정</strong> (10/31)</td></tr><tr><td>D-006</td><td>에이전트 루프는 브라우저가 지휘 (A안)</td><td>확정 (조건부)</td></tr><tr><td>D-007</td><td>에이전트는 하나를 깊게 (후보 A 번역·검수)</td><td>제안</td></tr><tr><td>D-008</td><td>문서 체계 (C + D01~D08)</td><td>확정 / 제출 요구 여부 <code>미정</code></td></tr><tr><td>D-009</td><td>이주노동자 데이터 판매</td><td>제안: 채택하지 않음</td></tr><tr><td>D-010</td><td>고객·수익 모델은 B2G 중심</td><td>제안</td></tr><tr><td>D-013 · D-014</td><td>송금 수수료 보류 · 노동자 화면 광고 안 함</td><td>확정 (2차 멘토)</td></tr><tr><td>D-015</td><td>데이터 수익화는 검수 문구·집계·사업장 기록만, 5명 미만 집계 금지</td><td>제안</td></tr><tr><td>D-016</td><td>역할: 개발 1명(FE+BE) + 기획·디자인 3명 묶음</td><td>확정</td></tr><tr><td>D-017</td><td>제품 정의(P00·P01·PRD 14·SPEC) v1.0</td><td>확정</td></tr><tr><td>D-018</td><td>AI 공급사 Gemini</td><td>확정 (키 발급 완료)</td></tr><tr><td>D-019</td><td>시연은 현장(제출 HTML) + 영상 둘 다</td><td>제안 (운영진 답변 대기)</td></tr><tr><td>D-020</td><td>사업 숫자는 보수 시나리오 기본, 원문 대조한 숫자만 ✅</td><td>제안</td></tr><tr><td>D-021</td><td>법정 교육을 대신한다고 하지 않는다 — 교육 뒤 이해 확인·기록 도구</td><td>제안</td></tr><tr><td>D-022</td><td>팀 운영: byeonsoyun이 안 제시 → 팀원 기한 내 피드백, 정기 회의 없음</td><td>제안 (2026-10-31)</td></tr><tr><td>D-023</td><td><strong>해커톤에서 DB를 붙인다</strong> — Neon Postgres·진짜 로그인·<code>Store</code> 서버/로컬 모드·사업장 분리, 원칙 T-1·T-5 문구 개정</td><td><strong>확정</strong> (2026-10-31)</td></tr></tbody></table></div>
+<blockquote><p>결정을 바꿀 때는 옛 결정을 지우지 않고 「대체됨 → D-0xx」로 표시하고 새 번호를 쓴다. 번호는 재사용하지 않는다.</p></blockquote>
+<h2 id="2-무엇이-어디에-있나-표-2">2. 무엇이 어디에 있나 (표 2)</h2>
+<div class="tbl"><table><thead><tr><th>알고 싶은 것</th><th>정답이 사는 곳</th></tr></thead><tbody><tr><td>지금 할 일·상태</td><td><a href="../../documentations/00_개발컨벤션/C01_프로젝트-한눈에.md">C01 §7</a></td></tr><tr><td>개발 할 일 (체크박스), 지난 세션이 끝난 자리</td><td><a href="../../07-next-tasks.md"><code>docs/07-next-tasks.md</code></a></td></tr><tr><td>코드 규칙, 개발 루틴, git 규칙</td><td>저장소 <a href="../../../CLAUDE.md"><code>CLAUDE.md</code></a></td></tr><tr><td>함정 모음 (배포·Vercel·캐시)</td><td><a href="../../09-handover.md"><code>docs/09-handover.md</code></a></td></tr><tr><td>기능 전체 설명 (사람용)</td><td><a href="../../08-overview.md"><code>docs/08-overview.md</code></a></td></tr><tr><td>용어</td><td><a href="../../documentations/00_개발컨벤션/C02_용어집.md">C02 용어집</a></td></tr><tr><td>게이트 G0~G5</td><td><a href="../../documentations/00_개발컨벤션/C04_개발순서와-게이트.md">C04</a></td></tr><tr><td>결정과 이유</td><td><a href="../../documentations/00_개발컨벤션/C06_결정기록.md">C06</a></td></tr><tr><td>대회 규정</td><td><a href="../../documentations/00_개발컨벤션/C08_해커톤-규정과-대응.md">C08</a></td></tr><tr><td>기능별 요구 (FR·AC)</td><td><a href="../../documentations/30_제품정의/P00_제품정의-작업흐름.md"><code>30_제품정의/prd/</code></a> PRD 14개 · SPEC-FE·BE</td></tr><tr><td>기술 명세</td><td><a href="../../documentations/20_기술명세/A02_기술-개발-명세서.md">A02</a></td></tr><tr><td>최종 범위·남은 일정 (10/31 안)</td><td><a href="../05_멘토링/2026-10-31_기술1차/README.html">멘토링 자료 폴더</a> (A03은 초안)</td></tr><tr><td>🆕 DB·로그인·동기화 명세</td><td><a href="../../documentations/20_기술명세/A02_기술-개발-명세서.md">A02 §14</a></td></tr><tr><td>🆕 운영 준비 체크리스트 · 처리방침 초안</td><td><a href="../../documentations/20_기술명세/A04_운영준비-체크리스트.md">A04</a> · <a href="../../documentations/20_기술명세/A05_개인정보-처리방침-초안.md">A05</a></td></tr><tr><td>숫자와 출처</td><td><a href="../../documentations/10_사업화/S02_수치-근거대장.md">S02</a> (<code>N-nn</code>)</td></tr><tr><td>검증 계획 (인터뷰·MVP 테스트)</td><td><a href="../../documentations/10_사업화/S07_검증-계획.md">S07</a></td></tr><tr><td>테스트 결과 숫자</td><td><a href="../../documentations/40_캡스톤산출물/D07_시험결과서.md">D07 §6</a></td></tr><tr><td>스프린트·태스크</td><td><a href="../../documentations/40_캡스톤산출물/D05_스프린트백로그.md">D05</a></td></tr><tr><td>개발일지</td><td><a href="../../devlog/byeonsoyun.md"><code>docs/devlog/byeonsoyun.md</code></a></td></tr><tr><td>아이디어톤 발표 자료·발표팀 인계 (8~9월판)</td><td><a href="../../발표/2026-09_아이디어톤/presentation/README.md"><code>docs/발표/2026-09_아이디어톤/presentation/</code></a> · <a href="../../발표/2026-09_아이디어톤/발표-인계/README.md"><code>docs/발표/2026-09_아이디어톤/발표-인계/</code></a></td></tr><tr><td>저장소 밖 자료</td><td><code>자료_멘토링-원본기록/</code> (멘토링 원문·공지) · <code>자료_공업법규와창업-수업/</code> · <code>보관_아이디어톤-원본/</code> · <code>보관_해커톤-초기기획/</code></td></tr></tbody></table></div>
+<h2 id="3-문서-체계와-id-c03-요약">3. 문서 체계와 ID (C03 요약)</h2>
+<h3 id="31-문서-묶음--docsdocumentations">3.1 문서 묶음 — <code>docs/documentations/</code></h3>
+<div class="tbl"><table><thead><tr><th>폴더</th><th>코드</th><th>내용</th></tr></thead><tbody><tr><td><code>00_개발컨벤션/</code></td><td>C01~C08</td><td>상태판·용어·규칙·결정·역할·대회 규정</td></tr><tr><td><code>10_사업화/</code></td><td>S01~S09</td><td>수익 모델·숫자·멘토링 준비·사업계획서·검증 계획</td></tr><tr><td><code>20_기술명세/</code> ★</td><td>A02·A04·A05·SPEC-FE·SPEC-BE</td><td><strong>기술은 여기 하나</strong> — <a href="../../documentations/20_기술명세/README.md">지도</a> (2026-10-31 <code>20_기술검토</code>에서 이름 변경)</td></tr><tr><td><code>30_제품정의/</code></td><td>P00·P01, PRD 14, SPEC-FE·BE</td><td>기능 정의 (기술 멘토 6단계)</td></tr><tr><td><code>40_캡스톤산출물/</code></td><td>D01~D08</td><td>학교 양식 산출물 (해커톤 제출 목록에는 없음)</td></tr><tr><td><code>90_보관/</code></td><td>—</td><td>예전 요약 html</td></tr><tr><td><code>../infos/05_멘토링/&lt;회차&gt;/</code></td><td>S03·S04·S08·A01·A03 + 설명 자료</td><td>멘토링 회차 자료 (원본)</td></tr><tr><td><code>../발표/&lt;대회&gt;/</code></td><td>—</td><td>발표 자료 (아이디어톤 기준선 · 해커톤)</td></tr></tbody></table></div>
+<ul><li>문서 사슬: 설계(D01·D03) → 스펙(D04) → 상세 설계(D06) → 개발 순서(D02·D05) → 개발·검증(D06·D07·D08).</li><li>같은 이름의 <code>.md</code>와 <code>.html</code>은 같은 내용이고 <strong>md가 원본</strong>이다.</li></ul>
+<h3 id="32-id-사슬">3.2 ID 사슬</h3>
+<div class="tbl"><table><thead><tr><th>ID</th><th>뜻</th><th>예</th></tr></thead><tbody><tr><td><code>T-nn</code> → <code>E-nn</code> → <code>US-nn</code> → <code>TK-차수-nn</code> → <code>STC-에픽-nnn</code></td><td>주제 → 에픽 → 사용자 스토리 → 태스크 → 시험 케이스</td><td><code>TK-1-06</code></td></tr><tr><td><code>FR-&lt;기능&gt;-nn</code> · <code>AC-…</code></td><td>PRD 기능 요구·수용 기준 (기능 <code>CM</code>·<code>AD</code>·<code>WK</code>)</td><td><code>FR-WK-01-06</code></td></tr><tr><td><code>D-nnn</code></td><td>결정</td><td><code>D-022</code></td></tr><tr><td><code>N-nn</code></td><td>숫자 근거 (S02)</td><td><code>N-20</code></td></tr><tr><td><code>Q숫자</code></td><td>멘토 질문 (<code>보관_해커톤-초기기획/MENTORING-QUESTIONS.md</code>)</td><td><code>Q1</code></td></tr><tr><td><code>H1</code>~<code>H9</code></td><td>07-next-tasks H절 개발 항목</td><td><code>H1</code></td></tr><tr><td><code>R1</code>~<code>R13</code> · <code>K1</code>~<code>K8</code> · <code>M1</code>·<code>M2</code></td><td>A03 안에서만 쓰는 결과물·컨펌 항목·마일스톤</td><td><code>M1</code></td></tr></tbody></table></div>
+<h3 id="33-상태-표기">3.3 상태 표기</h3>
+<ul><li>문장: <strong>확정</strong> (C06에 기록 있음) · <strong>후보</strong> (비교표와 함께) · <strong>제안</strong> (작성자 의견, 팀 검토 전) · <strong>미정</strong> (반드시 담당·기한을 함께).</li><li>표 기호: ✅ 완료 · 🔶 진행 중·계산값 · ⬜ 아직 · ❓ 확인 필요 · 🔷 가정.</li><li>「아마」「~할 수도 있다」 같은 애매한 말은 쓰지 않는다.</li></ul>
+<h3 id="34-문서를-고칠-때-같이-확인할-것-c03-8-영향표">3.4 문서를 고칠 때 같이 확인할 것 (C03 §8 영향표)</h3>
+<div class="tbl"><table><thead><tr><th>바뀐 것</th><th>함께 확인</th></tr></thead><tbody><tr><td>기능 추가·삭제</td><td>D03 → D04 → D05 → D06 → D07</td></tr><tr><td>일정</td><td>D02 §4, D05 스프린트 구분표, C01 §8, 이 폴더 02</td></tr><tr><td>결정</td><td>C06 새 결정, 영향받는 C·D 문서, 이 폴더 08</td></tr><tr><td>테스트 숫자</td><td>D07 §6, C01 §4.2, D08</td></tr><tr><td>수익 모델·가격</td><td>S01, D01 비용 부담, C06 D-010</td></tr><tr><td>숫자</td><td>S02 먼저, 그 <code>N-nn</code>을 인용한 문서</td></tr></tbody></table></div>
+<h3 id="35-문체">3.5 문체</h3>
+<ul><li>주어·동사·목적어가 있는 개조식, 모호한 표현 금지, 표·그림에 번호, 약어는 처음 한 번 풀어쓴다, 숫자에는 출처·측정일, 추측은 추측이라고 쓴다.</li></ul>
+<hr>
+<h2 id="변경-기록">변경 기록</h2>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>작성자</th><th>내용</th></tr></thead><tbody><tr><td>2026-10-31</td><td>byeonsoyun</td><td>최초 작성</td></tr><tr><td>2026-10-31</td><td>byeonsoyun</td><td>D-005 확정·D-023 추가, A04·A05 위치</td></tr><tr><td>2026-10-31</td><td>byeonsoyun</td><td>폴더 정리 반영 (§3.1)</td></tr></tbody></table></div>
+<p class="src">이 페이지는 <code>결정과-문서지도.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>

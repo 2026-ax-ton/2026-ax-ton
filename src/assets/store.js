@@ -204,8 +204,22 @@ var Store = (function () {
 
   /* 4. library — 운영자 기능9. 안전 문구와 언어별 검수 상태
         { id, category, ko, status,
-          translations: { km: { text, back, status } },
+          translations: { km: { text, back, status, agent, judged } },
           flags: [ { note, lang, at, resolvedAt } ] }
+
+        🆕 2026-10-31 (T6 · A02 §6.3 · FR-AD-02-09) — 언어마다 칸 둘이 늘었다.
+        **더하기만 했다. 옛 데이터는 두 칸이 없을 뿐 그대로 읽힌다.**
+
+          agent  : { tries, flipped, escalated, model, at }
+                   AI 가 몇 번 만에 냈는지 · 뜻이 뒤집혔었는지 · 사람에게 올렸는지.
+                   ★ 이것은 기록일 뿐 판정이 아니다. status 를 건드리지 않는다
+          judged : { by, at }
+                   **사람이** 상태를 정한 기록. 누가 언제 승인·중지했는가.
+                   ★ AI 는 이 칸을 만들지 않는다. agent 가 있고 judged 가 없으면
+                     "AI 가 내놓았고 아직 아무도 안 봤다" 는 뜻이다
+
+        읽을 때는 Store.phraseAgent(p, lang) · Store.phraseJudged(p, lang) 를 쓴다.
+        화면이 t.agent 를 직접 뒤지면 칸이 없는 옛 데이터에서 터진다.
 
         status 는 PHRASE_STATUS 의 세 가지 중 하나.
         translations[code].status 는 그 언어만의 판정이고, 없으면 문구 전체를 따른다.
@@ -516,6 +530,62 @@ var Store = (function () {
     return phraseStatus(phrase, lang) === 'reviewed';
   }
 
+  /* -----------------------------------------------------------------
+     판정 기록 — AI 가 한 일(agent)과 사람이 한 일(judged)을 갈라 읽는다
+     🆕 2026-10-31 (T6 · A02 §6.3 · FR-AD-02-09)
+
+     ★ 두 칸은 옛 데이터에 없다. 화면이 t.agent.tries 를 직접 읽으면 그 자리에서
+       터진다. 없으면 null 을 돌려주는 자리를 여기 한 곳에만 둔다.
+
+     ★ agent 가 있는 것은 "AI 가 내놓았다" 는 뜻일 뿐 승인이 아니다.
+       승인 여부는 언제나 status 로만 본다 (phraseOk).
+     ----------------------------------------------------------------- */
+
+  function translationOf(phrase, lang) {
+    if (!phrase || !lang) return null;
+    var t = obj(phrase.translations)[lang];
+    return t && typeof t === 'object' ? t : null;
+  }
+
+  /** AI 가 이 언어에 무엇을 했나. 없으면 null (손으로 넣은 번역이거나 옛 데이터). */
+  function phraseAgent(phrase, lang) {
+    var t = translationOf(phrase, lang);
+    var a = t && t.agent;
+    if (!a || typeof a !== 'object') return null;
+    return {
+      tries: Number(a.tries) || 0,
+      flipped: !!a.flipped,
+      escalated: !!a.escalated,
+      model: a.model || '',
+      at: a.at || null,
+      text: a.text || ''        // AI 가 내놓은 번역문 (얼려 둔 것)
+    };
+  }
+
+  /** ★ 사람에게 올린 언어를 AI 번역문 그대로 승인할 수 있는가 — 없다 (FR-AD-03-14).
+   *  지금 번역문이 AI 가 내놓은 것과 같으면 아직 아무도 손대지 않은 것이다.
+   *  사람이 직접 고쳐 넣으면 달라지고, 그때 승인이 열린다. */
+  function approvalBlocked(phrase, lang) {
+    var a = phraseAgent(phrase, lang);
+    if (!a || !a.escalated) return false;
+    var t = translationOf(phrase, lang);
+    return !!t && !!a.text && t.text === a.text;
+  }
+
+  /** 사람이 이 언어를 언제 판정했나. 없으면 null = 아직 아무도 안 봤다. */
+  function phraseJudged(phrase, lang) {
+    var t = translationOf(phrase, lang);
+    var j = t && t.judged;
+    if (!j || typeof j !== 'object' || !j.by) return null;
+    return { by: j.by, at: j.at || null };
+  }
+
+  /** ★ AI 가 올렸는데 아직 사람이 안 본 것. 운영자가 먼저 볼 자리다. */
+  function needsHuman(phrase, lang) {
+    var a = phraseAgent(phrase, lang);
+    return !!a && a.escalated && !phraseJudged(phrase, lang);
+  }
+
   /* 이 문구가 중지된 언어들. 화면에 "무엇이 왜 빠졌는지" 를 적을 때 쓴다. */
   function stoppedLangs(phrase) {
     if (!phrase) return [];
@@ -620,6 +690,8 @@ var Store = (function () {
 
     // 문구를 언어별로 판정하는 통로 (화면에서 p.status 를 직접 보지 않는다)
     phraseStatus: phraseStatus, phraseOk: phraseOk, stoppedLangs: stoppedLangs,
+    phraseAgent: phraseAgent, phraseJudged: phraseJudged, needsHuman: needsHuman,
+    approvalBlocked: approvalBlocked,
 
     // 저장소 8개
     accounts: accounts, session: session, setup: setup, library: library,

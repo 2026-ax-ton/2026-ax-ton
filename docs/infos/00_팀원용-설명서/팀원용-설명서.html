@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>팀원용 설명서 — 우리 프로젝트를 처음부터 끝까지</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../README.html">처음 (사용법)</a>
+<a href="%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html" class="on">00 팀원용 설명서</a>
+<a href="../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../05_%EB%A9%98%ED%86%A0%EB%A7%81/%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+</nav>
+<main>
+<h1 id="팀원용-설명서--우리-프로젝트를-처음부터-끝까지">팀원용 설명서 — 우리 프로젝트를 처음부터 끝까지</h1>
+<blockquote><p><strong>기준일</strong> 2026-10-31 · <strong>작성</strong> byeonsoyun (개발 담당) · <strong>읽는 사람</strong> 기획·검증·발표를 맡은 팀원<br><strong>이 문서가 답하는 질문</strong> 우리가 뭘 만들었나 · 누가 어떻게 쓰나 · 무엇으로 만들었나 · 안에서 어떻게 돌아가나 · 해커톤에서 뭘 더하나 · 발표 때 무엇을 말하고 무엇을 말하면 안 되나<br>읽는 데 15분쯤 걸린다. 모르는 말은 맨 아래 <a href="#11-용어-풀이">§11 용어 풀이</a>에 있다.</p></blockquote>
+<hr>
+<h2 id="1-한-문장으로">1. 한 문장으로</h2>
+<p><strong>외국인 노동자가 자기 나라 말 음성으로 안전교육을 듣고, 그림 문제로 &quot;정말 이해했는지&quot; 확인받는 웹 서비스.</strong> 이름은 <strong>SAFE-LANG</strong>이다.</p>
+<ul><li>핵심 문장: <strong>&quot;이해했는지 확인되지 않으면 교육이 끝나지 않는다.&quot;</strong></li><li>해커톤에서는 여기에 <strong>AI 번역·검수 에이전트</strong>를 붙인다. AI가 안전 문구를 여러 나라 말로 번역하고 스스로 검사하지만, <strong>최종 승인은 사람이 한다.</strong></li><li>🆕 그리고 <strong>실제 서버·DB</strong>를 붙인다 (2026-10-31 결정). 노동자 폰에서 푼 결과가 담당자 PC에 바로 나타나는, 진짜로 돌아가는 서비스가 된다.</li></ul>
+<h2 id="2-왜-만드나--문제와-해결">2. 왜 만드나 — 문제와 해결</h2>
+<div class="tbl"><table><thead><tr><th>지금 공장의 안전교육</th><th>우리가 바꾸는 것</th></tr></thead><tbody><tr><td>한국어로 설명하고 출석부에 <strong>서명</strong>하면 &quot;교육 완료&quot;</td><td>내 나라 말 <strong>음성</strong>으로 듣고 <strong>그림 문제</strong>를 통과해야 &quot;교육 완료&quot;</td></tr><tr><td>서명은 <strong>참석했다는 증거</strong>일 뿐 <strong>이해했다는 증거가 아니다</strong></td><td>이해했는지가 기록으로 남는다</td></tr><tr><td>사고가 나면 &quot;교육했다&quot;는 서명만 남는다</td><td>못 알아들은 부분이 대시보드에 보여서 <strong>교육을 고칠 수 있다</strong></td></tr></tbody></table></div>
+<ul><li>외국인 취업자의 <strong>78.9%가 50인 미만 사업장</strong>에서 일한다 (수치 근거 대장 S02 N-04). 이런 작은 공장은 안전 담당자가 따로 없고, 생산팀장이 겸직한다.</li><li>2027-01-08부터 사업주는 외국인 노동자의 기초안전보건교육 이수를 챙겨야 한다 (S02 N-20).</li></ul>
+<h2 id="3-누가-쓰나--사용자-4종류">3. 누가 쓰나 — 사용자 4종류</h2>
+<div class="tbl"><table><thead><tr><th>사용자</th><th>누구</th><th>이 서비스에서 하는 일</th><th>화면 색</th></tr></thead><tbody><tr><td><strong>노동자</strong> (주 사용자)</td><td>한국어가 서툰 외국인 제조업 노동자. 크메르어(캄보디아)·인도네시아어·베트남어·네팔어·태국어·한국어 6개 언어</td><td>교육 듣기 → 그림 문제 풀기 → 위험 신고·질문</td><td>코랄(빨강 계열)</td></tr><tr><td><strong>담당자</strong></td><td>작은 공장의 안전 담당자 (보통 생산팀장이 겸직)</td><td>공장·설비 등록 → 교육 만들기 → 결과 보기 → 증빙 인쇄</td><td>보라</td></tr><tr><td><strong>운영자</strong></td><td>번역이 맞는지 검사하는 사람</td><td>안전 문구의 번역을 <strong>승인 / 대기 / 중지</strong>로 판정. 해커톤에서는 AI 에이전트를 부르는 사람</td><td>보라</td></tr><tr><td><strong>돈을 내는 사람</strong> (화면은 안 씀)</td><td>지자체 공무원(주무관), 산업단지 관리 기관, 사업주</td><td>이용권을 사서 공장들에 나눠 준다</td><td>—</td></tr></tbody></table></div>
+<blockquote><p>🔑 <strong>노동자는 돈을 내지 않는다.</strong> 실제로 쓰는 사람(노동자)과 돈을 내는 사람(지자체·기관)이 다르다 — 1차 멘토링에서 멘토가 강조한 부분이다.</p></blockquote>
+<h2 id="4-기능--무엇을-할-수-있나">4. 기능 — 무엇을 할 수 있나</h2>
+<h3 id="41-노동자-화면-6개">4.1 노동자 화면 6개</h3>
+<div class="tbl"><table><thead><tr><th>화면</th><th>하는 일</th></tr></thead><tbody><tr><td><strong>홈</strong></td><td>오늘의 안전 문구, 내가 들어야 할 교육, 재교육 안내</td></tr><tr><td><strong>수강</strong></td><td>안전 문구를 <strong>내 언어 음성</strong>과 함께 한 장씩 본다. 설비 앞 <strong>QR을 찍으면</strong> 바로 열린다</td></tr><tr><td><strong>이해도 검증</strong> ★</td><td><strong>글을 읽지 않고 손가락으로</strong> 푸는 그림 문제 3종류 — ① 그림에서 위험한 곳 짚기 ② 올바른 작업 고르기 ③ 보호구 짝 맞추기. 틀리면 어떤 사고가 나는지 바로 보여 준다</td></tr><tr><td><strong>위험 신고</strong></td><td>위험한 곳을 그림이나 음성으로 <strong>익명</strong> 신고</td></tr><tr><td><strong>현장 소통</strong></td><td>궁금한 것을 글·댓글로 묻는다. 이름을 숨길 수 있다</td></tr><tr><td><strong>마이</strong></td><td>내 교육 이력, 언어 바꾸기, 글자 크기</td></tr></tbody></table></div>
+<h3 id="42-관리-화면-5개-담당자운영자">4.2 관리 화면 5개 (담당자·운영자)</h3>
+<div class="tbl"><table><thead><tr><th>화면</th><th>하는 일</th></tr></thead><tbody><tr><td><strong>사업장 등록</strong></td><td>공장 규모, 쓰는 언어, 공정·설비, 노동자 등록</td></tr><tr><td><strong>문구 라이브러리</strong> (운영자)</td><td>안전 문구의 언어별 번역을 승인·대기·중지로 판정. 🆕 해커톤에서 <strong>[AI 번역 받기]</strong> 버튼이 생긴다</td></tr><tr><td><strong>교육 만들기</strong></td><td><strong>승인된 문구만</strong> 골라 교육과 그림 문제를 만들고 QR과 함께 발급</td></tr><tr><td><strong>대시보드</strong></td><td>언어별·위험유형별 정답률, 신고 처리, 재교육 지시</td></tr><tr><td><strong>증빙</strong></td><td>감독기관에 낼 교육 증빙 인쇄. <strong>미이수자도 빠짐없이</strong> 들어간다</td></tr></tbody></table></div>
+<h3 id="43--해커톤에서-더하는-기능--ai-번역검수-에이전트">4.3 🆕 해커톤에서 더하는 기능 — AI 번역·검수 에이전트</h3>
+<p>운영자가 한국어 안전 문구 하나를 넣고 [AI 번역 받기]를 누르면:</p>
+<ol><li>AI가 5개 언어로 <strong>번역</strong>한다</li><li>다른 AI가 그 번역을 <strong>다시 한국어로 되돌린다</strong> (역번역)</li><li>원래 문장과 비교해 <strong>뜻이 뒤집혔는지</strong> 검사한다 — 예: &quot;손을 넣지 <strong>마세요</strong>&quot;가 &quot;손을 넣어도 <strong>됩니다</strong>&quot;가 됐는지</li><li>뒤집혔으면 <strong>고쳐서 다시 번역</strong>한다 (최대 2번)</li><li>그래도 안 되면 <strong>&quot;사람에게 올림&quot;</strong> 표시를 붙인다</li><li>모든 결과는 <strong>&quot;대기&quot;</strong> 상태로 저장되고, <strong>운영자가 승인해야</strong> 노동자에게 나간다</li></ol>
+<blockquote><p>🔑 <strong>왜 사람이 승인하나?</strong> 안전 지시가 잘못 번역되면 그대로 사고가 난다. AI는 사람의 일을 &quot;번역 입력&quot;에서 &quot;확인·판정&quot;으로 줄여 줄 뿐, 책임은 사람이 진다.</p></blockquote>
+<h3 id="44--해커톤에서-더하는-기능--진짜-로그인과-기기-간-공유-db">4.4 🆕 해커톤에서 더하는 기능 — 진짜 로그인과 기기 간 공유 (DB)</h3>
+<div class="tbl"><table><thead><tr><th>지금</th><th>DB를 붙인 뒤</th></tr></thead><tbody><tr><td>데이터가 그 폰에만 있다. 노동자가 풀어도 담당자 PC에서 안 보인다</td><td><strong>노동자 폰에서 풀면 담당자 PC 대시보드에 20초 안에 나타난다</strong></td></tr><tr><td>로그인이 시연용이다 (비밀번호가 그대로 저장)</td><td><strong>진짜 로그인</strong> — 비밀번호를 알아볼 수 없게 바꿔(해시) 저장, 5번 틀리면 10분 잠금</td></tr><tr><td>공장 하나 기준</td><td>공장마다 공간이 나뉜다. <strong>다른 공장 데이터는 볼 수 없다</strong></td></tr><tr><td>브라우저 데이터를 지우면 사라진다</td><td>서버에 남는다</td></tr></tbody></table></div>
+<ul><li>담당자가 공장을 등록하면 <strong>가입 코드</strong>를 받고, 노동자는 그 코드와 자기 사번(식별번호)으로 가입한다.</li><li><strong>익명 신고는 그대로 익명이다.</strong> 서버에 저장할 때도 누가 보냈는지 버린다.</li><li>공장에서는 폰 한 대를 여럿이 쓸 수 있어서, 문제를 다 풀면 <strong>자동으로 로그아웃</strong>된다.</li><li>인터넷이 끊겨도 폰에 쌓아 두었다가 다시 연결되면 올린다.</li></ul>
+<h2 id="5-비기능--기능은-아니지만-꼭-지키는-것">5. 비기능 — 기능은 아니지만 꼭 지키는 것</h2>
+<p>&quot;무엇을 하나&quot;가 기능이라면, 비기능은 <strong>&quot;어떻게 해야 하나&quot;</strong>다. 우리 서비스는 공장 현장을 전제로 한다.</p>
+<div class="tbl"><table><thead><tr><th>지키는 것</th><th>왜</th></tr></thead><tbody><tr><td><strong>글을 한 자도 안 읽고 끝까지 쓸 수 있다</strong> — 모든 안내에 음성</td><td>노동자가 한국어도, 자기 나라 글도 잘 못 읽을 수 있다</td></tr><tr><td><strong>버튼이 크다</strong> (60px 이상)</td><td>장갑 낀 손으로 누른다</td></tr><tr><td><strong>인터넷이 끊겨도 화면이 열린다</strong></td><td>공장 안은 인터넷이 약하다</td></tr><tr><td><strong>노동자 화면은 다른 회사 서버에 요청을 보내지 않는다</strong> (🆕 DB 도입 뒤에는 우리 서버하고만 주고받는다)</td><td>빠르고, 개인 정보가 엉뚱한 곳으로 새지 않는다</td></tr><tr><td><strong>승인된 번역만 안전 지시로 쓴다</strong></td><td>오역이 그대로 사고가 된다</td></tr><tr><td><strong>신고는 익명이다</strong> — 누가 신고했는지 저장하지 않는다</td><td>익명이 깨지면 아무도 신고하지 않는다</td></tr><tr><td><strong>미이수자를 숨기지 않는다</strong>, 인사평가용 순위를 만들지 않는다</td><td>감시 도구가 되면 현장이 등을 돌린다</td></tr><tr><td>통과 못 하면 <strong>노동자 탓이 아니라 교육의 실패</strong>로 본다. <strong>&quot;면책&quot;이라는 말을 쓰지 않는다</strong></td><td>우리 기록은 책임을 대신해 주지 않는다</td></tr><tr><td>외국인등록번호·여권번호를 받지 않는다</td><td>필요 없는 개인정보는 받지 않는다</td></tr><tr><td>색만으로 상태를 구분하지 않는다 (아이콘 + 글자 + 색)</td><td>색약·흑백 화면에서도 뜻이 남는다</td></tr></tbody></table></div>
+<blockquote><p>이 원칙들은 <strong>자동 테스트가 매번 검사</strong>한다. 누가 실수로 원칙을 어기는 코드를 넣으면 테스트가 실패한다.</p></blockquote>
+<h2 id="6-사용-기술--무엇으로-만들었나">6. 사용 기술 — 무엇으로 만들었나</h2>
+<blockquote><p>웹 서비스는 보통 <strong>프론트엔드(화면) + 백엔드(서버) + DB(저장소)</strong> 로 나뉜다. 우리는 일부러 <strong>아주 가볍게</strong> 만들었다.</p></blockquote>
+<div class="tbl"><table><thead><tr><th>구분</th><th>우리가 쓰는 것</th><th>쉽게 말하면</th><th>왜 이렇게 했나</th></tr></thead><tbody><tr><td><strong>프론트엔드</strong> (화면)</td><td><strong>HTML + CSS + 순수 JavaScript</strong> · React 같은 프레임워크 <strong>없음</strong></td><td>레고 세트(프레임워크) 없이 기본 블록으로 직접 지은 집</td><td>설치·빌드가 필요 없어서 <strong>파일을 더블클릭만 해도 열린다.</strong> 해커톤 현장 시연이 &quot;제출한 HTML 파일을 더블클릭&quot;하는 방식이라 딱 맞는다. 싼 폰에서도 빠르다</td></tr><tr><td><strong>백엔드</strong> (서버)</td><td><strong>지금은 없다.</strong> 🆕 해커톤에서 <strong>Vercel 서버리스 함수</strong>를 만든다 — AI 심부름 2개 + 로그인·데이터 저장·신고 받기</td><td>서버 = 가게 주방. 우리는 큰 주방을 차리지 않고, <strong>필요할 때만 와서 일하는 직원들</strong>(서버리스)을 둔다</td><td>AI·DB의 <strong>비밀 열쇠</strong>를 화면 코드에 두면 누구나 훔쳐 간다. 그래서 열쇠는 서버에만 두고, 서버가 &quot;이 사람이 이 공장 담당자가 맞나&quot;를 확인한다</td></tr><tr><td><strong>DB</strong> (데이터 저장소)</td><td>지금은 각 폰의 작은 저장 공간(<strong>localStorage</strong>). 🆕 해커톤에서 <strong>Neon Postgres</strong>(클라우드 DB, 싱가포르)를 붙인다</td><td>지금 = <strong>각 폰에 달린 서랍</strong> → 🆕 <strong>모두가 함께 쓰는 창고</strong>. 서랍은 창고의 사본(캐시)으로 남는다</td><td>여러 폰·PC가 같은 데이터를 본다. 인터넷이 끊겨도 서랍으로 계속 쓴다. 현장 시연(파일 더블클릭)에서는 서랍만 쓴다</td></tr><tr><td><strong>AI</strong> 🆕</td><td><strong>Google Gemini</strong></td><td>번역 담당 AI와 검사 담당 AI를 <strong>서로 다른 모델</strong>로 쓴다</td><td>같은 AI가 번역하고 검사하면 같은 실수를 같이 놓친다</td></tr><tr><td><strong>오프라인</strong></td><td><strong>Service Worker</strong></td><td>화면 파일을 폰에 미리 복사해 두는 기능</td><td>인터넷이 끊겨도 열린다</td></tr><tr><td><strong>음성</strong></td><td>브라우저에 들어 있는 <strong>음성 합성·받아쓰기</strong></td><td>폰이 원래 가진 &quot;읽어 주기&quot; 기능</td><td>외부 음성 서비스를 쓰면 외부 요청이 생긴다</td></tr><tr><td><strong>배포</strong> (인터넷에 올리기)</td><td><strong>Vercel</strong> + <strong>GitHub</strong></td><td>GitHub = 코드 보관함, Vercel = 그 코드를 인터넷 주소로 열어 주는 곳</td><td>코드를 올리면 자동으로 <a href="https://2026-ax-ton.vercel.app" target="_blank" rel="noopener">https://2026-ax-ton.vercel.app</a> 에 반영된다</td></tr><tr><td><strong>테스트</strong></td><td>자동 테스트 <strong>1,619건</strong> (2026-10-31 전부 통과)</td><td>로봇이 화면 13개를 직접 눌러 보며 1,619가지를 확인</td><td>개발자가 1명이라 <strong>사람 대신 테스트가 검사관</strong> 역할을 한다</td></tr></tbody></table></div>
+<blockquote><p>📌 <strong>&quot;DB를 어떻게 붙였나?&quot;</strong> 라는 질문이 나올 수 있다. 답: 처음부터 모든 화면이 데이터를 <code>Store</code>라는 <strong>한 창구로만</strong> 다루게 만들어 두어서, 화면은 거의 그대로 두고 <strong>창구 안쪽만 서버와 통하게</strong> 바꿨다. 그래서 짧은 기간에 붙일 수 있었다.</p></blockquote>
+<h2 id="7-동작-흐름--안에서-어떻게-돌아가나">7. 동작 흐름 — 안에서 어떻게 돌아가나</h2>
+<h3 id="71-큰-흐름-사람-기준">7.1 큰 흐름 (사람 기준)</h3>
+<pre><code> ① 담당자: 공장·설비·노동자 등록
+        ↓
+ ② 운영자: 안전 문구 입력 → (🆕 AI 번역 받기) → 언어별로 확인하고 [승인]
+        ↓
+ ③ 담당자: 승인된 문구만 골라 교육 + 그림 문제 만들기 → 설비 앞에 QR 붙이기
+        ↓
+ ④ 노동자: QR 찍기 → 내 언어 음성으로 듣기 → 그림 문제 → 통과해야 &quot;완료&quot;
+        ↓
+ ⑤ 담당자: 대시보드에서 &quot;베트남어 노동자들이 끼임 위험 문제를 많이 틀림&quot; 확인
+           → 재교육 지시 · 교육 고치기 · 증빙 인쇄
+        ↓
+ (다시 ②·③으로 — 교육이 점점 좋아지는 순환)</code></pre>
+<h3 id="72-시스템-구조-화면서버ai-기준">7.2 시스템 구조 (화면·서버·AI 기준)</h3>
+<div class="tbl"><table><thead><tr><th>층</th><th>무엇이 있나</th><th>하는 일</th></tr></thead><tbody><tr><td>① 사용자 기기 — 노동자 화면 6개</td><td>홈·수강·그림 문제·신고·소통·마이</td><td>인터넷 밖으로 요청을 <strong>보내지 않는다</strong></td></tr><tr><td>① 사용자 기기 — 관리 화면 5개</td><td>사업장 등록·문구 라이브러리·교육 만들기·대시보드·증빙</td><td>🆕 문구 라이브러리에만 [AI 번역 받기]가 있다</td></tr><tr><td>② 데이터 창구 <code>Store</code></td><td>모든 화면이 데이터를 넣고 꺼내는 <strong>단 하나의 창구</strong></td><td>실제 저장은 그 기기의 <strong>localStorage(서랍)</strong></td></tr><tr><td>③ 🆕 AI 에이전트 <code>agent.js</code></td><td>운영자 화면 안에서 도는 지휘자</td><td>번역 → 역번역 → 검사 → 재시도 순서를 정한다</td></tr><tr><td>④ 🆕 Vercel 서버리스 함수</td><td><code>/api/translate</code> · <code>/api/backtranslate</code> · <code>/api/auth</code> · <code>/api/store</code> · <code>/api/reports</code></td><td><strong>비밀 열쇠</strong>를 갖고 AI·DB에 대신 요청한다. 로그인한 사람이 누구인지, 어느 공장 사람인지 확인한다</td></tr><tr><td>⑤ 🆕 Google Gemini</td><td>번역 AI · 검사 AI (서로 다른 모델)</td><td>번역문과 되돌린 한국어를 돌려준다</td></tr><tr><td>⑥ 🆕 Neon Postgres (DB)</td><td>공장·계정·교육·이수 기록·신고·문구</td><td>모두가 함께 쓰는 창고. 서버 함수만 열 수 있다</td></tr></tbody></table></div>
+<pre><code> 운영자가 [AI 번역 받기]
+   → ③ agent.js
+      → ④ Vercel /api/translate      → ⑤ Gemini (번역 AI)       → 번역문
+      → ④ Vercel /api/backtranslate  → ⑤ Gemini (다른 검사 AI)  → 되돌린 한국어
+      → ③ 규칙 검사 (뜻이 뒤집혔나?)
+   → ② Store에 &quot;대기&quot;로 저장
+   → 운영자 [승인]
+   → ① 노동자 화면에 나간다
+
+ 🆕 노동자가 폰에서 문제를 풀면
+   → ② Store가 폰 서랍에 저장 + 보낼 목록에 넣음
+   → ④ Vercel /api/store (이 사람이 이 공장 노동자 맞나 확인)
+   → ⑥ Neon DB에 저장
+   → 담당자 PC 대시보드가 20초마다 새로 받아 와서 표시</code></pre>
+<ul><li><strong>노동자 화면은 Vercel이나 AI를 부르지 않는다.</strong> AI를 부르는 것은 운영자 화면 하나뿐이다.</li><li>AI 결과는 다시 브라우저로 돌아와 <strong>&quot;대기&quot;</strong> 상태로 서랍에 저장된다. 운영자가 승인해야 노동자 화면에 나간다.</li></ul>
+<h3 id="73-ai-에이전트-한-바퀴-언어-하나-기준">7.3 AI 에이전트 한 바퀴 (언어 하나 기준)</h3>
+<pre><code> &quot;회전 중인 롤러에 손을 넣지 마세요&quot;
+   → [번역 AI] 크메르어로 번역
+   → [검사 AI] 그 크메르어를 한국어로 되돌림 (원문은 안 보여 줌)
+   → [규칙 검사] &quot;마세요&quot;(부정)가 살아 있나?
+        ├ 살아 있다 → 완료 (대기 상태로 저장)
+        └ 사라졌다 → &quot;뜻이 바뀌었으니 부정을 다시 확인해&quot; 힌트를 주고 재번역 (최대 2번)
+                     → 그래도 안 되면 &quot;사람에게 올림&quot;</code></pre>
+<h2 id="8-지금-어디까지-왔나--앞으로의-일정">8. 지금 어디까지 왔나 · 앞으로의 일정</h2>
+<div class="tbl"><table><thead><tr><th>항목</th><th>상태 (2026-10-31)</th></tr></thead><tbody><tr><td>아이디어톤 버전</td><td>✅ 완성·배포 — 화면 13개, 6개 언어, 오프라인, 테스트 1,619건 통과</td></tr><tr><td>해커톤 설계</td><td>✅ 끝 — 기능별 기획서(PRD) 14개, 기술 명세, 결정 기록 22건</td></tr><tr><td>해커톤 개발 (AI 에이전트 → 🆕 DB·로그인)</td><td>⬜ <strong>11/1 시작</strong></td></tr><tr><td>사용자 검증 (인터뷰·테스트)</td><td>⬜ <strong>0건 — 가장 큰 빈칸</strong> (심사 15점)</td></tr></tbody></table></div>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>무엇</th></tr></thead><tbody><tr><td>11/8</td><td>AI 에이전트가 실제로 돈다</td></tr><tr><td>🆕 11/13</td><td>노동자 폰 → 담당자 PC 동기화가 된다 (진짜 로그인·DB)</td></tr><tr><td>11/14</td><td>사업 멘토링 (마지막) — 사업 모델 통합안 발표</td></tr><tr><td>11/16</td><td>기능 동결 · 검증 기록 1장 완성</td></tr><tr><td>11/18</td><td>시연 영상 녹화</td></tr><tr><td>11/19~11/21</td><td>발표 대본·리허설</td></tr><tr><td>11/22</td><td>자료 제출 (PPTX·PDF·영상·HTML → axton@likelion.net) · 마감 11/23 23:59</td></tr><tr><td><strong>11/28(토) 09:00</strong></td><td><strong>오프라인 해커톤</strong> (서울 가빈아트홀) · 발표 7분 + 질의 3분 · <strong>전원 참석</strong></td></tr></tbody></table></div>
+<h3 id="팀원이-맡아-주면-좋은-것">팀원이 맡아 주면 좋은 것</h3>
+<div class="tbl"><table><thead><tr><th>일</th><th>왜 중요한가</th></tr></thead><tbody><tr><td><strong>인터뷰 3명 이상 · MVP 테스트 3회 이상</strong> (이주노동자 또는 공장 안전 담당자에게 폰을 건네 써 보게 하기)</td><td>심사 「검증」 15점. 지금 0건이다</td></tr><tr><td><strong>발표 장표·대본·리허설</strong>, 발표자 1명·시연자 1명 정하기</td><td>심사 「발표」 15점</td></tr><tr><td><strong>멘토링 전원 카메라 ON 참석</strong></td><td>수료 조건 — 한 번이라도 빠지면 수료증이 안 나온다</td></tr></tbody></table></div>
+<h2 id="9-한계--솔직하게-알고-있어야-할-것">9. 한계 — 솔직하게 알고 있어야 할 것</h2>
+<div class="tbl"><table><thead><tr><th>한계</th><th>이유</th><th>언제 풀리나</th></tr></thead><tbody><tr><td>~~다른 폰에서는 데이터가 안 보인다~~</td><td>🆕 DB를 붙여 해결</td><td><strong>11/13</strong></td></tr><tr><td>~~진짜 로그인이 아니다~~</td><td>🆕 진짜 로그인으로 바꿈</td><td><strong>11/10</strong></td></tr><tr><td>🆕 번역을 판정할 <strong>원어민 검수자</strong>가 없다</td><td>사람을 아직 못 구했다</td><td>시범 운영 전 — 가장 큰 운영상 빈칸</td></tr><tr><td>🆕 개인정보 절차(처리방침·동의·국외 이전 고지)가 초안뿐이다</td><td>DB가 싱가포르에 있다. 법률 검토 전</td><td>시범 운영 전 — 해커톤은 예시 데이터만</td></tr><tr><td>🆕 무료 요금제다</td><td>Vercel 무료는 비상업용만</td><td>돈을 받기 전 유료 전환</td></tr><tr><td>사진 첨부·알림이 없다</td><td>저장 공간·서버가 없다</td><td>판매 단계</td></tr><tr><td>아이폰에서 확인 못 했다</td><td>팀에 아이폰이 없다</td><td>검증 기간에 확인</td></tr><tr><td>실제 노동자가 써 본 적이 없다</td><td>섭외를 못 했다</td><td><strong>11/16까지 — 팀원 몫</strong></td></tr><tr><td>소수 언어(크메르어·네팔어) AI 번역 품질을 모른다</td><td>아직 안 돌려 봤다</td><td>11/3 실측. 품질이 낮으면 &quot;사람에게 올림&quot;이 많아진다 — 그것도 설계대로다</td></tr></tbody></table></div>
+<h2 id="10-발표질의-때--말해도-되는-것--안-되는-것">10. 발표·질의 때 — 말해도 되는 것 / 안 되는 것</h2>
+<div class="tbl"><table><thead><tr><th>✅ 이렇게 말한다</th><th>❌ 이렇게 말하지 않는다</th></tr></thead><tbody><tr><td>&quot;이해했는지 <strong>확인하고 기록</strong>하는 도구입니다&quot;</td><td>&quot;<strong>법정 교육을 대신</strong>합니다&quot; (법정 교육은 등록된 교육기관이 한다)</td></tr><tr><td>&quot;AI가 번역 초안을 만들고 <strong>사람이 승인</strong>합니다&quot;</td><td>&quot;AI가 <strong>자동으로</strong> 번역해서 내보냅니다&quot;</td></tr><tr><td>&quot;교육 실시와 이해 확인의 <strong>기록</strong>입니다&quot;</td><td>&quot;사고가 나도 <strong>면책</strong>됩니다&quot;</td></tr><tr><td>&quot;출처가 있는 숫자&quot; (S02 대장에 있는 것만)</td><td>&quot;2.4배&quot;, &quot;3.4%&quot;, &quot;62.2%&quot; 같은 <strong>출처 없는 숫자</strong> · 옛 시장 규모(1.2조·180억)</td></tr><tr><td>&quot;노동자 개인 데이터는 팔지 않습니다&quot;</td><td>&quot;노동자 데이터를 팔아 수익을 냅니다&quot;</td></tr><tr><td>🆕 &quot;실제 서버와 DB 위에서 여러 기기가 함께 씁니다. <strong>공장 한 곳의 시범 운영이 가능한 수준</strong>이고, 정식 서비스 전에는 원어민 검수 인력·개인정보 절차·유료 요금제가 남아 있습니다&quot;</td><td>&quot;바로 서비스할 수 있습니다&quot; · &quot;여러 공장이 이미 쓰고 있습니다&quot; (아직 아니다)</td></tr></tbody></table></div>
+<blockquote><p>숫자를 쓰기 전에는 개발 담당에게 확인한다. 숫자와 출처는 <a href="../../documentations/10_사업화/S02_수치-근거대장.md">S02 수치 근거 대장</a>에 있다.</p></blockquote>
+<h2 id="11-용어-풀이">11. 용어 풀이</h2>
+<div class="tbl"><table><thead><tr><th>용어</th><th>뜻</th></tr></thead><tbody><tr><td>프론트엔드</td><td>사용자가 보는 화면 쪽 코드</td></tr><tr><td>백엔드 / 서버</td><td>화면 뒤에서 일을 처리하는 컴퓨터 쪽 코드</td></tr><tr><td>DB (데이터베이스)</td><td>데이터를 모아 두는 큰 저장소</td></tr><tr><td>localStorage</td><td>브라우저 안의 작은 저장 공간. 기기마다 따로</td></tr><tr><td>🆕 Neon Postgres</td><td>우리가 쓰는 클라우드 DB 서비스. 싱가포르에 있다</td></tr><tr><td>🆕 서버 모드 / 로컬 모드</td><td>서버 모드 = DB에 저장해 여러 기기가 함께 봄. 로컬 모드 = 그 기기에만 저장 (현장 시연용)</td></tr><tr><td>🆕 가입 코드</td><td>담당자가 받는 우리 공장 전용 번호. 노동자는 이걸로 가입한다</td></tr><tr><td>🆕 해시</td><td>비밀번호를 거꾸로 되돌릴 수 없게 바꾸는 것. 서버 관리자도 원래 비밀번호를 못 본다</td></tr><tr><td>프레임워크</td><td>React처럼 화면을 쉽게 만들게 도와주는 큰 도구 세트. 우리는 안 쓴다</td></tr><tr><td>서버리스 함수</td><td>서버를 직접 운영하지 않고, 요청이 올 때만 잠깐 실행되는 작은 서버 코드</td></tr><tr><td>API</td><td>프로그램끼리 주고받는 창구. &quot;번역해 줘&quot;라고 요청하면 결과를 돌려준다</td></tr><tr><td>API 키</td><td>API를 쓸 수 있는 비밀 열쇠. 새면 남이 우리 돈으로 AI를 쓴다</td></tr><tr><td>AI 에이전트</td><td>한 번 답하고 끝나는 AI가 아니라, <strong>목표를 위해 스스로 여러 단계를 하고 결과를 검사하고 다시 시도하는</strong> AI</td></tr><tr><td>역번역</td><td>번역한 문장을 다시 원래 언어로 번역해 보는 것. 뜻이 바뀌었는지 확인하는 방법</td></tr><tr><td>검수 / 승인·대기·중지</td><td>번역이 맞는지 사람이 판정하는 것. <strong>승인</strong>만 노동자에게 나가고, <strong>대기</strong>는 아직 안 봄, <strong>중지</strong>는 오역이라 내림</td></tr><tr><td>오프라인 / Service Worker</td><td>인터넷 없이 동작 / 그걸 가능하게 하는 브라우저 기능</td></tr><tr><td>배포</td><td>만든 코드를 인터넷 주소로 열 수 있게 올리는 것</td></tr><tr><td>자동 테스트</td><td>프로그램이 프로그램을 검사하는 것. 사람이 일일이 눌러 보지 않아도 된다</td></tr><tr><td>PRD</td><td>기능별 기획서 (&quot;무엇을 왜 만드나&quot;)</td></tr><tr><td>MVP 테스트</td><td>최소 기능 버전을 실제 사용자에게 써 보게 하는 시험</td></tr><tr><td>QR</td><td>폰 카메라로 찍으면 주소가 열리는 네모 코드. 설비 앞에 붙인다</td></tr></tbody></table></div>
+<h2 id="12-직접-써-보기">12. 직접 써 보기</h2>
+<ol><li>주소 <strong>https://2026-ax-ton.vercel.app</strong> 를 연다 (PC 또는 폰)</li><li>로그인 화면에서 <strong>[예시 데이터 채우기]</strong> 를 누른다</li><li>아래 계정으로 들어가 본다 — 비밀번호는 전부 <strong><code>1234</code></strong></li></ol>
+<div class="tbl"><table><thead><tr><th>아이디</th><th>역할</th><th>해 볼 것</th></tr></thead><tbody><tr><td><code>W-4821-07</code></td><td>노동자 (크메르어)</td><td>수강 → 그림 문제 풀기 → 위험 신고</td></tr><tr><td><code>kim@daesung.co.kr</code></td><td>담당자</td><td>대시보드 → 교육 만들기 → 증빙</td></tr><tr><td><code>oper@safety.kr</code></td><td>운영자</td><td>문구 라이브러리에서 번역 판정</td></tr></tbody></table></div>
+<blockquote><p>지금(11/13 전)은 데이터가 <strong>그 브라우저에만</strong> 저장된다. 다른 폰에서 열면 다시 [예시 데이터 채우기]를 눌러야 한다. 고장이 아니다. 🆕 DB를 붙인 뒤에는 로그인하면 어느 기기에서나 같은 데이터가 보인다.</p></blockquote>
+<h2 id="13-더-알고-싶으면">13. 더 알고 싶으면</h2>
+<div class="tbl"><table><thead><tr><th>알고 싶은 것</th><th>볼 곳</th></tr></thead><tbody><tr><td>지금 할 일과 상태</td><td><a href="../02_현재-진행/현재-진행.html">infos 02 현재 진행</a></td></tr><tr><td>대회 규정·제출·시연 규칙</td><td><a href="../06_대회-규정/대회-규정.html">infos 06 대회 규정</a></td></tr><tr><td>누가 돈을 내나 (사업)</td><td><a href="../07_사업화/사업화.html">infos 07 사업화</a></td></tr><tr><td>기술 전체 (개발자용)</td><td><a href="../04_기술스택/전체-스펙-설명서.html">전체 스펙 설명서</a></td></tr><tr><td>예상 질문과 답</td><td><a href="../05_멘토링/2026-10-31_기술1차/06_예상-질문과-답.html">예상 질문과 답</a></td></tr></tbody></table></div>
+<hr>
+<h2 id="변경-기록">변경 기록</h2>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>작성자</th><th>내용</th></tr></thead><tbody><tr><td>2026-10-31</td><td>byeonsoyun</td><td>최초 작성 (비개발 팀원용)</td></tr><tr><td>2026-10-31</td><td>byeonsoyun</td><td>🆕 DB 도입 반영: §1, §4.4, 사용 기술, 구조, 일정, 한계, 말할 것, 용어</td></tr></tbody></table></div>
+<p class="src">이 페이지는 <code>팀원용-설명서.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>
