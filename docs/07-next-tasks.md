@@ -367,7 +367,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: A02 §5.2~§5.6, PRD-AD-03, SPEC-BE
   - **됐는지**: 가짜 `fetch` 로 오류 코드 8종(405·403·401·400·413·429·502·504)과 `null` 출처 CORS 가 검사로 통과. 응답에 `status` 필드가 없다
 
-- [ ] **T4. Vercel 설정 변경 + 실제 Gemini 실측 (M0)** — `TK-2-05`
+- [x] **T4. Vercel 설정 변경 + 실제 Gemini 실측 (M0)** — `TK-2-05` ✅ 2026-10-31 (M0 도달)
 
   - **어디**: Vercel 프로젝트 설정 (사용자 계정 작업 — 사용자에게 요청), 미리보기 배포
   - **무엇**: Root Directory = 저장소 루트, 출력 폴더 = `src`, 환경변수(A02 §5.5), 함수 리전 `sin1`. 미리보기에서 문구 1개 × 5개 언어 실제 호출
