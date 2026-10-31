@@ -76,19 +76,35 @@ export function resetDailyCall() {
   countUsed = 0;
 }
 
+/* ── 같은 출처로 볼 주소 (A02 §5.2) ─────────────────────────────────
+   ALLOWED_ORIGIN 은 운영 주소다. 거기에 **이 배포 자신의 주소**를 더한다 —
+   Vercel 이 VERCEL_URL 로 알려 준다.
+
+   미리보기 주소는 배포마다 달라져서(`2026-ax-abc123-….vercel.app`) 손으로 적은
+   값 하나로는 맞출 수 없다. 자기 자신을 허용하는 것은 "같은 출처"의 정의 그대로라
+   막는 힘이 줄지 않는다. 남은 방어는 통과 문구·일일 상한·공급사 예산이다 (§5.6). */
+
+export function allowedOrigins() {
+  const list = [];
+  const fixed = process.env.ALLOWED_ORIGIN || '';
+  if (fixed) list.push(fixed);
+  const self = process.env.VERCEL_URL || '';
+  if (self) list.push('https://' + self);
+  return list;
+}
+
 /* ── 들어오는 요청 검사 (A02 §5.2) ──────────────────────────────────
    돌려주는 값: { done: Response } 면 여기서 끝난 것이고,
                 { cors, text } 면 통과한 것이다. */
 
 export async function guard(request) {
   const origin = request.headers.get('origin');
-  const allowed = process.env.ALLOWED_ORIGIN || '';
   const allowFile = process.env.ALLOW_FILE_ORIGIN === '1';
 
   /* 제출 HTML 을 file:// 로 열면 브라우저가 Origin: null 을 보낸다 (C08 §7).
      막는 힘이 약해서 시연 기간에만 켠다 (A02 §5.2, C06 D-019). */
   const nullOrigin = origin === 'null' && allowFile;
-  const sameOrigin = !!allowed && origin === allowed;
+  const sameOrigin = !!origin && allowedOrigins().indexOf(origin) !== -1;
   const cors = nullOrigin ? CORS_NULL : undefined;
 
   if (request.method === 'OPTIONS') {

@@ -22,6 +22,7 @@ const KEY = 'AIzaSyFAKE0000000000테스트용가짜키';
 function setEnv(extra) {
   Object.assign(process.env, {
     ALLOWED_ORIGIN: ORIGIN,
+    VERCEL_URL: '',          // 이 배포 자신의 주소 — Vercel 이 넣어 준다
     ALLOW_FILE_ORIGIN: '0',
     AGENT_PASS: PASS,
     GEMINI_API_KEY: KEY,
@@ -126,6 +127,26 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   eq('null 출처는 허용이 꺼져 있으면 403', nullOff.status, 403);
   ok('403 에는 CORS 허용 헤더를 붙이지 않는다',
     nullOff.headers.get('access-control-allow-origin') === null);
+
+  /* ★ 미리보기 주소는 배포마다 바뀐다 → 이 배포 자신의 주소(VERCEL_URL)도 통과시킨다 */
+  setEnv({ ALLOWED_ORIGIN: 'https://2026-ax-ton.vercel.app', VERCEL_URL: '2026-ax-abc123-a-636a.vercel.app' });
+  fakeReply('កុំដាក់ដៃ');
+  const preview = await translate.handle(req('/api/translate', {
+    origin: 'https://2026-ax-abc123-a-636a.vercel.app', body: okBody,
+  }));
+  eq('이 배포 자신의 주소는 같은 출처다', preview.status, 200);
+  ok('자기 주소로 통과해도 CORS 헤더는 내지 않는다',
+    preview.headers.get('access-control-allow-origin') === null);
+
+  setEnv({ VERCEL_URL: '2026-ax-abc123-a-636a.vercel.app' });
+  const otherDeploy = await translate.handle(req('/api/translate', {
+    origin: 'https://2026-ax-zzz999-a-636a.vercel.app', body: okBody,
+  }));
+  eq('다른 배포 주소는 여전히 403', otherDeploy.status, 403);
+
+  setEnv({ ALLOWED_ORIGIN: '', VERCEL_URL: '' });
+  const nothing = await translate.handle(req('/api/translate', { body: okBody }));
+  eq('허용 주소가 하나도 없으면 아무것도 통과하지 못한다', nothing.status, 403);
 
   /* 시연 기간에만 켠다 (A02 §5.2 · C06 D-019) */
   setEnv({ ALLOW_FILE_ORIGIN: '1' });
