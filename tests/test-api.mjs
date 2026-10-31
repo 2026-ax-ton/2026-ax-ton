@@ -22,7 +22,10 @@ const KEY = 'AIzaSyFAKE0000000000테스트용가짜키';
 function setEnv(extra) {
   Object.assign(process.env, {
     ALLOWED_ORIGIN: ORIGIN,
-    VERCEL_URL: '',          // 이 배포 자신의 주소 — Vercel 이 넣어 준다
+    /* 아래 셋은 Vercel 이 자동으로 넣어 주는 주소다 (손으로 넣지 않는다) */
+    VERCEL_URL: '',                        // 이 배포만의 주소
+    VERCEL_BRANCH_URL: '',                 // 브랜치 주소
+    VERCEL_PROJECT_PRODUCTION_URL: '',     // 운영 주소
     ALLOW_FILE_ORIGIN: '0',
     AGENT_PASS: PASS,
     GEMINI_API_KEY: KEY,
@@ -144,7 +147,22 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   }));
   eq('다른 배포 주소는 여전히 403', otherDeploy.status, 403);
 
-  setEnv({ ALLOWED_ORIGIN: '', VERCEL_URL: '' });
+  /* 브랜치 주소·운영 주소도 Vercel 이 알려 준다 (ALLOWED_ORIGIN 없이도 맞는다) */
+  setEnv({ ALLOWED_ORIGIN: '', VERCEL_BRANCH_URL: '2026-ax-ton-git-feat-x-a-636a.vercel.app' });
+  fakeReply('កុំដាក់ដៃ');
+  const branch = await translate.handle(req('/api/translate', {
+    origin: 'https://2026-ax-ton-git-feat-x-a-636a.vercel.app', body: okBody,
+  }));
+  eq('★ 브랜치 주소도 같은 출처다 (ALLOWED_ORIGIN 없이)', branch.status, 200);
+
+  setEnv({ ALLOWED_ORIGIN: '', VERCEL_PROJECT_PRODUCTION_URL: '2026-ax-ton.vercel.app' });
+  fakeReply('កុំដាក់ដៃ');
+  const prod = await translate.handle(req('/api/translate', {
+    origin: 'https://2026-ax-ton.vercel.app', body: okBody,
+  }));
+  eq('★ 운영 주소도 같은 출처다 (ALLOWED_ORIGIN 없이)', prod.status, 200);
+
+  setEnv({ ALLOWED_ORIGIN: '' });
   const nothing = await translate.handle(req('/api/translate', { body: okBody }));
   eq('허용 주소가 하나도 없으면 아무것도 통과하지 못한다', nothing.status, 403);
 

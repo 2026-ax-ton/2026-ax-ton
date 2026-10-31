@@ -77,19 +77,28 @@ export function resetDailyCall() {
 }
 
 /* ── 같은 출처로 볼 주소 (A02 §5.2) ─────────────────────────────────
-   ALLOWED_ORIGIN 은 운영 주소다. 거기에 **이 배포 자신의 주소**를 더한다 —
-   Vercel 이 VERCEL_URL 로 알려 준다.
+   손으로 적는 ALLOWED_ORIGIN 에 더해, **Vercel 이 알려 주는 이 프로젝트 자신의
+   주소 세 가지**를 허용한다. 전부 이 배포·이 프로젝트의 주소라 "같은 출처"의
+   정의 그대로다 — 막는 힘이 줄지 않는다.
 
-   미리보기 주소는 배포마다 달라져서(`2026-ax-abc123-….vercel.app`) 손으로 적은
-   값 하나로는 맞출 수 없다. 자기 자신을 허용하는 것은 "같은 출처"의 정의 그대로라
-   막는 힘이 줄지 않는다. 남은 방어는 통과 문구·일일 상한·공급사 예산이다 (§5.6). */
+     VERCEL_URL                     이 배포만의 주소 (2026-ax-abc123-….vercel.app)
+     VERCEL_BRANCH_URL              브랜치 주소 (…-git-<브랜치>-….vercel.app)
+     VERCEL_PROJECT_PRODUCTION_URL  운영 주소 (2026-ax-ton.vercel.app)
+
+   미리보기 주소는 배포마다 바뀐다. 손으로 적은 값 하나로는 맞출 수 없어서
+   2026-10-31 미리보기에서 403 을 맞고 이렇게 고쳤다.
+   남은 방어는 통과 문구·일일 상한·공급사 예산이다 (§5.6). */
+
+const SELF_URL_ENVS = ['VERCEL_URL', 'VERCEL_BRANCH_URL', 'VERCEL_PROJECT_PRODUCTION_URL'];
 
 export function allowedOrigins() {
   const list = [];
   const fixed = process.env.ALLOWED_ORIGIN || '';
   if (fixed) list.push(fixed);
-  const self = process.env.VERCEL_URL || '';
-  if (self) list.push('https://' + self);
+  SELF_URL_ENVS.forEach((name) => {
+    const host = process.env[name] || '';
+    if (host && list.indexOf('https://' + host) === -1) list.push('https://' + host);
+  });
   return list;
 }
 
