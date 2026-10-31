@@ -68,6 +68,7 @@ function boot(pageRelPath, opts = {}) {
 
   run('assets/ui.js');
   run('assets/review.js');
+  run('assets/agent.js');  // 운영자 화면(admin/library.html)이 싣는다 — review.js 뒤다
   run('assets/diagrams.js');
   run('assets/qr.js');
   if (opts.page) run(opts.page, { shimLocation: true });

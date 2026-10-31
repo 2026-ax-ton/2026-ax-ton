@@ -557,8 +557,19 @@ var Store = (function () {
       flipped: !!a.flipped,
       escalated: !!a.escalated,
       model: a.model || '',
-      at: a.at || null
+      at: a.at || null,
+      text: a.text || ''        // AI 가 내놓은 번역문 (얼려 둔 것)
     };
+  }
+
+  /** ★ 사람에게 올린 언어를 AI 번역문 그대로 승인할 수 있는가 — 없다 (FR-AD-03-14).
+   *  지금 번역문이 AI 가 내놓은 것과 같으면 아직 아무도 손대지 않은 것이다.
+   *  사람이 직접 고쳐 넣으면 달라지고, 그때 승인이 열린다. */
+  function approvalBlocked(phrase, lang) {
+    var a = phraseAgent(phrase, lang);
+    if (!a || !a.escalated) return false;
+    var t = translationOf(phrase, lang);
+    return !!t && !!a.text && t.text === a.text;
   }
 
   /** 사람이 이 언어를 언제 판정했나. 없으면 null = 아직 아무도 안 봤다. */
@@ -680,6 +691,7 @@ var Store = (function () {
     // 문구를 언어별로 판정하는 통로 (화면에서 p.status 를 직접 보지 않는다)
     phraseStatus: phraseStatus, phraseOk: phraseOk, stoppedLangs: stoppedLangs,
     phraseAgent: phraseAgent, phraseJudged: phraseJudged, needsHuman: needsHuman,
+    approvalBlocked: approvalBlocked,
 
     // 저장소 8개
     accounts: accounts, session: session, setup: setup, library: library,

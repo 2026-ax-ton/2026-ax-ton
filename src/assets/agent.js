@@ -277,7 +277,12 @@ var Agent = (function () {
         flipped: !!result.flipped,
         escalated: !!result.escalated,
         model: result.model || '',
-        at: now || new Date().toISOString()
+        at: now || new Date().toISOString(),
+        /* ★ AI 가 내놓은 번역문을 그대로 얼려 둔다.
+           「사람에게 올린 언어는 AI 번역문 그대로 승인할 수 없다」(FR-AD-03-14)를
+           이 한 칸으로 판정한다 — 지금 text 가 이것과 같으면 아무도 손대지 않은
+           것이다. 따로 "사람이 고쳤음" 표시를 두면 켜고 끄는 것을 잊는다. */
+        text: result.text
       }
     };
   }

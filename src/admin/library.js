@@ -279,6 +279,225 @@
      2. 판정이 필요한 문구 — 검수 대기 + 사용 중지
      ----------------------------------------------------------------- */
 
+  /* -----------------------------------------------------------------
+     2-A. AI 번역 받기 (🆕 T7 · PRD-AD-03 FR-08·13·14·15)
+
+     ★ 여기서 하는 일은 **초안을 받아 오는 것뿐**이다. 받은 것은 전부
+       '검수 대기' 로 들어간다. 승인은 아래 판정 버튼을 누르는 사람이 한다.
+     ★ AI 출력은 믿지 않는 문자열이다 — 전부 textContent 로만 넣는다 (FR-11).
+     ★ 실패해도 버튼을 숨기지 않는다. 이유를 적고 손 입력 칸을 그대로 둔다 (FR-07).
+     ----------------------------------------------------------------- */
+
+  var running = {};        // 문구 id → 돌고 있는가 (두 번 눌러 두 배로 부르지 않게)
+  var progress = {};       // 문구 id → { 언어코드: 한 줄짜리 상태 }
+
+  var STEP_WORDS = {
+    translating: '번역 중',
+    backtranslating: '역번역 중',
+    comparing: '대조 중',
+    retry: '다시 번역',
+    done: '받았습니다',
+    escalated: '사람에게 올림',
+    failed: '실패'
+  };
+
+  function stepLine(lang, state, attempt) {
+    var word = STEP_WORDS[state] || state;
+    // 시도 횟수는 사람이 세는 방식(1부터)으로 보인다 (FR-13)
+    var n = (attempt || 0) + 1;
+    return langName(lang) + ' — ' + word + ' (시도 ' + n + '/3)';
+  }
+
+  function renderProgress(id) {
+    var box = $('ai-progress-' + id);
+    if (!box) return;
+    box.textContent = '';
+    var lines = progress[id] || {};
+    Object.keys(lines).forEach(function (code) {
+      box.appendChild(UI.el('p', 'ai-step', lines[code]));
+    });
+  }
+
+  /** AI 가 돌려준 것을 저장한다. ★ 상태는 언제나 'waiting' (FR-06). */
+  function saveAgentResults(id, out) {
+    var saved = 0;
+    commit(function (all) {
+      var p = Store.findBy(all, 'id', id);
+      if (!p) return;
+      p.translations = p.translations || {};
+      out.results.forEach(function (r) {
+        if (!r.ok) return;
+        var t = Agent.toTranslation(r);
+        var before = p.translations[r.lang] || {};
+        /* 사람이 이미 판정한 언어는 위에서 걸러지지만, 저장 직전에 한 번 더 본다.
+           화면을 띄워 놓은 사이에 다른 탭에서 승인했을 수 있다. */
+        if (before.status === 'reviewed') return;
+        p.translations[r.lang] = {
+          text: t.text,
+          back: t.back,
+          status: 'waiting',          // ★ 상수. 응답에 무엇이 있든
+          agent: t.agent,
+          judged: before.judged || undefined
+        };
+        saved += 1;
+      });
+    }, saved
+      ? 'AI 번역 ' + saved + '개 언어를 받았습니다. 검수 대기로 들어갔습니다 — 승인은 직접 하셔야 합니다.'
+      : 'AI 번역을 저장할 것이 없습니다.');
+  }
+
+  function runAgent(p) {
+    if (running[p.id]) return;
+
+    var blocked = Agent.blockedReason();
+    if (blocked) {
+      progress[p.id] = { _: blocked };
+      renderProgress(p.id);
+      UI.toast(blocked);
+      return;
+    }
+
+    running[p.id] = true;
+    progress[p.id] = {};
+    Store.LANGUAGES.forEach(function (l) {
+      if (l.code === 'ko') return;
+      if (Agent.isReviewed(p, l.code)) {
+        // 이미 사람이 승인한 언어는 다시 번역하지 않는다 (FR-15)
+        progress[p.id][l.code] = langName(l.code) + ' — 이미 승인됨, 건너뜁니다';
+      }
+    });
+    renderProgress(p.id);
+    render();
+
+    Agent.run(p, null, function (lang, state, attempt) {
+      progress[p.id][lang] = stepLine(lang, state, attempt);
+      renderProgress(p.id);
+    }).then(function (out) {
+      running[p.id] = false;
+
+      out.results.forEach(function (r) {
+        progress[p.id][r.lang] = r.ok
+          ? langName(r.lang) + ' — ' + (r.escalated ? '★ 사람에게 올림' : '받았습니다')
+            + ' (시도 ' + r.tries + '/3)'
+          : langName(r.lang) + ' — 실패: ' + r.message;
+      });
+
+      saveAgentResults(p.id, out);     // commit 안에서 render() 가 돈다
+      renderProgress(p.id);
+    });
+  }
+
+  function renderAgentPanel(block, p) {
+    var panel = UI.el('div', 'ai-panel');
+
+    var head = UI.el('div', 'btn-row');
+    var btn = UI.el('button', 'btn-sm', running[p.id] ? 'AI 번역 받는 중…' : 'AI 번역 받기');
+    btn.type = 'button';
+    btn.disabled = !!running[p.id];
+    btn.addEventListener('click', function () { runAgent(p); });
+    head.appendChild(btn);
+
+    /* ★ 부를 수 없으면 버튼을 숨기는 대신 이유를 적는다 (FR-07).
+       버튼이 사라지면 운영자는 "고장났나" 하고 멈춘다. 이유가 있으면 손으로 넣는다. */
+    var why = Agent.blockedReason();
+    if (why) head.appendChild(UI.el('span', 'ai-why', why));
+    panel.appendChild(head);
+
+    panel.appendChild(UI.el('p', 'muted',
+      'AI 가 번역하고 스스로 되돌려 대조합니다. 받은 것은 전부 검수 대기로 들어갑니다 — '
+      + '승인은 아래 버튼을 누르는 사람이 합니다.'));
+
+    var prog = UI.el('div', 'ai-progress');
+    prog.id = 'ai-progress-' + p.id;
+    panel.appendChild(prog);
+
+    block.appendChild(panel);
+    renderProgress(p.id);
+  }
+
+  /** 한 언어를 손으로 고쳐 넣는 칸. 열려 있는 상태로 둔다 — 접어 두면 안 쓴다.
+   *  ★ 번역문과 역번역을 함께 받는다. 역번역이 없으면 다음 사람이 읽지도 못하는
+   *    문장을 눈감고 승인하게 된다 (문구 추가 폼과 같은 이유). */
+  function handInput(p, code, mustFix) {
+    var wrap = UI.el('div', 'hand-fix' + (mustFix ? ' must' : ''));
+    wrap.appendChild(UI.el('h4', 'sub',
+      mustFix ? langName(code) + ' — 직접 입력해야 승인할 수 있습니다' : langName(code) + ' — 직접 고치기'));
+
+    var t = (p.translations || {})[code] || {};
+
+    var f1 = UI.el('div', 'field');
+    var lb1 = UI.el('label', null, '번역문');
+    var id1 = 'fix-' + p.id + '-' + code + '-text';
+    lb1.setAttribute('for', id1);
+    var in1 = document.createElement('input');
+    in1.type = 'text';
+    in1.id = id1;
+    in1.value = t.text || '';
+    f1.appendChild(lb1);
+    f1.appendChild(in1);
+    wrap.appendChild(f1);
+
+    var f2 = UI.el('div', 'field');
+    var lb2 = UI.el('label', null, '역번역 — 위 번역을 다시 한국어로');
+    var id2 = 'fix-' + p.id + '-' + code + '-back';
+    lb2.setAttribute('for', id2);
+    var in2 = document.createElement('input');
+    in2.type = 'text';
+    in2.id = id2;
+    in2.value = t.back || '';
+    f2.appendChild(lb2);
+    f2.appendChild(in2);
+    wrap.appendChild(f2);
+
+    var save = UI.el('button', 'btn-sm', '이 언어 번역 저장');
+    save.type = 'button';
+    save.id = 'fix-' + p.id + '-' + code + '-save';
+    save.addEventListener('click', function () {
+      var text = in1.value.trim();
+      var back = in2.value.trim();
+      if (!text) { UI.toast('번역문을 넣어 주세요.'); return; }
+      if (!back) { UI.toast('역번역도 넣어 주세요. 없으면 다음 사람이 대조할 수 없습니다.'); return; }
+
+      commit(function (all) {
+        var row = Store.findBy(all, 'id', p.id);
+        if (!row) return;
+        row.translations = row.translations || {};
+        var before = row.translations[code] || {};
+        row.translations[code] = {
+          text: text,
+          back: back,
+          /* ★ 손으로 고쳐도 승인은 아니다. 검수 대기로 둔다 —
+               올리는 것은 판정 버튼을 누르는 사람의 일이다. */
+          status: before.status === 'reviewed' ? 'reviewed' : 'waiting',
+          agent: before.agent,          // AI 가 한 일은 기록으로 남긴다
+          judged: before.judged
+        };
+      }, langName(code) + ' 번역을 저장했습니다. 검수 대기입니다 — 승인은 따로 눌러 주세요.');
+    });
+    wrap.appendChild(save);
+
+    return wrap;
+  }
+
+  /** 이 언어에 AI 가 무엇을 했는지 한 줄 (FR-13) */
+  function agentLine(p, code) {
+    var a = Store.phraseAgent(p, code);
+    if (!a) return null;
+
+    var line = UI.el('p', 'ai-record' + (a.escalated ? ' danger' : ''));
+    var what = a.escalated
+      ? '★ AI 가 ' + a.tries + '/3 시도했지만 뜻이 계속 뒤집혀 사람에게 올렸습니다'
+      : (a.tries > 1
+        ? 'AI 가 ' + a.tries + '/3 시도 — 다시 번역해서 풀렸습니다'
+        : 'AI 가 한 번에 번역했습니다 (1/3)');
+    line.appendChild(UI.el('strong', null, what));
+
+    var judged = Store.phraseJudged(p, code);
+    line.appendChild(document.createTextNode(
+      judged ? ' · 사람 판정: ' + judged.by : ' · 아직 사람이 보지 않았습니다'));
+    return line;
+  }
+
   function renderReview(list) {
     var box = $('review-list');
     box.textContent = '';
@@ -305,6 +524,8 @@
       head.appendChild(UI.phraseBadge(p.status));
       block.appendChild(head);
 
+      renderAgentPanel(block, p);
+
       var langs = langsOf(p);
       if (!langs.length) {
         block.appendChild(UI.el('p', 'empty', '아직 번역이 없습니다. 초안 번역이 들어오면 대조할 수 있습니다.'));
@@ -318,6 +539,9 @@
         var flipped = negationFlipped(p.ko, t.back);
 
         block.appendChild(UI.el('p', 'meta', langName(code)));
+
+        var rec = agentLine(p, code);
+        if (rec) block.appendChild(rec);
 
         // 부정이 뒤집힌 경우만 크게 경고한다. 나머지는 낱말 개수만 알린다.
         if (flipped) {
@@ -346,13 +570,24 @@
         var langRow = UI.el('div', 'btn-row lang-verdict');
         langRow.appendChild(UI.phraseBadge(Store.phraseStatus(p, code)));
 
-        if (Store.phraseStatus(p, code) !== 'reviewed') {
+        /* ★★ 사람에게 올린 언어는 AI 번역문 그대로 승인할 수 없다 (FR-AD-03-14).
+             AI 가 세 번 해도 뜻이 뒤집힌 번역이다. 그걸 그대로 승인하면
+             이 화면이 있는 이유가 사라진다. 직접 고쳐 넣어야 승인이 열린다. */
+        var blockedApproval = Store.approvalBlocked(p, code);
+
+        if (Store.phraseStatus(p, code) !== 'reviewed' && !blockedApproval) {
           var langOk = UI.el('button', 'btn-sm go', langName(code) + '만 검수 완료');
           langOk.type = 'button';
           langOk.addEventListener('click', function () {
             setStatus(p.id, 'reviewed', code);
           });
           langRow.appendChild(langOk);
+        }
+
+        if (blockedApproval) {
+          var lock = UI.el('span', 'ai-lock',
+            '★ AI 가 사람에게 올린 번역입니다 — 그대로는 승인할 수 없습니다. 아래에 직접 넣어 주세요.');
+          langRow.appendChild(lock);
         }
         if (Store.phraseStatus(p, code) !== 'stopped') {
           var langStop = UI.el('button', 'btn-sm danger', langName(code) + '만 중지');
@@ -363,6 +598,11 @@
           langRow.appendChild(langStop);
         }
         block.appendChild(langRow);
+
+        /* ★ 손 입력 칸은 언제나 있다 (FR-AD-03-07).
+             AI 가 실패하든 올리든 끊기든, 운영자는 같은 자리에서 손으로 넣고
+             일을 끝낼 수 있어야 한다. AI 는 일을 줄여 줄 뿐 막지 않는다. */
+        block.appendChild(handInput(p, code, blockedApproval));
       });
 
       var row = UI.el('div', 'btn-row');
@@ -829,6 +1069,17 @@
   });
 
   buildAddInputs();
+
+  /* 운영자 통과 문구 — 이 탭에서만 기억한다. 저장하지 않는다 (A02 §5.6).
+     ★ 값을 화면에 되비추지 않는다. 입력 칸에만 머문다. */
+  (function () {
+    var box = $('ai-pass');
+    if (!box) return;
+    box.addEventListener('input', function () {
+      Agent.setPass(box.value.trim());
+      render();                 // 버튼과 이유 줄을 다시 그린다
+    });
+  })();
 
   render();
 })();

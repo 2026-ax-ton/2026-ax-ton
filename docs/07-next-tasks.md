@@ -388,7 +388,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: FR-AD-02-09, D06 §3.3, A02 §6.3
   - **됐는지**: 옛 데이터가 그대로 읽히고, 승인하면 `judged` 가 남는다 (STC-E16-009). 전체 테스트 통과
 
-- [ ] **T7. 운영자 화면** — `TK-2-09`
+- [x] **T7. 운영자 화면** — `TK-2-09` ✅ 2026-10-31
 
   - **어디**: `admin/library.js` · `admin/library.html` · `admin/admin.css`
   - **무엇**: [AI 번역 받기], 언어별 진행 줄(시도 n/3), "사람에게 올림", 실패 이유, "AI는 여기까지 · 승인은 사람". 올림 언어는 직접 입력 전 승인 막기, 이미 승인된 언어는 건너뛰기. 표시는 `textContent` 만

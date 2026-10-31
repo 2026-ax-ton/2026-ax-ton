@@ -95,6 +95,17 @@
         </p>
       </div>
     </div>
+    <!-- AI 번역을 부르려면 운영자 통과 문구가 필요합니다 (A02 §5.6).
+         탭을 닫으면 사라집니다 — 저장되지 않습니다. -->
+    <div class="field ai-pass" id="ai-pass-box">
+      <label for="ai-pass">운영자 통과 문구</label>
+      <input type="password" id="ai-pass" autocomplete="off"
+             placeholder="AI 번역을 받으려면 한 번만 입력하세요">
+      <p class="muted" id="ai-pass-note">
+        이 탭에서만 기억합니다. 저장하지 않습니다. 입력하지 않아도 번역을 직접 넣을 수 있습니다.
+      </p>
+    </div>
+
     <div id="review-list"></div>
   </section>
 

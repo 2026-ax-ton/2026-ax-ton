@@ -777,3 +777,64 @@ table.data .chips .badge { font-size: .68em; }
   /* QR 은 종이에 붙일 것이라 넓은 화면에서 좀 더 크게 */
   .qr-box svg { width: 260px; height: 260px; }
 }
+
+/* ===================================================================
+   [P4] AI 번역 받기 — 운영자 판정 화면 (🆕 2026-10-31, T7)
+
+   ★ 색만으로 뜻을 나르지 않는다. 「사람에게 올림」은 ★ 글자와 문장으로도
+     읽힌다 — 흑백으로 인쇄해도 무엇이 막혔는지 알 수 있어야 한다.
+   =================================================================== */
+
+.ai-pass {
+  max-width: 28rem;
+  margin-bottom: var(--gap);
+}
+
+.ai-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: var(--gap);
+  margin: var(--gap) 0;
+  background: var(--bg-soft, #fafafa);
+}
+
+.ai-why {
+  align-self: center;
+  font-size: .9rem;
+}
+
+.ai-progress:empty { display: none; }
+
+.ai-step {
+  margin: .25rem 0;
+  font-size: .95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-record {
+  margin: .25rem 0 .5rem;
+  font-size: .95rem;
+}
+
+.ai-record.danger strong { color: var(--danger); }
+
+.ai-lock {
+  align-self: center;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.hand-fix {
+  border-top: 1px dashed var(--line);
+  padding-top: var(--gap);
+  margin: var(--gap) 0;
+}
+
+/* 반드시 고쳐야 승인이 열리는 자리는 테두리로도 드러낸다 */
+.hand-fix.must {
+  border: 2px solid var(--danger);
+  border-radius: 8px;
+  padding: var(--gap);
+}
+
+.hand-fix .field { margin-bottom: .5rem; }
