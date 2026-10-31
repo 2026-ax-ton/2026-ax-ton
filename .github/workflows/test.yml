@@ -1,0 +1,48 @@
+# PR 마다 전체 회귀 검사를 돌린다 (T2 · TK-2-02 · 근거 A02 §10.3, C04 §4 DoD).
+#
+# 이 저장소는 의존성이 0 이다. 그래서 저장소 안에서 npm install 을 하지 않고,
+# jsdom 만 저장소 밖 임시 폴더에 버전을 고정해 깔아 NODE_PATH 로 가리킨다.
+# (로컬에서 ~/jsdom-box 를 쓰는 것과 같은 방식이다 — CLAUDE.md 「회귀 검사」)
+
+name: 전체 검사
+
+on:
+  pull_request:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 버전을 박아 둔다. 시점에 따라 결과가 달라지면 안 된다 (D07 §4.2).
+      - name: jsdom 설치 (저장소 밖)
+        run: |
+          mkdir -p "$RUNNER_TEMP/jsdom-box"
+          cd "$RUNNER_TEMP/jsdom-box"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund jsdom@30.0.1
+
+      - name: 전체 검사
+        run: node tests/run-all.js
+        env:
+          NODE_PATH: ${{ runner.temp }}/jsdom-box/node_modules
+
+      # 검사가 저장소를 건드리거나 node_modules 를 만들면 잡는다 (src/ 의존성 0)
+      - name: 저장소가 그대로인지
+        run: |
+          test ! -e node_modules || { echo '저장소 안에 node_modules 가 생겼다'; exit 1; }
+          test -z "$(git status --porcelain)" || { git status --short; exit 1; }
