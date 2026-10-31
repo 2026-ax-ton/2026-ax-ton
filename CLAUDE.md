@@ -21,7 +21,7 @@
 - **할 일 목록은 `docs/07-next-tasks.md` 의 T 절**(T1~T16)입니다. 태스크 정답은 `docs/documentations/40_캡스톤산출물/D05_스프린트백로그.md` (2차 TK-2-01~13, 3차 TK-3-01~11)
 - **기술 근거는 `docs/documentations/20_기술명세/`** 한 폴더입니다 — 지도 `README.md`, 시스템 명세 `A02_기술-개발-명세서.md`(§5·§6 AI, §14 DB), `SPEC-FE.md`·`SPEC-BE.md`. 기능 요구는 `docs/documentations/30_제품정의/prd/`
 - **서버 코드는 저장소 루트 `api/`** 에만 두고 서버 의존성은 루트 `package.json` 에만 둡니다. **`src/`(브라우저)는 계속 의존성 0**, ES 모듈 금지, `file://` 동작·상대 경로 유지 (현장 시연은 제출 HTML 더블클릭, C08 §7)
-- **바뀌는 규칙** (T10 에서 이 파일의 「코드 규칙」·테스트와 함께 고칩니다): 노동자 화면 「외부 요청 0건」 → 「**제3자** 요청 0건, 같은 출처 `/api` 만」 · 「`src/` 의존성 0」 → 「`src/` 의존성 0, 서버 `api/` 만 드라이버 1개」
+- **바뀐 규칙** (✅ 2026-10-31 T10 에서 이 파일의 「코드 규칙」·C05·테스트까지 고쳤습니다): 노동자 화면 「외부 요청 0건」 → 「**제3자** 요청 0건, 같은 출처 `/api` 만」 (C05 T-1′) · 「`src/` 의존성 0」 → 「`src/` 의존성 0, 서버 `api/` 만 드라이버 1개」 (C05 T-5′, `tests/test-db.mjs` 가 지킵니다)
 - **AI 결과는 항상 `waiting`**, 승인은 사람만. AI·서버가 실패하면 손 입력·캐시로 계속 동작합니다
 - **데이터 모양(저장 키·필드)을 바꾸는 항목은 시작 전에 사용자에게 한 줄로 확인**합니다 (T6·T12 에 ⚠️ 표시)
 - **계정·설정 작업은 사용자에게 요청**합니다 — Vercel 설정 변경, Neon 설치, 환경변수·키 (T4, `docs/documentations/20_기술명세/A04_운영준비-체크리스트.md`). 키 값을 코드·문서·로그에 쓰지 않습니다
@@ -258,6 +258,9 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 | 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` + `admin.css` |
 | 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
+| 서버 | `api/translate.mjs backtranslate.mjs _shared.mjs` + 루트 `package.json` (드라이버 1개) |
+| DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
+| 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
 `worker.css` 와 `admin.css` 안에는 `[P1]` `[P2]` 같은 구역 주석이 남아 있습니다.
 팀 시절에 둘이 나눠 쓰던 표시입니다. 지우지 않아도 되고, 새 스타일은 아무 구역에 써도 됩니다.
@@ -337,6 +340,14 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
     "에이전트가 쓰는 주소는 우리 배포 주소뿐" 을 지킵니다.
     **공급사(Gemini)를 브라우저에서 직접 부르지 않습니다 — 키가 새면 끝입니다.**
     **예외를 넷으로 늘리지 마세요**
+- **`src/` 는 의존성 0, 서버 `api/` 만 드라이버 1개** (2026-10-31 개정, C06 D-023 · C05 T-5′).
+  브라우저에 가는 `src/` 에는 **npm 패키지를 하나도 넣지 않습니다** — `src/` 아래에
+  `package.json` 도 `node_modules` 도 없습니다. 서버 함수(`api/`)가 쓰는 것만
+  **저장소 루트 `package.json`** 에 두고, 지금 들어 있는 것은 **`@neondatabase/serverless` 하나**입니다.
+  **둘로 늘리기 전에 사용자에게 왜 필요한지 말하세요.**
+  검사(`jsdom`)는 여전히 **저장소 밖**(`~/jsdom-box`)에 깔고 `NODE_PATH` 로 가리킵니다
+  - **루트 `package.json` 에 `"type": "module"` 을 넣지 마세요.** 넣으면 `tests/*.js`(CommonJS)가
+    전부 깨집니다. 서버 함수는 `.mjs` 확장자로 이미 구분돼 있습니다
 - **`innerHTML` 금지.** 사용자가 넣은 문자열은 `textContent` 로만 넣습니다 (`UI.el` 사용).
   설비 이름 한 줄로 화면이 깨지면 안 됩니다
 - **ES 모듈(`import`/`export`) 금지.** `file://` 에서 CORS 로 막힙니다.
@@ -551,7 +562,9 @@ commit 하기 직전에 `docs/devlog/byeonsoyun.md` 를 열고,
 신고에 식별값이 없는지 · 미이수자를 숨기는 경로가 없는지 · 증빙에 "면책" 이 없는지.
 
 `src/` 는 의존성 0 을 유지합니다. `jsdom` 은 **저장소 밖**에 깔고 `NODE_PATH` 로 가리킵니다.
-**저장소 안에서 `npm install` 을 하지 마세요.**
+**검사 도구를 저장소 루트 `package.json` 에 넣지 마세요** — 루트는 서버 `api/` 가 쓰는
+드라이버 1개 전용입니다 (2026-10-31 개정, C05 T-5′). 서버 쪽을 손볼 때만 루트에서
+`npm install` 을 하고, 그때 생기는 `node_modules/` 는 `.gitignore` 가 막습니다.
 
 ```bash
 mkdir -p ~/jsdom-box && cd ~/jsdom-box && npm i jsdom     # 한 번만

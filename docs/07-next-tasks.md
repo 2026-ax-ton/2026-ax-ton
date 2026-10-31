@@ -460,7 +460,14 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
 
 ## 3차 — DB·로그인·동기화 + 마무리 (11/9~11/18, M1.5·M2·M3)
 
-- [ ] **T10. DB 기반 + 규칙 개정** — `TK-3-01`
+- [x] **T10. DB 기반 + 규칙 개정** — `TK-3-01` ✅ 2026-10-31 (코드·규칙·검사 끝. **실물 Neon 확인만 남음 — 사용자 작업**)
+
+  - ✅ `db/migrations/001_init.sql` — 테이블 7개(`workplaces` `accounts` `sessions` `docs` `library` `reports` `audit`) + 조회 인덱스 4개. 여러 번 돌려도 같다(`if not exists`)
+  - ✅ 루트 `package.json` + `package-lock.json` — 의존성 **1개**(`@neondatabase/serverless` 1.2.0). `"type": "module"` 은 넣지 않았다 (넣으면 `tests/*.js` 가 다 깨진다)
+  - ✅ `scripts/seed-demo.mjs` — `node scripts/seed-demo.mjs` 는 **보기만**, `--yes` 를 붙여야 넣는다. 시연 데이터는 `src/assets/seed.js` 를 그대로 불러 쓴다(베껴 적지 않는다). `VERCEL_ENV=production` 이면 멈춘다
+  - ✅ **규칙 개정 T-5′** — `CLAUDE.md` 코드 규칙·`C05 §2.2`·`C05 §3.1` 구조도·CI(`npm ci` + `src/node_modules` 금지)
+  - ✅ 검사 `tests/test-db.mjs` **76건** (익명 구조·비밀번호 원문 없음·토큰 원문 없음·의존성 1개·운영 DB 보호). 전체 **19묶음 2,019건** 통과
+  - ⬜ **남은 것(사용자)**: Neon 설치 → `.env.local` 에 미리보기 `DATABASE_URL` → `node scripts/seed-demo.mjs --yes`
 
   - **어디**: 새 파일 `db/migrations/001_init.sql` · 루트 `package.json` (`@neondatabase/serverless` 1개) · `scripts/seed-demo.mjs` · `CLAUDE.md` 코드 규칙 · C05 T-1·T-5 · 외부 주소 검사 테스트
   - **무엇**: 테이블 7개 생성, 시연 데이터. 규칙 문구를 「노동자 화면은 제3자 요청 0건, 같은 출처 `/api` 만」「`src/` 의존성 0, 서버 `api/` 만 드라이버 1개」로 바꾸고 테스트도 맞춘다
