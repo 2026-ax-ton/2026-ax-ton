@@ -303,7 +303,7 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
 | `Store.accounts` | 회원가입 | 로그인 |
 | `Store.session` | 로그인 | 모든 화면(가드) |
 | `Store.setup` | 관리자 기능1 | 노동자 전부 · 관리자 전부 |
-| `Store.library` | 운영자 기능9 | 관리자 기능2 · 노동자 기능3 |
+| `Store.library` | 운영자 기능9 (+ 🆕 AI 기록 `agent` · 사람 판정 `judged`) | 관리자 기능2 · 노동자 기능3 |
 | `Store.courses` | 관리자 기능2 | 노동자 기능3·4 |
 | `Store.progress` | 노동자 기능3·4 | 관리자 기능5·6 |
 | `Store.reports` | 노동자 기능8 | 관리자 기능6 |

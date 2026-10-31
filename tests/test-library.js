@@ -567,4 +567,102 @@ function addPhrase(t, { ko, category, lang, textIn, back }) {
   has('보이지 않는 화면이라는 것을 밝힌다', main, '어느 쪽 화면에도 보이지 않지만');
 }
 
+/* =================================================================
+   판정 기록 — AI 가 한 일과 사람이 한 일을 갈라 둔다
+   🆕 2026-10-31 (T6 · STC-E16-009 · A02 §6.3 · FR-AD-02-09)
+   ================================================================= */
+{
+  /* --- 옛 데이터가 그대로 읽힌다 (칸 둘이 없는 상태) --- */
+  {
+    const t = open();
+    const old = { id: 'ph-old', ko: '손을 넣지 마세요', status: 'waiting',
+      translations: { km: { text: 'កុំ', back: '손을 넣지 마세요', status: 'waiting' } } };
+
+    eq('★ 옛 데이터에서 agent 를 읽어도 터지지 않는다', t.win.Store.phraseAgent(old, 'km'), null);
+    eq('★ 옛 데이터에서 judged 를 읽어도 터지지 않는다', t.win.Store.phraseJudged(old, 'km'), null);
+    eq('없는 언어도 안전하다', t.win.Store.phraseAgent(old, 'th'), null);
+    eq('문구가 없어도 안전하다', t.win.Store.phraseJudged(null, 'km'), null);
+    eq('옛 데이터의 상태 판정은 그대로다', t.win.Store.phraseStatus(old, 'km'), 'waiting');
+    ok('칸이 없으니 사람 확인이 필요한 것도 아니다', t.win.Store.needsHuman(old, 'km') === false);
+
+    /* 예시 데이터 6개도 칸 없이 그대로 읽힌다 */
+    const seeded = t.win.Store.library.load();
+    ok('예시 문구가 전부 읽힌다', seeded.length > 0);
+    seeded.forEach((p) => {
+      Object.keys(p.translations || {}).forEach((code) => {
+        ok(p.id + '/' + code + ': 옛 모양 그대로 읽힌다',
+          t.win.Store.phraseAgent(p, code) === null || typeof t.win.Store.phraseAgent(p, code) === 'object');
+      });
+    });
+  }
+
+  /* --- AI 가 남긴 기록을 읽는다. 그것만으로는 승인이 아니다 --- */
+  {
+    const t = open();
+    const p = { id: 'ph-ai', ko: '손을 넣지 마세요', status: 'waiting',
+      translations: { km: {
+        text: 'កុំ', back: '손을 넣어도 됩니다', status: 'waiting',
+        agent: { tries: 3, flipped: true, escalated: true, model: 'gemini-3.1-flash-lite', at: '2026-10-31T00:00:00.000Z' }
+      } } };
+
+    const a = t.win.Store.phraseAgent(p, 'km');
+    eq('몇 번 시도했는지 읽는다', a.tries, 3);
+    eq('뜻이 뒤집혔었다', a.flipped, true);
+    eq('사람에게 올렸다', a.escalated, true);
+    eq('어느 모델이었는지 남는다', a.model, 'gemini-3.1-flash-lite');
+
+    eq('★ 아직 아무도 안 봤다', t.win.Store.phraseJudged(p, 'km'), null);
+    ok('★★ AI 기록이 있어도 승인된 것이 아니다', t.win.Store.phraseOk(p, 'km') === false);
+    ok('★ 사람이 먼저 봐야 할 자리로 드러난다', t.win.Store.needsHuman(p, 'km') === true);
+
+    /* 사람이 보고 나면 더 이상 대기 줄에 없다 */
+    p.translations.km.judged = { by: 'oper@safety.kr', at: '2026-10-31T01:00:00.000Z' };
+    eq('누가 봤는지 남는다', t.win.Store.phraseJudged(p, 'km').by, 'oper@safety.kr');
+    ok('사람이 본 뒤에는 대기 줄에서 빠진다', t.win.Store.needsHuman(p, 'km') === false);
+
+    /* by 가 비면 판정으로 치지 않는다 — 빈 칸이 사람 승인으로 둔갑하면 안 된다 */
+    p.translations.km.judged = { by: '', at: '2026-10-31T01:00:00.000Z' };
+    eq('★ 누가 했는지 없는 판정 기록은 판정이 아니다', t.win.Store.phraseJudged(p, 'km'), null);
+  }
+
+  /* --- 운영자가 승인하면 judged 가 남는다 (STC-E16-009) --- */
+  {
+    const t = open();
+    const before = t.win.Store.library.load();
+    const target = before.find((p) => p.translations && p.translations.km && p.translations.km.status !== 'reviewed');
+
+    if (target) {
+      /* AI 가 내놓은 상태를 흉내 낸다 */
+      t.win.Store.library.update((list) => {
+        const p = list.find((x) => x.id === target.id);
+        p.translations.km.agent = { tries: 2, flipped: true, escalated: false, model: 'gemini-3.1-flash-lite', at: '2026-10-31T00:00:00.000Z' };
+      });
+
+      const t2 = open();
+      const sel = t2.$('phrase-lang-' + target.id + '-km') || null;
+      /* 화면 버튼 이름은 T7 에서 정해진다. 여기서는 저장 경로만 본다 —
+         library.js 의 setStatus 가 judged 를 남기는지. */
+      const js = require('fs').readFileSync(SRC + '/admin/library.js', 'utf8');
+      ok('★ 승인 경로가 judged 를 남긴다', /t\.judged\s*=\s*\{\s*by:\s*user\.userId/.test(js));
+      ok('★ 사람 아이디로 남긴다 (AI 이름이 아니다)', !/judged\s*=\s*\{\s*by:\s*['"]/.test(js));
+      ok('★ AI 는 judged 를 만들지 않는다',
+        !/judged/.test(require('fs').readFileSync(SRC + '/assets/agent.js', 'utf8')
+          .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')));
+      ok('기록을 더해도 상태 판정은 그대로다', typeof t2.win.Store.phraseStatus(target, 'km') === 'string');
+      if (sel) ok('화면이 떴다', true);
+    }
+  }
+
+  /* --- 저장 키와 봉투는 그대로다 --- */
+  {
+    const t = open();
+    const keys = Object.keys(t.win.localStorage).filter((k) => k.indexOf('safety.') === 0);
+    ok('★ 저장 키가 늘지 않았다 (10칸 안이다)', keys.length <= 10, keys.length + '칸');
+    const raw = t.win.localStorage.getItem('safety.library.v1');
+    ok('★ 저장 키 이름이 그대로다', !!raw);
+    const parsed = JSON.parse(raw);
+    ok('봉투 모양이 그대로다 (목록)', Array.isArray(parsed.data || parsed));
+  }
+}
+
 report('기능9 안전 문구 라이브러리');

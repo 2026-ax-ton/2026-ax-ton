@@ -151,6 +151,12 @@
         var t = (p.translations || {})[lang];
         if (!t) return;
         t.status = status;
+
+        /* ★ 사람이 정했다는 기록을 남긴다 (🆕 T6 · A02 §6.3 · FR-AD-02-09).
+           AI 는 이 칸을 만들지 않는다. agent 는 있는데 judged 가 없으면
+           "AI 가 내놓았고 아직 아무도 안 봤다" 는 뜻이고, 그 구분이
+           「AI 는 여기까지 · 승인은 사람」을 나중에 증명할 수 있게 한다. */
+        t.judged = { by: user.userId, at: new Date().toISOString() };
       } else {
         p.status = status;
       }

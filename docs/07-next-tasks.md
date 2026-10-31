@@ -381,7 +381,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: A02 §6, D06 §3.2 [6]
   - **됐는지**: 가짜 응답으로 경계 1~7(D07 STC-E16-001~007·STC-E19-001·002) 통과
 
-- [ ] **T6. 판정 기록 `agent`·`judged`** — `TK-2-08` · ⚠️ **데이터 모양 변경 — 시작 전 사용자 확인**
+- [x] **T6. 판정 기록 `agent`·`judged`** — `TK-2-08` ✅ 2026-10-31 (사용자 확인 받음 — 더하기만, 옛 데이터 그대로)
 
   - **어디**: `assets/store.js` (계약 주석·`normalize`) · `admin/library.js` (`setStatus` 에서 `judged` 기록)
   - **무엇**: `library[].translations[lang]` 에 `agent:{tries, flipped, escalated, model, at}` · `judged:{by, at}` 를 더한다. 키·봉투는 그대로
