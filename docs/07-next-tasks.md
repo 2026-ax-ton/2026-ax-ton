@@ -11,6 +11,39 @@
 
 ## ★ 지난 세션이 끝난 자리 — 여기서 이어갑니다
 
+> ## ▶ 2026-10-31 (세션 2) — **2차 완료. 여기서 이어갑니다**
+>
+> | 무엇 | 지금 |
+> |---|---|
+> | 끝낸 것 | **T1~T9 전부** (`TK-2-01`~`TK-2-11`) — **M0·M1 달성, 일정보다 8일 빠름** |
+> | 검사 | **18묶음 1,943건** 전부 통과 (기준선 1,619 → +324). `tests/run-all.js` 가 `.mjs` 도 집는다 |
+> | CI | ✅ PR·`develop` push 마다 우분투에서 같은 묶음을 돌린다 (`.github/workflows/test.yml`) |
+> | 배포 | ✅ **운영 배포 완료** (`30096bf`, `sw.js` `v10`). **https://2026-ax-ton.vercel.app 에서 실제 AI 번역이 돈다.** `/docs/` `/tests/` `/CLAUDE.md` `/scripts/` `/api/_shared.mjs` 전부 404 확인 |
+> | 실측 | **150/150 (100%) · 재시도율 0.7% · 평균 2.9초** (D07 §6.4) |
+> | 브랜치 | `feat/agent-prd-v1` → PR #2 로 `develop` 머지됨 → `main`. **3차는 새 `feat/agent-*` 브랜치를 판다** |
+> | **다음 한 걸음** | **T 절 T10 (DB 기반 + 규칙 개정)** — 먼저 열 파일 `docs/documentations/20_기술명세/A02_기술-개발-명세서.md` **§14** · 새로 만들 것 `db/migrations/001_init.sql` |
+> | ⚠️ 사용자에게 요청할 것 | ① **Neon Postgres 설치** (싱가포르) + 연결 문자열을 Vercel 환경변수로 (T10) ② **Google 콘솔 예산 알림** (A04 §5.6 4층, 아직 안 함) |
+> | ⚠️ 시작 전 확인할 항목 | **T12** (`Store` 서버 모드 — 새 키 `safety.outbox.v1`) 는 데이터 모양 변경이라 사용자 확인이 필요하다 |
+> | 멘토링 대기 | 없음 |
+>
+> **이번 세션에서 바뀐 규칙** (코드를 짜기 전에 읽는다)
+>
+> - **「외부 요청 0건」 → 「제3자 요청 0건, 같은 출처 `/api` 만」** (C06 **D-025**, C05 T-1′, `CLAUDE.md` 코드 규칙).
+>   **노동자 화면 6개는 요청이 아예 0건으로 그대로**이고 `tests/test-smoke.js` 가 화면마다 따로 본다.
+>   fetch 예외는 셋 — `sw.js` · 신고 받아쓰기 · `assets/agent.js`. **넷으로 늘리지 않는다**
+> - 역번역 모델은 번역과 같은 `gemini-3.1-flash-lite` + 다른 프롬프트 + 원문 비공개 (C06 **D-024**)
+> - `Store.library` 의 `translations[lang]` 에 `agent`·`judged` 가 생겼다. 읽을 때는
+>   `Store.phraseAgent` · `phraseJudged` · `needsHuman` · `approvalBlocked` 를 쓴다 (직접 뒤지면 옛 데이터에서 터진다)
+>
+> **실물로만 드러났던 것 6가지** (3차에서 같은 데서 두 번 다치지 않게)
+>
+> 1. `export default` 를 내보내면 Vercel 이 옛 Node 방식(`req,res`)으로 불러 함수가 터진다 → 메서드별 이름 내보내기만 쓴다
+> 2. 미리보기 주소는 배포마다 바뀐다 → `VERCEL_URL`·`VERCEL_BRANCH_URL`·`VERCEL_PROJECT_PRODUCTION_URL` 을 같은 출처로 본다
+> 3. 환경변수는 **Production·Preview 를 따로** 넣어야 한다. 안 넣으면 그 환경에서만 조용히 안 된다
+> 4. `AGENT_PASS` 같은 헤더 값은 **ASCII 만** 된다 (한글이면 브라우저가 요청을 못 만든다)
+> 5. 공급사 요금제를 바꾸면 **바로 반영되지 않는다.** 설정을 의심하기 전에 기다렸다 다시 잰다
+> 6. **`main` 을 `develop` 보다 먼저 push 한다** (안 그러면 Vercel 이 운영 배포를 건너뛴다)
+
 > ## ▶ 2026-10-31 — 계획이 바뀌었습니다 (11/1부터 이 순서)
 >
 > | 무엇 | 지금 |
