@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAFE-LANG 사업성 검토 보고서</title>
+<style>
+:root{
+  --bg:#faf8f5; --card:#ffffff; --ink:#1f2430; --sub:#5d6575; --mute:#8a909c; --line:#e6e1d8;
+  --coral:#e5533d; --coral-bg:#fdebe7; --purple:#5b3fd0; --purple-bg:#eeeafb; --purple-soft:#b9adf0;
+  --ok:#1f8a4c; --ok-bg:#e3f4ea; --wip:#b46a00; --wip-bg:#fff1d9; --no:#b3261e; --no-bg:#fde7e5;
+  --gray-bg:#eef0f3; --on-hi:#ffffff; --pop:#1f2430; --pop-ink:#f4f2ee; --pop-sub:#b9bfcb;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171c; --card:#1e2128; --ink:#ecebe7; --sub:#a4abb9; --mute:#7f8696; --line:#323744;
+    --coral:#ff7a66; --coral-bg:#3a2320; --purple:#a493ff; --purple-bg:#272240; --purple-soft:#5d50a8;
+    --ok:#5fd18d; --ok-bg:#1b3326; --wip:#f0b45a; --wip-bg:#3a2e17; --no:#ff8c85; --no-bg:#3b2120;
+    --gray-bg:#272b33; --on-hi:#15171c; --pop:#f4f2ee; --pop-ink:#1f2430; --pop-sub:#5d6575;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.6;font-size:16px}
+.wrap{max-width:900px;margin:0 auto;padding:40px 16px 64px}
+/* cover */
+.cover{border-bottom:2px solid var(--ink);padding-bottom:22px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--sub);font-weight:700;text-transform:uppercase}
+h1{font-size:clamp(26px,4.8vw,38px);line-height:1.25;margin:10px 0 8px;letter-spacing:-.015em}
+.subtitle{font-size:17px;color:var(--sub);margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:16px;font-size:13px;color:var(--sub)}
+.meta b{color:var(--ink);font-weight:600}
+/* executive summary */
+.exec{margin-top:24px}
+.exec h2{font-size:13px;letter-spacing:.1em;color:var(--sub);margin:0 0 10px;text-transform:uppercase}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.kpi .v small{font-size:15px;font-weight:700}
+.kpi .l{font-size:13px;color:var(--sub);margin-top:4px}
+.idx{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0 0}
+.idx a{display:block;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.idx a b{color:var(--coral);font-size:12px;display:block;letter-spacing:.06em}
+.idx a span{font-weight:700;font-size:15px}
+/* chapters */
+section{margin-top:44px}
+.tag{font-size:12px;font-weight:800;color:var(--coral);letter-spacing:.08em}
+h2.ch{font-size:22px;margin:2px 0 6px}
+.ask{font-size:14px;color:var(--sub);margin:0 0 12px}
+.ans{font-size:18px;font-weight:700;margin:0 0 16px;padding:12px 16px;background:var(--purple-bg);border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.two{grid-template-columns:1fr}}
+.card h3{margin:0 0 8px;font-size:16px}
+.who{display:flex;gap:8px;align-items:baseline;margin:8px 0}
+.who b{white-space:nowrap}
+.who span{color:var(--sub);font-size:15px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.b-pay{background:var(--coral-bg);color:var(--coral)} .b-use{background:var(--gray-bg);color:var(--sub)}
+.b-ok{background:var(--ok-bg);color:var(--ok)} .b-no{background:var(--no-bg);color:var(--no)} .b-as{background:var(--wip-bg);color:var(--wip)}
+.small{font-size:14px;color:var(--sub);margin-top:10px}
+/* evidence trigger */
+.ev{cursor:help;border-bottom:1.5px dotted currentColor;text-decoration:none;outline:none;border-radius:2px}
+.ev:hover,.ev:focus-visible,.ev.on{background:var(--purple-bg);box-shadow:0 0 0 2px var(--purple-bg)}
+.badge.ev{border-bottom:none}
+.badge.ev::after{content:"ⓘ";margin-left:4px;font-weight:600;opacity:.8}
+/* popover */
+#pop{position:fixed;z-index:30;width:min(340px,calc(100vw - 24px));background:var(--pop);color:var(--pop-ink);
+  border-radius:12px;padding:14px 16px 12px;box-shadow:0 12px 32px rgba(0,0,0,.22);font-size:14px;line-height:1.55;
+  opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .12s,transform .12s,visibility .12s}
+#pop.show{opacity:1;visibility:visible;transform:none}
+#pop .k{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--pop-sub);text-transform:uppercase}
+#pop .t{font-size:16px;font-weight:800;margin:2px 0 6px}
+#pop .row{margin:5px 0;display:grid;grid-template-columns:60px 1fr;gap:8px}
+#pop .row b{color:var(--pop-sub);font-weight:600;font-size:12px;padding-top:2px}
+#pop .lk{margin:5px 0}
+#pop a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+#pop .grade{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:999px;margin-top:8px}
+#pop .g-ok{background:#1f8a4c;color:#fff} #pop .g-calc{background:#5b3fd0;color:#fff} #pop .g-as{background:#b46a00;color:#fff} #pop .g-pr{background:#5d6575;color:#fff}
+#pop .x{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--pop-sub);font-size:18px;cursor:pointer;padding:4px;line-height:1}
+.hint{font-size:13px;color:var(--sub);margin-top:14px;display:flex;align-items:center;gap:8px}
+.hint .ev{cursor:default}
+/* journey */
+.jhead,.jrow{display:grid;grid-template-columns:96px repeat(5,1fr);gap:6px}
+.jhead div{font-size:13px;font-weight:700;color:var(--sub);text-align:center;padding:4px 0}
+.jrow{margin-top:6px}
+.jrow .lab{font-size:14px;font-weight:700;display:flex;align-items:center}
+.jrow .st{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 8px;font-size:14px;text-align:center}
+.jrow.pay .st{border-top:3px solid var(--coral)}
+.jrow.user .st{border-top:3px solid var(--purple)}
+@media(max-width:720px){
+  .jhead{display:none}
+  .jrow{grid-template-columns:1fr}
+  .jrow .lab{margin-top:10px}
+  .jrow .st{text-align:left}
+  .jrow .st::before{content:attr(data-s);display:block;font-size:12px;font-weight:700;color:var(--sub)}
+}
+/* flow */
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.node{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:700;font-size:15px}
+.node.us{border:2px solid var(--purple);background:var(--purple-bg)}
+.node.free{background:var(--ok-bg);border-color:transparent}
+.arr{color:var(--mute);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--sub);font-weight:600}
+.tablewrap{overflow-x:auto}
+/* market bars */
+.bars{display:grid;gap:10px;margin-top:6px}
+.br{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center}
+.br .n{font-weight:700;font-size:14px}
+.br .n span{display:block;font-weight:400;font-size:12px;color:var(--sub)}
+.tr{position:relative;height:30px}
+.fl{position:relative;z-index:1;height:100%;background:var(--purple-soft);border-radius:0 4px 4px 0;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-weight:700;font-size:14px;min-width:56px;cursor:help}
+.br.hi .fl{background:var(--purple);color:var(--on-hi)}
+.fl:hover,.fl:focus-visible,.fl.on{filter:brightness(.92);outline:none}
+.ln{position:absolute;top:-6px;bottom:-6px;left:75.2%;border-left:2px dashed var(--coral)}
+.ln b{position:absolute;top:-20px;left:4px;font-size:12px;color:var(--coral);white-space:nowrap}
+.note{margin-top:12px;font-size:15px;padding:10px 14px;border-left:4px solid var(--wip);background:var(--wip-bg);border-radius:8px}
+.wheel{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:stretch;position:relative}
+.wheel .w{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 10px;font-size:14px;text-align:center;position:relative}
+.wheel .w b{display:block;font-size:15px}
+.wheel .w:not(:last-child)::after{content:"→";position:absolute;right:-9px;top:50%;transform:translate(50%,-50%);color:var(--mute);font-size:14px;z-index:2}
+.loop{font-size:13px;color:var(--sub);text-align:center;margin-top:8px}
+@media(max-width:640px){.wheel{grid-template-columns:1fr 1fr}.wheel .w:nth-child(2)::after{content:""}}
+.filters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:640px){.filters{grid-template-columns:1fr}}
+.flt{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+.flt b{display:block;font-size:13px;color:var(--coral)}
+@media(max-width:640px){
+  .dtable tr:first-child{display:none}
+  .dtable tr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .dtable td{border:0;padding:0}
+  .dtable td:nth-child(3){grid-column:2;grid-row:1}
+  .dtable td:nth-child(2),.dtable td:nth-child(4){grid-column:1/-1;font-size:14px}
+  .dtable td:nth-child(2){color:var(--sub)}
+}
+footer{margin-top:48px;font-size:13px;color:var(--sub);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-wrap:wrap;gap:6px 18px}
+@media print{section{break-inside:avoid} #pop{display:none} .ev{border-bottom:none}}
+</style>
+</head>
+<body><div role="note" style="margin:12px auto;max-width:1040px;padding:12px 16px;border:1px solid #d97706;border-radius:8px;background:#fff7ed;color:#7c2d12;font-size:14px;line-height:1.55"><b>⚠️ 2026-10-24 창업 멘토 지적</b> — 이 페이지의 매출·가격·이익 숫자는 과장돼 보인다는 의견을 받아 <b>재검증 중</b>이다. 발표에는 쓰지 말고 <a href="../../infos/05_멘토링/2026-10-24_사업2차/S08_창업멘토링2차-결과-2026-10-24.md" style="color:#9a3412">S08 §4 숫자 재검증</a>을 본다. (AI가 찾은 출처도 사람이 원문 대조 전)</div>
+<div id="pop" role="dialog" aria-live="polite" aria-label="근거 자료">
+  <button class="x" type="button" aria-label="닫기">×</button>
+  <div class="k"></div><div class="t"></div><div class="body"></div>
+</div>
+
+<div class="wrap">
+
+<header class="cover">
+  <div class="eyebrow">Business Review · SAFE-LANG</div>
+  <h1>이주노동자 안전교육 이해도 검증 서비스<br>사업성 검토 보고서</h1>
+  <p class="subtitle">고객 정의 · 고객 구매 여정 · 수익 구조 · 시장 규모 · 데이터 자산</p>
+  <div class="meta"><span><b>작성</b> 2026. 10. 22.</span><span><b>버전</b> 초안 v0.1</span><span><b>대상</b> 50인 미만 제조·건설 사업장</span></div>
+</header>
+
+<div class="exec">
+  <h2>핵심 요약</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="v"><span class="ev" tabindex="0" data-ev="N02">110.9<small>만 명</small></span></div><div class="l">국내 외국인 취업자 (2025)</div></div>
+    <div class="kpi"><div class="v"><span class="ev" tabindex="0" data-ev="N04">78.9<small>%</small></span></div><div class="l">50인 미만 사업장 종사 비율</div></div>
+    <div class="kpi"><div class="v"><span class="ev" tabindex="0" data-ev="N20">2027.1.8</span></div><div class="l">외국인 노동자 안전교육 이수 의무 시행</div></div>
+    <div class="kpi"><div class="v"><span class="ev" tabindex="0" data-ev="SAM">약 525<small>억 원</small></span></div><div class="l">유효 시장 규모 (SAM)</div></div>
+  </div>
+  <nav class="idx" aria-label="목차">
+    <a href="#t1"><b>01</b><span>고객 정의</span></a>
+    <a href="#t2"><b>02</b><span>고객 구매 여정</span></a>
+    <a href="#t3"><b>03</b><span>수익 구조</span></a>
+    <a href="#t4"><b>04</b><span>시장 규모</span></a>
+    <a href="#t5"><b>05</b><span>데이터 자산</span></a>
+  </nav>
+  <div class="hint"><span class="ev" tabindex="-1">밑줄 친 수치</span>와 <span class="badge b-as">가정</span> 표시에 마우스를 올리거나 누르면 근거 자료가 열립니다.</div>
+</div>
+
+<!-- 1 -->
+<section id="t1">
+  <div class="tag">01</div>
+  <h2 class="ch">고객 정의</h2>
+  <p class="ask">핵심 질문 — 누가 쓰고, 누가 돈을 내는가</p>
+  <p class="ans">쓰는 사람과 돈 내는 사람이 다르다. 노동자는 0원이고, 지자체가 먼저 돈을 낸다.</p>
+  <div class="two">
+    <div class="card"><h3>유저 고객 <span class="badge b-use">쓰는 사람</span></h3>
+      <div class="who"><b>이주노동자</b><span>내 언어 음성으로 듣고, 그림 문제로 이해를 확인받는다 · <b>0원</b></span></div>
+      <div class="who"><b>안전 담당자</b><span>50인 미만 사업장의 겸직 담당자. 교육을 만들고 결과를 본다</span></div>
+    </div>
+    <div class="card"><h3>지불 고객 <span class="badge b-pay">돈 내는 사람</span></h3>
+      <div class="who"><b>① 지자체·공공기관</b><span><span class="ev" tabindex="0" data-ev="N22">국비 사업</span> 성과를 보고해야 한다. 이용권을 사서 사업장에 <span class="ev" tabindex="0" data-ev="PREC">무료 배포</span></span></div>
+      <div class="who"><b>② 사업주</b><span><span class="ev" tabindex="0" data-ev="N20">2027-01-08</span>부터 외국인 노동자 안전교육 이수가 의무다</span></div>
+    </div>
+  </div>
+  <p class="small">외국인 취업자 <span class="ev" tabindex="0" data-ev="N02">110.9만 명</span> 중 <span class="ev" tabindex="0" data-ev="N04">78.9%</span>가 50인 미만 사업장에서 일한다. 스스로 비용을 내기 어려운 곳이다.</p>
+</section>
+
+<!-- 2 -->
+<section id="t2">
+  <div class="tag">02</div>
+  <h2 class="ch">고객 구매 여정</h2>
+  <p class="ask">핵심 질문 — 두 고객군은 어떻게 알게 되고, 사고, 다시 쓰는가</p>
+  <p class="ans">지자체는 "시연 → 시범 → 성과 리포트"로 사고, 노동자는 "QR 한 번"으로 들어온다.</p>
+  <div class="jhead"><div></div><div>인지</div><div>관심</div><div>구매</div><div>재구매</div><div>로열티</div></div>
+  <div class="jrow pay">
+    <div class="lab">지불 고객<br>(지자체)</div>
+    <div class="st" data-s="인지"><span class="ev" tabindex="0" data-ev="N22">국비 사업 공모</span> · 직접 방문 영업</div>
+    <div class="st" data-s="관심">10분 시연 (QR → 음성 → 그림 문제 → 대시보드)</div>
+    <div class="st" data-s="구매"><span class="ev" tabindex="0" data-ev="PILOT">시범 사업장 100곳</span> 1년 이용권</div>
+    <div class="st" data-s="재구매">지역 이해도 리포트로 다음 해 예산 편성</div>
+    <div class="st" data-s="로열티">이웃 지자체에 사례 공유</div>
+  </div>
+  <div class="jrow user">
+    <div class="lab">유저 고객<br>(노동자)</div>
+    <div class="st" data-s="인지">설비 앞 QR을 본다</div>
+    <div class="st" data-s="관심"><span class="ev" tabindex="0" data-ev="PROD">찍으면 내 언어 화면</span>이 바로 열린다</div>
+    <div class="st" data-s="구매 = 첫 완료">음성을 듣고 그림 문제를 통과한다</div>
+    <div class="st" data-s="재구매 = 다시 사용">새 설비·재교육 때 다시 들어온다</div>
+    <div class="st" data-s="로열티">익명 신고 · 동료에게 알려 준다</div>
+  </div>
+  <p class="small">노동자는 비용을 내지 않으므로 "구매"는 첫 교육 완료, "재구매"는 재접속으로 정의한다. 사업주의 여정은 지자체와 같고, 인지 경로만 법 시행 안내다.</p>
+</section>
+
+<!-- 3 -->
+<section id="t3">
+  <div class="tag">03</div>
+  <h2 class="ch">수익 구조</h2>
+  <p class="ask">핵심 질문 — 돈은 어디서 들어오고, 무엇을 하지 않는가</p>
+  <p class="ans">지자체가 이용권을 사서 사업장에 무료로 나눠 준다. 사업주 직접 구독은 2027년 법 시행 뒤 두 번째 매출원이다.</p>
+  <div class="card">
+    <div class="flow">
+      <span class="node"><span class="ev" tabindex="0" data-ev="N22">국비 · 지자체 예산</span></span><span class="arr">→</span>
+      <span class="node">지자체 · 공공기관</span><span class="arr">→ 이용권</span>
+      <span class="node us">SAFE-LANG</span><span class="arr">→ 무료 배포</span>
+      <span class="node free">50인 미만 사업장 · 노동자 0원</span>
+    </div>
+    <div class="tablewrap" style="margin-top:14px"><table>
+      <tr><th>상품</th><th>가격</th><th>근거</th></tr>
+      <tr><td>지자체 묶음 (100곳 단위)</td><td><b>사업장당 연 20만 원</b></td><td><span class="badge b-as ev" tabindex="0" data-ev="P20">가정</span></td></tr>
+      <tr><td>사업주 직접 구독</td><td><b>사업장당 연 30만 원</b></td><td><span class="badge b-as ev" tabindex="0" data-ev="P30">가정</span></td></tr>
+      <tr><td>노동자</td><td><b>0원</b></td><td>운영 원칙</td></tr>
+      <tr><td colspan="2">3년차 연 매출 <b><span class="ev" tabindex="0" data-ev="REV">약 4.6억 원</span></b></td><td><span class="badge b-as ev" tabindex="0" data-ev="REV">가정</span></td></tr>
+    </table></div>
+  </div>
+  <div class="tablewrap" style="margin-top:12px"><table>
+    <tr><th>검토한 수익원</th><th>판정</th><th>사유</th></tr>
+    <tr><td>정부·지자체·산업단지 예산 연계</td><td><span class="badge b-ok">채택 · 1순위</span></td><td><span class="ev" tabindex="0" data-ev="N22">2026년 국비 143억 원 사업 신설</span>, <span class="ev" tabindex="0" data-ev="PREC">지자체 무상 배포 선례</span></td></tr>
+    <tr><td>담당자·사업주 구독료</td><td><span class="badge b-ok">채택 · 2순위</span></td><td><span class="ev" tabindex="0" data-ev="N20">2027-01-08 교육 이수 의무 시행</span></td></tr>
+    <tr><td>광고 (영상 속 광고·배너)</td><td><span class="badge b-no">노동자 화면 제외</span></td><td><span class="ev" tabindex="0" data-ev="ADS">외부 요청 0건 원칙, 안전 지시 신뢰</span></td></tr>
+    <tr><td>해외 송금 서비스</td><td><span class="badge b-as">보류</span></td><td><span class="ev" tabindex="0" data-ev="REMIT">본업과 무관, 금융 규제 검토 필요</span></td></tr>
+  </table></div>
+</section>
+
+<!-- 4 -->
+<section id="t4">
+  <div class="tag">04</div>
+  <h2 class="ch">시장 규모</h2>
+  <p class="ask">핵심 질문 — 기존 수치는 맞는가, 시장은 얼마나 큰가</p>
+  <p class="ans">기존 수치는 산출식이 없어 폐기했다. 재산정하면 SAM 약 525억 원이며, SOM 500억 원은 근거가 성립하지 않는다.</p>
+  <div class="card">
+    <div class="bars" role="img" aria-label="TAM 약 665억, SAM 약 525억, SOM 상한 약 198억 원. 점선은 500억 원">
+      <div class="br"><div class="n">TAM<span>외국인 취업자 전체</span></div><div class="tr"><div class="fl" tabindex="0" data-ev="TAM">665억</div><div class="ln"><b>500억</b></div></div></div>
+      <div class="br hi"><div class="n">SAM<span>50인 미만 사업장</span></div><div class="tr"><div class="fl" tabindex="0" data-ev="SAM" style="width:78.9%">525억</div><div class="ln"></div></div></div>
+      <div class="br"><div class="n">SOM 상한<span>고용허가제 사업장 전부</span></div><div class="tr"><div class="fl" tabindex="0" data-ev="SOM" style="width:29.8%">198억</div><div class="ln"></div></div></div>
+    </div>
+    <p class="small">시장 규모 = 고객 수 × 단가 <span class="badge b-as ev" tabindex="0" data-ev="UNIT">가정</span> · 막대를 누르면 계산식이 열립니다.</p>
+  </div>
+  <div class="note"><b>기존 수치 처리</b> — <span class="ev" tabindex="0" data-ev="OLD">TAM 1.2조 · SAM 1,440억 · SOM 180억 원</span>은 산출식이 없어 사용하지 않는다. <span class="ev" tabindex="0" data-ev="T500">SOM 500억 원</span>이 되려면 외국인 취업자의 약 75%가 사용해야 하므로, 시장 규모는 <b>"SAM 약 525억 원"</b>으로 제시한다.</div>
+</section>
+
+<!-- 5 -->
+<section id="t5">
+  <div class="tag">05</div>
+  <h2 class="ch">데이터 자산</h2>
+  <p class="ask">핵심 질문 — 쌓이는 데이터로 무엇을 팔고, 무엇을 팔지 않는가</p>
+  <p class="ans">노동자 데이터는 팔지 않는다. 사람이 검수한 다국어 안전 문구와 집계된 이해 결과를 자산으로 판다.</p>
+  <div class="card">
+    <h3 style="margin:0 0 10px;font-size:16px"><span class="ev" tabindex="0" data-ev="MOAT">쌓일수록 강해지는 구조</span></h3>
+    <div class="wheel">
+      <div class="w"><b>고객 사업장 ↑</b>교육을 만들 때마다</div>
+      <div class="w"><b>검수 문구 ↑</b>사람이 승인한 6개 언어 문장</div>
+      <div class="w"><b>번역 품질 ↑</b>오역 사례 · 어려운 문구 축적</div>
+      <div class="w"><b>도입 비용 ↓</b>새 고객이 바로 쓸 문구</div>
+    </div>
+    <p class="loop">↺ 다시 고객 사업장 증가로 이어진다 · 쌓인 문구와 이해 결과는 라이선스·바우처 매출이 된다</p>
+  </div>
+  <div class="tablewrap" style="margin-top:12px"><table class="dtable">
+    <tr><th>데이터 상품</th><th>고객</th><th>판정</th><th>근거</th></tr>
+    <tr><td><b>위험성평가 증빙 패키지</b><br><span class="small" style="margin:0">사업장 단위 실시·이해 기록</span></td><td>사업주</td><td><span class="badge b-ok">1순위</span></td><td>인정 시 <span class="ev" tabindex="0" data-ev="N50">산재보험료율 20% 인하</span>, 심사 항목에 <span class="ev" tabindex="0" data-ev="N53">"구성원의 이해 수준"</span></td></tr>
+    <tr><td><b>검수 문구 데이터 라이선스</b><br><span class="small" style="margin:0">산업안전 × 저자원 언어</span></td><td>번역·통역 기업, 교육기관</td><td><span class="badge b-ok">2순위</span></td><td><span class="ev" tabindex="0" data-ev="CORPUS">개인정보가 없는 운영자 검수 문장</span></td></tr>
+    <tr><td><b>데이터바우처 공급</b></td><td>바우처 수요기업</td><td><span class="badge b-ok">검토</span></td><td><span class="ev" tabindex="0" data-ev="VOUCH">수요기업당 최대 4,500만 원 지원</span></td></tr>
+    <tr><td><b>지역 이해도 리포트</b></td><td>지자체</td><td><span class="badge b-ok">수익 구조 포함</span></td><td><span class="ev" tabindex="0" data-ev="N22">국비 사업 성과 보고</span> → 다음 해 재구매</td></tr>
+    <tr><td><b>원청 협력사 대시보드</b></td><td>대기업·건설 원청</td><td><span class="badge b-as">조건부</span></td><td><span class="ev" tabindex="0" data-ev="SUPPLY">협력사 불이익 금지 조건</span></td></tr>
+    <tr><td><b>보험사용 사업장 지표</b></td><td>민간 보험사</td><td><span class="badge b-as">보류</span></td><td><span class="ev" tabindex="0" data-ev="INS">통과 압박 위험</span></td></tr>
+    <tr><td><b>노동자 개인 데이터 판매</b></td><td>—</td><td><span class="badge b-no">하지 않음</span></td><td><span class="ev" tabindex="0" data-ev="PERS">익명·식별번호 미수집 원칙</span></td></tr>
+  </table></div>
+  <div class="filters" style="margin-top:12px">
+    <div class="flt"><b>거름 ① 개인</b>노동자 한 사람을 알아볼 수 있으면 내보내지 않는다</div>
+    <div class="flt"><b>거름 ② 불이익</b>순위·인사평가·통과 압박 도구가 되면 만들지 않는다</div>
+    <div class="flt"><b>거름 ③ 법</b><span class="ev" tabindex="0" data-ev="LAW">가명정보 규정</span> · <span class="ev" tabindex="0" data-ev="SMALL">5명 미만 집계 비공개</span></div>
+  </div>
+  <p class="small">데이터 매출 3년차 <b><span class="ev" tabindex="0" data-ev="DREV">약 9,000만 원</span></b> <span class="badge b-as ev" tabindex="0" data-ev="DREV">가정</span> — 이용권 매출과 합치면 약 5억 5,000만 원</p>
+</section>
+
+<footer>
+  <span>SAFE-LANG 사업성 검토 보고서 · 초안 v0.1</span><span>2026. 10. 22.</span><span>수치는 2026-10-22 기준 공개 자료로 확인했습니다</span>
+</footer>
+</div>
+
+<script>
+(function(){
+  /* 근거 자료: g = ok(출처 확인) · calc(계산값) · as(가정) · pr(운영 원칙) */
+  var EV={
+    N02:{k:'출처 확인',t:'국내 외국인 취업자 110만 9천 명',g:'ok',
+      rows:[['기준','2025년 5월 15일, 15세 이상 · 91일 이상 체류'],['내용','전년보다 9만 9천 명 증가, 고용률 65.5%'],['출처','국가데이터처·법무부 「2025년 이민자 체류실태 및 고용조사」']],
+      links:[['보도 (2025-12-18)','https://kidd.co.kr/news/244363']]},
+    N04:{k:'출처 확인',t:'50인 미만 사업장 종사 비율 78.9%',g:'ok',
+      rows:[['기준','2023년, 외국인 취업자 기준'],['출처','고용노동부 「외국인 근로자 및 소규모 사업장 안전 강화 대책」(2024. 8.)']],
+      links:[['보도 (2024-08-13)','https://www.newsis.com/view/NISX20240813_0002848605']]},
+    N20:{k:'출처 확인 · 법령',t:'산업안전보건법 제31조의2 신설',g:'ok',
+      rows:[['내용','사업주는 채용하는 외국인 노동자가 기초안전보건교육을 이수하도록 해야 한다'],['법률','제21853호 · 공포 2026-07-07'],['시행','2027-01-08'],['남은 확인','교육 시간·기관·언어 등 세부 기준(고용노동부령)']],
+      links:[['국가법령정보센터 개정문','https://www.law.go.kr/LSW/lsRvsDocListP.do?lsId=001766&chrClsCd=010102'],['고용노동부 보도자료 (2026-06-18)','https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19546']]},
+    N22:{k:'출처 확인',t:'지역 중대재해 예방 사각지대 해소 사업',g:'ok',
+      rows:[['예산','2026년 국비 143억 원 (100% 국비, 신설)'],['참여','11개 광역지자체 (2차례 공모)'],['예','경북: 국비 14억 원, 약 1,100개 사업장, "외국인 근로자 안전 장벽 해소" 중점 · 경기: 42개 언어 AI 통역 외국인 안전교육']],
+      links:[['보도 (2026-06-14)','https://www.newsis.com/view/NISX20260613_0003668001'],['경북 사례 (2026-01-30)','https://kbmaeil.com/article/20260130500226']]},
+    PREC:{k:'출처 확인 · 선례',t:'공공이 사서 무료로 나눠 준 사례',g:'ok',
+      rows:[['성동구','IT 기업과 협약, QR 안전영상 17개 언어. 시범 10곳 → 59곳 → 관내 전 공사장 (2025)'],['부산진해경자청','AI 통역앱을 외국인 20명 이상 입주기업 5곳에 1년 무상 제공 (2026)'],['차이','두 사례 모두 내용 전달·통역이며, 이해 확인 기능은 보도에 없다']],
+      links:[['성동구 (2025-07-21)','https://www.heraldk.com/article/2025072113500489108'],['부산진해 (2026-02-08)','https://www.heraldk.com/article/2026020818184417742']]},
+    PILOT:{k:'가정',t:'시범 사업장 100곳 · 1년 이용권',g:'as',
+      rows:[['근거','첫 계약 단위를 100곳으로 가정했다. 경북은 국비 사업 하나로 약 1,100개 사업장을 지원한다'],['검증','첫 지자체 미팅에서 확인한다']]},
+    PROD:{k:'구현 완료',t:'QR로 들어오면 그 교육이 바로 열린다',g:'pr',
+      rows:[['상태','현재 배포 버전(v1.0)에 구현됨'],['동작','로그인 전 QR 주소를 보존하고, 로그인 뒤 해당 설비 교육을 바로 연다. 인터넷이 끊겨도 교육 화면이 열린다'],['검증','자동 테스트 1,619건 통과 (2026-10-10)']],
+      links:[['서비스 주소','https://2026-ax-ton.vercel.app']]},
+    P20:{k:'가정',t:'지자체 묶음 사업장당 연 20만 원',g:'as',
+      rows:[['기준점','경북의 사업장당 평균 예산 약 127만 원 (14억 원 ÷ 1,100곳, 모든 지원 항목 합계)'],['가정','그중 외국인 교육 항목이 15% 안팎을 차지한다'],['검증','지불의사 미확인. 첫 지자체 미팅에서 확인한다']]},
+    P30:{k:'가정',t:'사업주 직접 구독 사업장당 연 30만 원',g:'as',
+      rows:[['기준점','민간 온라인 법정의무교육 6종 패키지 인당 9,900원 (외국인 10명이면 약 10만 원)'],['가정','교육 실시 위에 이해 확인과 기록의 가치를 더했다'],['검증','지불의사 미확인']],
+      links:[['가격 참고 (2026-08)','https://start.zuzu.network/resource/blog/occupational-safety-health-training/']]},
+    REV:{k:'계산값 · 가정',t:'3년 매출 시나리오',g:'as',
+      rows:[['1년차','지자체 1곳 × 100곳 × 20만 원 = 2,000만 원'],['2년차','지자체 3곳 × 200곳 × 20만 원 + 직접 50곳 × 30만 원 = 1억 3,500만 원'],['3년차','지자체 10곳 × 200곳 × 20만 원 + 직접 200곳 × 30만 원 = 4억 6,000만 원'],['비교','국비 사업 하나(143억 원)의 약 3.2%']]},
+    ADS:{k:'운영 원칙',t:'노동자 화면에는 광고를 넣지 않는다',g:'pr',
+      rows:[['원칙','노동자 화면은 외부 서버에 요청을 보내지 않는다. 인터넷이 약한 현장에서도 교육이 열려야 하기 때문이다'],['이유','광고 네트워크를 붙이면 이 원칙이 깨지고, 안전 지시와 광고가 한 화면에 섞여 지시의 신뢰가 떨어진다'],['대안','담당자 직접 영업과 공공 예산이 수익의 중심이다']]},
+    REMIT:{k:'검토 보류',t:'해외 송금 서비스',g:'pr',
+      rows:[['사유','안전교육이라는 본업과 연결 고리가 없다'],['위험','해외 송금·가상자산은 별도의 금융 규제 검토가 필요하다'],['원칙','노동자에게서 돈을 받지 않는 구조와 맞지 않는다']]},
+    UNIT:{k:'가정',t:'시장 규모 계산 단가',g:'as',
+      rows:[['인당','연 6만 원 (월 5천 원) — TAM·SAM 계산'],['사업장당','연 30만 원 — SOM 상한 계산'],['참고','판매 가격은 사업장 단위로 받는다. 인원 단위로 받으면 등록 인원을 줄일 동기가 생기기 때문이다']]},
+    TAM:{k:'계산값',t:'TAM 약 665억 원',g:'calc',
+      rows:[['식','외국인 취업자 110만 9천 명 × 인당 연 6만 원'],['고객 수','국가데이터처·법무부 2025년 조사 (출처 확인)'],['단가','가정']]},
+    SAM:{k:'계산값',t:'SAM 약 525억 원',g:'calc',
+      rows:[['식','110만 9천 명 × 50인 미만 비율 78.9% = 약 87만 5천 명 × 인당 연 6만 원'],['주의','2025년 인원에 2023년 비율을 곱했다'],['단가','가정']]},
+    SOM:{k:'계산값',t:'SOM 상한 약 198억 원',g:'calc',
+      rows:[['식','고용허가제(E-9·H-2) 외국인 고용 사업장 65,913곳 × 사업장당 연 30만 원'],['고객 수','e-나라지표 「고용허가제 고용동향」, 2025년 12월 말'],['주의','모든 사업장이 구매한다는 상한값이다']],
+      links:[['e-나라지표','https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=1501']]},
+    OLD:{k:'사용 중단',t:'기존 시장 규모 수치',g:'pr',
+      rows:[['수치','TAM 1.2조 · SAM 1,440억 · SOM 180억 원'],['문제','산출식이 남아 있지 않다. 사업장당 단가로 거꾸로 나누면 TAM만 48만 원, SAM·SOM은 120만 원으로 서로 맞지 않는다'],['조치','고객 수 × 단가 방식으로 재산정했다']]},
+    N50:{k:'출처 확인',t:'위험성평가 인정 사업장 산재보험료 감면',g:'ok',
+      rows:[['혜택','50인 미만 인정 사업장은 산재보험료율 20% 인하'],['대상','제조업·기타업 상시근로자 100인 미만, 건설업 공사금액 120억 원 미만'],['규모','2025년 인정 사업장 14,109곳, 감면액 204.9억 원 (2021년 132.2억 원에서 약 55% 증가)']],
+      links:[['보도 (2026-10-13)','https://www.ajunews.com/view/20261013113852176']]},
+    N53:{k:'출처 확인 · 원문 확인 필요',t:'위험성평가 인정 심사 항목',g:'ok',
+      rows:[['항목','사업주의 관심도 · 위험성평가 실행 수준 · 구성원의 참여 및 이해 수준 · 재해 발생 수준'],['연결','이해 확인 기록은 "구성원의 이해 수준"을 보여 주는 자료다 (가설)'],['남은 확인','안전보건공단 심사표 원문에서 무엇으로 확인하는지']],
+      links:[['보도 (2024-12-13)','https://www.metroseoul.co.kr/article/20241213500039']]},
+    CORPUS:{k:'운영 판단',t:'검수 문구 데이터 라이선스',g:'pr',
+      rows:[['자산','운영자가 승인한 6개 언어 안전 문구 + 역번역 + 검수 판정'],['가치','산업안전 분야이면서 크메르어·네팔어 등 데이터가 적은 언어의 검수된 문장은 구하기 어렵다'],['개인정보','노동자가 만든 데이터가 아니므로 개인정보 문제가 없다'],['남은 확인','통역앱·교육기관 수요 인터뷰']]},
+    VOUCH:{k:'출처 확인',t:'데이터바우처 공급기업',g:'ok',
+      rows:[['지원','수요기업 한 곳당 최대 4,500만 원'],['경쟁','2025년 4,699곳 신청, 460곳 선정 (10.2:1)'],['자격','데이터산업법 제16조 데이터사업자 신고 후 신청'],['일정','2026년 공급기업 모집은 2025-11-12 ~ 12-11. 2027년 모집 일정은 확인 필요']],
+      links:[['데이터바우처 (2026-02-20)','https://eopla.net/magazines/39538'],['공급기업 모집 (2025-11-14)','https://www.venturesquare.net/1014184/']]},
+    SUPPLY:{k:'운영 판단',t:'원청 협력사 대시보드 — 조건부',g:'pr',
+      rows:[['제공','협력사 단위 집계만 제공한다'],['조건','협력사 줄세우기·계약 불이익에 쓰지 않는다는 조항을 계약에 넣는다'],['이유','감시 도구가 되면 현장이 등을 돌리고 신고가 멈춘다']]},
+    INS:{k:'운영 판단',t:'보험사용 지표 — 보류',g:'pr',
+      rows:[['위험','통과율이 보험료로 이어지면 사업주가 노동자에게 통과를 압박한다'],['원칙','미통과는 노동자가 아니라 교육의 실패로 본다'],['근거','국내 보험사 활용 사례를 찾지 못했다']]},
+    PERS:{k:'운영 원칙',t:'노동자 개인 데이터는 팔지 않는다',g:'pr',
+      rows:[['원칙','신고는 익명이고 신고자 식별값을 저장하지 않는다. 외국인등록번호·여권번호를 받지 않는다. 인사평가용 내보내기를 만들지 않는다'],['이유','감시 도구가 되는 순간 노동자가 신고와 교육을 피한다']]},
+    LAW:{k:'법령',t:'개인정보 보호법 제28조의2 (가명정보)',g:'ok',
+      rows:[['허용','통계작성·과학적 연구·공익적 기록보존 목적이면 동의 없이 가명정보 처리 가능'],['조건','제3자에게 줄 때 특정 개인을 알아볼 정보를 빼야 한다'],['남은 확인','상업적 판매가 위 목적에 들어가는지 — 법률 검토 전이며, 지금은 판매하지 않는다']],
+      links:[['조문','https://korea.legal/wiki/%ea%b0%9c%ec%9d%b8%ec%a0%95%eb%b3%b4-%eb%b3%b4%ed%98%b8%eb%b2%95-%ec%a0%9c28%ec%a1%b0%ec%9d%982/']]},
+    SMALL:{k:'가정 · 내부 기준',t:'5명 미만 집계는 내보내지 않는다',g:'as',
+      rows:[['이유','50인 미만 사업장에 크메르어 사용자가 2명이면, "크메르어 통과율"만으로 그 사람이 특정된다'],['기준','사람 수 5명 미만인 집계 칸은 리포트·라이선스에 넣지 않는다'],['상태','우리가 정한 기준이며 법률 검토 전이다']]},
+    DREV:{k:'가정',t:'데이터 매출 3년차 약 9,000만 원',g:'as',
+      rows:[['바우처','연 2곳 × 건당 2,000만 원 = 4,000만 원'],['라이선스','연 1곳 × 3,000만 원'],['교안 용역','연 1건 × 2,000만 원'],['합계','9,000만 원. 이용권 매출 4.6억 원과 합치면 약 5.5억 원'],['주의','지불의사를 확인한 곳은 없다. 위험성평가 증빙은 구독 가격의 근거로 보고 따로 더하지 않았다']]},
+    MOAT:{k:'운영 판단',t:'데이터 해자',g:'pr',
+      rows:[['구조','고객이 늘수록 검수 문구와 언어별 이해 결과가 쌓이고, 새 고객의 도입 비용이 내려간다'],['경쟁','같은 기능은 따라 만들 수 있어도 쌓인 검수 문구는 따라오지 못한다'],['AI Agent','번역·검수 에이전트가 붙으면 문구가 쌓이는 속도가 빨라진다 (사람 승인은 유지)']]},
+    T500:{k:'계산값',t:'SOM 500억 원에 필요한 조건',g:'calc',
+      rows:[['인당 기준','500억 ÷ 연 6만 원 = 약 83만 명 → 외국인 취업자의 약 75%'],['사업장 기준','500억 ÷ 65,913곳 = 사업장당 연 약 76만 원'],['판단','두 조건 모두 근거가 없어 SOM 500억 원은 제시하지 않는다']]}
+  };
+  var GRADE={ok:['출처 확인','g-ok'],calc:['계산값','g-calc'],as:['가정','g-as'],pr:['운영 판단','g-pr']};
+  var pop=document.getElementById('pop'), cur=null, pinned=false, hideT=null;
+  var k=pop.querySelector('.k'), t=pop.querySelector('.t'), body=pop.querySelector('.body');
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+  function fill(d){
+    k.textContent=d.k; t.textContent=d.t; body.textContent='';
+    (d.rows||[]).forEach(function(r){var row=el('div','row');row.appendChild(el('b',null,r[0]));row.appendChild(el('span',null,r[1]));body.appendChild(row);});
+    (d.links||[]).forEach(function(l){var row=el('div','lk');var a=el('a',null,l[0]+' ↗');a.href=l[1];a.target='_blank';a.rel='noopener';row.appendChild(a);body.appendChild(row);});
+    var g=GRADE[d.g]; body.appendChild(el('span','grade '+g[1],g[0]));
+  }
+  function place(trg){
+    var r=trg.getBoundingClientRect(), w=pop.offsetWidth, h=pop.offsetHeight, m=10;
+    var x=Math.max(12,Math.min(window.innerWidth-w-12,r.left+r.width/2-w/2));
+    var y=r.bottom+m; if(y+h>window.innerHeight-12) y=Math.max(12,r.top-h-m);
+    pop.style.left=x+'px'; pop.style.top=y+'px';
+  }
+  function open(trg,pin){
+    var d=EV[trg.getAttribute('data-ev')]; if(!d) return;
+    clearTimeout(hideT);
+    if(cur && cur!==trg) cur.classList.remove('on');
+    cur=trg; pinned=!!pin; trg.classList.add('on');
+    fill(d); pop.classList.add('show'); place(trg);
+  }
+  function close(){ pop.classList.remove('show'); if(cur) cur.classList.remove('on'); cur=null; pinned=false; }
+  function softClose(){ if(pinned) return; hideT=setTimeout(close,180); }
+  var canHover=window.matchMedia('(hover:hover)').matches;
+  document.querySelectorAll('[data-ev]').forEach(function(trg){
+    trg.setAttribute('role','button'); trg.setAttribute('aria-haspopup','dialog');
+    if(canHover){ trg.addEventListener('mouseenter',function(){ if(!pinned) open(trg,false); }); trg.addEventListener('mouseleave',softClose); }
+    trg.addEventListener('click',function(e){ e.stopPropagation(); if(cur===trg && pinned){ close(); } else { open(trg,true); } });
+    trg.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(trg,true); } });
+  });
+  pop.addEventListener('mouseenter',function(){ clearTimeout(hideT); });
+  pop.addEventListener('mouseleave',softClose);
+  pop.addEventListener('click',function(e){ e.stopPropagation(); });
+  pop.querySelector('.x').addEventListener('click',function(){ var c=cur; close(); if(c) c.focus(); });
+  document.addEventListener('click',close);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && cur){ var c=cur; close(); c.focus(); } });
+  window.addEventListener('scroll',function(){ if(cur) place(cur); },{passive:true});
+  window.addEventListener('resize',function(){ if(cur) place(cur); });
+})();
+</script>
+</body>
+</html>

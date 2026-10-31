@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S04 · 멘토링 1차 과제 정리 — 수익 모델 중심</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../../README.html">처음 (사용법)</a>
+<a href="../../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+<div class="sub">2026-10-10_사업1차</div>
+<a href="README.html">이 폴더 안내</a>
+<a href="S04_%EB%A9%98%ED%86%A0%EB%A7%811%EC%B0%A8-%EA%B3%BC%EC%A0%9C-%EC%A0%95%EB%A6%AC.html" class="on">S04 멘토링1차-과제-정리</a>
+</nav>
+<main>
+<h1 id="s04--멘토링-1차-과제-정리--수익-모델-중심">S04 · 멘토링 1차 과제 정리 — 수익 모델 중심</h1>
+<blockquote><p><strong>문서 상태</strong> 초안 v0.2 — 전체가 <strong>제안</strong>이다 (팀 검토 전) · <strong>최종 수정</strong> 2026-10-22 · <strong>소유자</strong> byeonsoyun, 팀원 B<br><strong>이 문서가 답하는 질문</strong> 1차 멘토링(2026-10-10)에서 받은 과제 4개와 작업목록에 우리는 무엇이라고 답하는가<br><strong>과제 원문</strong> <code>자료_멘토링-원본기록/1차 멘토링_2026 10 10 ….html</code> 의 「과제」 4개와 「작업목록」 3개 (멘토: 패스파인더넷 강재상)<br><strong>숫자 규칙</strong> 숫자는 <a href="../../../documentations/10_사업화/S02_수치-근거대장.md">S02 수치 근거대장</a>의 <code>N-nn</code> 으로 인용한다. ✅ 출처 확인 · 🔶 계산값 · 🔷 가정</p></blockquote>
+<hr>
+<h2 id="0-과제-목록과-답한-위치-표-0">0. 과제 목록과 답한 위치 (표 0)</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>멘토가 낸 과제 (원문 요약)</th><th>이 문서</th><th>상태</th></tr></thead><tbody><tr><td>과제 1</td><td><strong>고객 재정의</strong> — 유저 고객(이주노동자)과 지불 고객(사업자·지자체)을 구분해 정의</td><td>§1</td><td>🔶 초안</td></tr><tr><td>과제 2</td><td><strong>고객 구매 여정</strong> — 두 고객군별 인지→관심→구매→재구매→로열티 5단계</td><td>§2</td><td>🔶 초안</td></tr><tr><td>과제 3</td><td><strong>수익 모델 구체화</strong> — 논의한 수익 모델을 11월 최종 발표 자료에 반영</td><td>§3</td><td>🔶 초안 (발표 자료 반영 전)</td></tr><tr><td>과제 4</td><td><strong>시장 규모 재산정</strong> — AI로 낸 숫자의 논리 검증, SOM 180억 → 최소 500억 확장 검토</td><td>§4</td><td>🔶 재산정. <strong>SOM 500억은 근거가 안 나온다</strong> (§4.3)</td></tr><tr><td>작업 3</td><td><strong>사업 모델 페이지</strong> — 고객·이해관계자 관계도, 시장 진입 전략, 마케팅 전략, 가격 정책, 원가 구조</td><td>§5</td><td>🔶 초안 (원가 금액 미정)</td></tr></tbody></table></div>
+<blockquote><p><strong>마감</strong> 멘토 기록상 11월 20일 최종 발표에 반영한다. 이 날짜가 오프라인 해커톤 날짜와 같은지는 미정이다 (byeonsoyun, 공지 후).</p></blockquote>
+<hr>
+<h2 id="1-과제-1--고객-재정의">1. 과제 1 — 고객 재정의</h2>
+<h3 id="11-유저-고객과-지불-고객-표-1">1.1 유저 고객과 지불 고객 (표 1)</h3>
+<div class="tbl"><table><thead><tr><th>구분</th><th>누구</th><th>이 사람에게 필요한 것</th><th>돈을 내나</th></tr></thead><tbody><tr><td><strong>유저 고객</strong></td><td><strong>이주노동자</strong> — 한국어가 서툰 제조업·건설업 노동자. 외국인 취업자 110만 9천 명(N-02) 중 78.9%가 50인 미만 사업장에서 일한다(N-04)</td><td>내 언어 음성으로 안전 지시를 듣고, 글자 없이 그림으로 이해를 확인받는다</td><td><strong>내지 않는다 (0원)</strong></td></tr><tr><td><strong>유저 고객</strong></td><td><strong>사업장 안전 담당자</strong> — 50인 미만 사업장의 생산팀장 겸직 담당자</td><td>교육을 빨리 만들고, 누가 무엇을 못 알아들었는지 보고, 실시 기록을 남긴다</td><td>사업주가 내면 쓴다</td></tr><tr><td><strong>지불 고객 ①</strong></td><td><strong>지자체·공공기관</strong> — 광역·기초 지자체 산업안전 부서, 경제자유구역청, 산업단지 관리기관</td><td>국비 사업(N-22) 성과를 숫자로 보고한다. 관내 사업장 사고를 줄인다</td><td><strong>1순위 지불자</strong> — 이용권을 사서 사업장에 무료 배포</td></tr><tr><td><strong>지불 고객 ②</strong></td><td><strong>사업주</strong> — 외국인을 고용한 사업주, 협력사를 둔 원청</td><td>2027-01-08부터 외국인 노동자 교육 이수 의무를 지킨다(N-20). 교육 실시와 이해 확인 기록을 남긴다</td><td><strong>2순위 지불자</strong> — 직접 구독</td></tr></tbody></table></div>
+<h3 id="12-한-문장-정의">1.2 한 문장 정의</h3>
+<ul><li><strong>유저 고객</strong>: 한국어 안전교육을 이해하지 못한 채 위험한 설비 앞에 서는 이주노동자와, 그들을 교육해야 하는 50인 미만 사업장의 안전 담당자.</li><li><strong>지불 고객</strong>: 그 사업장들의 사고를 줄일 예산과 책임을 가진 지자체·공공기관, 그리고 2027년부터 교육 이수 의무를 지는 사업주.</li></ul>
+<hr>
+<h2 id="2-과제-2--고객-구매-여정-5단계">2. 과제 2 — 고객 구매 여정 5단계</h2>
+<h3 id="21-지불-고객-표-2">2.1 지불 고객 (표 2)</h3>
+<div class="tbl"><table><thead><tr><th>단계</th><th>지자체·공공기관 (1순위)</th><th>사업주 (2순위)</th><th>우리가 할 일</th><th>측정 지표</th></tr></thead><tbody><tr><td><strong>인지</strong></td><td>국비 사업 공모·지역 산업안전 협의체에서 외국인 노동자 교육 해법을 찾는다</td><td>2027-01-08 의무 시행(N-20) 안내, 노동부·안전보건공단 설명회</td><td>지자체 산업안전 부서 <strong>직접 방문</strong>, 공모 사업 수행기관과 접촉</td><td>접촉한 지자체·기관 수</td></tr><tr><td><strong>관심</strong></td><td>다른 지자체 선례(N-26, N-27)와 비교한다</td><td>교육은 했는데 &quot;이해했는가&quot;를 증명할 방법이 없다는 문제를 느낀다</td><td>10분 시연: QR → 내 언어 음성 → 그림 문제 → 대시보드 → 증빙</td><td>시연 횟수, 시범 신청 수</td></tr><tr><td><strong>구매</strong></td><td>시범 사업장 10~100곳 이용권 1년 계약</td><td>사업장 구독 결제</td><td>시범 사업장 1곳 무료 3개월 → 결과 리포트로 설득</td><td>계약 수, 사업장당 단가</td></tr><tr><td><strong>재구매</strong></td><td>연도 말 성과 보고 → 다음 연도 예산 편성</td><td>다음 해 구독 갱신, 새 노동자 채용 때마다 사용</td><td><strong>지역 이해도 리포트</strong>(익명·집계)를 성과 보고 자료로 제공</td><td>갱신율, 최초 통과율 변화</td></tr><tr><td><strong>로열티</strong></td><td>이웃 지자체에 사례 공유, 사업 범위 확대</td><td>협력사·같은 산업단지 사업장에 추천</td><td>사례집, 담당자 모임</td><td>추천으로 들어온 고객 수</td></tr></tbody></table></div>
+<h3 id="22-유저-고객--이주노동자-표-3">2.2 유저 고객 — 이주노동자 (표 3)</h3>
+<blockquote><p>노동자는 돈을 내지 않는다. 여기서 &quot;구매&quot;는 <strong>첫 교육을 끝까지 마치는 것</strong>, &quot;재구매&quot;는 <strong>다음 교육에 다시 들어오는 것</strong>이다.</p></blockquote>
+<div class="tbl"><table><thead><tr><th>단계</th><th>노동자의 행동</th><th>막히는 곳</th><th>우리가 할 일 (이미 있는 기능 ✅)</th><th>측정 지표</th></tr></thead><tbody><tr><td><strong>인지</strong></td><td>설비 앞 QR을 본다</td><td>무엇인지 모른다</td><td>QR 옆 그림 안내, 담당자가 첫날 한 번 보여 준다</td><td>QR 접속 수</td></tr><tr><td><strong>관심</strong></td><td>QR을 찍고 내 언어 화면이 열린다</td><td>로그인에서 튕긴다</td><td>✅ QR 주소 보존 후 그 교육을 바로 연다</td><td>접속 → 수강 시작 비율</td></tr><tr><td><strong>구매 (첫 완료)</strong></td><td>음성을 듣고 그림 문제를 푼다</td><td>글을 못 읽는다, 음성이 안 나온다</td><td>✅ 글자 없는 그림 문제, ✅ 음성이 없으면 이유를 그 언어로 표시</td><td>최초 통과율 (목표 70~85%, 🔷)</td></tr><tr><td><strong>재구매 (다시 사용)</strong></td><td>새 설비·재교육 때 다시 들어온다</td><td>오프라인 현장</td><td>✅ 인터넷이 끊겨도 교육 화면이 열린다</td><td>재접속률</td></tr><tr><td><strong>로열티</strong></td><td>위험을 익명으로 신고하고, 동료에게 알려 준다</td><td>신고하면 불이익이 있을까 걱정</td><td>✅ 익명 신고 (신고자 식별값 0개)</td><td>신고 건수</td></tr></tbody></table></div>
+<hr>
+<h2 id="3-과제-3--수익-모델-구체화">3. 과제 3 — 수익 모델 구체화</h2>
+<h3 id="31-멘토링에서-논의한-수익원-판정-표-4">3.1 멘토링에서 논의한 수익원 판정 (표 4)</h3>
+<div class="tbl"><table><thead><tr><th>수익원 (원문)</th><th>판정 (제안)</th><th>이유</th><th>기록</th></tr></thead><tbody><tr><td><strong>담당자·사업주 대상 구독료</strong> — &quot;인력 채용 비용보다 저렴한 합리적 가격&quot;</td><td>✅ <strong>채택</strong> (2순위)</td><td>법 시행(N-20)으로 지불 이유가 생긴다. 채용 비용과의 비교값은 미정 (팀원 B, 11/06)</td><td><a href="../../../documentations/10_사업화/S01_수익모델-초안.md">S01 §4</a></td></tr><tr><td><strong>정부·지자체·산업단지 예산 연계</strong></td><td>✅ <strong>채택</strong> (1순위)</td><td>국비 143억 사업(N-22), 지자체 무상 배포 선례(N-26, N-27)</td><td>S01 §2</td></tr><tr><td><strong>광고</strong> — AI 생성 영상 속 광고, 앱 상·하단 배너</td><td>⛔ <strong>노동자 화면은 채택하지 않음</strong></td><td>① 노동자 화면은 외부 요청 0건이 확정 원칙이다(C06 D-002). 광고 네트워크를 붙이면 깨진다 ② 안전 지시 화면에 광고가 섞이면 지시의 신뢰가 떨어진다 ③ 멘토도 2교시에 &quot;온라인 광고보다 담당자 직접 영업이 핵심&quot;이라고 했다</td><td><a href="../../../documentations/00_개발컨벤션/C06_결정기록.md">C06 D-014</a></td></tr><tr><td><strong>해외 송금 서비스 (가상화폐)</strong></td><td>⏸ <strong>보류</strong></td><td>본업과 관계가 없고 금융 규제 검토가 필요하다. 노동자 0원 원칙과 맞지 않는다</td><td><a href="../../../documentations/00_개발컨벤션/C06_결정기록.md">C06 D-013</a></td></tr><tr><td><strong>이주노동자 데이터 판매</strong></td><td>⛔ <strong>채택하지 않음</strong></td><td>익명 신고·식별번호 미수집 원칙과 충돌. 대안은 익명·집계 지역 리포트</td><td><a href="../../../documentations/00_개발컨벤션/C06_결정기록.md">C06 D-009</a></td></tr></tbody></table></div>
+<h3 id="32-정리한-수익-모델-한-장">3.2 정리한 수익 모델 (한 장)</h3>
+<pre><code> [1순위] 지자체·공공기관 ──이용권(사업장당 연 20만 원 🔷)──► 50인 미만 사업장에 무료 배포
+ [2순위] 사업주 직접 구독 ──사업장당 연 30만 원 🔷──► 2027-01-08 법 시행 이후
+ [부가]  지역 이해도 리포트 (익명·집계) ──► 지자체 성과 보고 자료
+ [0원]   노동자</code></pre>
+<p>추정 수익(🔷 가정)은 1년차 2,000만 원 → 2년차 1억 3,500만 원 → 3년차 4억 6,000만 원이다. 계산은 <a href="../../../documentations/10_사업화/S01_수익모델-초안.md">S01 §6</a>.</p>
+<hr>
+<h2 id="4-과제-4--시장-규모-재산정">4. 과제 4 — 시장 규모 재산정</h2>
+<h3 id="41-아이디어톤-숫자-검증-결과">4.1 아이디어톤 숫자 검증 결과</h3>
+<div class="tbl"><table><thead><tr><th>숫자</th><th>판정</th><th>이유</th></tr></thead><tbody><tr><td>TAM 1.2조 · SAM 1,440억 · SOM 180억 원</td><td>⛔ 사용 금지 (S02 N-93)</td><td>산출식이 없다. TAM만 사업장당 단가가 다르다 (48만 원 vs 120만 원)</td></tr><tr><td>객단가 120만 원</td><td>⛔ 사용 금지 (S02 N-94)</td><td>지불의사를 확인한 사업장이 없다</td></tr></tbody></table></div>
+<h3 id="42-다시-계산한-시장-규모-표-5">4.2 다시 계산한 시장 규모 (표 5)</h3>
+<blockquote><p>시장 규모 = <strong>고객 수(✅ 출처 있음) × 단가(🔷 가정)</strong>. 단가가 가정이므로 금액 전체가 가정이다.</p></blockquote>
+<div class="tbl"><table><thead><tr><th>구분</th><th>정의</th><th>계산</th><th>금액</th></tr></thead><tbody><tr><td><strong>TAM</strong></td><td>국내 외국인 취업자 전체의 안전교육 이해 확인</td><td>110만 9천 명(N-02) × 인당 연 6만 원(🔷 월 5천 원)</td><td><strong>약 665억 원</strong> (N-40)</td></tr><tr><td><strong>SAM</strong></td><td>그중 50인 미만 사업장 종사자</td><td>110만 9천 명 × 78.9%(N-04) = 약 87만 5천 명 × 연 6만 원</td><td><strong>약 525억 원</strong> (N-41)</td></tr><tr><td><strong>SOM 상한</strong></td><td>고용허가제(E-9·H-2) 외국인 고용 사업장 전부가 구독할 때</td><td>65,913곳(N-31) × 사업장당 연 30만 원(🔷)</td><td><strong>약 198억 원</strong> (N-42)</td></tr></tbody></table></div>
+<ul><li>SAM의 78.9%는 2023년 비율이고, 110만 9천 명은 2025년 값이다. 두 해를 섞은 계산이다.</li><li>SOM 상한은 <strong>65,913곳이 모두 산다는 뜻</strong>이다. 실제로 얻을 수 있는 몫은 이보다 훨씬 작다.</li></ul>
+<h3 id="43-som-최소-500억에-대한-우리-답">4.3 &quot;SOM 최소 500억&quot;에 대한 우리 답</h3>
+<ul><li><strong>500억 원은 SAM 수준(약 525억 원)에서만 나온다.</strong> SOM으로 500억 원을 만들려면 다음 중 하나가 필요하다.<ul><li>인당 연 6만 원으로 약 83만 명이 쓴다 → 외국인 취업자의 약 75% (N-43). <strong>근거 없음.</strong></li><li>고용허가제 사업장 65,913곳 전부가 사업장당 연 약 76만 원을 낸다 (N-43). <strong>근거 없음.</strong></li></ul></li><li>그래서 <strong>SOM 500억 원은 발표에 쓰지 않는다</strong> (제안). 대신 &quot;SAM 약 525억 원, 그중 3년 내 얻을 몫&quot;으로 말한다.</li><li>범위 확장 아이디어(멘토 제안: 수도권·충청 고위험 공장)는 지역별 외국인 고용 사업장 수를 찾아 다시 계산한다 → 미정 (팀원 A, 11/06). 출처: 고용노동부 「지역별 업종별 외국인근로자 현황」(공공데이터포털).</li><li><strong>인당 단가를 쓰면 S01의 사업장 단위 가격과 다르다.</strong> 사업장 단위는 &quot;등록 인원을 줄일 동기&quot;를 막기 위해 골랐다. 시장 규모 계산에만 인당 값을 쓰고, 판매 가격은 사업장 단위로 둔다 (제안).</li></ul>
+<hr>
+<h2 id="5-작업-3--사업-모델-페이지">5. 작업 3 — 사업 모델 페이지</h2>
+<h3 id="51-고객이해관계자-관계도-그림-1">5.1 고객·이해관계자 관계도 (그림 1)</h3>
+<pre><code>                 고용노동부 · 안전보건공단
+                 (법 N-20, 국비 N-22, 다국어 자료)
+                           │ 예산·정책
+                           ▼
+   ┌─────────── 지자체 · 공공기관 ───────────┐
+   │ 이용권 구매 (돈)            성과 리포트 ▲│
+   ▼                                          │
+  [ 우리 : 이해도 검증 플랫폼 ] ──────────────┘
+   │ 검수된 다국어 교육 · 이해 확인 · 실시 기록
+   ▼
+  50인 미만 사업장 (사업주 · 안전 담당자) ◄── 원청 대기업·건설사 (협력사 지원)
+   │ QR 교육 배포                 ▲ 익명 신고 · 이해 결과
+   ▼                              │
+  이주노동자 (0원) ───────────────┘
+   ▲
+  번역 검수자 (운영자) ── 안전 문구 번역을 승인·중지</code></pre>
+<h3 id="52-시장-진입-전략-표-6">5.2 시장 진입 전략 (표 6)</h3>
+<div class="tbl"><table><thead><tr><th>단계</th><th>시기 (제안)</th><th>할 일</th><th>성공 기준</th></tr></thead><tbody><tr><td>1. 실증</td><td>해커톤 후 3개월</td><td>충청권 50인 미만 제조 사업장 <strong>1곳</strong> 무료 시범</td><td>노동자 10명 이상 사용, 최초 통과율·재교육 결과 확보</td></tr><tr><td>2. 첫 지자체</td><td>2027년 상반기</td><td>실증 결과로 지자체 1곳의 국비 사업(N-22)에 참여</td><td>사업장 100곳 계약</td></tr><tr><td>3. 법 시행 대응</td><td>2027-01-08 이후</td><td>사업주 직접 구독 열기</td><td>직접 구독 50곳</td></tr><tr><td>4. 확대</td><td>2028년</td><td>지자체 3~10곳, 원청 협력사 묶음</td><td>S01 §6 3년차 수치</td></tr></tbody></table></div>
+<h3 id="53-마케팅-전략">5.3 마케팅 전략</h3>
+<ul><li><strong>직접 영업이 중심이다.</strong> 멘토 의견대로 온라인 광고보다 담당자를 만나 설득한다.</li><li>지자체 산업안전 부서, 경제자유구역청, 산업단지 관리기관을 직접 방문한다.</li><li>시연은 10분 안에 &quot;QR → 내 언어 음성 → 그림 문제 → 대시보드 → 증빙&quot; 한 바퀴를 보여 준다.</li><li>판매 문장은 &quot;교육을 전달했다&quot;가 아니라 <strong>&quot;이해했는지 확인했다&quot;</strong> 이다. &quot;면책&quot;이라는 말은 쓰지 않는다 (P-7).</li></ul>
+<h3 id="54-가격-정책">5.4 가격 정책</h3>
+<p>→ <a href="../../../documentations/10_사업화/S01_수익모델-초안.md">S01 §5</a> (지자체 묶음 사업장당 연 20만 원, 사업주 직접 연 30만 원, 노동자 0원 — 전부 🔷 가정)</p>
+<h3 id="55-대략적-원가-구조-표-7">5.5 대략적 원가 구조 (표 7)</h3>
+<div class="tbl"><table><thead><tr><th>항목</th><th>내용</th><th>금액</th></tr></thead><tbody><tr><td>서버·배포</td><td>지금은 Vercel 정적 배포(Hobby, 무료). Hobby는 비상업 용도만 허용하므로 판매 시 Pro로 옮긴다. 서버·DB·로그인도 필요하다</td><td>Pro 개발자당 월 20달러 (N-61). DB 비용 미정 (byeonsoyun, 11/06)</td></tr><tr><td>AI 사용료</td><td>번역 초안·역번역 (관리자 화면만, 노동자 화면은 0건)</td><td>문구 100개당 약 0.13~5달러 (N-63, 🔷 가정 위의 계산). 실측으로 바꾼다</td></tr><tr><td>번역 검수 인건비</td><td>사람이 안전 문구를 승인한다. <strong>가장 큰 변동비로 예상</strong></td><td>미정</td></tr><tr><td>음성</td><td>지금은 기기 내장 음성(무료). 녹음 음성을 쓰면 비용 발생</td><td>미정</td></tr><tr><td>영업·고객 지원</td><td>직접 방문, 시범 사업장 지원</td><td>미정</td></tr></tbody></table></div>
+<blockquote><p>원가 금액은 하나도 확인하지 않았다. 발표 전에 항목별 월 비용을 조사한다 → 미정 (byeonsoyun, 11/06).</p></blockquote>
+<hr>
+<h2 id="6-남은-일-표-8">6. 남은 일 (표 8)</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>할 일</th><th>담당</th><th>기한</th></tr></thead><tbody><tr><td>1</td><td>이 문서를 팀원 B가 검토하고 고칠 곳을 표시한다</td><td>팀원 B</td><td>10/25</td></tr><tr><td>2</td><td>&quot;인력 채용 비용&quot;과 비교할 숫자(안전 통역·관리 인력 인건비)를 찾는다</td><td>팀원 B</td><td>11/06</td></tr><tr><td>3</td><td>수도권·충청 지역별 외국인 고용 사업장 수를 찾아 §4를 다시 계산한다</td><td>팀원 A</td><td>11/06</td></tr><tr><td>4</td><td>원가 항목별 월 비용을 조사한다 (§5.5)</td><td>byeonsoyun</td><td>11/06</td></tr><tr><td>5</td><td>이 내용을 11월 최종 발표 자료(사업 모델 페이지)에 옮긴다</td><td>팀원 B</td><td>3차 스프린트</td></tr></tbody></table></div>
+<hr>
+<h2 id="제개정-이력">제·개정 이력</h2>
+<div class="tbl"><table><thead><tr><th>버전</th><th>날짜</th><th>작성자</th><th>내용</th></tr></thead><tbody><tr><td>0.2</td><td>2026-10-22</td><td>byeonsoyun</td><td>§5.5 원가 표에 Vercel 요금제(N-61)와 AI 사용료 어림(N-63) 반영</td></tr><tr><td>0.1</td><td>2026-10-22</td><td>byeonsoyun</td><td>최초 작성. 1차 멘토링 기록(html)의 과제 4개·작업목록을 과제 형식으로 정리</td></tr></tbody></table></div>
+<p class="src">이 페이지는 <code>S04_멘토링1차-과제-정리.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>

@@ -298,9 +298,9 @@ UI.formatDate(iso)
 
 | 무엇 | 어디 |
 |---|---|
-| 제품 요구사항 원문 | `projects/campus-ax-ton/docs/PRD-safety.pdf` |
-| 화면 구성 원문 | `projects/campus-ax-ton/docs/SCREEN-safety.pdf` |
-| 2분 발표 대본 | `projects/campus-ax-ton/docs/PRESENTATION-safety.md` |
+| 제품 요구사항 원문 | `보관_아이디어톤-원본/docs/PRD-safety.pdf` |
+| 화면 구성 원문 | `보관_아이디어톤-원본/docs/SCREEN-safety.pdf` |
+| 2분 발표 대본 | `보관_아이디어톤-원본/docs/PRESENTATION-safety.md` |
 | **정적 목업 (옮겨 오면 되는 화면들)** | **`docs/mockups/`** |
 | 관리자 화면 설계 메모 | `docs/mockups/ADMIN-SCREENS.md` |
 | 팀 git 규칙 | `git-rules/GIT.md` |

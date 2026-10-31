@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기술 개발 명세 보고서</title><style>:root{--bg:#faf8f5;--card:#fff;--ink:#1f2430;--sub:#5d6575;--mute:#8a909c;--line:#e6e1d8;--coral:#e5533d;--coral-bg:#fdebe7;--purple:#5b3fd0;--purple-bg:#eeeafb;--blue:#3b6fd8;--ok:#1f8a4c;--wip:#b46a00;--gray-bg:#eef0f3;--axis:#b9b4a9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171c;--card:#1e2128;--ink:#ecebe7;--sub:#a4abb9;--mute:#7f8696;--line:#323744;--coral:#ff7a66;--coral-bg:#3a2320;--purple:#a493ff;--purple-bg:#272240;--blue:#7ea4ff;--ok:#5fd18d;--wip:#f0b45a;--gray-bg:#272b33;--axis:#5b6170}}
+:root[data-theme="dark"]{--bg:#15171c;--card:#1e2128;--ink:#ecebe7;--sub:#a4abb9;--mute:#7f8696;--line:#323744;--coral:#ff7a66;--coral-bg:#3a2320;--purple:#a493ff;--purple-bg:#272240;--blue:#7ea4ff;--ok:#5fd18d;--wip:#f0b45a;--gray-bg:#272b33;--axis:#5b6170}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.65;font-size:16px;word-break:keep-all}
+.wrap{max-width:900px;margin:0 auto;padding:40px 16px 64px}
+.cover{border-bottom:2px solid var(--ink);padding-bottom:22px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--sub);font-weight:700}
+h1{font-size:clamp(26px,4.8vw,38px);line-height:1.25;margin:10px 0 8px;letter-spacing:-.015em}
+.subtitle{font-size:17px;color:var(--sub);margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:16px;font-size:13px;color:var(--sub)}
+.meta b{color:var(--ink);font-weight:600}
+.exec{margin-top:24px}
+.exec h2{font-size:13px;letter-spacing:.1em;color:var(--sub);margin:0 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.kpi .v small{font-size:15px;font-weight:700;margin-left:2px}
+.kpi .l{font-size:13px;color:var(--sub);margin-top:4px}
+.legend{font-size:13px;color:var(--sub);margin:12px 0 0}
+.idx{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:16px 0 0}
+.idx a{display:block;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.idx a b{color:var(--coral);font-size:12px;display:block;letter-spacing:.06em}
+.idx a span{font-weight:700;font-size:14px}
+.idx a:hover{border-color:var(--coral)}
+section{margin-top:48px;scroll-margin-top:16px}
+.tag{font-size:12px;font-weight:800;color:var(--coral);letter-spacing:.08em}
+h2.ch{font-size:23px;margin:2px 0 10px;letter-spacing:-.01em}
+.ans{font-size:17px;margin:0 0 16px;padding:12px 16px;background:var(--purple-bg);border-radius:10px}
+.ans b{font-weight:800}
+section p{margin:10px 0}
+section ul,section ol{padding-left:22px}
+section li{margin:4px 0}
+.tw{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--gray-bg);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.tot td{font-weight:800}
+blockquote{margin:12px 0;padding:10px 16px;border-left:4px solid var(--coral);background:var(--card);border-radius:0 10px 10px 0;color:var(--ink)}
+blockquote p{margin:6px 0}
+#s13 blockquote{font-size:17px;line-height:1.75}
+.formula{margin:12px 0;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:16px}
+.formula span{color:var(--sub);font-size:13px}
+code{background:var(--gray-bg);padding:1px 6px;border-radius:5px;font-size:14px}
+a{color:var(--blue)}
+.fig{margin:16px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.fig svg{display:block;width:100%;height:auto;font-family:inherit}
+.fig figcaption{font-size:12.5px;color:var(--mute);margin-top:6px}
+.s-ink{fill:var(--ink)} .s-sub{fill:var(--sub)}
+.s-box{fill:none;stroke:var(--axis);stroke-width:1.25}
+.s-boxm{fill:var(--blue);fill-opacity:.12;stroke:var(--blue);stroke-width:2}
+.s-line{stroke:var(--axis);stroke-width:1.25} .s-axf{fill:var(--axis)}
+.s-axis{stroke:var(--axis)} .s-ref{stroke:var(--sub)}
+.s-bar{fill:var(--blue)}
+details.data{margin:8px 0 0;font-size:14px}
+details.data summary{cursor:pointer;color:var(--sub)}
+.mk{font-style:normal}
+.src li{font-size:14px}
+.foot{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mute)}
+@media print{body{background:#fff}.idx{display:none}section{break-inside:auto}.fig,.tw{break-inside:avoid}}
+
+.fig{overflow-x:auto}
+.fig svg{min-height:0}
+.t-ink{fill:var(--ink)} .t-sub{fill:var(--sub)} .t-code{fill:var(--ink);font-family:ui-monospace,Consolas,monospace}
+.box{fill:var(--card);stroke:var(--axis);stroke-width:1.25}
+.box-sys{fill:var(--blue);fill-opacity:.07;stroke:var(--blue);stroke-width:2}
+.box-c{fill:var(--coral);fill-opacity:.09;stroke:var(--coral);stroke-width:1.4}
+.box-p{fill:var(--purple);fill-opacity:.08;stroke:var(--purple);stroke-width:1.4}
+.box-g{fill:var(--ok);fill-opacity:.09;stroke:var(--ok);stroke-width:1.4}
+.box-site{fill:var(--gray-bg);fill-opacity:.6;stroke:var(--axis);stroke-width:1;stroke-dasharray:6 4}
+.chip{fill:var(--card);stroke:var(--line)} .chip-b{fill:var(--blue);fill-opacity:.08;stroke:var(--blue)}
+.k-a{fill:var(--purple);fill-opacity:.14;stroke:var(--purple)} .k-w{fill:var(--coral);fill-opacity:.14;stroke:var(--coral)} .k-n{fill:var(--gray-bg);stroke:var(--axis)}
+.ln{stroke:var(--axis);stroke-width:1.4} .ln-b{stroke:var(--blue);stroke-width:1.6} .ln-c{stroke:var(--coral);stroke-width:1.6} .ln-p{stroke:var(--purple);stroke-width:1.6} .ln-g{stroke:var(--ok);stroke-width:1.8}
+.flow-in{stroke:var(--ok);stroke-opacity:.55} .flow-out{stroke:var(--ok);stroke-opacity:.35}
+.mk-gray{fill:var(--axis)} .mk-blue{fill:var(--blue)} .mk-green{fill:var(--ok)} .mk-coral{fill:var(--coral)} .mk-purple{fill:var(--purple)}
+.lane0{fill:var(--card)} .lane1{fill:var(--gray-bg);fill-opacity:.5}
+.keys{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--sub);margin:6px 0 0}
+.keys i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 5}
+.note{fill:var(--coral);fill-opacity:.08;stroke:var(--coral)}
+.ring{fill:var(--blue);fill-opacity:.05;stroke:var(--blue);stroke-width:1.2}
+a.ev{color:var(--blue);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+a.ev:hover{color:var(--coral)}
+.ask2{margin:12px 0 0;padding:10px 14px;border:1px dashed var(--line);border-radius:10px;font-size:14.5px;background:var(--card)}
+.ask2 b{color:var(--coral)}
+.api{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media(max-width:720px){.api{grid-template-columns:minmax(0,1fr)}}
+.api .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.api h3{margin:0 0 6px;font-size:15px;font-family:ui-monospace,Consolas,monospace}
+.api .k{font-size:12px;color:var(--sub);margin:10px 0 4px;font-weight:700}
+pre{background:var(--gray-bg);border-radius:10px;padding:10px 12px;overflow-x:auto;font-size:12.5px;line-height:1.5;margin:6px 0}
+pre code{background:none;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip2{font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.chip2 b{font-family:ui-monospace,Consolas,monospace;margin-right:4px}
+.appendix{margin-top:64px;border-top:2px solid var(--ink);padding-top:12px}
+.appendix h2.ah{font-size:19px;margin:36px 0 8px;scroll-margin-top:12px}
+.appendix h3{font-size:16px;margin:22px 0 6px}
+.appendix blockquote{font-size:14px}
+.stack td:first-child{font-weight:700;white-space:nowrap}
+</style></head>
+<body><div class="wrap" style="max-width:1040px">
+<header class="cover"><div class="eyebrow">기술 멘토링 · 2026-10-30 준비</div>
+<h1>무엇으로 만들고, 어떻게 연결하고, 무엇을 결정받나</h1>
+<p class="subtitle">이주노동자 안전교육 이해도 검증 플랫폼의 기술 개발 명세를 그림 8장으로 정리했다. 밑줄 친 말을 누르면 아래 부록의 전체 명세로 간다.</p>
+<div class="meta"><span><b>작성</b> byeonsoyun</span><span><b>기준</b> 코드 src/·tests/ (2026-10-23), A02 v0.3</span><span><b>AI</b> Google Gemini API (C06 D-018)</span><span><b>원본</b> <a class="ev" href="A02_기술-개발-명세서.md">A02_기술-개발-명세서.md</a></span></div></header>
+<div class="exec"><div class="kpis">
+<div class="kpi"><div class="v">0<small>개</small></div><div class="l">외부 라이브러리·프레임워크</div></div>
+<div class="kpi"><div class="v">11<small>화면</small></div><div class="l">작업자 6 + 관리자 5 · 저장소 10칸</div></div>
+<div class="kpi"><div class="v">2<small>개</small></div><div class="l">해커톤에서 새로 만드는 API</div></div>
+<div class="kpi"><div class="v">9<small>개</small></div><div class="l">멘토링에서 받을 결정</div></div></div>
+<p class="legend">✅ 지금 동작 · 🔶 해커톤 단계 · ⬜ 판매 단계 · 🔶 계산값 · 결정/후보/미정은 부록에 표시</p>
+<nav class="idx"><a href="#p1"><b>01</b><span>지금 시스템</span></a><a href="#p2"><b>02</b><span>호출 순서</span></a><a href="#p3"><b>03</b><span>API 계약</span></a><a href="#p4"><b>04</b><span>상태 기계</span></a><a href="#p5"><b>05</b><span>기술 스택</span></a><a href="#p6"><b>06</b><span>보안·남용 방지</span></a><a href="#p7"><b>07</b><span>판매 단계</span></a><a href="#p8"><b>08</b><span>비용·순서·결정</span></a><a href="#appendix"><b>부록</b><span>전체 명세</span></a></nav></div>
+<section id="p1"><div class="tag">PART 01</div><h2 class="ch">지금 시스템</h2><p class="ans"><b>빌드 없는 정적 웹앱이다.</b> 화면 11개가 <a class="ev" href="#a4">전역 모듈</a>을 거쳐 <a class="ev" href="#a7">브라우저 저장소 10칸</a>을 읽고 쓴다. 프레임워크·외부 라이브러리는 0개이고, 해커톤에서는 관리자앱에 <a class="ev" href="#a6">AI 에이전트</a>와 <a class="ev" href="#a5">/api 함수 2개</a>만 더한다.</p><figure class="fig"><svg viewBox="0 0 1000 520" role="img" aria-label="시스템 아키텍처" style="min-width:760px"><defs><marker id="a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-gray"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-blue"/></marker><marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-green"/></marker><marker id="a-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-coral"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-purple"/></marker></defs><rect x="20" y="20" width="240" height="320" rx="8" class="box-c"/><text x="140" y="46" font-size="14" text-anchor="middle" class="t-ink" font-weight="700">작업자앱 src/worker/</text><text x="140" y="64" font-size="11.5" text-anchor="middle" class="t-sub">노동자 스마트폰 · 외부 요청 0건</text><rect x="36" y="80" width="208" height="34" rx="8" class="chip"/><text x="48" y="102" font-size="12" text-anchor="start" class="t-code">home</text><text x="232" y="102" font-size="11.5" text-anchor="end" class="t-sub">홈 · 오늘의 문구</text><rect x="36" y="122" width="208" height="34" rx="8" class="chip"/><text x="48" y="144" font-size="12" text-anchor="start" class="t-code">learn</text><text x="232" y="144" font-size="11.5" text-anchor="end" class="t-sub">교육 수강 · 음성</text><rect x="36" y="164" width="208" height="34" rx="8" class="chip"/><text x="48" y="186" font-size="12" text-anchor="start" class="t-code">quiz</text><text x="232" y="186" font-size="11.5" text-anchor="end" class="t-sub">이해도 검증</text><rect x="36" y="206" width="208" height="34" rx="8" class="chip"/><text x="48" y="228" font-size="12" text-anchor="start" class="t-code">report</text><text x="232" y="228" font-size="11.5" text-anchor="end" class="t-sub">위험 신고 · 받아쓰기</text><rect x="36" y="248" width="208" height="34" rx="8" class="chip"/><text x="48" y="270" font-size="12" text-anchor="start" class="t-code">talk</text><text x="232" y="270" font-size="11.5" text-anchor="end" class="t-sub">현장 소통</text><rect x="36" y="290" width="208" height="34" rx="8" class="chip"/><text x="48" y="312" font-size="12" text-anchor="start" class="t-code">my</text><text x="232" y="312" font-size="11.5" text-anchor="end" class="t-sub">마이페이지 · 복기</text><rect x="290" y="20" width="240" height="320" rx="8" class="box-sys"/><text x="410" y="46" font-size="14" text-anchor="middle" class="t-ink" font-weight="700">Store assets/store.js</text><text x="410" y="64" font-size="11.5" text-anchor="middle" class="t-sub">localStorage 접근은 여기서만</text><rect x="306" y="80" width="100" height="34" rx="8" class="k-n"/><text x="356" y="102" font-size="12" text-anchor="middle" class="t-code">accounts</text><rect x="414" y="80" width="100" height="34" rx="8" class="k-n"/><text x="464" y="102" font-size="12" text-anchor="middle" class="t-code">session</text><rect x="306" y="122" width="100" height="34" rx="8" class="k-a"/><text x="356" y="144" font-size="12" text-anchor="middle" class="t-code">setup</text><rect x="414" y="122" width="100" height="34" rx="8" class="k-a"/><text x="464" y="144" font-size="12" text-anchor="middle" class="t-code">library</text><rect x="306" y="164" width="100" height="34" rx="8" class="k-a"/><text x="356" y="186" font-size="12" text-anchor="middle" class="t-code">courses</text><rect x="414" y="164" width="100" height="34" rx="8" class="k-a"/><text x="464" y="186" font-size="12" text-anchor="middle" class="t-code">orders</text><rect x="306" y="206" width="100" height="34" rx="8" class="k-w"/><text x="356" y="228" font-size="12" text-anchor="middle" class="t-code">progress</text><rect x="414" y="206" width="100" height="34" rx="8" class="k-w"/><text x="464" y="228" font-size="12" text-anchor="middle" class="t-code">reports</text><rect x="306" y="248" width="100" height="34" rx="8" class="k-w"/><text x="356" y="270" font-size="12" text-anchor="middle" class="t-code">posts</text><rect x="414" y="248" width="100" height="34" rx="8" class="k-n"/><text x="464" y="270" font-size="12" text-anchor="middle" class="t-code">prefs</text><text x="410" y="300" font-size="11" text-anchor="middle" class="t-sub">보라 = 관리자앱이 씀 · 코랄 = 작업자앱이 씀</text><text x="410" y="318" font-size="11" text-anchor="middle" class="t-sub">회색 = 공통(로그인·설정)</text><rect x="560" y="20" width="240" height="320" rx="8" class="box-p"/><text x="680" y="46" font-size="14" text-anchor="middle" class="t-ink" font-weight="700">관리자앱 src/admin/</text><text x="680" y="64" font-size="11.5" text-anchor="middle" class="t-sub">사무실 PC · 담당자·운영자</text><rect x="576" y="80" width="208" height="34" rx="8" class="chip"/><text x="588" y="102" font-size="12" text-anchor="start" class="t-code">setup</text><text x="772" y="102" font-size="11.5" text-anchor="end" class="t-sub">사업장 등록</text><rect x="576" y="122" width="208" height="34" rx="8" class="chip"/><text x="588" y="144" font-size="12" text-anchor="start" class="t-code">library</text><text x="772" y="144" font-size="11.5" text-anchor="end" class="t-sub">문구 라이브러리·검수</text><rect x="576" y="164" width="208" height="34" rx="8" class="chip"/><text x="588" y="186" font-size="12" text-anchor="start" class="t-code">content</text><text x="772" y="186" font-size="11.5" text-anchor="end" class="t-sub">교육 만들기·QR</text><rect x="576" y="206" width="208" height="34" rx="8" class="chip"/><text x="588" y="228" font-size="12" text-anchor="start" class="t-code">dashboard</text><text x="772" y="228" font-size="11.5" text-anchor="end" class="t-sub">대시보드·재교육</text><rect x="576" y="248" width="208" height="34" rx="8" class="chip"/><text x="588" y="270" font-size="12" text-anchor="start" class="t-code">proof</text><text x="772" y="270" font-size="11.5" text-anchor="end" class="t-sub">교육 증빙 인쇄</text><rect x="576" y="290" width="208" height="34" rx="8" class="chip-b" stroke-dasharray="5 4"/><text x="588" y="312" font-size="12" text-anchor="start" class="t-code">agent.js 🔶</text><text x="772" y="312" font-size="11.5" text-anchor="end" class="t-sub">AI 번역·검수</text><path d="M260 140H286" class="ln-c" fill="none" marker-end="url(#a-coral)"/><path d="M290 200H264" class="ln-c" fill="none" marker-end="url(#a-coral)"/><path d="M560 140H534" class="ln-p" fill="none" marker-end="url(#a-purple)"/><path d="M530 200H556" class="ln-p" fill="none" marker-end="url(#a-purple)"/><rect x="830" y="40" width="150" height="80" rx="8" class="box" stroke-dasharray="5 4"/><text x="905.0" y="76.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">Gemini API 🔶</text><text x="905.0" y="93.5" font-size="11.5" text-anchor="middle" class="t-sub">번역 · 역번역</text><rect x="830" y="200" width="150" height="100" rx="8" class="box" stroke-dasharray="5 4"/><text x="905.0" y="231.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">/api 함수 🔶</text><text x="905.0" y="248.5" font-size="11.5" text-anchor="middle" class="t-sub">translate</text><text x="905.0" y="263.5" font-size="11.5" text-anchor="middle" class="t-sub">backtranslate</text><text x="905.0" y="278.5" font-size="11.5" text-anchor="middle" class="t-sub">키는 환경변수</text><path d="M784 307H826" class="ln-b" fill="none" stroke-dasharray="5 4" marker-end="url(#a-blue)"/><path d="M905 200V124" class="ln-b" fill="none" stroke-dasharray="5 4" marker-end="url(#a-blue)"/><rect x="20" y="370" width="960" height="50" rx="8" class="box"/><text x="36" y="400" font-size="12.5" text-anchor="start" class="t-ink">공통 assets: auth(로그인·역할 가드) · i18n(6개 언어) · ui(음성 합성·배지) · icons · qr · diagrams · review(역번역 대조) · seed</text><rect x="20" y="440" width="300" height="64" rx="8" class="box"/><text x="170.0" y="468.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">Vercel 정적 배포 ✅</text><text x="170.0" y="485.5" font-size="11.5" text-anchor="middle" class="t-sub">Root Directory = src · vercel.json 없음</text><rect x="340" y="440" width="300" height="64" rx="8" class="box"/><text x="490.0" y="468.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">sw.js 오프라인 캐시 ✅</text><text x="490.0" y="485.5" font-size="11.5" text-anchor="middle" class="t-sub">인터넷이 끊겨도 교육 화면이 열린다</text><rect x="660" y="440" width="320" height="64" rx="8" class="box" stroke-dasharray="5 4"/><text x="820.0" y="468.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">판매용 서버 ⬜</text><text x="820.0" y="485.5" font-size="11.5" text-anchor="middle" class="t-sub">API·PostgreSQL·파일·인증 · Store 안쪽만 교체</text></svg><figcaption>src/ 폴더 기준 · 점선은 해커톤(🔶)·판매 단계(⬜)에서 추가</figcaption></figure></section><section id="p2"><div class="tag">PART 02</div><h2 class="ch">해커톤에서 붙이는 것 — 호출 순서</h2><p class="ans"><b>브라우저가 순서를 지휘하고, 서버 함수는 Gemini를 한 번씩만 부른다.</b> 키는 서버에만 있고, 역번역에는 원문을 주지 않으며, 결과는 언제나 <a class="ev" href="#a6">대기(waiting)</a>로 들어온다. 사람이 승인해야 노동자에게 간다.</p><figure class="fig"><svg viewBox="0 0 920 604" role="img" aria-label="AI 번역 검수 호출 순서" style="min-width:760px"><defs><marker id="a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-gray"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-blue"/></marker><marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-green"/></marker><marker id="a-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-coral"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-purple"/></marker></defs><rect x="0" y="16" width="180" height="52" rx="8" class="box-p"/><text x="90.0" y="38.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">운영자</text><text x="90.0" y="55.5" font-size="11.5" text-anchor="middle" class="t-sub">관리자앱 library</text><line x1="90" x2="90" y1="68" y2="600" class="life"/><rect x="240" y="16" width="180" height="52" rx="8" class="box-sys"/><text x="330.0" y="38.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">agent.js</text><text x="330.0" y="55.5" font-size="11.5" text-anchor="middle" class="t-sub">브라우저 · 루프 지휘</text><line x1="330" x2="330" y1="68" y2="600" class="life"/><rect x="490" y="16" width="180" height="52" rx="8" class="box"/><text x="580.0" y="38.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">/api 함수</text><text x="580.0" y="55.5" font-size="11.5" text-anchor="middle" class="t-sub">Vercel · 키 보관</text><line x1="580" x2="580" y1="68" y2="600" class="life"/><rect x="730" y="16" width="180" height="52" rx="8" class="box-g"/><text x="820.0" y="38.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">Gemini API</text><text x="820.0" y="55.5" font-size="11.5" text-anchor="middle" class="t-sub">generateContent</text><line x1="820" x2="820" y1="68" y2="600" class="life"/><path d="M90 100H324" class="ln-p" fill="none" marker-end="url(#a-purple)"/><text x="210.0" y="93" font-size="11.5" text-anchor="middle" class="t-ink">① [AI 번역 받기] (언어 5개)</text><path d="M330 140H574" class="ln-b" fill="none" marker-end="url(#a-blue)"/><text x="455.0" y="133" font-size="11.5" text-anchor="middle" class="t-ink">② POST /api/translate {ko, lang, attempt}</text><path d="M580 180H814" class="ln-g" fill="none" marker-end="url(#a-green)"/><text x="700.0" y="173" font-size="11.5" text-anchor="middle" class="t-ink">③ 번역 요청 · gemini-3.1-flash-lite</text><path d="M820 215H586" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><text x="700.0" y="208" font-size="11.5" text-anchor="middle" class="t-sub">번역문</text><path d="M580 250H336" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><text x="455.0" y="243" font-size="11.5" text-anchor="middle" class="t-sub">{text, model} — status 없음</text><path d="M330 295H574" class="ln-b" fill="none" marker-end="url(#a-blue)"/><text x="455.0" y="288" font-size="11.5" text-anchor="middle" class="t-ink">④ POST /api/backtranslate {text, lang}</text><path d="M580 335H814" class="ln-g" fill="none" marker-end="url(#a-green)"/><text x="700.0" y="328" font-size="11.5" text-anchor="middle" class="t-ink">⑤ 역번역 · 다른 모델, 원문은 안 보냄</text><path d="M820 370H586" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><text x="700.0" y="363" font-size="11.5" text-anchor="middle" class="t-sub">한국어 역번역</text><path d="M580 405H336" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><text x="455.0" y="398" font-size="11.5" text-anchor="middle" class="t-sub">{back, model}</text><rect x="250" y="425" width="160" height="54" rx="8" class="note"/><text x="330" y="446" font-size="12.5" text-anchor="middle" class="t-ink" font-weight="700">⑥ 규칙 대조</text><text x="330" y="464" font-size="11.5" text-anchor="middle" class="t-sub" font-family="ui-monospace,Consolas,monospace">negationFlipped</text><path d="M250 452H220V146H324" class="ln-c" fill="none" stroke-dasharray="5 4" marker-end="url(#a-coral)"/><text x="214" y="300" font-size="11" text-anchor="end" class="t-sub">뒤집히면</text><text x="214" y="314" font-size="11" text-anchor="end" class="t-sub">최대 2회 재시도</text><path d="M330 515H96" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><text x="210.0" y="508" font-size="11.5" text-anchor="middle" class="t-sub">⑦ 언어 행 표시 · 항상 대기(waiting)로 저장</text><path d="M90 560H324" class="ln-p" fill="none" marker-end="url(#a-purple)"/><text x="210.0" y="553" font-size="11.5" text-anchor="middle" class="t-ink">⑧ 사람이 승인·중지·직접 입력 → 판정 기록</text><text x="20" y="592" font-size="11.5" text-anchor="start" class="t-sub">언어끼리는 병렬, 한 언어 안에서는 순차 · 어느 단계든 실패하면 손 입력 칸이 나온다</text></svg><figcaption>운영자가 버튼 한 번을 누르면 일어나는 일 · 언어 5개 기준</figcaption></figure><p class="ask2"><b>멘토에게 확인할 것</b> · 루프를 브라우저에서 돌리는 A안이 맞나, 서버 B안이 맞나? <a class="ev" href="#a12">(결정 2)</a></p></section><section id="p3"><div class="tag">PART 03</div><h2 class="ch">API 계약</h2><p class="ans"><b>함수는 2개, 메서드는 POST 하나, 응답에 승인 상태는 없다.</b> 오류는 9가지이고 어떤 오류든 화면은 손 입력으로 돌아간다. 전체 규칙은 <a class="ev" href="#a5">부록 5장</a>.</p><div class="api">
+<div class="card"><h3>POST /api/translate</h3><div class="k">요청</div><pre><code>{ "ko": "회전 중인 롤러에 손을 넣지 마세요.",
+  "lang": "km", "attempt": 0, "hint": "" }</code></pre>
+<div class="k">응답 200</div><pre><code>{ "text": "…", "model": "gemini-3.1-flash-lite", "attempt": 0 }</code></pre>
+<div class="k">서버 → Gemini</div><pre><code>POST …/v1beta/models/$AI_MODEL_TRANSLATE:generateContent
+x-goog-api-key: $GEMINI_API_KEY
+{ "system_instruction": { "parts": [{ "text": "산업안전 번역 규칙…" }] },
+  "contents": [{ "role": "user", "parts": [{ "text": "&lt;ko&gt;" }] }],
+  "generationConfig": { "maxOutputTokens": 600,
+    "thinkingConfig": { "thinkingLevel": "low" } } }</code></pre></div>
+<div class="card"><h3>POST /api/backtranslate</h3><div class="k">요청</div><pre><code>{ "text": "&lt;번역문&gt;", "lang": "km" }</code></pre>
+<div class="k">응답 200</div><pre><code>{ "back": "&lt;한국어 역번역&gt;", "model": "gemini-3.8-flash" }</code></pre>
+<div class="k">규칙</div><ul style="margin:4px 0;padding-left:18px;font-size:14px">
+<li>번역과 <b>다른 모델</b>(후보 gemini-3.8-flash)</li><li>원래 한국어 문장을 <b>보내지 않는다</b> — 보내면 모델이 원문에 맞춰 고쳐 대조가 무의미해진다</li>
+<li><code>temperature</code>를 보내지 않는다 (Gemini 3.6+ 무시·향후 400)</li><li>응답 <code>candidates[0].content.parts[0].text</code>만 읽는다</li></ul></div></div>
+<div class="chips"><span class="chip2"><b>400</b>입력 오류</span><span class="chip2"><b>401</b>통과 문구</span><span class="chip2"><b>403</b>다른 출처</span><span class="chip2"><b>405</b>POST 아님</span><span class="chip2"><b>413</b>4KB 초과</span><span class="chip2"><b>429</b>일일 상한</span><span class="chip2"><b>500</b>설정 누락</span><span class="chip2"><b>502</b>모델 오류·차단</span><span class="chip2"><b>504</b>20초 초과</span></div>
+<div class="tw"><table><thead><tr><th>환경변수</th><th>값 예</th><th>설명</th></tr></thead><tbody>
+<tr><td><code>GEMINI_API_KEY</code></td><td>(비밀)</td><td>Google AI Studio 발급. 헤더로만 보냄. Production은 <b>유료 등급</b></td></tr>
+<tr><td><code>AI_MODEL_TRANSLATE</code></td><td><code>gemini-3.1-flash-lite</code></td><td>번역</td></tr>
+<tr><td><code>AI_MODEL_BACK</code></td><td><code>gemini-3.8-flash</code></td><td>역번역 (미정)</td></tr>
+<tr><td><code>AI_TIMEOUT_MS</code> · <code>AI_DAILY_LIMIT</code></td><td>20000 · 600</td><td>타임아웃 · 하루 호출 상한</td></tr>
+<tr><td><code>AGENT_PASS</code> · <code>ALLOWED_ORIGIN</code></td><td>(비밀) · 배포 주소</td><td>남용 방지</td></tr>
+<tr><td><code>ALLOW_FILE_ORIGIN</code></td><td><code>0</code> (시연 기간만 <code>1</code>)</td><td>현장 시연용 <code>Origin: null</code> 허용</td></tr></tbody></table></div><p class="ask2"><b>현장 시연 규정 (10/23 공지)</b> · 시연은 제출한 HTML을 운영 PC 크롬에서 더블클릭(<code>file://</code>)으로만 연다. 이때 요청 출처는 <code>null</code>이다 → 시연 기간에만 <code>ALLOW_FILE_ORIGIN=1</code>로 통과 + CORS 헤더 + <code>OPTIONS</code> 204, 화면은 배포 주소 <code>API_BASE</code>로 부른다. AI 부분은 영상으로 백업 <a class="ev" href="#a5">(부록 5.2)</a> <a class="ev" href="#a12">(결정 10)</a></p><p class="ask2"><b>멘토에게 확인할 것</b> · Google이 새 개발에 권하는 Interactions API 대신 계속 지원되는 generateContent를 써도 되나? <a class="ev" href="#a12">(결정 9)</a></p></section><section id="p4"><div class="tag">PART 04</div><h2 class="ch">AI 에이전트 상태 기계</h2><p class="ans"><b>한 언어는 최대 3번 시도하고, 그래도 뜻이 뒤집히면 사람에게 넘긴다.</b> 대조는 모델이 아니라 기존 <a class="ev" href="#a4">규칙 함수</a>(<code>negationFlipped</code>·<code>newWordCount</code>)가 한다.</p><figure class="fig"><svg viewBox="0 0 930 390" role="img" aria-label="에이전트 상태 기계" style="min-width:760px"><defs><marker id="a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-gray"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-blue"/></marker><marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-green"/></marker><marker id="a-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-coral"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-purple"/></marker></defs><rect x="20" y="60" width="150" height="58" rx="8" class="box"/><text x="95.0" y="85.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">대기</text><text x="95.0" y="102.5" font-size="11.5" text-anchor="middle" class="t-sub">idle</text><rect x="200" y="60" width="150" height="58" rx="8" class="box-sys"/><text x="275.0" y="85.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">번역 중</text><text x="275.0" y="102.5" font-size="11.5" text-anchor="middle" class="t-sub">translating</text><rect x="380" y="60" width="150" height="58" rx="8" class="box-sys"/><text x="455.0" y="85.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">역번역 중</text><text x="455.0" y="102.5" font-size="11.5" text-anchor="middle" class="t-sub">backtranslating</text><rect x="560" y="60" width="150" height="58" rx="8" class="box-sys"/><text x="635.0" y="85.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">대조</text><text x="635.0" y="102.5" font-size="11.5" text-anchor="middle" class="t-sub">comparing</text><rect x="760" y="60" width="150" height="58" rx="8" class="box-g"/><text x="835.0" y="85.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">완료 · 대기 저장</text><text x="835.0" y="102.5" font-size="11.5" text-anchor="middle" class="t-sub">done</text><path d="M170 89H196" class="ln" fill="none" marker-end="url(#a-gray)"/><path d="M350 89H376" class="ln" fill="none" marker-end="url(#a-gray)"/><path d="M530 89H556" class="ln" fill="none" marker-end="url(#a-gray)"/><path d="M710 89H756" class="ln" fill="none" marker-end="url(#a-gray)"/><text x="735" y="80" font-size="11.5" text-anchor="middle" class="t-sub">정상</text><rect x="380" y="190" width="150" height="58" rx="8" class="box-c"/><text x="455.0" y="215.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">재시도</text><text x="455.0" y="232.5" font-size="11.5" text-anchor="middle" class="t-sub">n &lt; 2, hint 포함</text><path d="M635 118V219H534" class="ln-c" fill="none" marker-end="url(#a-coral)"/><text x="645" y="170" font-size="11.5" text-anchor="start" class="t-sub">뒤집힘</text><path d="M380 219H275V122" class="ln-c" fill="none" marker-end="url(#a-coral)"/><rect x="760" y="190" width="150" height="58" rx="8" class="box-c"/><text x="835.0" y="215.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">사람에게 올림</text><text x="835.0" y="232.5" font-size="11.5" text-anchor="middle" class="t-sub">escalated · 대기</text><path d="M455 248V270H835V252" class="ln-c" fill="none" marker-end="url(#a-coral)"/><text x="645" y="284" font-size="11.5" text-anchor="middle" class="t-sub">n = 2에서도 뒤집힘</text><rect x="200" y="320" width="510" height="52" rx="8" class="box" stroke-dasharray="5 4"/><text x="455.0" y="342.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">실패 → 손 입력 칸</text><text x="455.0" y="359.5" font-size="11.5" text-anchor="middle" class="t-sub">어느 단계든 오류·시간 초과 · 버튼이 조용히 사라지지 않고 이유를 적는다</text><path d="M275 118V316" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><path d="M455 118V316" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/><path d="M635 118V316" class="ln" fill="none" stroke-dasharray="5 4" marker-end="url(#a-gray)"/></svg><figcaption>언어마다 따로 움직인다 · 모든 끝 상태는 대기(waiting)</figcaption></figure><p class="ask2"><b>멘토에게 확인할 것</b> · AI가 AI를 검증하는 구조를 규칙 대조로 보완한 것이 충분한가? <a class="ev" href="#a12">(결정 5)</a></p></section><section id="p5"><div class="tag">PART 05</div><h2 class="ch">기술 스택</h2><p class="ans"><b>외부 라이브러리 없이 간다. 서버가 필요해지는 판매 단계에서만 서버 쪽에 의존성을 둔다.</b> 이유는 공장 안 약한 인터넷, 저사양 폰, file:// 로도 열리는 시연이다. 자세한 비교는 <a class="ev" href="#a2">부록 2장</a>.</p><div class="tw stack"><table><thead><tr><th>영역</th><th>지금 ✅</th><th>해커톤 🔶</th><th>판매 ⬜</th></tr></thead><tbody>
+<tr><td>화면</td><td colspan="3">HTML · CSS · 바닐라 JS(전역 IIFE), 프레임워크 없음, ES 모듈 금지(file:// 열기 유지)</td></tr>
+<tr><td>데이터</td><td>localStorage 10칸 (Store)</td><td>같음 + agent·judged 필드</td><td>PostgreSQL + localStorage 캐시</td></tr>
+<tr><td>오프라인</td><td colspan="2">Service Worker sw.js (캐시 우선, v9)</td><td>+ 동기화 대기열</td></tr>
+<tr><td>음성 · QR</td><td colspan="3">브라우저 speechSynthesis · 자체 qr.js (외부 서비스 없음)</td></tr>
+<tr><td>서버</td><td>없음</td><td>Vercel 함수 (.mjs Web Handler, 의존성 0)</td><td>같음 + DB 드라이버(서버에만)</td></tr>
+<tr><td>AI</td><td>없음</td><td colspan="2">Gemini API — flash-lite 번역, 3.8-flash 역번역(후보)</td></tr>
+<tr><td>인증</td><td colspan="2">목업 (비밀번호 평문 localStorage — 시연용)</td><td>세션 쿠키 + scrypt 해시 (node:crypto)</td></tr>
+<tr><td>테스트</td><td>Node 22 + jsdom, 19개 파일 · 1,619건</td><td>+ 가짜 fetch 경계·API 핸들러 시험</td><td>+ API 통합 시험 · CI</td></tr>
+<tr><td>배포</td><td>Vercel Hobby (정적)</td><td>Vercel (함수 포함)</td><td>Vercel Pro (Hobby는 비상업만)</td></tr>
+</tbody></table></div></section><section id="p6"><div class="tag">PART 06</div><h2 class="ch">보안과 남용 방지</h2><p class="ans"><b>지금 로그인은 목업이라 서버가 운영자를 알아볼 수 없다. 그래서 4겹으로 막는다.</b> 노동자 화면 외부 요청 0건, 키는 서버에만, AI 출력은 글자로만 표시하는 규칙은 그대로다(<a class="ev" href="#a8">부록 8장</a>).</p><figure class="fig"><svg viewBox="0 0 940 380" role="img" aria-label="API 남용 방지 4겹" style="min-width:760px"><defs><marker id="a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-gray"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-blue"/></marker><marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-green"/></marker><marker id="a-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-coral"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-purple"/></marker></defs><rect x="20.0" y="35.0" width="480" height="330" rx="16" class="ring"/><text x="260" y="55.0" font-size="12.5" text-anchor="middle" class="t-ink" font-weight="700">① 같은 출처 검사</text><rect x="65.0" y="70.0" width="390" height="260" rx="16" class="ring"/><text x="260" y="90.0" font-size="12.5" text-anchor="middle" class="t-ink" font-weight="700">② 운영자 통과 문구</text><rect x="110.0" y="105.0" width="300" height="190" rx="16" class="ring"/><text x="260" y="125.0" font-size="12.5" text-anchor="middle" class="t-ink" font-weight="700">③ 일일 상한</text><rect x="155.0" y="140.0" width="210" height="120" rx="16" class="ring"/><text x="260" y="160.0" font-size="12.5" text-anchor="middle" class="t-ink" font-weight="700">④ Google 결제 예산·할당량</text><rect x="180" y="194" width="160" height="48" rx="8" class="box-g"/><text x="260.0" y="214.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">Gemini 호출</text><text x="260.0" y="231.5" font-size="11.5" text-anchor="middle" class="t-sub">키는 서버에만</text><text x="540" y="70" font-size="13.5" text-anchor="start" class="t-ink" font-weight="700">① 같은 출처 검사</text><text x="540" y="89" font-size="12" text-anchor="start" class="t-sub">Origin ≠ 배포 주소 → 403</text><text x="540" y="142" font-size="13.5" text-anchor="start" class="t-ink" font-weight="700">② 운영자 통과 문구</text><text x="540" y="161" font-size="12" text-anchor="start" class="t-sub">X-Agent-Pass 없음·틀림 → 401</text><text x="540" y="214" font-size="13.5" text-anchor="start" class="t-ink" font-weight="700">③ 일일 상한</text><text x="540" y="233" font-size="12" text-anchor="start" class="t-sub">AI_DAILY_LIMIT 초과 → 429</text><text x="540" y="286" font-size="13.5" text-anchor="start" class="t-ink" font-weight="700">④ Google 결제 예산·할당량</text><text x="540" y="305" font-size="12" text-anchor="start" class="t-sub">최악의 비용을 막는다</text><text x="540" y="342" font-size="12" text-anchor="start" class="t-sub">H 단계: ①~④ 겹쳐 막기 · S 단계: ②를 서버 로그인으로 대체</text></svg><figcaption>안쪽으로 갈수록 마지막 방어선 · 무료 등급 키에 보낸 내용은 Google 제품 개선에 쓰이므로 Production은 유료 등급</figcaption></figure><p class="ask2"><b>멘토에게 확인할 것</b> · 통과 문구 방식이면 충분한가? 일일 상한을 정확히 세려면 KV 저장소가 필요한가? <a class="ev" href="#a12">(결정 3·4)</a> · 현장 시연 기간에만 <code>null</code> 출처를 여는 방식이 괜찮은가? <a class="ev" href="#a12">(결정 10)</a></p></section><section id="p7"><div class="tag">PART 07</div><h2 class="ch">판매 단계 구조</h2><p class="ans"><b>화면은 그대로 두고 저장소 안쪽만 서버와 동기화한다.</b> 지금 화면이 저장소를 동기로 읽기 때문에, 브라우저 저장소를 캐시로 두고 당겨 오기·밀어 보내기를 한다(<a class="ev" href="#a9">부록 9장</a>).</p><figure class="fig"><svg viewBox="0 0 980 336" role="img" aria-label="판매 단계 구조" style="min-width:760px"><defs><marker id="a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-gray"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-blue"/></marker><marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-green"/></marker><marker id="a-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-coral"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-purple"/></marker></defs><rect x="20" y="40" width="300" height="250" rx="8" class="box-c"/><text x="170" y="66" font-size="14" text-anchor="middle" class="t-ink" font-weight="700">브라우저 (화면 코드 그대로)</text><rect x="40" y="86" width="260" height="52" rx="8" class="box"/><text x="170.0" y="108.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">화면 11개</text><text x="170.0" y="125.5" font-size="11.5" text-anchor="middle" class="t-sub">Store.x.load() 동기 호출 유지</text><rect x="40" y="150" width="260" height="52" rx="8" class="box-sys"/><text x="170.0" y="172.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">Store 캐시 = localStorage</text><text x="170.0" y="189.5" font-size="11.5" text-anchor="middle" class="t-sub">열 때 당겨 오기(pull)</text><rect x="40" y="214" width="260" height="52" rx="8" class="box-sys" stroke-dasharray="5 4"/><text x="170.0" y="236.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">동기화 대기열</text><text x="170.0" y="253.5" font-size="11.5" text-anchor="middle" class="t-sub">저장하면 밀어 보내기(push) · 오프라인 보관</text><rect x="400" y="40" width="240" height="250" rx="8" class="box"/><text x="520" y="66" font-size="14" text-anchor="middle" class="t-ink" font-weight="700">Vercel 함수</text><rect x="416" y="84" width="208" height="40" rx="8" class="chip"/><text x="428" y="109" font-size="12" text-anchor="start" class="t-ink" font-family="ui-monospace,Consolas,monospace">/api/auth/*</text><text x="612" y="109" font-size="11.5" text-anchor="end" class="t-sub">세션 쿠키</text><rect x="416" y="134" width="208" height="40" rx="8" class="chip"/><text x="428" y="159" font-size="12" text-anchor="start" class="t-ink" font-family="ui-monospace,Consolas,monospace">/api/store/:key</text><text x="612" y="159" font-size="11.5" text-anchor="end" class="t-sub">GET · PUT</text><rect x="416" y="184" width="208" height="40" rx="8" class="chip"/><text x="428" y="209" font-size="12" text-anchor="start" class="t-ink" font-family="ui-monospace,Consolas,monospace">/api/reports</text><text x="612" y="209" font-size="11.5" text-anchor="end" class="t-sub">사진 신고</text><rect x="416" y="234" width="208" height="40" rx="8" class="chip"/><text x="428" y="259" font-size="12" text-anchor="start" class="t-ink" font-family="ui-monospace,Consolas,monospace">/api/proof/seal</text><text x="612" y="259" font-size="11.5" text-anchor="end" class="t-sub">증빙 봉인</text><path d="M320 176H396" class="ln-b" fill="none" marker-end="url(#a-blue)"/><path d="M396 240H324" class="ln-b" fill="none" marker-end="url(#a-blue)"/><text x="358" y="168" font-size="11" text-anchor="middle" class="t-sub">pull</text><text x="358" y="256" font-size="11" text-anchor="middle" class="t-sub">push</text><rect x="720" y="40" width="240" height="70" rx="8" class="box" stroke-dasharray="5 4"/><text x="840.0" y="64.0" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">PostgreSQL ⬜</text><text x="840.0" y="81.0" font-size="11.5" text-anchor="middle" class="t-sub">관리형 · 공급사 미정</text><text x="840.0" y="96.0" font-size="11.5" text-anchor="middle" class="t-sub">신고자 열 없음</text><rect x="720" y="130" width="240" height="70" rx="8" class="box" stroke-dasharray="5 4"/><text x="840.0" y="161.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">객체 저장소 ⬜</text><text x="840.0" y="178.5" font-size="11.5" text-anchor="middle" class="t-sub">신고 사진</text><rect x="720" y="220" width="240" height="70" rx="8" class="box-g"/><text x="840.0" y="251.5" font-size="13" text-anchor="middle" class="t-ink" font-weight="600">Gemini API</text><text x="840.0" y="268.5" font-size="11.5" text-anchor="middle" class="t-sub">AI 번역 (H 단계부터)</text><path d="M640 75H716" class="ln" fill="none" marker-end="url(#a-gray)"/><path d="M640 165H716" class="ln" fill="none" marker-end="url(#a-gray)"/><path d="M640 255H716" class="ln" fill="none" marker-end="url(#a-gray)"/><text x="20" y="320" font-size="12" text-anchor="start" class="t-sub">충돌 규칙 후보: 추가만 하는 기록(progress·reports)은 병합, 나머지는 저장소 단위 나중 저장 우선 — 멘토링 결정 6</text></svg><figcaption>판매 단계 후보 구조 · DB·파일 공급사는 미정</figcaption></figure><p class="ask2"><b>멘토에게 확인할 것</b> · 캐시 + 대기열 동기화가 맞나? 충돌 규칙은? <a class="ev" href="#a12">(결정 6·7)</a></p></section><section id="p8"><div class="tag">PART 08</div><h2 class="ch">비용 · 작업 순서 · 받을 결정</h2><p class="ans"><b>AI 비용은 문구 100개당 몇 달러 수준이고, 일은 8단계로 나눈다.</b> 근거는 <a class="ev" href="#a6">부록 6.4</a>·<a class="ev" href="#a11">11장</a>·<a class="ev" href="#a12">12장</a>.</p><div class="kpis" style="margin:8px 0 14px">
+<div class="kpi"><div class="v">1.1~3.3<small>달러</small></div><div class="l">문구 100개당 AI 비용 (재시도 없음~최대, 2027 가격) 🔶</div></div>
+<div class="kpi"><div class="v">30<small>회</small></div><div class="l">문구 1개 최대 호출 (언어 5 × 2단계 × 3회)</div></div>
+<div class="kpi"><div class="v">600<small>회/일</small></div><div class="l">Production 일일 상한 예 (Preview 100)</div></div></div>
+<ol>
+<li>함수 2개 본문 + 핸들러 시험 (<code>test-api.mjs</code>) — Gemini 키 발급 후</li>
+<li>배치 확정 → 미리보기 배포로 함수 동작 확인</li>
+<li><code>agent.js</code> + 가짜 fetch 경계 시험</li>
+<li>문구 화면: 진행 줄·언어 행·사람에게 올림·실패 안내</li>
+<li><code>store.js</code> 계약 변경(agent·judged) + 판정 기록</li>
+<li>노동자 오역 신고 진입점 (기존 flags[])</li>
+<li>2회차 요구 묶음 (결과 표기·터치 영역 등)</li>
+<li><code>sw.js</code> VERSION 올림 → 전체 시험 → 시연 리허설</li></ol>
+<div class="tw"><table><thead><tr><th>#</th><th>멘토에게 받을 결정</th><th>우리 제안</th></tr></thead><tbody>
+<tr><td>1</td><td>/api 위치</td><td>src/api (설정 변경 없음), 미리보기로 확인</td></tr>
+<tr><td>2</td><td>루프 위치</td><td>브라우저 지휘 (A안)</td></tr>
+<tr><td>3</td><td>남용 방지</td><td>출처 + 통과 문구 + 상한 + 결제 예산</td></tr>
+<tr><td>4</td><td>일일 상한 저장</td><td>H는 메모리 근사, S에서 KV/DB</td></tr>
+<tr><td>5</td><td>역번역 모델</td><td>gemini-3.8-flash vs flash-lite + 다른 프롬프트</td></tr>
+<tr><td>6</td><td>판매 단계 동기화</td><td>캐시 + 대기열, 기록 단위 병합</td></tr>
+<tr><td>7</td><td>DB·파일 공급사</td><td>한국 리전·Vercel 연동 기준 비교</td></tr>
+<tr><td>8</td><td>CI</td><td>GitHub Actions, PR마다 (테스트 경로 고정 문제 먼저 해결)</td></tr>
+<tr><td>9</td><td>Gemini 호출 방식</td><td>generateContent (상태 없는 한 번 호출)</td></tr>
+<tr><td>10</td><td>현장 시연 AI 호출</td><td>제출 HTML → API_BASE, 시연 기간만 null 출처 허용 + 영상 백업</td></tr>
+<tr><td>11</td><td>제출 형태</td><td>폴더(zip) 제출이 되면 그대로, 안 되면 한 HTML로 묶기 — 운영진 답변 먼저</td></tr></tbody></table></div></section>
+<div class="appendix" id="appendix"><div class="tag">APPENDIX</div><h2 class="ch">부록 · 전체 기술 명세 (A02 v0.3)</h2><h2 id="a0" class="ah">0. 한 장 요약</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>형태</td>
+<td>빌드 없는 정적 웹앱. HTML + CSS + 바닐라 JS(전역 IIFE 모듈), 프레임워크·외부 라이브러리 0개</td>
+<td>✅ 결정</td>
+</tr>
+<tr>
+<td>화면</td>
+<td>작업자앱 6화면(<code>src/worker/</code>) + 관리자앱 5화면(<code>src/admin/</code>) + 로그인·가입</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>데이터</td>
+<td>브라우저 <code>localStorage</code> 10칸. 접근은 <code>Store</code> 모듈만. 키 <code>safety.&lt;이름&gt;.v1</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>오프라인</td>
+<td>Service Worker <code>sw.js</code> (v9) 캐시 우선, 화면 13개 미리 담기</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>배포</td>
+<td>Vercel 정적 배포, Root Directory = <code>src</code>, <code>vercel.json</code> 없음</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>AI (H)</td>
+<td>Vercel 함수 <code>POST /api/translate</code>·<code>/api/backtranslate</code> → <strong>Gemini API</strong> (<code>generateContent</code>). 키는 byeonsoyun이 발급. 루프는 브라우저 <code>agent.js</code>가 지휘</td>
+<td>🔶 결정(A안·Gemini), 배치 <code>미정</code></td>
+</tr>
+<tr>
+<td>서버 (S)</td>
+<td>Vercel 함수 + 관리형 PostgreSQL + 파일 저장소 + 서버 세션 인증. <code>Store</code> 안쪽만 교체</td>
+<td>⬜ 후보</td>
+</tr>
+<tr>
+<td>테스트</td>
+<td>Node 22 + jsdom 하네스, 테스트 파일 19개(합계 1,619건 기준선)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>넘지 않는 선</td>
+<td>노동자 화면 외부 요청 0건 · AI 결과는 항상 <code>waiting</code> · 키는 서버에만 · 신고자 식별값 0 · <code>innerHTML</code> 금지</td>
+<td>✅ 결정</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="a1" class="ah">1. 단계와 범위</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>단계</th>
+<th>기간</th>
+<th>서버</th>
+<th>데이터</th>
+<th>이번에 만드는 것</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>v1.0 (지금)</strong> ✅</td>
+<td>—</td>
+<td>없음</td>
+<td>기기마다 <code>localStorage</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>H · 해커톤</strong> 🔶</td>
+<td>2차 스프린트(10/31~11/08) ~ 오프라인 해커톤</td>
+<td>Vercel 함수 2개 (AI 호출만)</td>
+<td>그대로 <code>localStorage</code></td>
+<td>AI 번역·검수 에이전트(AD-03), 판정 기록(AD-02 FR-09), 2회차 PRD 요구(SPEC-FE §4 순서)</td>
+</tr>
+<tr>
+<td><strong>S · 판매</strong> ⬜</td>
+<td>해커톤 이후</td>
+<td>서버 API + DB + 파일 + 인증</td>
+<td>서버 DB (여러 기기·여러 사업장)</td>
+<td>로그인, 데이터 동기화, 사진 신고, 알림, 증빙 봉인</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>H 단계에서 <strong>노동자 화면은 바뀌지 않는다.</strong> 서버를 부르는 것은 관리자앱의 운영자 화면 하나뿐이다.</li>
+<li>S 단계에서도 <strong>화면 코드는 바꾸지 않는 것이 목표</strong>다. <code>Store</code>와 <code>Auth</code>의 안쪽만 바꾼다(§9).</li>
+</ul>
+<hr />
+<h2 id="a2" class="ah">2. 기술 스택</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>영역</th>
+<th>지금 ✅</th>
+<th>H 🔶</th>
+<th>S ⬜</th>
+<th>고른 이유</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>브라우저 언어</td>
+<td>JavaScript (전역 IIFE, <code>'use strict'</code>), ES 모듈 <strong>금지</strong></td>
+<td>같음</td>
+<td>같음</td>
+<td><code>file://</code>로 열 때 ES 모듈은 CORS로 막힌다. "인터넷 없이 그냥 열린다"를 지킨다</td>
+</tr>
+<tr>
+<td>UI 프레임워크</td>
+<td>없음. DOM 직접 조작 (<code>UI.el</code>, <code>textContent</code>)</td>
+<td>같음</td>
+<td>같음</td>
+<td>의존성 0, 저사양 안드로이드에서 빠르게 열림, 빌드 단계 없음</td>
+</tr>
+<tr>
+<td>스타일</td>
+<td>순수 CSS (<code>app.css</code>·<code>style.css</code>·<code>worker.css</code>·<code>admin.css</code>)</td>
+<td>같음</td>
+<td>같음</td>
+<td>기기 글꼴 사용 (크메르·태국·데바나가리 깨지면 Noto 배포 — PRD-CM-02)</td>
+</tr>
+<tr>
+<td>저장</td>
+<td><code>localStorage</code> (<code>Store</code>)</td>
+<td>같음</td>
+<td>서버 DB + <code>localStorage</code> 캐시</td>
+<td></td>
+</tr>
+<tr>
+<td>오프라인</td>
+<td>Service Worker (<code>sw.js</code>)</td>
+<td>같음</td>
+<td>같음 + 동기화 대기열</td>
+<td>공장 안 약한 인터넷</td>
+</tr>
+<tr>
+<td>음성</td>
+<td>Web Speech API <code>speechSynthesis</code> (읽어 주기) · 받아쓰기(신고)</td>
+<td>같음</td>
+<td>녹음 음성 검수(로드맵)</td>
+<td>외부 TTS를 쓰면 노동자 화면 외부 요청이 생긴다</td>
+</tr>
+<tr>
+<td>QR</td>
+<td>자체 구현 <code>qr.js</code> (바이트 모드, 오류 정정 M)</td>
+<td>같음</td>
+<td>같음</td>
+<td>외부 QR 서비스 미사용</td>
+</tr>
+<tr>
+<td>서버 런타임</td>
+<td>없음</td>
+<td>Vercel Functions, Node.js (Web Handler, <code>.mjs</code>)</td>
+<td>같음</td>
+<td>의존성 없이 내장 <code>fetch</code>로 API 호출</td>
+</tr>
+<tr>
+<td>AI 모델</td>
+<td>없음</td>
+<td><strong>Gemini API</strong> — 번역 <code>gemini-3.1-flash-lite</code>, 역번역 <strong>후보</strong> <code>gemini-3.8-flash</code> (다른 모델)</td>
+<td>같음</td>
+<td>가격(100만 토큰당 USD): flash-lite 입력 0.25 / 출력 1.50, 3.8-flash 입력 0.75 / 출력 3.75 → 2027-01-01부터 1.50 / 7.50 (N-64)</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>없음</td>
+<td>없음</td>
+<td>PostgreSQL (관리형 — 공급사 <code>미정</code>)</td>
+<td>Store 10칸이 그대로 테이블이 된다</td>
+</tr>
+<tr>
+<td>파일 저장</td>
+<td>없음</td>
+<td>없음</td>
+<td>객체 저장소 (공급사 <code>미정</code>)</td>
+<td>신고 사진</td>
+</tr>
+<tr>
+<td>인증</td>
+<td>목업 (<code>localStorage</code>에 계정·비밀번호 평문)</td>
+<td>같음</td>
+<td>서버 세션 쿠키 + 비밀번호 해시 (<code>node:crypto</code> scrypt)</td>
+<td>목업은 시연용이다. 판매 전 반드시 교체</td>
+</tr>
+<tr>
+<td>테스트</td>
+<td>Node 22 + jsdom(저장소 밖 설치) + 자체 하네스</td>
+<td>+ 가짜 <code>fetch</code> 경계 테스트</td>
+<td>+ API 통합 테스트</td>
+<td><code>src/</code>에 의존성을 넣지 않는다</td>
+</tr>
+<tr>
+<td>배포</td>
+<td>Vercel Hobby (정적)</td>
+<td>Vercel (함수 포함). 판매 전 Pro</td>
+<td>Vercel Pro</td>
+<td>Hobby는 비상업 용도만 (N-61)</td>
+</tr>
+<tr>
+<td>저장소 규칙</td>
+<td><code>main ← develop ← feat/agent-*</code>, PR 사용 (D-004)</td>
+<td>같음</td>
+<td>같음</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>의존성 원칙</strong> — <code>src/</code>(브라우저)는 의존성 0을 유지한다(결정). 서버 함수도 H 단계에서는 의존성 0(내장 <code>fetch</code>)이다. S 단계에서 DB 드라이버가 필요해지면 <strong>서버 쪽에만</strong> <code>package.json</code>을 둔다(§9.5).</p>
+</blockquote>
+<hr />
+<h2 id="a3" class="ah">3. 저장소 구조</h2>
+<pre><code>2026-ax-ton/
+├─ src/                         ← Vercel Root Directory (정적 배포 루트)
+│  ├─ index.html · signup.html   로그인·가입
+│  ├─ sw.js                      Service Worker (VERSION 'v9')
+│  ├─ assets/
+│  │  ├─ store.js     데이터 계약 + localStorage 접근 (유일한 통로)
+│  │  ├─ auth.js      목업 인증·역할 가드·?next= 이동
+│  │  ├─ ui.js        DOM 헬퍼·배지·토스트·음성(speechSynthesis)
+│  │  ├─ i18n.js      화면 문구 6개 언어
+│  │  ├─ icons.js     선 아이콘 (이모지 금지)
+│  │  ├─ review.js    역번역 대조 (words·diffWords·newWordCount·negationCount·negationFlipped)
+│  │  ├─ diagrams.js  설비 도해·위험 구역 좌표
+│  │  ├─ qr.js        QR 생성
+│  │  ├─ seed.js      시연 데이터
+│  │  ├─ login.js · signup.js
+│  │  └─ agent.js     🔶 신규 — AI 에이전트 루프 (§6)
+│  ├─ worker/   home · learn · quiz · report · talk · my (.html + .js) + worker.css
+│  ├─ admin/    setup · library · content · dashboard · proof (.html + .js) + admin.css
+│  └─ api/      🔶 배치 ②를 고르면 여기 (§5.1)
+│     ├─ translate.mjs
+│     └─ backtranslate.mjs
+├─ api/         🔶 배치 ①을 고르면 여기 (Root Directory를 저장소 루트로 변경)
+├─ tests/       harness.js · run-all.js · test-*.js (19개)
+│  ├─ test-agent-boundary.js   🔶 신규 — 가짜 fetch로 에이전트 경계 검사
+│  └─ test-api.mjs             🔶 신규 — 함수 핸들러 단위 검사
+├─ .github/workflows/test.yml  🔶 제안 — CI (§10.3)
+└─ docs/
+</code></pre>
+<hr />
+<h2 id="a4" class="ah">4. 클라이언트 모듈 명세</h2>
+<p>전역 객체 하나가 파일 하나다. 화면 스크립트는 아래 공개 함수만 쓴다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>전역</th>
+<th>파일</th>
+<th>주요 공개 함수</th>
+<th>계약</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Store</code></td>
+<td><code>assets/store.js</code></td>
+<td>저장소 10개 각각 <code>load()</code>·<code>save(data)</code>·<code>update(fn)</code>·<code>updatedAt()</code>·<code>clear()</code> · <code>phraseOk(p, lang)</code>·<code>phraseStatus</code>·<code>stoppedLangs</code> · <code>qtext(q, lang, field)</code>·<code>qhas</code> · <code>orderOpen</code>·<code>askedQuestion</code> · <code>exportAll()</code>·<code>importAll(text)</code>·<code>resetAll()</code> · 어휘 <code>LANGUAGES</code>·<code>HAZARDS</code>·<code>ROLES</code>·<code>PHRASE_STATUS</code></td>
+<td><code>localStorage</code> 접근은 여기서만. 화면은 <code>p.status</code>·<code>q.i18n</code>을 직접 읽지 않는다</td>
+</tr>
+<tr>
+<td><code>Auth</code></td>
+<td><code>assets/auth.js</code></td>
+<td><code>current()</code>·<code>signup(input)</code>·<code>login(userId, pw)</code>·<code>logout()</code>·<code>require(roles)</code>·<code>nextFor(role, raw)</code>·<code>safeNext(raw)</code></td>
+<td>역할 3개: <code>worker</code>→<code>worker/home.html</code>, <code>admin</code>→<code>admin/dashboard.html</code>, <code>operator</code>→<code>admin/library.html</code></td>
+</tr>
+<tr>
+<td><code>UI</code></td>
+<td><code>assets/ui.js</code></td>
+<td><code>el()</code>·<code>$</code>·<code>$$</code>·배지(<code>okBadge</code>·<code>waitBadge</code>·<code>stopBadge</code>·<code>phraseBadge</code>)·<code>toast</code> · 음성 <code>speak</code>·<code>stopSpeak</code>·<code>hasVoice</code>·<code>voiceNote</code> · <code>fillWorkerBar</code>·<code>fillAdminBar</code></td>
+<td>모든 텍스트는 <code>textContent</code>로. <code>innerHTML</code> 금지</td>
+</tr>
+<tr>
+<td><code>Review</code></td>
+<td><code>assets/review.js</code></td>
+<td><code>words</code>·<code>diffWords(o, b)</code>·<code>newWordCount(o, b)</code>·<code>negationCount(t)</code>·<code>negationFlipped(o, b)</code></td>
+<td><code>Review.compare()</code>는 <strong>없다</strong> (A01 F-1)</td>
+</tr>
+<tr>
+<td><code>I18n</code></td>
+<td><code>assets/i18n.js</code></td>
+<td>화면 문구 6개 언어 (<code>km</code>·<code>id</code>·<code>vi</code>·<code>ne</code>·<code>th</code>·<code>ko</code>)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Agent</code> 🔶</td>
+<td><code>assets/agent.js</code></td>
+<td><code>run(phrase, langs, onStep)</code>·<code>call(path, body, ms)</code>·<code>compare(ko, back)</code></td>
+<td>§6</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>스크립트 로드 순서 (모든 화면 공통)</strong> — <code>store.js</code> → <code>i18n.js</code> → <code>icons.js</code> → <code>ui.js</code> → <code>auth.js</code> → (화면별 <code>review.js</code>·<code>diagrams.js</code>·<code>qr.js</code>·<code>agent.js</code>) → 화면 스크립트. 관리자 <code>library.html</code>만 <code>agent.js</code>를 싣는다. <strong>노동자 화면에는 <code>agent.js</code>를 싣지 않는다</strong> (테스트로 검사, §10.2).</p>
+<hr />
+<h2 id="a5" class="ah">5. 해커톤 단계 API 명세 🔶</h2>
+<h3>5.1 배치 — <code>미정</code> (멘토링 결정 1)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>안</th>
+<th>파일 위치</th>
+<th>Vercel 설정</th>
+<th>장점</th>
+<th>걸림</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 루트 <code>api/</code></td>
+<td><code>api/translate.mjs</code></td>
+<td>Root Directory를 저장소 루트로 바꾸고, 정적 출력 경로를 <code>src</code>로 지정</td>
+<td><code>src/</code>는 화면 코드만 남는다</td>
+<td>배포 설정 변경 = 저장소 소유자 승인. <code>docs/</code>·<code>tests/</code>가 공개되지 않게 막아야 한다</td>
+</tr>
+<tr>
+<td>② <code>src/api/</code></td>
+<td><code>src/api/translate.mjs</code></td>
+<td>변경 없음</td>
+<td>설정을 안 건드린다</td>
+<td><code>src/</code>에 서버 코드가 섞인다. <code>test-offline.js</code> 등이 <code>src/</code> 전체에서 외부 주소를 찾으면 걸린다 → 검사 범위를 <code>src/api/</code> 제외로 좁힌다. Vercel이 Root Directory 아래 <code>api/</code>를 함수로 잡는지 <strong>미리보기 배포로 확인</strong></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>두 안 모두 <strong>API 계약(§5.3·5.4)은 같다.</strong> 함수 본문을 먼저 만들고 위치만 나중에 옮긴다.</li>
+<li>파일 형식: Web Handler + <code>.mjs</code> (Vercel 문서: 프레임워크 없는 프로젝트는 <code>"type": "module"</code> 또는 <code>.mjs</code>). <code>.mjs</code>면 <code>package.json</code>이 필요 없다.</li>
+</ul>
+<h3>5.2 공통 규칙</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>메서드</td>
+<td><code>POST</code> (+ 사전 요청 <code>OPTIONS</code>). 그 밖은 405</td>
+</tr>
+<tr>
+<td>요청 헤더</td>
+<td><code>Content-Type: application/json</code> · <code>X-Agent-Pass: &lt;운영자 통과 문구&gt;</code> (§5.6)</td>
+</tr>
+<tr>
+<td>출처 검사</td>
+<td>요청의 <code>Origin</code>이 배포 주소(<code>ALLOWED_ORIGIN</code>)와 같으면 통과. <strong>시연 기간에만</strong> <code>ALLOW_FILE_ORIGIN=1</code>이면 <code>Origin: null</code>(제출 HTML을 <code>file://</code>로 연 경우)도 통과. 그 밖은 403</td>
+</tr>
+<tr>
+<td>CORS</td>
+<td>배포 주소에서 부르면 같은 출처라 CORS 헤더를 내지 않는다. <code>null</code> 출처를 통과시킬 때만 <code>Access-Control-Allow-Origin: null</code> · <code>Access-Control-Allow-Headers: Content-Type, X-Agent-Pass</code> · <code>Access-Control-Allow-Methods: POST, OPTIONS</code> · <code>Vary: Origin</code>을 붙인다</td>
+</tr>
+<tr>
+<td>사전 요청</td>
+<td><code>OPTIONS</code>는 출처 검사를 통과하면 204 + 위 CORS 헤더, 아니면 403. 모델을 부르지 않고 일일 상한에 세지 않는다</td>
+</tr>
+<tr>
+<td>본문 상한</td>
+<td>4KB 초과 → 413 (Vercel 자체 상한은 4.5MB, N-60)</td>
+</tr>
+<tr>
+<td>시간</td>
+<td>함수 <code>maxDuration</code> 30초 (<code>export const config = { maxDuration: 30 }</code>), 모델 호출 타임아웃 20초 (<code>AbortController</code>)</td>
+</tr>
+<tr>
+<td>응답</td>
+<td><code>application/json; charset=utf-8</code>, <code>Cache-Control: no-store</code></td>
+</tr>
+<tr>
+<td>오류 형식</td>
+<td><code>{ "error": "&lt;code&gt;", "message": "&lt;한국어 설명&gt;" }</code></td>
+</tr>
+<tr>
+<td>로그</td>
+<td>한 줄 JSON: <code>{route, lang, attempt, ms, status, err}</code>. <strong>문구 원문·키·IP를 남기지 않는다</strong></td>
+</tr>
+<tr>
+<td>금지</td>
+<td>응답에 <code>status</code>(승인 상태) 필드를 넣지 않는다. 승인은 사람만 한다 (FR-AD-03-06)</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>왜 <code>null</code> 출처인가</strong> — 해커톤 현장 시연은 제출한 HTML 파일을 운영 PC 크롬에서 더블클릭해 연다(<a href="../00_개발컨벤션/C08_해커톤-규정과-대응.md">C08 §7</a>). 이때 브라우저는 <code>Origin: null</code>을 보낸다. 다른 로컬 파일도 같은 값을 보내므로 막는 힘이 약하다 → <strong>제출~11/28 시연 기간에만 켜고 바로 끈다.</strong> 남은 방어는 통과 문구(§5.6 2층)·일일 상한(3층)·공급사 예산(4층)이다. ❓ 제출 HTML이 외부 API를 부르는 것이 규정상 되는지 운영진 답변 대기 (C08 §8)</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>HTTP</th>
+<th><code>error</code></th>
+<th>언제</th>
+<th>화면 동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>JSON 아님, 필드 누락, 언어 코드 허용 목록 밖, 길이 초과</td>
+<td>손 입력 칸</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>pass_required</code></td>
+<td><code>X-Agent-Pass</code> 없음·틀림</td>
+<td>"운영자 통과 문구를 입력하세요"</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>origin</code></td>
+<td>다른 출처</td>
+<td>손 입력 칸</td>
+</tr>
+<tr>
+<td>405</td>
+<td><code>method</code></td>
+<td>POST 아님</td>
+<td>—</td>
+</tr>
+<tr>
+<td>413</td>
+<td><code>too_large</code></td>
+<td>본문 4KB 초과</td>
+<td>손 입력 칸</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>limit</code></td>
+<td>일일 상한 초과</td>
+<td>"오늘 AI 사용 한도를 넘었습니다" + 손 입력 칸</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>config</code></td>
+<td>키·모델 환경변수 없음 (키 값은 출력하지 않음)</td>
+<td>손 입력 칸</td>
+</tr>
+<tr>
+<td>502</td>
+<td><code>model</code></td>
+<td>모델 오류, 빈 출력, 출력 길이 초과</td>
+<td>손 입력 칸</td>
+</tr>
+<tr>
+<td>504</td>
+<td><code>timeout</code></td>
+<td>모델 20초 초과</td>
+<td>손 입력 칸</td>
+</tr>
+</tbody>
+</table></div>
+<h3>5.3 <code>POST /api/translate</code></h3>
+<p><strong>요청</strong></p>
+<pre><code class="language-json">{ &quot;ko&quot;: &quot;회전 중인 롤러에 손을 넣지 마세요.&quot;, &quot;lang&quot;: &quot;km&quot;, &quot;attempt&quot;: 0, &quot;hint&quot;: &quot;&quot; }
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>규칙</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ko</code></td>
+<td>string</td>
+<td>1~300자, 앞뒤 공백 제거</td>
+</tr>
+<tr>
+<td><code>lang</code></td>
+<td>string</td>
+<td><code>km</code> · <code>id</code> · <code>vi</code> · <code>ne</code> · <code>th</code> 중 하나 (<code>ko</code> 제외)</td>
+</tr>
+<tr>
+<td><code>attempt</code></td>
+<td>integer</td>
+<td>0~2. 0 = 첫 시도</td>
+</tr>
+<tr>
+<td><code>hint</code></td>
+<td>string</td>
+<td>선택. 재시도일 때 앞 역번역(최대 600자). 예: 부정이 사라진 역번역 문장</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>응답 200</strong></p>
+<pre><code class="language-json">{ &quot;text&quot;: &quot;&lt;크메르어 번역문&gt;&quot;, &quot;model&quot;: &quot;gemini-3.1-flash-lite&quot;, &quot;attempt&quot;: 0 }
+</code></pre>
+<p><strong>모델 호출 (서버 → Gemini API <code>generateContent</code>)</strong></p>
+<pre><code class="language-http">POST https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL_TRANSLATE}:generateContent
+x-goog-api-key: ${GEMINI_API_KEY}
+content-type: application/json
+</code></pre>
+<pre><code class="language-json">{
+  &quot;system_instruction&quot;: { &quot;parts&quot;: [{ &quot;text&quot;: &quot;너는 산업안전 지시문 번역가다. 한국어 지시문을 &lt;언어명&gt;으로 번역한다. 규칙: 1) 금지·부정(하지 마세요, 금지, 안 됩니다)을 반드시 보존한다. 2) 기계·부위 이름은 현장 노동자가 쓰는 쉬운 말로 쓴다. 3) 설명·따옴표·로마자 표기 없이 번역문 한 문장만 출력한다.&quot; }] },
+  &quot;contents&quot;: [{ &quot;role&quot;: &quot;user&quot;, &quot;parts&quot;: [{ &quot;text&quot;: &quot;&lt;ko&gt;&quot; }] }],
+  &quot;generationConfig&quot;: { &quot;maxOutputTokens&quot;: 600, &quot;thinkingConfig&quot;: { &quot;thinkingLevel&quot;: &quot;low&quot; } }
+}
+</code></pre>
+<ul>
+<li>키는 URL 쿼리(<code>?key=</code>)가 아니라 <strong><code>x-goog-api-key</code> 헤더</strong>로 보낸다. URL은 로그에 남기 쉽다.</li>
+<li><code>temperature</code>를 보내지 않는다. Gemini 3.6 이후·4 모델은 <code>temperature</code>·<code>top_p</code>·<code>top_k</code>를 무시하고 경고를 내며, 이후 400 오류로 바뀐다고 공지돼 있다. 이전 Gemini 3 모델도 기본값 유지가 권장이다.</li>
+<li><code>thinkingLevel: "low"</code> — 생각 토큰도 출력 요금이 붙고 지연이 늘어난다. 모델마다 지원 값이 다르므로 키 발급 후 실제 호출로 확인한다.</li>
+<li><code>attempt &gt; 0</code>이면 <code>system_instruction</code> 끝에 "앞 번역을 한국어로 되돌렸더니 '<hint>'가 되어 뜻이 바뀌었다. 부정과 금지를 다시 확인하라."를 붙인다.</li>
+<li>응답에서 <code>candidates[0].content.parts[0].text</code>만 읽는다. 후보가 없거나(<code>promptFeedback.blockReason</code> 있음) 앞뒤 공백 제거 후 1~600자가 아니면 502.</li>
+<li>같은 엔드포인트 대신 Google이 새 개발에 권하는 <strong>Interactions API</strong>(<code>POST …/v1beta2/interactions</code>)도 있다. <code>generateContent</code>는 "계속 완전 지원"이고 중단 일정 공지는 없다(2026-10-23 확인). 한 번 묻고 한 번 답하는 상태 없는 호출이라 <code>generateContent</code>를 쓴다 — <strong>후보</strong>, 멘토링 결정 9.</li>
+<li>언어명은 서버의 고정 표(<code>km</code>→"크메르어" 등)에서 가져온다. 요청값을 프롬프트에 그대로 넣지 않는다.</li>
+</ul>
+<h3>5.4 <code>POST /api/backtranslate</code></h3>
+<p><strong>요청</strong> <code>{ "text": "&lt;번역문&gt;", "lang": "km" }</code> — <code>text</code> 1~600자
+<strong>응답 200</strong> <code>{ "back": "&lt;한국어 역번역&gt;", "model": "&lt;모델 ID&gt;" }</code></p>
+<p><strong>모델 호출</strong> — 형식은 §5.3과 같다. 차이:
+- 모델: <code>${AI_MODEL_BACK}</code> — <strong>번역과 다른 모델 또는 다른 프롬프트</strong> (같은 오류를 같이 놓치지 않게, A01 질문 3). 후보: <code>gemini-3.8-flash</code> (다른 세대 모델) 또는 <code>gemini-3.1-flash-lite</code> + 다른 프롬프트 — <code>미정</code>(멘토링 결정 5).
+- <code>system_instruction</code>: "다음 &lt;언어명&gt; 문장을 한국어로 직역한다. 원문을 추측해 고치지 말고 쓰인 그대로 옮긴다. 부정은 부정으로, 긍정은 긍정으로 옮긴다. 한국어 문장 하나만 출력한다."
+- 역번역 쪽에는 <strong>원래 한국어 문장을 주지 않는다.</strong> 주면 모델이 원문에 맞춰 "고쳐서" 대조가 무의미해진다.</p>
+<h3>5.5 환경변수</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>이름</th>
+<th>예</th>
+<th>범위</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GEMINI_API_KEY</code></td>
+<td>(비밀, Google AI Studio에서 발급)</td>
+<td>Production · Preview 각각 다른 키</td>
+<td>코드·응답·로그에 절대 없음 (STC-E19-001)</td>
+</tr>
+<tr>
+<td><code>AI_MODEL_TRANSLATE</code></td>
+<td><code>gemini-3.1-flash-lite</code></td>
+<td>전체</td>
+<td>번역 모델 코드</td>
+</tr>
+<tr>
+<td><code>AI_MODEL_BACK</code></td>
+<td><code>gemini-3.8-flash</code></td>
+<td>전체</td>
+<td>역번역 모델 코드 (<code>미정</code>)</td>
+</tr>
+<tr>
+<td><code>AI_TIMEOUT_MS</code></td>
+<td><code>20000</code></td>
+<td>전체</td>
+<td>모델 호출 타임아웃</td>
+</tr>
+<tr>
+<td><code>AI_DAILY_LIMIT</code></td>
+<td><code>600</code></td>
+<td>Production 600 · Preview 100</td>
+<td>하루 호출 상한 (§5.6)</td>
+</tr>
+<tr>
+<td><code>AGENT_PASS</code></td>
+<td>(비밀)</td>
+<td>전체</td>
+<td>운영자 통과 문구 (§5.6)</td>
+</tr>
+<tr>
+<td><code>ALLOWED_ORIGIN</code></td>
+<td><code>https://&lt;프로젝트&gt;.vercel.app</code></td>
+<td>환경별</td>
+<td>같은 출처 검사</td>
+</tr>
+<tr>
+<td><code>ALLOW_FILE_ORIGIN</code></td>
+<td><code>0</code></td>
+<td>Production은 시연 기간만 <code>1</code></td>
+<td><code>file://</code> 시연의 <code>Origin: null</code> 허용 (§5.2)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>값 예시는 가정이다. 600회/일 = 문구 20개 × 30회.</li>
+<li>로컬 확인: <code>vercel dev</code> + <code>.env.local</code>(저장소에 올리지 않음 — <code>.gitignore</code>가 <code>.env.*</code>를 막는다).</li>
+<li><strong>무료 등급 주의</strong>: Gemini 무료 등급에 보낸 내용은 Google 제품 개선에 쓰인다(유료 등급은 쓰이지 않음, N-64). 보내는 것은 안전 문구뿐이라 개인정보는 없지만, <strong>Production은 결제를 연결한 유료 등급 키</strong>를 쓴다. 무료 등급 호출 한도는 키 발급 후 콘솔에서 확인한다.</li>
+</ul>
+<h3>5.6 남용 방지 — <code>미정</code> (멘토링 결정 3·4)</h3>
+<p>지금 로그인은 목업이라 <strong>서버가 운영자를 알아볼 방법이 없다.</strong> 아무나 <code>/api</code>를 불러 크레딧을 쓸 수 있다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>층</th>
+<th>방법</th>
+<th>막는 것</th>
+<th>한계</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>같은 출처 검사 (<code>Origin</code>)</td>
+<td>다른 사이트에서 부르기</td>
+<td>직접 만든 요청은 헤더를 속일 수 있다</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>X-Agent-Pass</code> — 운영자가 처음 한 번 입력, <code>sessionStorage</code>에 보관</td>
+<td>문구를 모르는 사람</td>
+<td>문구가 새면 끝. 정기 교체</td>
+</tr>
+<tr>
+<td>3</td>
+<td>일일 상한 <code>AI_DAILY_LIMIT</code></td>
+<td>대량 호출</td>
+<td>함수는 상태가 없다 → 인스턴스 메모리 계산은 근사치. 정확히 하려면 KV 저장소 필요(후보)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Google 콘솔의 결제 예산 알림·할당량</td>
+<td>최악의 비용</td>
+<td>설정 방법은 키 발급 후 확인</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>제안: H 단계는 1+2+3(근사)+4. S 단계에서 서버 세션 인증으로 2를 대체한다.</li>
+</ul>
+<hr />
+<h2 id="a6" class="ah">6. AI 에이전트 (브라우저 <code>agent.js</code>) 🔶</h2>
+<h3>6.1 상태 기계 (언어마다 따로)</h3>
+<pre><code>idle ─[AI 번역 받기]→ translating → backtranslating → comparing ─┬─ ok ─────────────→ done (waiting 저장)
+                                                                 └─ flipped → retry(n&lt;2) → translating
+                                                                            └─ n=2 ───→ escalated (waiting + 사람에게 올림)
+어느 단계든 오류·시간 초과 → failed → 손 입력 칸 표시 (FR-AD-03-07)
+</code></pre>
+<h3>6.2 알고리즘</h3>
+<pre><code class="language-js">// assets/agent.js — IIFE, 전역 Agent. ES 모듈 아님.
+async function runLang(phrase, lang, onStep) {
+  let hint = '', last = null;
+  for (let attempt = 0; attempt &lt;= 2; attempt++) {
+    onStep(lang, 'translating', attempt);
+    const t = await call('/api/translate', { ko: phrase.ko, lang, attempt, hint }, 25000);
+    onStep(lang, 'backtranslating', attempt);
+    const b = await call('/api/backtranslate', { text: t.text, lang }, 25000);
+    onStep(lang, 'comparing', attempt);
+    const c = compare(phrase.ko, b.back);           // Review.negationFlipped + newWordCount
+    last = { text: t.text, back: b.back, tries: attempt + 1, flipped: c.flipped, escalated: false, model: t.model };
+    if (!c.flipped) return last;
+    hint = b.back;
+  }
+  return { ...last, escalated: true };               // 상한 도달 → 사람에게 올림
+}
+// run(): 언어끼리는 Promise.allSettled로 병렬, 언어 안에서는 순차.
+//         이미 reviewed인 언어는 건너뛴다 (FR-AD-03-15).
+</code></pre>
+<ul>
+<li>실제 코드는 프로젝트 규칙대로 IIFE·<code>var</code> 스타일로 쓴다. 위는 흐름만 보인다.</li>
+<li><code>call()</code>은 <code>fetch</code> + <code>AbortController</code>(25초). 응답 JSON 모양(<code>text</code>·<code>back</code>이 문자열)을 검사하고 아니면 throw.</li>
+<li><code>navigator.onLine === false</code>면 [AI 번역 받기]를 비활성 + 이유 표시 (조용히 숨기지 않음).</li>
+<li><code>file://</code>로 열었으면 상대 경로 <code>/api</code> 대신 <strong><code>API_BASE</code>(배포 주소, <code>agent.js</code> 맨 위 상수)</strong> 로 부른다 — 현장 시연용 (§5.2, C06 D-019). 노동자 화면은 여전히 외부 요청 0건이다.</li>
+</ul>
+<h3>6.3 저장 (데이터 계약 변경)</h3>
+<pre><code class="language-js">library[i].translations[code] = {
+  text, back,
+  status: 'waiting',                        // ★ 응답과 무관하게 코드 상수
+  agent: { tries, flipped, escalated, model, at },   // 🔶 신규
+  judged: { by: userId, at }                // 🔶 신규 — 사람이 판정할 때만 (AD-02 FR-09)
+}
+</code></pre>
+<ul>
+<li><code>store.js</code> 계약 주석부터 고치고, <code>normalize</code>가 새 필드를 지우지 않게 한다.</li>
+<li>화면 표시는 전부 <code>textContent</code> (FR-AD-03-11). AI 출력은 신뢰하지 않는 문자열이다.</li>
+</ul>
+<h3>6.4 비용 상한</h3>
+<ul>
+<li>문구 1개 최대 호출 = 언어 5 × 2단계 × 3회 = 30회. 1회 입력 약 500·출력 약 150토큰 가정.</li>
+<li>문구 100개당 약 <strong>1.1~3.3달러</strong> (재시도 없음 ~ 최대, 번역 flash-lite + 역번역 3.8-flash, 2027년 가격, 생각 토큰 제외 — N-65, 🔶 계산값).</li>
+<li>역번역을 flash-lite로 하면 약 0.35~1.05달러로 줄어든다(🔶).</li>
+</ul>
+<hr />
+<h2 id="a7" class="ah">7. 데이터 모델 (지금 ✅)</h2>
+<ul>
+<li>키: <code>safety.&lt;이름&gt;.v1</code> · 값: <code>{ "v": 1, "updatedAt": ISO 문자열, "data": … }</code> (봉투). 깨진 값은 기본값으로 읽는다.</li>
+</ul>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>저장소</th>
+<th>모양 (요약)</th>
+<th>쓰는 쪽</th>
+<th>읽는 쪽</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>accounts</code></td>
+<td><code>[{userId, pw, role, name, title, siteName, lang, processId}]</code></td>
+<td>가입</td>
+<td>로그인</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>session</code></td>
+<td><code>{userId, role, at}</code></td>
+<td>로그인</td>
+<td>모든 화면</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>setup</code></td>
+<td><code>{site:{name,sizeBand}, languages[], processes[], equipments[], workers[]}</code></td>
+<td>사업장 등록</td>
+<td>관리자·노동자</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>library</code></td>
+<td><code>[{id, category, ko, status, translations:{code:{text,back,status}}, flags:[{note,lang,at,resolvedAt}]}]</code></td>
+<td>문구 검수 (🔶 + 에이전트)</td>
+<td>교육 만들기·노동자</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>courses</code></td>
+<td><code>[{id, title, equipmentId, languages[], phraseIds[], dueAt, quiz:[{id,type,prompt,i18n,…}], approved, createdAt}]</code></td>
+<td>교육 만들기</td>
+<td>노동자·대시보드·증빙</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>progress</code></td>
+<td><code>[{workerId, courseId, lang, learnedAt, quiz:{score,passed,answers,asked,at,attempt,firstPassed}}]</code></td>
+<td>수강·검증</td>
+<td>대시보드·증빙·마이</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>reports</code></td>
+<td><code>[{id, processId, equipmentId, hazard, memo, status, createdAt}]</code> — <strong>신고자 필드 없음</strong></td>
+<td>위험 신고</td>
+<td>대시보드</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>posts</code></td>
+<td><code>[{id, title, body, author, anonymous, createdAt, comments[]}]</code></td>
+<td>현장 소통</td>
+<td>현장 소통</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>prefs</code></td>
+<td><code>{fontScale, voiceFallback}</code> — 기기 단위</td>
+<td>마이</td>
+<td>노동자 화면</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>orders</code></td>
+<td><code>[{id, workerId, courseId, note, at, by, canceledAt}]</code> — 해소는 저장 안 함</td>
+<td>대시보드</td>
+<td>노동자 홈</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>전체 내보내기·불러오기: <code>Store.exportAll()</code> → JSON 문자열, <code>Store.importAll(text)</code>. S 단계 이전(移轉)의 입구로 쓴다(§9.4).</li>
+</ul>
+<hr />
+<h2 id="a8" class="ah">8. 보안·개인정보</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>지금</th>
+<th>H</th>
+<th>S</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>노동자 화면 외부 요청</td>
+<td>0건 (테스트로 검사)</td>
+<td>0건 유지</td>
+<td>같은 출처 <code>/api/store/*</code>만 예외로 결정 필요</td>
+</tr>
+<tr>
+<td>AI 키</td>
+<td>없음</td>
+<td>서버 환경변수만. <code>src/</code> 키 패턴 0건 검사</td>
+<td>같음</td>
+</tr>
+<tr>
+<td>AI 출력</td>
+<td>—</td>
+<td>신뢰하지 않는 문자열, <code>textContent</code>로만</td>
+<td>같음</td>
+</tr>
+<tr>
+<td>비밀번호</td>
+<td><strong>평문 <code>localStorage</code> (목업)</strong></td>
+<td>같음 — 시연 고지 유지</td>
+<td>scrypt 해시 + 서버 세션</td>
+</tr>
+<tr>
+<td>신고자</td>
+<td>식별값 0</td>
+<td>0</td>
+<td>테이블에 신고자 열 없음</td>
+</tr>
+<tr>
+<td>집계 공개</td>
+<td>—</td>
+<td>—</td>
+<td>5명 미만 칸은 밖으로 내보내지 않음</td>
+</tr>
+<tr>
+<td>보안 헤더</td>
+<td>없음</td>
+<td><strong>제안</strong>: 노동자 화면에 CSP <code>connect-src 'self'</code> — 외부 요청 0건을 브라우저가 강제</td>
+<td>응답 헤더로 CSP·HSTS</td>
+</tr>
+<tr>
+<td>AI로 보내는 데이터</td>
+<td>—</td>
+<td>안전 문구뿐. 노동자·신고 데이터 금지</td>
+<td>같음</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>CSP는 인라인 스크립트·스타일 사용 여부를 먼저 조사하고 넣는다 (<code>미정</code>).</li>
+<li>받아쓰기(SpeechRecognition)는 브라우저에 따라 음성이 브라우저 회사 서버로 갈 수 있다. 알려진 예외로 화면에 고지한다.</li>
+</ul>
+<hr />
+<h2 id="a9" class="ah">9. 판매 단계 설계 ⬜ (후보)</h2>
+<h3>9.1 구조</h3>
+<pre><code>브라우저 (화면 그대로) ─ Store(캐시 + 동기화 대기열) ─HTTPS─ Vercel 함수 /api/* ─ PostgreSQL
+                                                                         └─ 객체 저장소 (사진)
+</code></pre>
+<h3>9.2 API (요약 — SPEC-BE §3.2)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>경로</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /api/auth/login</code> · <code>/signup</code> · <code>/logout</code></td>
+<td>세션 쿠키 발급·삭제</td>
+</tr>
+<tr>
+<td><code>GET /api/store/:key</code> · <code>PUT /api/store/:key</code></td>
+<td><code>Store.load/save</code> 대체 (사업장 단위)</td>
+</tr>
+<tr>
+<td><code>POST /api/reports</code> · <code>GET /api/reports/:ticket</code></td>
+<td>사진 신고, 접수 번호로 회신 확인</td>
+</tr>
+<tr>
+<td><code>POST /api/proof/seal</code></td>
+<td>증빙 생성 시점 해시·타임스탬프</td>
+</tr>
+<tr>
+<td>예약 작업</td>
+<td>기한·미이수 알림</td>
+</tr>
+</tbody>
+</table></div>
+<h3>9.3 인증</h3>
+<ul>
+<li>쿠키 <code>sid</code>: <code>HttpOnly; Secure; SameSite=Lax; Max-Age=1209600</code>(14일). 세션 테이블에 저장.</li>
+<li>비밀번호: <code>node:crypto</code> <code>scrypt</code> + 사업장별이 아닌 계정별 salt. 외부 라이브러리 없이 된다.</li>
+<li>노동자 로그인 단순화(사업장 QR + 식별번호)는 이 단계에서 다룬다 (PRD-CM-01 §11).</li>
+</ul>
+<h3>9.4 동기화 — 가장 큰 설계 결정 (<code>미정</code>, 멘토링 결정 6)</h3>
+<ul>
+<li>지금 화면은 <code>Store.x.load()</code>를 <strong>동기</strong>로 부른다. 서버 호출은 비동기다.</li>
+<li>제안: <code>localStorage</code>를 그대로 캐시로 두고, 화면이 열릴 때 서버에서 당겨 오고(pull), 저장할 때 대기열에 넣어 밀어 보낸다(push). 화면 코드는 바뀌지 않는다.</li>
+<li>충돌 규칙 후보: 저장소 단위 "나중 저장 우선"(단순, 위험) vs 기록 단위 병합(<code>progress</code>·<code>reports</code>는 추가만 하므로 병합이 쉽다).</li>
+<li>옮기기: 기존 사업장은 <code>Store.exportAll()</code> JSON을 한 번 올려 서버로 옮긴다.</li>
+</ul>
+<h3>9.5 DB 스키마 (초안)</h3>
+<pre><code class="language-sql">create table workplaces (id uuid primary key, name text not null, size_band text, langs text[]);
+create table accounts (id uuid primary key, workplace_id uuid references workplaces, user_id text unique,
+  role text check (role in ('worker','admin','operator')), lang text, pw_hash text not null);  -- 외국인등록번호 열 없음
+create table phrases (id uuid primary key, ko text not null, category text, status text);
+create table phrase_translations (phrase_id uuid references phrases, lang text, text text, back text,
+  status text check (status in ('reviewed','waiting','stopped')), agent jsonb, judged_by uuid, judged_at timestamptz,
+  primary key (phrase_id, lang));
+create table progress (id bigserial primary key, workplace_id uuid, worker_id uuid, course_id uuid,
+  learned_at timestamptz, quiz jsonb, created_at timestamptz default now());   -- 수정 없이 추가만
+create table reports (id bigserial primary key, ticket text unique, workplace_id uuid, equipment_id text,
+  hazard text, memo text, photo_key text, status text, created_at timestamptz default now()); -- 신고자 열 없음
+</code></pre>
+<ul>
+<li>공급사(관리형 PostgreSQL·객체 저장소)는 <code>미정</code>. 기준: 한국 리전 여부, Vercel 연동, 무료 구간, 백업.</li>
+</ul>
+<hr />
+<h2 id="a10" class="ah">10. 개발·테스트·배포</h2>
+<h3>10.1 로컬 개발</h3>
+<ul>
+<li>화면: <code>src/index.html</code>을 더블클릭(<code>file://</code>)하거나 정적 서버로 연다. 빌드 없음.</li>
+<li>함수: <code>vercel dev</code> (Vercel CLI) + <code>.env.local</code>.</li>
+<li>시연 데이터: <code>seed.js</code>.</li>
+</ul>
+<h3>10.2 테스트</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>묶음</th>
+<th>내용</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>기존 19개 파일</td>
+<td>화면·데이터·i18n·아이콘·오프라인·QR·음성 등 (기준선 1,619건)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>test-agent-boundary.js</code></td>
+<td>가짜 <code>fetch</code>로: 정상 → <code>waiting</code> 저장 · 응답에 <code>status:'reviewed'</code> 섞여도 무시 · <code>&lt;script&gt;</code> 출력은 글자로만 · 실패·지연 → 손 입력 칸 · 늘 뒤집히면 3회 후 <code>escalated</code> · <code>src/</code>에 키 패턴 0건</td>
+<td>🔶</td>
+</tr>
+<tr>
+<td><code>test-api.mjs</code></td>
+<td>핸들러에 <code>Request</code>를 직접 넣어: 언어 코드 밖 400 · 통과 문구 없음 401 · 다른 출처 403 · <code>null</code> 출처(<code>ALLOW_FILE_ORIGIN</code> 0이면 403, 1이면 통과 + CORS 헤더) · <code>OPTIONS</code> 204 · 키 없음 500(키 값 미출력) · 모델 타임아웃 504 · 응답에 <code>status</code> 없음</td>
+<td>🔶</td>
+</tr>
+<tr>
+<td>노동자 화면 외부 요청</td>
+<td><code>worker/*.html</code>에 <code>agent.js</code>가 없고, <code>fetch(</code> 호출이 없는지</td>
+<td>🔶 추가</td>
+</tr>
+</tbody>
+</table></div>
+<h3>10.3 CI — 제안</h3>
+<ul>
+<li>지금 <code>tests/harness.js</code>는 소스 경로가 개발자 PC 경로로 고정돼 있다(<code>C:/Users/…/src</code>). <strong>환경변수 또는 <code>path.join(__dirname, '..', 'src')</code>로 바꿔야</strong> CI에서 돈다 (코드 변경 — 요청 후 진행).</li>
+<li>GitHub Actions <code>test.yml</code>: Node 22 → <code>npm i --no-save jsdom</code> → <code>node tests/run-all.js</code>. PR마다 실행, 실패하면 머지 금지 (C04 §4 DoD).</li>
+</ul>
+<h3>10.4 배포</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>환경</th>
+<th>브랜치</th>
+<th>키</th>
+<th>상한</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Production</td>
+<td><code>main</code></td>
+<td>운영 키</td>
+<td><code>AI_DAILY_LIMIT=600</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td>PR·<code>develop</code></td>
+<td>별도 키</td>
+<td><code>AI_DAILY_LIMIT=100</code></td>
+</tr>
+<tr>
+<td>로컬</td>
+<td>—</td>
+<td>개인 키 (<code>.env.local</code>)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><code>sw.js</code>의 <code>VERSION</code>은 화면 파일이 바뀔 때마다 올린다 (<code>v9</code> → <code>v10</code>). 안 올리면 노동자 기기에 옛 화면이 남는다.</li>
+<li>판매 전 Hobby → Pro (N-61).</li>
+</ul>
+<h3>10.5 관측</h3>
+<ul>
+<li>함수 로그(§5.2 형식)로 하루 호출 수·실패율·평균 지연을 본다.</li>
+<li>에이전트 품질 지표(멘토링 질문 6): 첫 시도 통과율, 재시도 후 해결률, 사람에게 올림 비율, 사람이 승인한 비율.</li>
+</ul>
+<hr />
+<h2 id="a11" class="ah">11. 작업 순서 (H 단계, SPEC-FE §4 기준)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>작업</th>
+<th>산출물</th>
+<th>선행</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>함수 2개 본문 + <code>test-api.mjs</code></td>
+<td><code>translate.mjs</code>·<code>backtranslate.mjs</code></td>
+<td>키 발급</td>
+</tr>
+<tr>
+<td>2</td>
+<td>배치 확정 후 미리보기 배포로 함수 동작 확인</td>
+<td>미리보기 URL</td>
+<td>결정 1</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>agent.js</code> + <code>test-agent-boundary.js</code></td>
+<td>에이전트 루프</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>library.js</code>에 진행 줄·언어 행·올림 행·실패 안내</td>
+<td>AD-03 화면</td>
+<td>3</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>store.js</code> 계약 변경 (<code>agent</code>·<code>judged</code>) + 판정 기록</td>
+<td>AD-02 FR-09</td>
+<td>3</td>
+</tr>
+<tr>
+<td>6</td>
+<td>오역 신고 노동자 진입점 (기존 <code>flags[]</code>)</td>
+<td>WK-01 FR-06</td>
+<td>—</td>
+</tr>
+<tr>
+<td>7</td>
+<td>2회차 요구 묶음 (WK-03 FR-12~14, 문구만 바뀌는 것들)</td>
+<td>SPEC-FE §4 5번</td>
+<td>—</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>sw.js</code> VERSION 올림, 전체 테스트, 시연 리허설</td>
+<td>—</td>
+<td>1~7</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>코드 생성(CodeGen)은 이 문서 + SPEC-FE·SPEC-BE 해당 절 + PRD §4·§8 + C05 §2를 함께 넣는다. 생성 코드도 C04 §4 DoD를 통과해야 머지한다.</li>
+</ul>
+<hr />
+<h2 id="a12" class="ah">12. 멘토링에서 받을 결정</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>결정</th>
+<th>우리 제안</th>
+<th>바뀌는 곳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>/api</code> 배치 ① 루트 vs ② <code>src/api</code></td>
+<td>② (설정 변경 없음) — 단, 미리보기로 확인</td>
+<td>§3, §5.1, C06 D-005</td>
+</tr>
+<tr>
+<td>2</td>
+<td>에이전트 루프 위치</td>
+<td>A안 브라우저 지휘 (결정, 조건부)</td>
+<td>§6, C06 D-006</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>/api</code> 남용 방지</td>
+<td>출처 검사 + 통과 문구 + 근사 상한 + 공급사 한도</td>
+<td>§5.6</td>
+</tr>
+<tr>
+<td>4</td>
+<td>일일 상한 저장소</td>
+<td>H는 메모리 근사, S에서 KV/DB</td>
+<td>§5.6</td>
+</tr>
+<tr>
+<td>5</td>
+<td>역번역 모델</td>
+<td><code>gemini-3.8-flash</code>(다른 모델) vs flash-lite + 다른 프롬프트</td>
+<td>§5.4, 비용</td>
+</tr>
+<tr>
+<td>6</td>
+<td>S 단계 동기화</td>
+<td>캐시 + 대기열, 기록 단위 병합</td>
+<td>§9.4</td>
+</tr>
+<tr>
+<td>7</td>
+<td>DB·파일 공급사</td>
+<td>한국 리전·Vercel 연동 기준으로 비교</td>
+<td>§9.5</td>
+</tr>
+<tr>
+<td>8</td>
+<td>CI 도입</td>
+<td>GitHub Actions, PR마다</td>
+<td>§10.3</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Gemini 호출 방식</td>
+<td><code>generateContent</code> (상태 없는 한 번 호출) vs 권장 신규 API <code>Interactions</code></td>
+<td>§5.3</td>
+</tr>
+<tr>
+<td>10</td>
+<td>현장 시연 AI 호출</td>
+<td>제출 HTML(<code>file://</code>)이 <code>API_BASE</code>로 배포된 <code>/api</code>를 부르고, 시연 기간에만 <code>null</code> 출처 허용 + 영상 백업</td>
+<td>§5.2, §6.2, C06 D-019</td>
+</tr>
+<tr>
+<td>11</td>
+<td>제출 형태</td>
+<td>폴더(zip) 제출이 되면 그대로. 안 되면 한 HTML로 묶는 스크립트(작업량 큼) — 운영진 답변 먼저</td>
+<td>§3, C08 §7</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="a13" class="ah">13. 참고 (공식 문서, 2026-10-23 확인)</h2>
+<ul>
+<li><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini Developer API pricing</a> — 모델 코드·가격·무료 등급 데이터 사용 (N-64)</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/generate-content/text-generation">Gemini 텍스트 생성 (generateContent)</a> — <code>system_instruction</code>, <code>generationConfig</code>, <code>thinkingConfig</code>, temperature 공지</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/migrate-to-interactions">Interactions API로 옮기기</a> — <code>generateContent</code> 계속 지원, 엔드포인트·<code>x-goog-api-key</code></li>
+<li><a href="https://www.vercel.com/docs/functions/functions-api-reference">Vercel Functions API Reference</a> — Web Handler, <code>.mjs</code>, <code>config.maxDuration</code>, <code>process.env</code></li>
+<li><a href="https://vercel.com/docs/functions/limitations">Vercel Functions Limits</a> — N-60</li>
+<li><a href="https://vercel.com/docs/plans/hobby">Vercel Hobby Plan</a> — N-61</li>
+<li>모델 코드와 가격은 바뀌기 쉽다. 구현 직전에 위 가격표에서 다시 확인하고 S02 N-64를 고친다.</li>
+</ul>
+<hr />
+<h2 id="ahist" class="ah">제·개정 이력</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>버전</th>
+<th>날짜</th>
+<th>작성자</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.3</td>
+<td>2026-10-23</td>
+<td>byeonsoyun</td>
+<td>운영 공지(현장 시연 = 제출 HTML <code>file://</code>) 반영: §5.2 시연 기간 <code>null</code> 출처·CORS·<code>OPTIONS</code>, §5.5 <code>ALLOW_FILE_ORIGIN</code>, §6.2 <code>API_BASE</code>, §10.2 시험, 결정 10·11 추가</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-10-23</td>
+<td>byeonsoyun</td>
+<td>AI 공급사를 Gemini로 변경 (요청 형식·헤더·모델·환경변수·비용·무료 등급 주의, 결정 9 추가)</td>
+</tr>
+<tr>
+<td>0.1</td>
+<td>2026-10-23</td>
+<td>byeonsoyun</td>
+<td>최초 작성. 기술 멘토링용 시스템 전체 기술 명세 (스택·구조·API·에이전트·데이터·보안·판매 단계·테스트·배포·결정 목록)</td>
+</tr>
+</tbody>
+</table></div></div>
+<footer class="foot">원본 A02_기술-개발-명세서.md · 결정 기록 C06 D-005·D-006·D-018·D-019 · 가격 근거 S02 N-64·N-65 · 2026-10-23</footer>
+</div></body></html>

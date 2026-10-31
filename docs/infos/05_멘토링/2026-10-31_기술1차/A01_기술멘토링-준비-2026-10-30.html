@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A01 · 기술 멘토링(3차) 준비지 — 2026-10-30(금)</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../../README.html">처음 (사용법)</a>
+<a href="../../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+<div class="sub">2026-10-31_기술1차</div>
+<a href="README.html">이 폴더 안내</a>
+<a href="01_10%EB%B6%84-%EC%84%A4%EB%AA%85.html">01 10분-설명</a>
+<a href="02_%EC%B5%9C%EC%A2%85-%EA%B0%9C%EB%B0%9C-%EC%84%A4%EA%B3%84.html">02 최종-개발-설계</a>
+<a href="03_%ED%98%84%EC%9E%AC-%EC%83%81%ED%99%A9%EA%B3%BC-%EC%88%98%EC%A4%80.html">03 현재-상황과-수준</a>
+<a href="04_%EA%B0%9C%EB%B0%9C-%EC%9D%BC%EC%A0%95.html">04 개발-일정</a>
+<a href="05_%EB%A9%98%ED%86%A0-%EC%A7%88%EB%AC%B8%EA%B3%BC-%EA%B8%B0%EB%A1%9D.html">05 멘토-질문과-기록</a>
+<a href="06_%EC%98%88%EC%83%81-%EC%A7%88%EB%AC%B8%EA%B3%BC-%EB%8B%B5.html">06 예상-질문과-답</a>
+<a href="A01_%EA%B8%B0%EC%88%A0%EB%A9%98%ED%86%A0%EB%A7%81-%EC%A4%80%EB%B9%84-2026-10-30.html" class="on">A01 기술멘토링-준비-2026-10-30</a>
+<a href="A03_%EC%B5%9C%EC%A2%85%EB%B2%94%EC%9C%84%EC%99%80-%EC%9D%BC%EC%A0%95-%EC%BB%A8%ED%8E%8C-2026-10-31.html">A03 최종범위와-일정-컨펌-2026-10-31</a>
+</nav>
+<main>
+<h1 id="a01--기술-멘토링3차-준비지--2026-10-30금">A01 · 기술 멘토링(3차) 준비지 — 2026-10-30(금)</h1>
+<blockquote><p><strong>2026-10-31 변경</strong> — 멘토링이 <strong>10/31(토) 22:00</strong>으로 옮겨졌다. 평가표는 10/23 공지됐고(§0 첫 줄 완료), Gemini 키는 발급됐다. 아래 §1 「현황」은 10/22 기준이다. <strong>최신 현황·최종 범위·일정·묻는 순서는 <a href="A03_최종범위와-일정-컨펌-2026-10-31.html">A03</a>을 먼저 띄운다.</strong> 이 문서는 결정 선택지 비교(§3)와 사실 확인(§4)으로 쓴다<br><strong>문서 상태</strong> 초안 v0.3 · <strong>최종 수정</strong> 2026-10-31 · <strong>소유자</strong> byeonsoyun (<a href="../../../documentations/40_캡스톤산출물/D05_스프린트백로그.md">D05 TK-1-13</a>)<br><strong>이 문서가 답하는 질문</strong> 기술 멘토링에서 무엇을 결정받아야 하나 · 무엇을 묻나 · 답을 어디에 적나<br><strong>질문 원본</strong> <code>보관_해커톤-초기기획/MENTORING-QUESTIONS.md</code> (Q1~Q27). 이 문서는 그중 결정에 필요한 것을 골라 사실 확인 결과를 붙였다.<br><strong>화면에 띄울 것</strong> 배포 주소 <a href="https://2026-ax-ton.vercel.app" target="_blank" rel="noopener">https://2026-ax-ton.vercel.app</a> → 이 문서 §2 구조 그림 → §4 사실 확인 표</p></blockquote>
+<hr>
+<h2 id="0-멘토링-전-확인-당일-오전">0. 멘토링 전 확인 (당일 오전)</h2>
+<ul><li>[ ] 해커톤 <strong>평가표</strong>가 공지됐는지 확인한다. 공지됐으면 §5 질문 4의 답이 바뀐다</li><li>[ ] 멘토링 시각과 길이를 확인한다 (시각 <code>미정</code>). 30분 이하면 §5의 ★ 질문만 묻는다</li><li>[ ] 배포 주소가 열리는지 폰과 PC에서 확인한다</li><li>[ ] 답을 적을 §6 표를 열어 둔다</li></ul>
+<hr>
+<h2 id="1-처음-1분--현황과-받고-싶은-결정">1. 처음 1분 — 현황과 받고 싶은 결정</h2>
+<p><strong>현황</strong></p>
+<ol><li>아이디어톤 버전(v1.0)은 완성·배포됐다. 화면 11개, 자동 테스트 1,619건 통과(2026-10-10).</li><li>해커톤 주제는 아이디어톤 주제를 이어간다(10/22 확인). 평가표는 아직 공지 전이다.</li><li>제품 안의 AI가 실제로 일하는 곳이 아직 없다. 해커톤에서 AI Agent를 붙인다.</li><li>사업 쪽은 정리했다: 지자체가 이용권을 사서 사업장에 무료 배포, 노동자 0원 (<a href="../../../documentations/10_사업화/S01_수익모델-초안.md">S01</a>).</li></ol>
+<p><strong>오늘 받고 싶은 결정 3개</strong></p>
+<div class="tbl"><table><thead><tr><th>#</th><th>결정</th><th>지금 기울어 있는 쪽</th><th>기록할 곳</th></tr></thead><tbody><tr><td>1</td><td>AI 호출을 어디서 하나</td><td>Vercel 서버리스 함수 <code>/api/*</code>, 관리자 화면만 (노동자 화면 외부 요청 0건 유지)</td><td><a href="../../../documentations/00_개발컨벤션/C06_결정기록.md">C06 D-005</a></td></tr><tr><td>2</td><td>에이전트 루프(재시도 판단)를 어디서 돌리나</td><td>브라우저가 단계를 지휘, 서버 함수는 한 단계만</td><td>C06 D-006</td></tr><tr><td>3</td><td>에이전트를 몇 개, 무엇을 만드나</td><td>하나를 깊게 — 후보 A(번역·검수)</td><td>C06 D-007</td></tr></tbody></table></div>
+<hr>
+<h2 id="2-지금-구조와-바꾸려는-구조-그림-1">2. 지금 구조와 바꾸려는 구조 (그림 1)</h2>
+<pre><code> [지금 — v1.0]                                   [바꾸려는 것 — 후보]
+ 브라우저 (정적 HTML + 순수 JS)                    관리자·운영자 화면 (브라우저)
+   ├─ 노동자 화면 6개   외부 요청 0건                 │  ① 번역 요청 {ko, lang}
+   ├─ 관리자 화면 5개                                 ▼
+   └─ Store ─► localStorage (기기마다 따로)         /api/translate      ─► AI 모델 API
+                                                    /api/backtranslate  ─► (키는 Vercel 환경변수)
+ Vercel 정적 배포 (Root Directory = src)              │  ② 결과는 항상 status:'waiting'
+                                                      ▼
+                                                   Review.negationFlipped 등으로 비교 (브라우저)
+                                                      │  ③ 뒤집힘 → 재시도 (상한) → 안 되면 &quot;사람에게 올림&quot;
+                                                      ▼
+                                                   운영자가 승인해야 reviewed → 노동자 화면에 노출
+                                                   (AI 실패 시 손으로 입력하는 칸이 그대로 남음)</code></pre>
+<hr>
+<h2 id="3-결정이-필요한-것--선택지-비교-표-1">3. 결정이 필요한 것 — 선택지 비교 (표 1)</h2>
+<div class="tbl"><table><thead><tr><th>결정</th><th>선택지</th><th>장점</th><th>걸림</th></tr></thead><tbody><tr><td><strong>D-005 AI 호출 위치</strong></td><td>① Vercel 서버리스 <code>/api/*</code> (제안)</td><td>지금 배포를 그대로 쓴다. 키가 브라우저에 안 나간다</td><td>Root Directory(<code>src</code>) 변경 가능성 → 소유자 승인 필요. 변경 후 <code>docs/</code>·<code>tests/</code> 404 재확인. <strong>Hobby 요금제는 비상업 개인 용도만 허용</strong>(§4)</td></tr><tr><td></td><td>② 별도 백엔드 서버</td><td>구조 자유</td><td>운영 부담, 시간 부족</td></tr><tr><td></td><td>③ AI 호출 없이 미리 만든 결과로 시연</td><td>위험 없음</td><td>&quot;AI가 실제로 돈다&quot;를 보여 줄 수 없다</td></tr><tr><td><strong>D-006 루프 위치</strong></td><td>A. 브라우저가 지휘 (확정·조건부, D-017)</td><td><code>review.js</code>를 그대로 재사용, 단계별 진행 표시(시연에 유리)</td><td>운영자가 창을 닫으면 멈춘다</td></tr><tr><td></td><td>B. 서버 함수가 전체 루프</td><td>한 번 호출로 끝</td><td>비교 코드를 서버로 복사해야 한다. <strong>시간 제한은 300초라 장벽이 아니다</strong>(§4)</td></tr><tr><td><strong>D-007 개수</strong></td><td>하나를 깊게 — A (제안)</td><td>개발자 1명, 완성도</td><td>&quot;여러 개&quot; 가산점이 있는지 모른다</td></tr><tr><td></td><td>여러 개를 얕게</td><td>다양성</td><td>각각 미완성 위험</td></tr><tr><td><strong>데이터 저장 (신규)</strong></td><td>시연은 localStorage 유지 (제안)</td><td>지금 구조 그대로</td><td>지자체 판매에는 서버·로그인·기기 간 공유가 필요하다 (<a href="../../../documentations/10_사업화/S01_수익모델-초안.md">S01 §9</a>)</td></tr><tr><td></td><td>DB 도입</td><td>판매 구조에 가깝다</td><td>시간, <code>src/</code> 의존성 0 원칙과 조정 필요</td></tr><tr><td><strong>모델 선택</strong></td><td>저가 모델(Haiku 급)로 번역, 고가 모델로 역번역</td><td>비용 낮음, 서로 다른 모델로 검증</td><td>소수 언어 품질 미확인</td></tr></tbody></table></div>
+<hr>
+<h2 id="4-사실-확인-결과-표-2--2026-10-22-코드와-공식-문서로-확인">4. 사실 확인 결과 (표 2) — 2026-10-22 코드와 공식 문서로 확인</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>확인한 것</th><th>결과</th><th>출처</th></tr></thead><tbody><tr><td>F-1</td><td><code>Review.compare()</code> 가 있나</td><td><strong>없다.</strong> 실제 함수는 <code>words</code>, <code>diffWords</code>, <code>newWordCount</code>, <code>negationCount</code>, <code>negationFlipped</code> 5개다 (<code>src/assets/review.js</code>, 71줄). <code>docs/12</code>와 질문 Q7의 <code>Review.compare()</code>는 틀린 이름이다</td><td>코드</td></tr><tr><td>F-2</td><td>비교 로직의 한계</td><td><code>negationFlipped</code>는 <strong>한국어 부정 표현 정규식</strong>(마십시오·않·없·금지 등)의 개수만 본다. <code>diffWords</code>는 낱말 앞 2글자로 비교한다. 역번역이 한국어로 돌아오므로 쓸 수 있지만, <strong>뜻은 같고 부정 표현을 바꿔 쓴 경우를 뒤집힘으로 오판</strong>할 수 있다</td><td>코드</td></tr><tr><td>F-3</td><td>지금 쓰는 곳</td><td>운영자 문구 라이브러리(<code>admin/library.js</code>)와 교육 만들기(<code>admin/content.js</code>)가 같은 함수를 쓴다. 새 문구는 <code>status: 'waiting'</code>으로 저장된다</td><td>코드</td></tr><tr><td>F-4</td><td>배포 설정</td><td><code>vercel.json</code>이 없다. Root Directory는 <code>src</code>다. 빌드 명령이 없다</td><td><code>CLAUDE.md</code></td></tr><tr><td>F-5</td><td>테스트 이식성</td><td>테스트 <strong>10개 파일</strong>에 작업자 PC 절대 경로가 있다 (IMP-1, TK-1-06 미완)</td><td>코드</td></tr><tr><td>F-6</td><td>Vercel 함수 시간 제한 (S02 N-60)</td><td>Hobby: 기본·최대 <strong>300초</strong>. Pro: 기본 300초, 최대 800초. 요청·응답 본문 최대 4.5MB</td><td><a href="https://vercel.com/docs/functions/limitations" target="_blank" rel="noopener">Vercel Functions Limits (2026-08-24)</a></td></tr><tr><td>F-7</td><td>Vercel Hobby 용도 (S02 N-61)</td><td><strong>Hobby 요금제는 비상업 개인 용도만 허용</strong>한다. Pro는 개발자 1명당 월 20달러</td><td><a href="https://vercel.com/docs/plans/hobby" target="_blank" rel="noopener">Vercel Hobby Plan (2026-09-14)</a></td></tr><tr><td>F-8</td><td>AI 모델 가격 (100만 토큰당, USD, S02 N-62)</td><td>Haiku 5.5: 입력 0.10 / 출력 0.50 (프롬프트 10만 토큰 이하). Sonnet 5.5: 입력 2 / 출력 10. Batch API는 50% 할인</td><td><a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">Claude 가격표</a></td></tr></tbody></table></div>
+<blockquote><p><strong>2026-10-23 변경</strong> — AI 공급사를 Gemini로 바꿨다 (<a href="../../../documentations/00_개발컨벤션/C06_결정기록.md">C06 D-018</a>). F-8과 아래 표 3은 <a href="../../../documentations/20_기술명세/A02_기술-개발-명세서.md">A02 §5·§6.4</a>와 S02 N-64·N-65로 대체한다.</p></blockquote>
+<p><strong>비용 어림 (표 3, S02 N-63) — 🔷 가정 위의 계산</strong></p>
+<blockquote><p>가정: 호출 1회 = 입력 500토큰 + 출력 150토큰. 문구 1개 × 5개 언어 × (번역 + 역번역) = 10회, 재시도까지 최대 20회.<br>크메르어·네팔어 등은 같은 문장도 토큰이 더 많이 나올 수 있다. 실제 측정으로 바꿔야 한다.</p></blockquote>
+<div class="tbl"><table><thead><tr><th>모델</th><th>호출 1회</th><th>문구 1개 (10~20회)</th><th>문구 100개</th></tr></thead><tbody><tr><td>Sonnet 5.5</td><td>약 0.0025달러</td><td>약 0.025~0.05달러</td><td><strong>약 2.5~5달러</strong></td></tr><tr><td>Haiku 5.5</td><td>약 0.000125달러</td><td>약 0.00125~0.0025달러</td><td><strong>약 0.13~0.25달러</strong></td></tr></tbody></table></div>
+<p>→ 해커톤 시연 규모에서는 <strong>AI 비용보다 Vercel 요금제(F-7)와 검수 인건비</strong>가 원가의 중심이다 (<a href="../2026-10-10_사업1차/S04_멘토링1차-과제-정리.html">S04 §5.5</a> 원가 표의 AI 사용료 칸 근거).</p>
+<hr>
+<h2 id="5-질문-우선순위-순----시간이-짧아도-묻는다">5. 질문 (우선순위 순) — ★ = 시간이 짧아도 묻는다</h2>
+<h3 id="-1-서버리스-함수와-데이터-저장-범위-q10--q12">★ 1. 서버리스 함수와 데이터 저장 범위 (Q10 + Q12)</h3>
+<ul><li><strong>배경</strong>: AI 키를 숨기려면 <code>/api/*</code>가 필요하다. 지자체에 팔려면 로그인·DB·기기 간 공유도 필요하다(S01 §9).</li><li><strong>묻는 것</strong>: 해커톤에서 서버리스 AI 호출만 붙이고 DB는 로드맵으로 둬도 되나요? 심사에서 &quot;실제 서비스 구조&quot;는 얼마나 보나요?</li><li><strong>우리 생각</strong>: AI 호출만 서버리스로, 저장은 localStorage 유지, DB는 로드맵.</li><li><strong>답에 따라 바뀌는 것</strong>: D-005, 2차 스프린트 범위(D05), Root Directory 변경 승인 요청 시점.</li></ul>
+<h3 id="-2-에이전트-루프-위치와-도구-정의-q7--d-006">★ 2. 에이전트 루프 위치와 &quot;도구&quot; 정의 (Q7 + D-006)</h3>
+<ul><li><strong>배경</strong>: 순서는 코드가 제어하고 모델은 단계마다 한 가지 일만 하게 하려 한다. 서버 시간 제한(300초)은 장벽이 아니다(F-6).</li><li><strong>묻는 것</strong>: 모델의 도구 호출(tool use)로 에이전트가 스스로 순서를 정하게 하는 것과, 코드가 순서를 정하는 것 중 무엇이 &quot;에이전트&quot;로 더 인정받나요? (Q4 연결)</li><li><strong>우리 생각</strong>: 코드가 순서 제어 + 모델이 &quot;다시 할지/사람에게 넘길지&quot;를 판단하는 단계 하나를 둔다.</li><li><strong>답에 따라 바뀌는 것</strong>: D-006, D06 §3.4 API 명세.</li></ul>
+<h3 id="-3-ai가-ai를-검증하는-구조의-신뢰도-q5">★ 3. AI가 AI를 검증하는 구조의 신뢰도 (Q5)</h3>
+<ul><li><strong>배경</strong>: 같은 계열 모델이 번역·역번역하면 같은 오류를 놓칠 수 있다. 지금 비교 로직은 한국어 부정 표현 개수만 본다(F-2).</li><li><strong>묻는 것</strong>: 번역과 역번역을 다른 모델로 나누는 것이 의미가 있나요? 크메르어처럼 모델 품질이 낮은 언어는 어떻게 다루나요? 비교도 모델에게 맡길까요, 규칙으로 둘까요?</li><li><strong>우리 생각</strong>: 번역·역번역 모델 분리 + 규칙 비교(<code>negationFlipped</code>) 유지 + 최종은 사람 승인.</li></ul>
+<h3 id="4-평가표-공지-전에-공통-기반을-먼저-만들어도-되나-q3--d-003--해결됨-묻지-않는다">4. 평가표 공지 전에 공통 기반을 먼저 만들어도 되나 (Q3 + D-003) — <strong>해결됨, 묻지 않는다</strong></h3>
+<ul><li><strong>2026-10-23 해결</strong>: 운영 공지로 평가표가 나와 D-003을 해제했다. 「서비스 완성도」 25점이 AI가 실제로 작동하는지 본다 (<a href="../../../documentations/00_개발컨벤션/C08_해커톤-규정과-대응.md">C08 §4</a>). 아래는 기록으로 남긴다.</li><li><strong>배경</strong>: &quot;주제·평가표 공지 전에는 에이전트 코드를 쓰지 않는다&quot;(D-003)고 정했다. 주제는 확정됐고 평가표만 남았다. 멘토링은 11/20까지, 자료 제출은 11/23, 오프라인 해커톤은 11/28이다.</li><li><strong>묻는 것</strong>: 어떤 에이전트를 고르든 필요한 기반(서버 함수 골격, AI 호출 래퍼, 실패 시 수동 복귀, 경계 테스트)을 지금 시작해도 될까요?</li><li><strong>우리 생각</strong>: 공통 기반(US-25~US-27, US-37)은 지금 시작한다. 에이전트 선택(A/B/C)만 평가표를 기다린다.</li><li><strong>답에 따라 바뀌는 것</strong>: D-003 수정 여부, 2차 스프린트 시작 시점.</li></ul>
+<h3 id="5-에이전트-개수와-후보-선택-q1--q2">5. 에이전트 개수와 후보 선택 (Q1 + Q2)</h3>
+<ul><li><strong>묻는 것</strong>: 하나를 깊게(A: 번역·검수) 만드는 것과 A + C 일부를 얹는 것 중 어느 쪽이 심사에서 낫나요?</li><li><strong>우리 생각</strong>: A 하나를 끝까지. C는 로드맵.</li></ul>
+<h3 id="6-에이전트-평가-지표-q9--q22">6. 에이전트 평가 지표 (Q9 + Q22)</h3>
+<ul><li><strong>묻는 것</strong>: 번역 품질을 무엇으로 보여 줄까요? 후보: 운영자가 고친 비율, 승인까지 걸린 시간 전/후, 재시도로 해결된 비율, &quot;사람에게 올림&quot; 비율.</li><li><strong>연결</strong>: 사업 쪽 효과 숫자(S02 §4)와 함께 쓸 수 있다.</li></ul>
+<h3 id="7-비용실패-대비-q13--q14">7. 비용·실패 대비 (Q13 + Q14)</h3>
+<ul><li><strong>묻는 것</strong>: 표 3의 비용 어림이 현실적인가요? 라이브 시연 중 AI가 실패하면 수동 경로로 돌아가는 장면을 보여 주는 것이 감점인가요, 가점인가요?</li><li><strong>우리 생각</strong>: 실패 → 수동 복귀를 시연에 일부러 넣는다. 녹화 영상도 준비한다.</li></ul>
+<h3 id="8-vercel-요금제-신규-f-7">8. Vercel 요금제 (신규, F-7)</h3>
+<ul><li><strong>묻는 것</strong>: Hobby는 비상업 용도만 허용합니다. 해커톤 기간에는 Hobby로 두고, 실제 판매 시 Pro로 옮기면 되나요?</li></ul>
+<h3 id="9-기존-프로젝트-확장의-구분-q19">9. 기존 프로젝트 확장의 구분 (Q19)</h3>
+<ul><li><strong>묻는 것</strong>: 아이디어톤 때 만든 부분과 해커톤에서 새로 만든 부분을 어떻게 나눠 보여 줘야 하나요?</li><li><strong>우리 생각</strong>: &quot;이전 / 이후&quot; 한 장 + 새로 만든 에이전트만 따로 시연.</li></ul>
+<h3 id="-11-6단계-산출물-검토-멘토가-준-할-일">★ 11. 6단계 산출물 검토 (멘토가 준 할 일)</h3>
+<ul><li><strong>보여 줄 것</strong>: <a href="../../../documentations/30_제품정의/P00_제품정의-작업흐름.md">P00</a> 6단계 대응표 → <a href="../../../documentations/30_제품정의/prd/PRD-AD-03_AI-번역검수-에이전트.md">PRD-AD-03</a> → Figma 시안 → <a href="../../../documentations/20_기술명세/SPEC-FE.md">SPEC-FE §FE-AD-03</a>.</li><li><strong>묻는 것</strong>: PRD의 깊이와 Spec이 CodeGen에 넣기에 충분한가요? 개발자 1명이 FE·BE를 함께 맡는 역할 배치(D-016)가 괜찮을까요?</li></ul>
+<h3 id="-12-현장-시연에서-ai를-어떻게-부르나-신규-2026-10-23-공지">★ 12. 현장 시연에서 AI를 어떻게 부르나 (신규, 2026-10-23 공지)</h3>
+<ul><li><strong>배경</strong>: 현장 시연은 운영 PC에서 <strong>제출한 HTML 파일을 크롬 더블클릭</strong>으로만 한다. 다른 URL을 열면 실격이다 (<a href="../../../documentations/00_개발컨벤션/C08_해커톤-규정과-대응.md">C08 §5·§7</a>). <code>file://</code>로 연 화면이 배포된 <code>/api</code>를 부르면 <code>Origin: null</code>이 된다.</li><li><strong>묻는 것</strong>: 시연 기간에만 <code>null</code> 출처를 허용(CORS + <code>OPTIONS</code>)하는 방식이 괜찮을까요? 더 안전한 방법이 있을까요?</li><li><strong>우리 생각</strong>: <code>ALLOW_FILE_ORIGIN</code>으로 시연 기간만 켜고, 통과 문구·일일 상한·공급사 예산을 그대로 둔다. AI 부분은 영상으로 백업 (<a href="../../../documentations/20_기술명세/A02_기술-개발-명세서.md">A02 §5.2</a>, C06 D-019).</li></ul>
+<h3 id="13-제출-html이-폴더일-때-신규">13. 제출 HTML이 폴더일 때 (신규)</h3>
+<ul><li><strong>배경</strong>: 우리 앱은 HTML 13개 + JS·CSS 폴더다. 운영진에게 zip 제출 가능 여부를 묻는다 (C08 §8).</li><li><strong>묻는 것</strong>: 한 파일로 묶어야 한다면, 화면 이동이 있는 여러 페이지 앱을 한 HTML로 묶는 가장 덜 위험한 방법은 무엇일까요?</li></ul>
+<h3 id="14-남은-멘토링-일정-신규-운영">14. 남은 멘토링 일정 (신규, 운영)</h3>
+<ul><li><strong>할 것</strong>: 4~6회차(기술 2·3차, 사업 3차) 날짜를 이 자리에서 잡는다. <strong>11/20을 넘기면 수료가 안 된다.</strong> 회차마다 팀원 전원이 카메라를 켜야 한다 (C08 §2·§3).</li></ul>
+<h3 id="10-포트폴리오-q26-개인-질문--시간이-남으면">10. 포트폴리오 (Q26, 개인 질문 — 시간이 남으면)</h3>
+<ul><li><strong>묻는 것</strong>: AI Agent 개발자 포트폴리오로 쓸 때 무엇을 강조하나요? 후보: 에이전트 경계 설계(사람 승인, waiting 고정), 가짜 응답 경계 테스트, 실패 시 수동 복귀.</li></ul>
+<blockquote><p>시간이 짧으면 <strong>14 → 11 → 1 → 12 → 2 → 3</strong> 순서로 묻는다. (14는 수료 조건이다) (11은 멘토가 직접 준 할 일의 결과다) (12는 시연 실격·감점과 바로 이어진다) (4는 10/23에 해결)</p></blockquote>
+<hr>
+<h2 id="6-멘토-답-기록-멘토링-중에-채운다">6. 멘토 답 기록 (멘토링 중에 채운다)</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>멘토 답 (요점)</th><th>우리가 할 일</th><th>반영할 문서</th></tr></thead><tbody><tr><td>1</td><td></td><td></td><td>C06 D-005, D05 2차</td></tr><tr><td>2</td><td></td><td></td><td>C06 D-006, D06 §3.4</td></tr><tr><td>3</td><td></td><td></td><td>D04 R-03, D06 §3.4</td></tr><tr><td>4</td><td>(해결 — 10/23 평가표 공지로 D-003 해제)</td><td></td><td>C06 D-003</td></tr><tr><td>5</td><td></td><td></td><td>C06 D-007</td></tr><tr><td>6</td><td></td><td></td><td>D07 시험 계획, S02 §4</td></tr><tr><td>7</td><td></td><td></td><td>S04 §5.5</td></tr><tr><td>8</td><td></td><td></td><td>S04 §5.5</td></tr><tr><td>9</td><td></td><td></td><td>발표 자료</td></tr><tr><td>10</td><td></td><td></td><td>개인 메모</td></tr><tr><td>11</td><td></td><td></td><td>P00, PRD, SPEC, C06 D-016</td></tr><tr><td>12</td><td></td><td></td><td>A02 §5.2·§6.2, C06 D-019</td></tr><tr><td>13</td><td></td><td></td><td>A02 §12 결정 11, C08 §7</td></tr><tr><td>14</td><td></td><td></td><td>C08 §3, C01 §8</td></tr><tr><td>기타</td><td></td><td></td><td></td></tr></tbody></table></div>
+<hr>
+<h2 id="7-멘토링-뒤에-할-일">7. 멘토링 뒤에 할 일</h2>
+<ol><li>24시간 안에 §6을 <a href="../../../documentations/00_개발컨벤션/C01_프로젝트-한눈에.md">C01 §6</a>에 요약한다.</li><li>C06 D-005·D-006·D-007·D-019의 상태를 바꾼다 (D-003은 10/23 해제) (확정 시 날짜·결정자 기록).</li><li>결정이 나면 D06 §3.4 API 명세와 D05 2차 스프린트 태스크를 확정한다.</li><li><code>docs/12-hackathon-agent-plan.md</code>와 <code>보관_해커톤-초기기획/MENTORING-QUESTIONS.md</code> Q7의 <code>Review.compare()</code>를 실제 함수 이름으로 고친다 (F-1). 코드는 바꾸지 않는다.</li><li>Root Directory 변경이 필요하면 저장소 소유자에게 승인을 요청한다 (TK-1-11).</li></ol>
+<hr>
+<h2 id="제개정-이력">제·개정 이력</h2>
+<div class="tbl"><table><thead><tr><th>버전</th><th>날짜</th><th>작성자</th><th>내용</th></tr></thead><tbody><tr><td>0.3</td><td>2026-10-31</td><td>byeonsoyun</td><td>멘토링 날짜 10/31 22:00으로 변경, 최신 현황·컨펌 목록은 A03으로 넘김</td></tr><tr><td>0.2</td><td>2026-10-23</td><td>byeonsoyun</td><td>운영 공지 반영: 질문 4 해결(D-003 해제), 질문 12(현장 시연 AI 호출)·13(제출 형태)·14(남은 멘토링 일정) 추가, 묻는 순서 변경</td></tr><tr><td>0.1</td><td>2026-10-22</td><td>byeonsoyun</td><td>최초 작성. 질문 10개 선정, 코드·Vercel·모델 가격 사실 확인</td></tr></tbody></table></div>
+<p class="src">이 페이지는 <code>A01_기술멘토링-준비-2026-10-30.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>

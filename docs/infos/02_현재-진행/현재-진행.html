@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 · 현재 진행 — 지금 어디인가</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../README.html">처음 (사용법)</a>
+<a href="../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html" class="on">02 현재 진행</a>
+<a href="../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../05_%EB%A9%98%ED%86%A0%EB%A7%81/%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+</nav>
+<main>
+<h1 id="02--현재-진행--지금-어디인가">02 · 현재 진행 — 지금 어디인가</h1>
+<blockquote><p><strong>기준일</strong> 2026-10-31(토) · <strong>가장 자주 바뀌는 문서다. 작업 하나가 끝날 때마다 고친다</strong><br><strong>원본</strong> 할 일 정답: <a href="../../documentations/00_개발컨벤션/C01_프로젝트-한눈에.md">C01 §7</a> · 개발 할 일 정답: <a href="../../07-next-tasks.md"><code>07-next-tasks.md</code></a> H절 · 범위·일정 안: <a href="../05_멘토링/2026-10-31_기술1차/A03_최종범위와-일정-컨펌-2026-10-31.html">A03</a><br><strong>이 문서가 답하는 질문</strong> 지금 단계 · 다음 마일스톤 · 이번 주 할 일 · 막힌 것 · 사용자에게 아직 확인 못 한 것</p></blockquote>
+<hr>
+<h2 id="1-한눈에-표-1">1. 한눈에 (표 1)</h2>
+<div class="tbl"><table><thead><tr><th>항목</th><th>지금</th></tr></thead><tbody><tr><td>단계</td><td><strong>해커톤 설계 완료 → 구현 시작 직전.</strong> 게이트 G0 진행 중 (<a href="../../documentations/00_개발컨벤션/C04_개발순서와-게이트.md">C04</a>)</td></tr><tr><td>코드</td><td>마지막 변경 2026-09-28. <strong>해커톤 코드는 0줄</strong></td></tr><tr><td>테스트</td><td>16묶음 1,619건 전부 통과 (2026-10-31, 경로 치환 복사본에서 실행)</td></tr><tr><td>스프린트</td><td>2차 (10/26~11/08) — 코드 태스크는 시작 전, TK-2-01 지연 (<a href="../../documentations/40_캡스톤산출물/D05_스프린트백로그.md">D05</a>)</td></tr><tr><td>만들 것</td><td>AI 번역·검수 에이전트 1개 (후보 A, PRD-AD-03) + 🆕 <strong>DB·진짜 로그인·기기 간 동기화</strong> (Neon Postgres, <a href="../../documentations/00_개발컨벤션/C06_결정기록.md">C06 D-023</a>)</td></tr><tr><td>다음 개발</td><td><strong><code>docs/07-next-tasks.md</code> T 절 T1 (테스트 경로 상대화)</strong> — Claude Code에 &quot;docs 보고 진행해 줘&quot;</td></tr><tr><td>브랜치</td><td>작업 트리는 <code>feature/byeonsoyun</code>. 해커톤 작업 브랜치 <code>feat/agent-prd-v1</code>은 <strong>아직 없다</strong> (CLAUDE.md 진행 루틴 1번에서 만든다)</td></tr><tr><td>커밋 안 된 것</td><td>2026-10-22 이후 문서 정리 전부 (<code>docs/documentations/</code> 재배치, S·A·P 문서, <code>docs/infos/</code>). 사용자가 직접 커밋한다</td></tr></tbody></table></div>
+<h2 id="2-다음-마일스톤-표-2-a03-4-제안--1031-멘토-컨펌-전">2. 다음 마일스톤 (표 2, A03 §4 제안 — 10/31 멘토 컨펌 전)</h2>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>마일스톤</th><th>끝났다고 보는 기준</th></tr></thead><tbody><tr><td>10/31 22:00</td><td>기술 멘토링 — 결정 11개·일정 점검</td><td>05 질문과 기록의 답 칸이 채워진다</td></tr><tr><td><strong>11/8</strong></td><td><strong>M1 AI 동작</strong></td><td>운영자 화면에서 실제 Gemini 호출로 5개 언어 번역·역번역·대조가 돌고, 결과가 <code>waiting</code>으로 저장된다</td></tr><tr><td>11/14</td><td>사업 멘토링 (마지막)</td><td>사업 모델 통합안 발표</td></tr><tr><td>11/13</td><td>🆕 <strong>두 기기 시험</strong></td><td>노동자 폰에서 푼 결과가 담당자 PC 대시보드에 20초 안에 나타난다 (STC-E25-010)</td></tr><tr><td><strong>11/16</strong></td><td><strong>M2 기능 동결</strong></td><td>이후 버그 수정만</td></tr><tr><td>11/18</td><td>시연 HTML·영상 완성</td><td>크롬 더블클릭으로 시연이 끝까지 된다, AI 부분 영상이 있다</td></tr><tr><td>11/22</td><td>자료 제출 (마감 11/23 23:59)</td><td>PPTX·PDF·영상·HTML 메일 발송</td></tr><tr><td>11/28</td><td>오프라인 해커톤</td><td>—</td></tr></tbody></table></div>
+<h2 id="3-지금-할-일--순서대로-표-3">3. 지금 할 일 — 순서대로 (표 3)</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>할 일</th><th>누가</th><th>기한</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td>기술 멘토링 — <a href="../05_멘토링/2026-10-31_기술1차/README.html">최종 설명 자료</a>로 결정 11개·일정을 설명하고 점검받는다. 답은 <a href="../05_멘토링/2026-10-31_기술1차/05_멘토-질문과-기록.html">05 질문과 기록</a>에 적는다</td><td>byeonsoyun</td><td>10/31 22:00</td><td>🔶 자료 준비 완료</td></tr><tr><td>2</td><td>운영진 채널톡 문의 발송 (zip 제출 가능? 제출 HTML의 외부 API 호출 허용? 메일 제목) — 문안 <a href="../../documentations/00_개발컨벤션/C08_해커톤-규정과-대응.md">C08 §8</a></td><td>byeonsoyun</td><td>10/31</td><td>⬜ 미발송</td></tr><tr><td>3</td><td>멘토 답을 C06(D-005·D-006·D-007·D-019·D-022)·D05·C01 §8에 옮긴다</td><td>byeonsoyun</td><td>11/1</td><td>⬜</td></tr><tr><td>4</td><td>테스트 경로 문제(IMP-1) 해결 — 10개 테스트 파일의 절대 경로</td><td>byeonsoyun</td><td>11/1</td><td>⬜ (코드 수정 — 사용자 요청 시)</td></tr><tr><td>5</td><td>발표팀 인계 패키지 v1 (C01 §7 #23)</td><td>byeonsoyun → 발표팀</td><td>11/1</td><td>⬜</td></tr><tr><td>6</td><td><code>/api</code> 함수 2개 + 테스트 → 에이전트 루프 → 운영자 화면 (A02 §11)</td><td>byeonsoyun</td><td>11/8</td><td>⬜</td></tr><tr><td>7</td><td>인터뷰·MVP 테스트 섭외와 진행 (심사 「검증」 15점, <a href="../../documentations/10_사업화/S07_검증-계획.md">S07</a>)</td><td>발표팀</td><td>11/16</td><td>⬜ VOC 0건</td></tr><tr><td>8</td><td>사업 모델 통합안 다듬기 (<a href="../../documentations/10_사업화/S09_사업모델-통합안-원재료.md">S09</a>)</td><td>byeonsoyun → 팀원</td><td>11/12</td><td>🔶 원재료</td></tr><tr><td>9</td><td>🆕 <strong>Vercel·Neon 설정</strong> — Neon 설치(싱가포르)·운영/미리보기 브랜치·함수 리전 <code>sin1</code>·환경변수·Root Directory 변경·요금 알림</td><td>byeonsoyun (계정 작업)</td><td>11/3</td><td>⬜</td></tr><tr><td>10</td><td>🆕 DB·로그인·동기화 구현 (<a href="../../documentations/20_기술명세/A02_기술-개발-명세서.md">A02 §14</a>, D05 TK-3-01~05)</td><td>byeonsoyun</td><td>11/14</td><td>⬜</td></tr></tbody></table></div>
+<blockquote><p>전체 목록(25개)은 <a href="../../documentations/00_개발컨벤션/C01_프로젝트-한눈에.md">C01 §7</a>.</p></blockquote>
+<h2 id="4-막힌-것--위험-표-4">4. 막힌 것 · 위험 (표 4)</h2>
+<div class="tbl"><table><thead><tr><th>무엇</th><th>왜 문제인가</th><th>풀리는 조건</th></tr></thead><tbody><tr><td>~~<code>/api</code> 위치 미정~~</td><td>✅ 해소 (10/31) — 저장소 루트 <code>api/</code> (D-005·D-023)</td><td>—</td></tr><tr><td>🆕 일정 과밀 (AI + DB, 1인)</td><td>3차에 DB와 화면 보완이 겹친다</td><td>H2·H7 → H1 → CI 순으로 미루고, 서버 모드가 불안하면 로컬 모드로 제출</td></tr><tr><td>🆕 개인정보</td><td>DB(싱가포르)에 실제 정보가 저장된다</td><td>해커톤은 예시 데이터만. 실데이터 전 처리방침·동의·법률 확인 (<a href="../../documentations/20_기술명세/A05_개인정보-처리방침-초안.md">A05</a>)</td></tr><tr><td>운영진 답변 없음</td><td>제출본이 폴더(zip)로 되는지, 현장 시연에서 AI를 부를 수 있는지 모른다</td><td>채널톡 문의 → 답변</td></tr><tr><td><strong>멘토링 횟수 5회 vs 수료 조건 6회</strong></td><td>계획대로면 한 회차가 모자라 수료가 안 될 수 있다</td><td>10/31 멘토에게 집계 확인 (A03 K7)</td></tr><tr><td>검증 0건</td><td>심사 15점이 0점이 될 수 있다</td><td>인터뷰 3명 + MVP 테스트 3회 이상 (최소선 제안)</td></tr><tr><td>팀원 참여 낮음</td><td>발표·검증을 맡을 사람이 움직이지 않을 수 있다</td><td>D-022 방식 (안 제시 → 기한 내 피드백)</td></tr></tbody></table></div>
+<h2 id="5-사용자에게-아직-확인-못-한-것-묻기-전에-여기부터-본다">5. 사용자에게 아직 확인 못 한 것 (묻기 전에 여기부터 본다)</h2>
+<div class="tbl"><table><thead><tr><th>질문</th><th>상태</th></tr></thead><tbody><tr><td>이전에 기술 멘토링이 집계된 회차가 있었나</td><td>모름 — 10/31 멘토에게 확인</td></tr><tr><td>다음(마지막) 기술 멘토링 날짜</td><td><code>미정</code> — 11/9~11/13 제안</td></tr><tr><td>팀원 실명·학번, 메일 제목의 팀명 표기</td><td><code>미정</code></td></tr><tr><td>D01~D08을 학교에 제출하나</td><td><code>미정</code> (byeonsoyun, 11/7) — 해커톤 제출 목록에는 없다</td></tr><tr><td>발표자·시연자</td><td><code>미정</code> (발표팀)</td></tr></tbody></table></div>
+<h2 id="6-최근에-확인된-사실-사용자-답-날짜순">6. 최근에 확인된 사실 (사용자 답, 날짜순)</h2>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>사실</th></tr></thead><tbody><tr><td>2026-10-31</td><td>🆕 <strong>DB를 붙이기로 했다</strong> (Vercel 함수 + Neon Postgres). 실제 서비스 경험·완성도를 위해. 운영 준비 항목은 <a href="../../documentations/20_기술명세/A04_운영준비-체크리스트.md">A04</a></td></tr><tr><td>2026-10-31</td><td>기술 멘토링은 <strong>10/31(토) 22:00</strong> (10/30에서 변경)</td></tr><tr><td>2026-10-31</td><td>남은 멘토링은 <strong>기술 1회 + 사업 1회(11/14 그대로)</strong> 로 끝이다</td></tr><tr><td>2026-10-31</td><td><strong>Gemini API 키 발급 완료.</strong> 운영진 채널톡 문의는 미발송</td></tr><tr><td>2026-10-31</td><td>팀원 참여가 낮다고 보고 진행한다. 1차 스프린트 종료 회의(10/25)는 열지 않았다. 회의 대신 byeonsoyun이 제시하고 팀원이 피드백한다</td></tr><tr><td>2026-10-31</td><td>사용자의 목표: 오늘 멘토링에서 최종 결과물·일정 컨펌 → 대회 전까지 개발 → 발표만 준비할 사람들이 잘 준비하도록 인계 자료를 만든다</td></tr><tr><td>2026-10-24</td><td>2차 창업 멘토링 완료 (<a href="../05_멘토링/2026-10-24_사업2차/S08_창업멘토링2차-결과-2026-10-24.html">S08</a>)</td></tr><tr><td>2026-10-23</td><td>운영 공지: 평가표·제출·시연 규정 (<a href="../../documentations/00_개발컨벤션/C08_해커톤-규정과-대응.md">C08</a>). 후보 A 선택, D-003 해제</td></tr><tr><td>2026-10-22</td><td>해커톤 주제는 아이디어톤 주제를 이어간다. 제품 정의 v1.0 확정</td></tr></tbody></table></div>
+<hr>
+<h2 id="변경-기록">변경 기록</h2>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>작성자</th><th>내용</th></tr></thead><tbody><tr><td>2026-10-31</td><td>byeonsoyun</td><td>최초 작성 (10/31 기술 멘토링 직전 상태)</td></tr><tr><td>2026-10-31</td><td>byeonsoyun</td><td>DB 도입(D-023): 만들 것, 마일스톤 11/13, 할 일 #9·#10, 막힌 것</td></tr><tr><td>2026-10-31</td><td>byeonsoyun</td><td>멘토링 자료 폴더 연결. <code>/api</code> 위치 등 결정 10개를 byeonsoyun이 정함 (멘토 점검 뒤 C06 반영)</td></tr></tbody></table></div>
+<p class="src">이 페이지는 <code>현재-진행.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>
