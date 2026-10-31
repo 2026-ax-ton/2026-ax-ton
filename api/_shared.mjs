@@ -222,6 +222,11 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
      · 공급사가 아픈지(5xx)를 이것 없이는 구분할 수 없다 (2026-10-31 실측에서 겪음).
      ★ 공급사 응답 본문은 넣지 않는다 — 키나 문구가 섞여 나올 수 있다. */
   if (!res) return { error: 'model', why: '응답 없음' };
+  /* ★ 공급사가 한도라고 하면 그대로 「한도」로 전한다 (2026-10-31 실측).
+     이것을 502 「모델이 응답하지 못했습니다」로 뭉개면 운영자는 고장인 줄 알고
+     계속 다시 누른다 — 한도는 기다리면 풀리는 것이고 고장은 아니다.
+     10문구 × 5언어 실측에서 실패 18건 중 대부분이 이것이었다. */
+  if (res.status === 429) return { error: 'limit', why: '공급사 한도' };
   if (!res.ok) return { error: 'model', why: '모델 응답 ' + res.status };
 
   let data;
@@ -258,6 +263,7 @@ export function log(fields) {
 const MODEL_ERRORS = {
   model: [502, '번역 모델이 응답하지 못했습니다.'],
   timeout: [504, '번역 모델이 제시간에 답하지 못했습니다.'],
+  limit: [429, 'AI 사용 한도에 걸렸습니다. 잠시 뒤 다시 받거나 직접 입력해 주세요.'],
 };
 
 /** 모델 실패를 HTTP 응답으로 바꾼다. why 는 공급사 본문이 아니라 우리가 지은 한 마디다. */

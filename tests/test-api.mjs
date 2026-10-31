@@ -323,6 +323,17 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   const upstream = await translate.handle(req('/api/translate', { body: okBody }));
   eq('모델이 500 이면 502', upstream.status, 502);
 
+  /* ★ 공급사가 한도라고 하면 「한도」로 전한다 — 고장이 아니다 (2026-10-31 실측) */
+  setEnv();
+  fakeRaw({ error: { message: 'Quota exceeded' } }, 429);
+  const upLimit = await translate.handle(req('/api/translate', { body: okBody }));
+  eq('★★ 공급사 429 는 우리도 429', upLimit.status, 429);
+  const limitBody = await read(upLimit);
+  eq('error 코드가 limit', limitBody.error, 'limit');
+  ok('★ 기다리면 풀린다고 알려 준다', /잠시 뒤/.test(limitBody.message));
+  ok('★ 직접 입력으로 이어 갈 수 있다고 알려 준다', /직접 입력/.test(limitBody.message));
+  ok('고장(모델)과 섞이지 않는다', limitBody.error !== 'model');
+
   setEnv();
   fakeReply('   ');
   const blank = await translate.handle(req('/api/translate', { body: okBody }));

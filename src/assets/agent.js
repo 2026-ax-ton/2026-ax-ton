@@ -46,6 +46,13 @@ var Agent = (function () {
      문구 하나가 쓸 수 있는 총량을 여기서 한 번에 막는다 — 설정이 잘못돼
      언어가 20개가 돼도 이 천장은 그대로다. 공급사 요금은 사고로 늘어난다. */
   var MAX_CALLS_PER_PHRASE = 30;
+
+  /* ★ 언어를 한꺼번에 출발시키지 않고 조금씩 어긋나게 띄운다 (2026-10-31 실측).
+     5개 언어 × 2단계를 동시에 쏘면 공급사 **분당 한도**에 걸린다 —
+     10문구 × 5언어 실측에서 실패 18건 중 대부분이 공급사 429 였다.
+     기다리는 것이 아니라 출발만 어긋나게 하는 것이라, 전체 시간은
+     마지막 언어의 지연(약 1.6초)만큼만 늘어난다. */
+  var STAGGER_MS = 400;
   var PASS_KEY = 'safety.agentPass';
 
   /* ── 운영자 통과 문구 (A02 §5.6 2층) ───────────────────────────────
@@ -126,6 +133,11 @@ var Agent = (function () {
       clearTimeout(timer);
       throw e;
     });
+  }
+
+  function wait(ms) {
+    if (!ms) return Promise.resolve();
+    return new Promise(function (done) { setTimeout(done, ms); });
   }
 
   function agentError(code, message) {
@@ -287,7 +299,12 @@ var Agent = (function () {
 
     /* ★ 언어들이 같은 지갑을 나눠 쓴다 — 문구 하나의 총량이 천장이다 */
     var wallet = newBudget();
-    return Promise.all(todo.map(function (l) { return runLang(phrase, l, onStep, wallet); }))
+    return Promise.all(todo.map(function (l, i) {
+      // 출발만 어긋나게 띄운다 (공급사 분당 한도)
+      return wait(i * STAGGER_MS).then(function () {
+        return runLang(phrase, l, onStep, wallet);
+      });
+    }))
       .then(function (results) {
         return { results: results, skipped: skipped, callsLeft: wallet.left };
       });
@@ -332,6 +349,7 @@ var Agent = (function () {
     newBudget: newBudget,
     MAX_RETRY: MAX_RETRY,
     MAX_CALLS_PER_PHRASE: MAX_CALLS_PER_PHRASE,
+    STAGGER_MS: STAGGER_MS,
     CALL_TIMEOUT_MS: CALL_TIMEOUT_MS,
     API_BASE: API_BASE
   };

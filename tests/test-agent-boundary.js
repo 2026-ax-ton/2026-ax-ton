@@ -388,6 +388,46 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
 }
 
 /* =================================================================
+   17. 언어를 한꺼번에 몰아치지 않는다 (T9 실측에서 공급사 429 를 맞았다)
+   ================================================================= */
+{
+  const t = open();
+  ok('출발 간격이 상수로 한 곳에 있다', typeof t.win.Agent.STAGGER_MS === 'number');
+  ok('간격이 0 보다 크다', t.win.Agent.STAGGER_MS > 0, t.win.Agent.STAGGER_MS + 'ms');
+
+  const started = [];
+  const t2 = open();
+  t2.win.fetch = function (url, init) {
+    const body = JSON.parse(init.body);
+    if (body.ko) started.push({ lang: body.lang, at: Date.now() });
+    t2.calls.push({ url: String(url), init, body });
+    return Promise.resolve({
+      ok: true, status: 200,
+      json: () => Promise.resolve(String(url).indexOf('backtranslate') !== -1
+        ? { back: '롤러에 손을 넣지 마십시오.' }
+        : { text: 'កុំដាក់ដៃ', model: 'm' }),
+    });
+  };
+
+  t2.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th']).then(() => {
+    eq('언어 5개가 전부 출발했다', started.length, 5);
+    const span = started[started.length - 1].at - started[0].at;
+    ok('★ 마지막 언어가 늦게 출발한다 (한꺼번에 쏘지 않는다)',
+      span >= t2.win.Agent.STAGGER_MS * 3, span + 'ms');
+    ok('그래도 전체는 몇 초 안에 끝난다 (줄 세우는 것이 아니다)',
+      span < t2.win.Agent.STAGGER_MS * 6, span + 'ms');
+  });
+
+  /* 한 언어만 돌릴 때는 기다리지 않는다 */
+  const t3 = open();
+  fake(t3, pair('x', '롤러에 손을 넣지 마십시오.'));
+  const before = Date.now();
+  t3.win.Agent.runLang(phrase, 'km').then(() => {
+    ok('한 언어는 곧바로 출발한다', Date.now() - before < t3.win.Agent.STAGGER_MS);
+  });
+}
+
+/* =================================================================
    16. file:// 로 열면 배포 주소로 부른다 (T8 · C06 D-019 · C08 §7)
    ================================================================= */
 {
