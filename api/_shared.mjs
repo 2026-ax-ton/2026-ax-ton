@@ -212,21 +212,28 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
       signal: ac.signal,
     });
   } catch (e) {
-    return { error: ac.signal.aborted ? 'timeout' : 'model' };
+    if (ac.signal.aborted) return { error: 'timeout', why: timeoutMs + 'ms 초과' };
+    return { error: 'model', why: '모델에 닿지 못함' };
   } finally {
     clearTimeout(timer);
   }
 
-  if (!res || !res.ok) return { error: 'model' };
+  /* 모델이 왜 못 했는지를 한 마디 붙인다. 모델 이름이 틀렸는지(404) · 한도인지(429)
+     · 공급사가 아픈지(5xx)를 이것 없이는 구분할 수 없다 (2026-10-31 실측에서 겪음).
+     ★ 공급사 응답 본문은 넣지 않는다 — 키나 문구가 섞여 나올 수 있다. */
+  if (!res) return { error: 'model', why: '응답 없음' };
+  if (!res.ok) return { error: 'model', why: '모델 응답 ' + res.status };
 
   let data;
   try {
     data = await res.json();
   } catch {
-    return { error: 'model' };
+    return { error: 'model', why: 'JSON 이 아님' };
   }
 
-  if (data && data.promptFeedback && data.promptFeedback.blockReason) return { error: 'model' };
+  if (data && data.promptFeedback && data.promptFeedback.blockReason) {
+    return { error: 'model', why: '모델이 막음' };
+  }
 
   const parts = data && data.candidates && data.candidates[0]
     && data.candidates[0].content && data.candidates[0].content.parts;
@@ -234,7 +241,9 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
 
   // 빈 출력·길이 초과는 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도
   // 문자열 그대로 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
-  if (out.length < 1 || out.length > MAX_TEXT) return { error: 'model' };
+  if (out.length < 1 || out.length > MAX_TEXT) {
+    return { error: 'model', why: out.length < 1 ? '빈 출력' : '출력이 너무 김' };
+  }
 
   return { text: out };
 }
@@ -246,7 +255,16 @@ export function log(fields) {
   console.log(JSON.stringify(fields));
 }
 
-export const MODEL_ERRORS = {
+const MODEL_ERRORS = {
   model: [502, '번역 모델이 응답하지 못했습니다.'],
   timeout: [504, '번역 모델이 제시간에 답하지 못했습니다.'],
 };
+
+/** 모델 실패를 HTTP 응답으로 바꾼다. why 는 공급사 본문이 아니라 우리가 지은 한 마디다. */
+export function modelFail(r, cors) {
+  const [status, message] = MODEL_ERRORS[r.error];
+  return {
+    status,
+    response: fail(status, r.error, r.why ? message + ' (' + r.why + ')' : message, cors),
+  };
+}

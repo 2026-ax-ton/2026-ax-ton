@@ -298,6 +298,21 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   eq('후보가 없으면 502', empty.status, 502);
   eq('error 코드가 model', (await read(empty)).error, 'model');
 
+  /* ★ 모델이 왜 못 했는지를 메시지에 붙인다 — 모델 이름이 틀린 것(404)과
+     한도(429)와 공급사 장애(5xx)를 구분할 수 있어야 한다 */
+  setEnv();
+  fakeRaw({ error: { message: 'model not found' } }, 404);
+  const notFound = await translate.handle(req('/api/translate', { body: okBody }));
+  eq('없는 모델도 502', notFound.status, 502);
+  ok('★ 메시지에 모델이 돌려준 상태가 붙는다',
+    (await read(notFound)).message.indexOf('404') !== -1);
+
+  setEnv();
+  fakeRaw({ error: { message: '비밀이 섞인 본문 AIzaSyFAKE0000000000테스트용가짜키' }, secret: 'AIza' }, 403);
+  const leaky = await translate.handle(req('/api/translate', { body: okBody }));
+  ok('★ 공급사 응답 본문은 우리 응답에 옮기지 않는다',
+    JSON.stringify(await read(leaky)).indexOf('AIza') === -1);
+
   setEnv();
   fakeRaw({ promptFeedback: { blockReason: 'SAFETY' } });
   const blocked = await translate.handle(req('/api/translate', { body: okBody }));

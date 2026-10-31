@@ -12,7 +12,7 @@
 import {
   LANG_NAMES, MAX_TEXT,
   guard, parseJson, isAllowedLang, readConfig, takeDailyCall,
-  callModel, json, fail, log, MODEL_ERRORS,
+  callModel, json, fail, log, modelFail,
 } from './_shared.mjs';
 
 export const config = { maxDuration: 30 }; // A02 §5.2
@@ -49,9 +49,9 @@ export async function handle(request) {
 
   const r = await callModel(cfg, systemText(LANG_NAMES[lang]), text);
   if (r.error) {
-    const [status, message] = MODEL_ERRORS[r.error];
-    log({ route: 'backtranslate', lang, attempt: 0, ms: Date.now() - started, status, err: r.error });
-    return fail(status, r.error, message, cors);
+    const f = modelFail(r, cors);
+    log({ route: 'backtranslate', lang, attempt: 0, ms: Date.now() - started, status: f.status, err: r.error, why: r.why || '' });
+    return f.response;
   }
 
   log({ route: 'backtranslate', lang, attempt: 0, ms: Date.now() - started, status: 200, err: '' });
