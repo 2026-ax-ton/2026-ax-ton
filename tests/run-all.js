@@ -10,7 +10,7 @@ const here = __dirname;
 // 회귀 검사를 맨 앞에 둔다. 여기서 깨지면 나머지를 볼 필요가 없다.
 const FIRST = 'test-smoke.js';
 const files = fs.readdirSync(here)
-  .filter((f) => /^test-.+\.js$/.test(f))
+  .filter((f) => /^test-.+\.m?js$/.test(f))   // .mjs — /api 함수 검사 (T3)
   .sort((a, b) => (a === FIRST ? -1 : b === FIRST ? 1 : a.localeCompare(b)));
 
 let failed = [];

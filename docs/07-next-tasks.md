@@ -360,7 +360,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
   - **근거**: A02 §10.3
   - **됐는지**: 초안 PR에서 체크가 초록으로 뜬다. 테스트를 하나 일부러 깨면 빨강
 
-- [ ] **T3. AI 함수 2개 + 함수 테스트** — `TK-2-03` `TK-2-04`
+- [x] **T3. AI 함수 2개 + 함수 테스트** — `TK-2-03` `TK-2-04` ✅ 2026-10-31
 
   - **어디**: 새 파일 저장소 루트 `api/translate.mjs` · `api/backtranslate.mjs` · `tests/test-api.mjs` (`run-all.js` 에 연결)
   - **무엇**: Web Handler. 메서드·출처·`X-Agent-Pass`·4KB·언어 허용 목록·일일 상한 → Gemini `generateContent` (키는 `x-goog-api-key` 헤더) → `{text}` / `{back}`. 역번역에는 원문을 주지 않는다. 의존성 0 (내장 `fetch`)

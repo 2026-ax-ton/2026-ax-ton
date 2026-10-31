@@ -32,9 +32,26 @@
 - 검사를 하나 일부러 깨 보고 `run-all.js` 가 종료 코드 1 을 내는 것까지 확인했다
   (PR 을 더럽히지 않으려고 로컬에서 했다)
 
+- **`/api` 함수 두 개를 만들었다** (T3 · TK-2-03·04). `api/translate.mjs` ·
+  `api/backtranslate.mjs` · 공용 `api/_shared.mjs`. 의존성 0 — Node 내장 `fetch`
+  만 쓴다. 검사 `tests/test-api.mjs` 85건을 붙여 **17묶음 1,704건**이 됐다
+- 가짜 `fetch` 로 오류 8종(405·403·401·400·413·429·502·504) + 500 `config`,
+  `null` 출처 CORS, **응답에 `status` 가 없다**, **역번역에 한국어 원문을 주지
+  않는다**, 키·문구 원문이 로그에 없다 까지 고정했다
+
+**막혔던 것 / 어떻게 풀었는지**
+
+- **통과 문구를 한글로 잡았더니 `new Request` 가 터졌다.** HTTP 헤더 값은 바이트
+  문자열이라 한글이 못 들어간다 — 브라우저도 똑같이 못 보낸다. `AGENT_PASS` 는
+  **ASCII 로만** 정해야 한다. A02 §5.6 과 `_shared.mjs` 주석에 적어 뒀다
+- `run-all.js` 가 `test-*.js` 만 집고 있어서 `.mjs` 를 못 봤다. 거르는 정규식을
+  `test-.+\.m?js` 로 넓혔다
+
 **다음에 할 것**
 
-- T3. `/api/translate` · `/api/backtranslate` + `tests/test-api.mjs` (`TK-2-03`·`TK-2-04`)
+- **T4 는 사용자 작업이 먼저다** — Vercel Root Directory 를 저장소 루트로,
+  출력 폴더를 `src` 로, 환경변수 8개, 리전 `sin1` (A04). 그 뒤 미리보기에서
+  실제 Gemini 로 문구 1개 × 5개 언어 실측 (STC-E16-008)
 
 ---
 
