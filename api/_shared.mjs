@@ -131,9 +131,17 @@ export async function guard(request) {
   }
 
   /* ★ 통과 문구는 X-Agent-Pass 헤더로 온다. HTTP 헤더 값은 ASCII 만 담을 수
-     있어서 한글 문구를 쓰면 브라우저가 요청을 만들지 못한다 (A02 §5.6). */
-  const pass = process.env.AGENT_PASS || '';
-  if (!pass || request.headers.get('x-agent-pass') !== pass) {
+     있어서 한글 문구를 쓰면 브라우저가 요청을 만들지 못한다 (A02 §5.6).
+
+     서버에 문구가 아예 없는 것과 사람이 틀리게 넣은 것은 **다른 일**이다.
+     앞은 서버 설정이 덜 된 것(500)이고 뒤는 사람이 다시 넣으면 되는 것(401)이다.
+     둘을 같이 401 로 내면 "환경변수를 Preview 에 안 넣었다" 를 영영 모른다
+     (2026-10-31 설정 중에 겪음). 어느 쪽이든 문구 값은 내지 않는다. */
+  const pass = (process.env.AGENT_PASS || '').trim();
+  if (!pass) {
+    return { done: fail(500, 'config', '서버 설정 오류입니다.', cors) };
+  }
+  if ((request.headers.get('x-agent-pass') || '').trim() !== pass) {
     return { done: fail(401, 'pass_required', '운영자 통과 문구를 입력하세요.', cors) };
   }
 

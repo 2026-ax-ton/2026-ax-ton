@@ -204,9 +204,17 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   const wrong = await translate.handle(req('/api/translate', { pass: 'wrong-pass', body: okBody }));
   eq('통과 문구가 틀리면 401', wrong.status, 401);
 
+  /* 서버에 문구가 없는 것은 사람이 틀린 것이 아니라 설정이 덜 된 것이다 */
   setEnv({ AGENT_PASS: '' });
   const unset = await translate.handle(req('/api/translate', { pass: 'anything', body: okBody }));
-  eq('서버에 문구가 비어 있으면 아무 문구도 통과하지 못한다', unset.status, 401);
+  eq('★ 서버에 문구가 없으면 401 이 아니라 500 config', unset.status, 500);
+  eq('error 코드가 config', (await read(unset)).error, 'config');
+
+  /* Vercel 환경변수 칸에 줄바꿈·공백이 섞여도 통과해야 한다 */
+  setEnv({ AGENT_PASS: PASS + '\n  ' });
+  fakeReply('កុំដាក់ដៃ');
+  const padded = await translate.handle(req('/api/translate', { body: okBody }));
+  eq('서버 쪽 문구의 앞뒤 공백은 무시한다', padded.status, 200);
 }
 
 /* =================================================================
