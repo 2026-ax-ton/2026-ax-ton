@@ -412,5 +412,21 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   });
 }
 
+/* =================================================================
+   13. 내보내기 모양 — Vercel 이 Web 시그니처로 부르게 둔다
+
+   default 를 내보내면 Vercel 이 옛 Node 방식(req, res)으로 불러서 터진다
+   (2026-10-31 미리보기에서 FUNCTION_INVOCATION_FAILED 로 확인).
+   ================================================================= */
+{
+  [['translate', translate], ['backtranslate', backtranslate]].forEach(([name, mod]) => {
+    ok(name + ': ★ default 를 내보내지 않는다', mod.default === undefined);
+    ok(name + ': POST 를 받는다', mod.POST === mod.handle);
+    ok(name + ': OPTIONS 를 받는다', mod.OPTIONS === mod.handle);
+    ok(name + ': GET 도 받아서 우리 405 를 돌려준다', mod.GET === mod.handle);
+    eq(name + ': maxDuration 30초', mod.config.maxDuration, 30);
+  });
+}
+
 console.log = realLog;
 report('/api — AI 번역·역번역 함수');

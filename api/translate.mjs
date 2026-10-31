@@ -66,8 +66,17 @@ export async function handle(request) {
   return json(200, { text: r.text, model: cfg.model, attempt }, cors);
 }
 
-/* Vercel 이 Web Handler 를 어떻게 집는지는 미리보기 배포에서 확인한다 (T4).
-   이름 있는 메서드 내보내기와 기본 내보내기 둘 다 같은 handle 을 부른다. */
-export default handle;
+/* ★ Vercel 은 이름 있는 메서드 내보내기가 있으면 Web 시그니처(Request → Response)로
+   부르고, `default` 가 있으면 옛 Node 방식(req, res)으로 부른다. 둘을 같이 내보내면
+   default 가 이겨서 `request.headers.get` 이 없다며 터진다 (2026-10-31 미리보기에서
+   FUNCTION_INVOCATION_FAILED 로 확인). **default 를 내보내지 않는다.**
+
+   POST 밖의 메서드도 받아서 우리 405 JSON 을 돌려준다 — 플랫폼이 내는 405 에는
+   `{error:'method'}` 가 없다 (A02 §5.2). */
+export const GET = handle;
 export const POST = handle;
+export const PUT = handle;
+export const PATCH = handle;
+export const DELETE = handle;
+export const HEAD = handle;
 export const OPTIONS = handle;
