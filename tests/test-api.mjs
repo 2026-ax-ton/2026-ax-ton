@@ -334,6 +334,25 @@ console.log = function () { logs.push([].slice.call(arguments).join(' ')); };
   ok('★ 직접 입력으로 이어 갈 수 있다고 알려 준다', /직접 입력/.test(limitBody.message));
   ok('고장(모델)과 섞이지 않는다', limitBody.error !== 'model');
 
+  /* 공급사가 「언제 다시 오라」고 하면 그대로 전한다 */
+  setEnv();
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ error: {} }), {
+      status: 429,
+      headers: { 'content-type': 'application/json', 'retry-after': '37' },
+    });
+  };
+  const withAfter = await translate.handle(req('/api/translate', { body: okBody }));
+  eq('여전히 429', withAfter.status, 429);
+  ok('★ 얼마나 기다려야 하는지 전한다', /37초 뒤/.test((await read(withAfter)).message));
+
+  setEnv();
+  fakeRaw({ error: { message: '비밀 AIzaSyFAKE0000000000테스트용가짜키' } }, 429);
+  const leak429 = await translate.handle(req('/api/translate', { body: okBody }));
+  ok('★ 한도 응답에서도 공급사 본문을 옮기지 않는다',
+    JSON.stringify(await read(leak429)).indexOf('AIza') === -1);
+
   setEnv();
   fakeReply('   ');
   const blank = await translate.handle(req('/api/translate', { body: okBody }));

@@ -118,6 +118,9 @@ async function runLang(ko, lang) {
       ms: t.ms + b.ms, tries: attempt + 1, flipped, newWords,
     };
     if (!flipped) return { ...base, escalated: false };
+    /* ★ 뜻이 뒤집힌 장면은 그대로 찍어 둔다 — 이것이 이 제품의 핵심 장면이다 */
+    console.log(`      [시도 ${attempt + 1}] 뜻 뒤집힘 → 번역: ${t.data.text}`);
+    console.log(`                      역번역: ${b.data.back}`);
     if (attempt >= MAX_RETRY) return { ...base, escalated: true };
     hint = b.data.back;
   }

@@ -226,7 +226,13 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
      이것을 502 「모델이 응답하지 못했습니다」로 뭉개면 운영자는 고장인 줄 알고
      계속 다시 누른다 — 한도는 기다리면 풀리는 것이고 고장은 아니다.
      10문구 × 5언어 실측에서 실패 18건 중 대부분이 이것이었다. */
-  if (res.status === 429) return { error: 'limit', why: '공급사 한도' };
+  if (res.status === 429) {
+    /* 공급사가 「언제 다시 오라」고 알려 주면 그대로 전한다 (헤더만 읽는다 —
+       응답 본문에는 키나 계정 정보가 섞일 수 있어 옮기지 않는다).
+       운영자가 "잠시 뒤" 가 1분인지 내일인지 알아야 손 입력으로 갈지 정한다. */
+    var after = res.headers && res.headers.get && res.headers.get('retry-after');
+    return { error: 'limit', why: after ? '공급사 한도 · ' + after + '초 뒤 다시' : '공급사 한도' };
+  }
   if (!res.ok) return { error: 'model', why: '모델 응답 ' + res.status };
 
   let data;
