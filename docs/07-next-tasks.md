@@ -346,7 +346,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
 
 ## 2차 — AI 번역·검수 에이전트 (11/1~11/8, M1)
 
-- [ ] **T1. 테스트 경로를 상대 경로로 (IMP-1)** — `TK-2-01`
+- [x] **T1. 테스트 경로를 상대 경로로 (IMP-1)** — `TK-2-01` ✅ 2026-10-31
 
   - **어디**: `tests/harness.js` 와 `C:/Users/byeonsoyun/…` 이 박힌 테스트 10개 (`test-content` `test-dashboard` `test-docs` `test-learn` `test-library` `test-proof` `test-quiz` `test-smoke` `test-worker` + `harness`)
   - **무엇**: 박힌 경로를 `path.join(__dirname, '..')` 기준으로 바꾼다. 작업 브랜치 `feat/agent-prd-v1` 을 만들고, 쌓인 문서 변경은 먼저 `docs:` 커밋으로 올린다

@@ -1,5 +1,5 @@
 /* 기능3 안전교육 수강 — 실제 DOM 검증 */
-const { boot, ok, eq, has, report, iconName } = require('./harness');
+const { boot, ok, eq, has, report, iconName, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
@@ -144,10 +144,10 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
    ================================================================= */
 {
   const fs = require('fs');
-  const html = fs.readFileSync('C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/worker/learn.html', 'utf8');
+  const html = fs.readFileSync(SRC + '/worker/learn.html', 'utf8');
   ok('http(s):// 참조 없음', !/(src|href)\s*=\s*["']https?:/i.test(html));
   ok('절대경로(/assets) 없음', !/(src|href)\s*=\s*["']\//.test(html));
-  const js = fs.readFileSync('C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/worker/learn.js', 'utf8');
+  const js = fs.readFileSync(SRC + '/worker/learn.js', 'utf8');
   ok('innerHTML 안 씀', !/innerHTML/.test(js));
   ok('localStorage 직접 호출 안 함', !/localStorage/.test(js));
   ok('import/export 안 씀', !/^\s*(import|export)\s/m.test(js));

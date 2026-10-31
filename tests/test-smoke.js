@@ -1,6 +1,6 @@
 /* 회귀 검사 — ui.js · seed.js 를 고쳤으니 11개 화면 전부 오류 없이 뜨는지 본다.
    다른 세 분 담당 화면이 내 변경으로 깨지면 안 된다. */
-const { boot, ok, eq, has, report, iconName } = require('./harness');
+const { boot, ok, eq, has, report, iconName, SRC } = require('./harness');
 
 const PAGES = [
   ['worker/home.html',      'worker/home.js',      'W-4821-07'],
@@ -246,7 +246,6 @@ PAGES.forEach(([html, js, login]) => {
 {
   const fs = require('fs');
   const path = require('path');
-  const SRC = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src';
 
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]);

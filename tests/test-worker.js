@@ -1,5 +1,5 @@
 /* 노동자 화면 4개 (홈 · 기능8 신고 · 기능7 소통 · 마이) — 실제 DOM 검증 */
-const { boot, ok, eq, has, report, iconName } = require('./harness');
+const { boot, ok, eq, has, report, iconName, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -300,7 +300,7 @@ function open(page, opts = {}) {
        C8(내 언어 바꾸기)이 accounts 에 쓰게 되면서 원칙 쪽으로 좁혔다.
        내 언어는 앞으로 받을 교육의 언어이지 이미 받은 기록이 아니다. */
   const fs = require('fs');
-  const code = fs.readFileSync('C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/worker/my.js', 'utf8')
+  const code = fs.readFileSync(SRC + '/worker/my.js', 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '');
 
   const writes = [...new Set((code.match(/Store\.(\w+)\.(?:save|update)\s*\(/g) || [])
@@ -319,7 +319,7 @@ function open(page, opts = {}) {
    ================================================================= */
 {
   const fs = require('fs');
-  const base = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src/worker/';
+  const base = SRC + '/worker/';
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
 
   ['home', 'report', 'talk', 'my'].forEach((name) => {

@@ -4,7 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM, VirtualConsole } = require('jsdom');
 
-const SRC = 'C:/Users/byeonsoyun/2026-ax-ton/2026-ax-ton/src';
+/* IMP-1 — 경로를 박지 않는다. 저장소를 어디에 복사해도, CI 에서도 그대로 돈다 */
+const ROOT = path.resolve(__dirname, '..');
+const SRC = path.join(ROOT, 'src');
 
 function boot(pageRelPath, opts = {}) {
   // ?course=... 같은 쿼리는 URL 에만 붙이고 파일 경로에서는 뗀다
@@ -124,4 +126,4 @@ function report(title) {
   return fails.length === 0;
 }
 
-module.exports = { boot, ok, eq, has, report, SRC, iconName, iconNames };
+module.exports = { boot, ok, eq, has, report, ROOT, SRC, iconName, iconNames };
