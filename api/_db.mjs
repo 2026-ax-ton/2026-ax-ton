@@ -111,9 +111,10 @@ export function withDb(route, handler) {
          ★ 호스트만 넣는다 — 사용자 이름·비밀번호는 물론이고 **DB 오류 원문도
            넣지 않는다.** 원문에는 표 이름·질의문이 섞여 나온다 (검사가 잡았다).
            그건 로그에만 남는다. 운영에서는 이 줄 자체가 나오지 않는다. */
-      const hint = process.env.VERCEL_ENV === 'production'
-        ? ''
-        : ' [미리보기 진단 — 붙은 곳: ' + (dbHost() || '(DATABASE_URL 없음)') + ']';
+      const hint = process.env.VERCEL_ENV === 'production' ? '' : (
+        ' [미리보기 진단 — 붙은 곳: ' + (dbHost() || '(연결 문자열 없음)')
+        + ' · SAFETY_DATABASE_URL: ' + (process.env.SAFETY_DATABASE_URL ? '있음' : '없음')
+        + ' · 배포: ' + String(process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) + ']');
 
       return fail(503, 'db', 'DB에 닿지 못했습니다. 잠시 뒤 다시 시도해 주세요.' + hint);
     }
