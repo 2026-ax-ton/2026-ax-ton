@@ -130,7 +130,7 @@ function open(page, opts = {}) {
      담당자가 듣고 누구인지 알 수 있고, 그 순간 익명이 아니게 된다. */
   eq('저장되는 값은 정해진 것만',
     keys.slice().sort().join(','),
-    'createdAt,equipmentId,hazard,id,memo,memoFromVoice,processId,status,ticket');
+    'createdAt,equipmentId,hazard,id,memo,memoFromVoice,processId,status,synced,ticket');
   ok('★★ 음성 표시는 참/거짓 하나뿐이다 (사람을 가리키는 값이 아니다)',
     typeof made.memoFromVoice === 'boolean', String(made.memoFromVoice));
   ok('★★ 목소리(오디오)를 저장하지 않는다',

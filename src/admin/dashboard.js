@@ -498,8 +498,44 @@
   }
 
   /* -----------------------------------------------------------------
-     4. 위험요소 신고 큐 — 익명
+     4. 위험요소 신고 큐 — 익명 (서버 쪽은 T13 · A02 §14.3)
+
+     ★ 신고는 Store.sync 가 다니는 길(`/api/store`)을 타지 않는다. 계정을 토큰에서
+       꺼내 그 자리에서 버리는 별도 경로(`/api/reports`)라, 이 화면이 직접 당겨오고
+       직접 올린다. `rid` 는 그 경로가 매긴 서버 쪽 번호일 뿐 사람을 가리키지 않는다.
      ----------------------------------------------------------------- */
+
+  function reportsOnline() {
+    return typeof Net !== 'undefined' && Net.available()
+      && typeof location !== 'undefined' && location.protocol === 'https:'
+      && typeof Auth !== 'undefined' && !!Auth.token();
+  }
+
+  /* 서버가 준 목록을 이 기기의 캐시에 얹는다. 없던 신고(다른 폰에서 온 것)는
+     더하고, 있던 것은 서버가 최근 본 상태(rid·status)로 맞춘다. */
+  function mergeServerReports(list) {
+    var result = Store.reports.update(function (rows) {
+      list.forEach(function (r) {
+        if (!r || !r.id) return;
+        var row = Store.findBy(rows, 'id', r.id);
+        if (row) {
+          row.rid = r.rid;
+          row.status = r.status;
+        } else {
+          rows.push(r);
+        }
+      });
+    });
+    return result.ok;
+  }
+
+  function pullReports() {
+    if (!reportsOnline()) return;
+    Net.request('GET', '/api/reports', null, { token: Auth.token() }).then(function (r) {
+      if (r.failed || !r.ok) return;
+      if (mergeServerReports((r.data && r.data.list) || [])) renderReports();
+    });
+  }
 
   /* ★ 위험요소 신고는 기간 걸러 보기를 따르지 않는다.
        조치가 안 끝난 신고는 언제 들어온 것이든 계속 보여야 한다.
@@ -584,8 +620,20 @@
       if (r) r.status = status;
     });
     render();
-    if (!result.ok) UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.');
-    else UI.toast('신고 상태를 바꿨습니다.');
+    if (!result.ok) {
+      UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.');
+      return;
+    }
+    UI.toast('신고 상태를 바꿨습니다.');
+
+    /* 서버에 올라가 있는 신고면(= rid 가 있으면) 같이 바꾼다. 아직 당겨오지
+       않은 신고(막 들어와 이 기기가 rid 를 모르는 것)는 다음 당겨오기 때 맞춰진다 —
+       그사이엔 이 기기에만 남는 것이 이번 범위의 남는 한계다. */
+    var row = Store.findBy(result.data, 'id', id);
+    if (reportsOnline() && row && row.rid) {
+      Net.request('PATCH', '/api/reports?id=' + encodeURIComponent(row.rid),
+        { status: status }, { token: Auth.token() });
+    }
   }
 
   /* -----------------------------------------------------------------
@@ -676,6 +724,13 @@
     Store.sync.onChange(function () { render(); });
     Store.sync.pull();                 // 열자마자 한 번
     Store.sync.every(20000);           // 그 뒤로는 20초마다
+  }
+
+  /* 신고는 Store.sync 가 다니는 길과 다르다 (익명 — 별도 경로, T13). 같은 리듬으로
+     따로 당겨온다 — 노동자 폰에서 풀면 이 화면에도 20초 안에 뜬다. */
+  if (reportsOnline()) {
+    pullReports();
+    setInterval(pullReports, 20000);
   }
 
   render();

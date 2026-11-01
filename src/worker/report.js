@@ -245,11 +245,44 @@
   }
 
   /* -----------------------------------------------------------------
+     서버로 보내기 (T13 · A02 §14.3)
+
+     ★ 신고는 Store.sync 의 보낼 대기열(safety.outbox.v1)을 타지 않는다.
+       그 길은 `/api/store` 로 가는데, 신고는 토큰에서 사업장만 꺼내고
+       계정은 버리는 **별도 경로**(`/api/reports`)다 (T12 에서 이미 정해 둠).
+
+     ★ 한 번 보내 보고, 안 되면 조용히 둔다. 이 기기의 로컬 기록(`Store.reports`)은
+       그대로 남아 이 화면에서는 계속 보인다 — 다른 기기(담당자 대시보드)에
+       당장 뜨지 않을 뿐이다. 다시 연결되면(`online`) 못 보낸 것만 다시 시도한다.
+       `synced` 는 그 표시일 뿐 사람을 가리키는 값이 아니다. */
+
+  function reportsOnline() {
+    return typeof Net !== 'undefined' && Net.available()
+      && typeof location !== 'undefined' && location.protocol === 'https:'
+      && typeof Auth !== 'undefined' && !!Auth.token();
+  }
+
+  function syncReports() {
+    if (!reportsOnline()) return;
+    var list = Store.reports.load();
+    var todo = list.filter(function (r) { return r && !r.synced; });
+    todo.forEach(function (r) {
+      Net.post('/api/reports', { data: r }, { token: Auth.token() }).then(function (res) {
+        if (!res.ok) return;
+        Store.reports.update(function (rows) {
+          var row = Store.findBy(rows, 'id', r.id);
+          if (row) row.synced = true;
+        });
+      });
+    });
+  }
+
+  /* -----------------------------------------------------------------
      보내기
 
-     ★ 저장하는 값은 이 여섯 개뿐이다.
-       id · processId · equipmentId · hazard · memo · status · createdAt · ticket
-       사람과 이어지는 값은 하나도 없다.
+     ★ 저장하는 값은 이것뿐이다.
+       id · processId · equipmentId · hazard · memo · memoFromVoice · status · createdAt · ticket
+       + synced(서버로 넘어갔는지, T13) — 사람과 이어지는 값은 하나도 없다.
      ----------------------------------------------------------------- */
 
   function send() {
@@ -277,7 +310,8 @@
            받아쓰기는 틀리므로 담당자가 그 사실을 알고 읽어야 한다. */
         memoFromVoice: voiceUsed,
         status: 'received',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        synced: false      // 서버로 넘어갔는지 — 사람을 가리키는 값이 아니다 (T13)
       });
     });
 
@@ -286,6 +320,7 @@
       return;
     }
 
+    syncReports();
     showDone(ticket);
     render();
   }
@@ -414,6 +449,8 @@
   /* 인터넷이 끊기면 말로 알리기가 안 된다. 그 사실이 바로 보여야 한다 */
   window.addEventListener('offline', renderVoiceAvail);
   window.addEventListener('online', renderVoiceAvail);
+  /* 다시 연결되면 못 보낸 신고부터 마저 보낸다 */
+  window.addEventListener('online', syncReports);
 
   /* 화면을 떠나면 듣기를 멈춘다 — 마이크를 켜 둔 채 나가면 안 된다 */
   window.addEventListener('pagehide', function () { stopVoice(''); });
@@ -428,4 +465,5 @@
   buildPickers();
   renderAnonListen();
   render();
+  syncReports();
 })();
