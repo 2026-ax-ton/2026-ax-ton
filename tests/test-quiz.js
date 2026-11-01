@@ -493,4 +493,37 @@ function openQuiz(opts) {
     t.win.Store.courses.load().find((c) => c.id === 'c-press').quiz.length, 3);
 }
 
+/* =================================================================
+   11. ★ 그림 문제 구역의 터치 영역이 60px 이상인가 (H3 · FR-WK-03-14)
+
+   zone 버튼의 보이는 크기(z.w·z.h, 퍼센트)는 도해 위 위험 구역의 실제
+   모양을 가리키는 것이라 그대로 둔다. 작은 화면에서 퍼센트가 60px 보다
+   작게 계산되더라도, CSS min-width/min-height 가 실제 터치 영역을
+   60px 로 밀어 올린다 — 투명 여백이라 보이는 테두리는 그대로다
+   (기본 background: none · border-color: transparent).
+   ================================================================= */
+{
+  const fs = require('fs');
+  const workerCss = fs.readFileSync(SRC + '/worker/worker.css', 'utf8');
+  const styleCss = fs.readFileSync(SRC + '/assets/style.css', 'utf8');
+  const quizJs = fs.readFileSync(SRC + '/worker/quiz.js', 'utf8');
+
+  has('★ --tap-min 이 60px 로 정의돼 있다', styleCss, '--tap-min: 60px');
+
+  const zoneBlock = (workerCss.match(/\.zone\s*\{[^}]*\}/) || [''])[0];
+  has('★ .zone 의 터치 영역 하한이 --tap-min 이다 (가로)', zoneBlock, 'min-width: var(--tap-min)');
+  has('★ .zone 의 터치 영역 하한이 --tap-min 이다 (세로)', zoneBlock, 'min-height: var(--tap-min)');
+
+  /* 보이는 크기는 그대로 — 기본 상태에 테두리·배경이 없어야
+     여백이 늘어도 눈에는 보이지 않는다 */
+  has('★ 기본 테두리가 투명하다 (여백이 보이지 않는다)', zoneBlock, 'border: 3px dashed transparent');
+  has('★ 기본 배경이 없다 (여백이 보이지 않는다)', zoneBlock, 'background: none');
+
+  /* quiz.js 가 인라인으로 min-width/min-height 를 지정하면 위 CSS 하한이
+     덮인다 — zone 버튼에는 left·top·width·height 만 인라인으로 준다 */
+  const renderZones = (quizJs.match(/function renderZones[\s\S]*?\n  \}/) || [''])[0];
+  ok('★ 화면 코드가 인라인으로 최소 크기를 덮어쓰지 않는다',
+    !/style\.(minWidth|minHeight)/.test(renderZones));
+}
+
 report('기능4 이해도 검증');

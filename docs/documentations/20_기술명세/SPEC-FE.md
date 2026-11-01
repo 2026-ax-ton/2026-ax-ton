@@ -42,7 +42,7 @@
 - 다 들으면 `quiz.html?course=<id>`로 이동
 - ✅ (2026-11-01) FR-WK-02-10: 번역 없음 + 음성 없음이 겹치면 "번역 준비 중"을 먼저, `voiceNote`를 그 아래에 둔다
 
-### FE-WK-03 · 이해도 검증 ✅ (+ FR-14 터치 영역 ⬜)
+### FE-WK-03 · 이해도 검증 ✅
 - 파일: `src/worker/quiz.html`·`quiz.js`, `assets/diagrams.js`(도해·구역 좌표 — AD-04와 공유)
 - 상태: `run = {course, equipment, questions, index, answers, locked}` (`quiz.js` 151행)
 - 문항 렌더: `hotspot`(구역 버튼 + 퍼센트 좌표 `Diagrams.inAnswer`) · `choice`(`options`, `answer` 인덱스) · `match`(`pairs`)
@@ -50,7 +50,7 @@
 - 채점: `PASS_SCORE` = 전 문항 정답. 기록 `progress.quiz = {score, passed, answers, asked, at, attempt, firstPassed}`
 - ✅ (2026-11-01) FR-WK-03-12: 문항 머리에 `n / 총`과 "한 번만 답할 수 있어요" (i18n 키 `quiz.stepLabel`·`quiz.onceOnly`, 6개 언어). 음성은 `promptSpeech()`에 합쳐 한 번에 읽는다(따로 부르면 `UI.speak`가 앞 발화를 끊는다)
 - ✅ (2026-11-01) FR-WK-03-13 (결정): 결과 `result-score`를 `n점` 대신 "n문항 중 m문항"으로, `result-actions`를 `result-review`보다 앞에 배치(HTML 순서)
-- ⬜ FR-WK-03-14: hotspot 구역 버튼의 터치 영역 지름 ≥ 60px (CSS `min-width/min-height` + 투명 여백). 실기기에서 잰다
+- ✅ (2026-11-01, 코드 확인) FR-WK-03-14: hotspot 구역 버튼의 터치 영역 지름 ≥ 60px — `.zone`의 기존 `min-width/min-height: var(--tap-min)`(투명 여백)이 이미 지키고 있었다. `test-quiz.js` §11 로 고정. 실기기 확인은 남음
 - ✅ (2026-11-01) FR-WK-03-15: match 짝 3쌍 이상 — 출제 쪽(FE-AD-04 `content.js` 검사)에서 막는다. 화면 코드는 바뀌지 않는다
 - 하지 않음: 응답 시간 기록 (FR-WK-03-09, P-5)
 - 시험: `test-quiz.js`에 FR-12·13 케이스, `test-content.js`(또는 기존 출제 시험)에 2쌍 거부 케이스 추가
@@ -180,3 +180,4 @@
 | 1.0.1 | 2026-10-23 | byeonsoyun | 운영 공지(현장 시연 = 제출 HTML `file://`) 반영: [AI 번역 받기]를 `file://`에서도 `API_BASE`로 쓰게 함 |
 | 1.0.2 | 2026-11-01 | byeonsoyun | H1 FR-WK-01-06 오역 신고 구현 완료로 ⬜→✅, 쓰기 칸 갱신 |
 | 1.0.3 | 2026-11-01 | byeonsoyun | H2 FR-WK-03-12·13 구현 완료로 ⬜→✅ (진행 안내 + 결과 문항 수 표기) |
+| 1.0.4 | 2026-11-01 | byeonsoyun | H3 FR-WK-03-14 코드 확인으로 ⬜→✅ (기존 CSS가 이미 60px을 지키고 있었음을 검사로 고정) |
