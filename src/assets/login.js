@@ -2,8 +2,8 @@
    login.js — 로그인 화면 (index.html)
 
    담당: 공용
-   쓰는 키: session · (첫 방문이면 Seed 가 나머지 7개 키를 한 번 채운다)
-   읽는 키: accounts
+   쓰는 키: session · prefs(언어, H9) · (첫 방문이면 Seed 가 나머지 7개 키를 한 번 채운다)
+   읽는 키: accounts · courses(QR 안내, H9)
 
    여기서 역할이 갈리고, 그 뒤로는 두 팀의 화면이 서로 만나지 않는다.
    =================================================================== */
@@ -33,6 +33,31 @@
   }
 
   UI.warnIfBlocked();
+
+  /* 언어 선택 + QR 로 들어왔다는 안내 (H9 · FR-CM-01-08·09).
+     언어를 바꾸면 안내 문장도 그 언어로 다시 그려야 한다 — 그래서 콜백으로 준다. */
+  function renderQrNote() {
+    var box = $('qr-note');
+    if (!box) return;
+
+    var m = /[?&]course=([^&]+)/.exec(wanted);
+    var course = m ? Store.findBy(Store.courses.load(), 'id', decodeURIComponent(m[1])) : null;
+    if (!course) { box.hidden = true; return; }
+
+    box.textContent = '';
+    box.appendChild(document.createTextNode(I18N.t('login.qrNote').replace('{course}', course.title)));
+    box.appendChild(UI.audioButton(function () {
+      return {
+        text: I18N.t('login.qrNote').replace('{course}', course.title),
+        lang: I18N.lang(),
+        ko: I18N.t('login.qrNote', 'ko').replace('{course}', course.title)
+      };
+    }, I18N.t('action.listenGuide')));
+    box.hidden = false;
+  }
+
+  UI.preloginLangPicker('lang-gate', renderQrNote);
+  renderQrNote();
 
   /* 처음 여는 브라우저면 예시 데이터를 채운다.
      서버가 없어 계정도 이 브라우저 안에만 있다. 배포 주소에 QR 로 들어온 노동자에게

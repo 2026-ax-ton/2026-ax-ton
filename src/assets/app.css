@@ -416,6 +416,45 @@ fieldset.formset[disabled] { opacity: .5; }
   padding: 40px 24px 32px;
   color: #fff;
 }
+
+/* 로그인 전 언어 선택 (H9 · FR-CM-01-08) — 장갑 낀 손 기준 60px, 노동자 화면과 같다 */
+.lang-gate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.lang-cell { display: flex; align-items: center; gap: 4px; }
+.lang-btn {
+  min-height: var(--tap-min);
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font-size: .92em;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lang-btn.on {
+  background: #fff;
+  color: var(--admin-ink);
+  border-color: #fff;
+}
+
+/* QR 로 들어왔다는 안내 (H9 · FR-CM-01-09) */
+.qr-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: .9em;
+  font-weight: 700;
+}
 .gate-kicker {
   margin: 0 0 10px;
   font-size: .78em;

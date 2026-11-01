@@ -49,6 +49,25 @@ var I18N = (function () {
     'nav.talk':   { ko: '소통', km: 'សន្ទនា',   id: 'Obrolan',   vi: 'Trao đổi', ne: 'कुराकानी', th: 'พูดคุย' },
     'nav.my':     { ko: '마이', km: 'ខ្ញុំ',      id: 'Saya',      vi: 'Của tôi',  ne: 'मेरो',   th: 'ของฉัน' },
 
+    /* 🆕 H9 — 로그인·가입 화면 (FR-CM-01-08·09). 로그인 전이라 I18N.lang() 은
+       Store.prefs.lang(이 화면에서 고른 것)을 본다. "언어를 고르세요" 자체는
+       번역하지 않는다 — 그 문장을 번역하려면 이미 그 사람의 언어를 알아야
+       하는 모순이 생긴다. 대신 모국어 글자와 그 언어로 그 이름을 읽어 주는
+       음성으로 고르게 한다 (UI.preloginLangPicker). */
+    'login.id':      { ko: '아이디', km: 'ID', id: 'ID', vi: 'ID', ne: 'आईडी', th: 'ไอดี' },
+    'login.pw':      { ko: '비밀번호', km: 'ពាក្យសម្ងាត់', id: 'Kata sandi', vi: 'Mật khẩu', ne: 'पासवर्ड', th: 'รหัสผ่าน' },
+    'login.submit':  { ko: '로그인', km: 'ចូលប្រើ', id: 'Masuk', vi: 'Đăng nhập', ne: 'लगइन', th: 'เข้าสู่ระบบ' },
+    'login.signupTitle': { ko: '회원가입', km: 'ចុះឈ្មោះ', id: 'Daftar', vi: 'Đăng ký', ne: 'दर्ता गर्नुहोस्', th: 'สมัครสมาชิก' },
+    'login.signupSubmit': { ko: '가입하고 시작하기', km: 'ចុះឈ្មោះ ហើយចាប់ផ្តើម', id: 'Daftar dan mulai', vi: 'Đăng ký và bắt đầu', ne: 'दर्ता गरी सुरु गर्नुहोस्', th: 'สมัครแล้วเริ่มเลย' },
+    'login.backToLogin': { ko: '로그인으로', km: 'ត្រឡប់ទៅចូលប្រើ', id: 'Kembali ke masuk', vi: 'Về đăng nhập', ne: 'लगइनमा फर्कनुहोस्', th: 'กลับไปเข้าสู่ระบบ' },
+    /* {course} 는 코드가 교육 이름으로 바꿔 넣는다 (FR-CM-01-09) */
+    'login.qrNote':  { ko: '로그인하면 「{course}」이 바로 열립니다',
+      km: 'នៅពេលចូលប្រើ 「{course}」 នឹងបើកភ្លាម',
+      id: 'Setelah masuk, 「{course}」akan langsung terbuka',
+      vi: 'Sau khi đăng nhập, 「{course}」sẽ mở ngay',
+      ne: 'लगइन गरेपछि 「{course}」 तुरुन्तै खुल्छ',
+      th: 'เมื่อเข้าสู่ระบบ 「{course}」จะเปิดทันที' },
+
     /* 공통 동작 */
     'action.logout': { ko: '로그아웃',   km: 'ចាកចេញ',      id: 'Keluar',      vi: 'Đăng xuất', ne: 'बाहिरिनु',  th: 'ออกจากระบบ' },
     'action.listen': { ko: '들어 보기',  km: 'ស្តាប់',        id: 'Dengarkan',   vi: 'Nghe',      ne: 'सुन्नुहोस्',  th: 'ฟัง' },
@@ -234,11 +253,17 @@ var I18N = (function () {
      ----------------------------------------------------------------- */
 
   /* 지금 화면을 보는 사람의 언어.
-     로그인 전이거나 관리자면 한국어다 — 관리자 화면은 번역하지 않는다. */
+     로그인 상태면 계정 언어, 아니면 이 기기에서 미리 고른 언어(H9 · FR-CM-01-08),
+     둘 다 없으면 한국어다 — 관리자 화면은 로그인 뒤 번역하지 않는다. */
   function lang() {
     try {
       var u = (typeof Auth !== 'undefined') && Auth.current();
-      return (u && u.lang) || 'ko';
+      if (u && u.lang) return u.lang;
+      if (typeof Store !== 'undefined' && Store.prefs) {
+        var p = Store.prefs.load();
+        if (p && p.lang) return p.lang;
+      }
+      return 'ko';
     } catch (e) {
       return 'ko';
     }

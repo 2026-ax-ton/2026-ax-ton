@@ -14,6 +14,9 @@
 
   <section class="gate-panel">
 
+    <!-- 언어 선택 — 로그인 전이라 이 기기에 둔다 (H9 · FR-CM-01-08) -->
+    <div class="lang-gate" id="lang-gate"></div>
+
     <p class="blocked" id="blocked" hidden>
       이 브라우저에서는 저장소를 쓸 수 없습니다. 가입해도 저장되지 않습니다.
     </p>
@@ -21,10 +24,10 @@
     <div class="card">
       <div class="sec-head">
         <div>
-          <h2 id="t-join">회원가입</h2>
+          <h2 id="t-join" data-i18n="login.signupTitle">회원가입</h2>
           <p class="why">역할을 먼저 고르면 아래 입력란이 바뀝니다.</p>
         </div>
-        <a class="btn-sm" href="index.html">← 로그인으로</a>
+        <a class="btn-sm" href="index.html"><span aria-hidden="true">←</span> <span data-i18n="login.backToLogin">로그인으로</span></a>
       </div>
 
       <form id="form-signup" autocomplete="off">
@@ -97,7 +100,7 @@
 
         <div style="height:6px"></div>
         <button class="btn btn-primary" type="submit">
-          <span aria-hidden="true">＋</span> 가입하고 시작하기
+          <span aria-hidden="true">＋</span> <span data-i18n="login.signupSubmit">가입하고 시작하기</span>
         </button>
       </form>
 
@@ -120,6 +123,7 @@
 <script src="assets/store.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/icons.js"></script>
+<script src="assets/i18n.js"></script>
 <script src="assets/ui.js"></script>
 <script src="assets/net.js"></script>
 <script src="assets/signup.js"></script>

@@ -191,6 +191,48 @@ var UI = (function () {
     return li;
   }
 
+  /* 로그인 전 화면(로그인·가입)의 언어 선택 (H9 · FR-CM-01-08).
+
+     ★ 계정이 아니라 기기에 둔다(Store.prefs) — 로그인 전이라 계정을 아직 모른다.
+     ★ "언어를 고르세요" 라는 안내 자체는 번역하지 않는다. 그 문장을 번역하려면
+       이미 그 사람의 언어를 알아야 하는 모순이 생긴다. 대신 모국어 글자(native)를
+       앞세우고, 누르기 전에 그 언어로 그 이름을 스스로 읽어 주는 음성 버튼을 준다 —
+       글을 못 읽어도 귀로 자기 언어를 찾을 수 있다.
+     ★ 고르면 그 자리에서 I18N.apply() 를 다시 불러 화면 전체(현재 data-i18n 칸)를
+       새 언어로 바꾼다. 새로고침해야 바뀌면 "분명히 골랐는데 그대로다" 가 된다. */
+  function preloginLangPicker(containerId, onChange) {
+    var box = $(containerId);
+    if (!box || typeof Store === 'undefined' || typeof I18N === 'undefined') return;
+
+    function render() {
+      box.textContent = '';
+      var current = I18N.lang();
+
+      Store.LANGUAGES.forEach(function (l) {
+        var cell = el('span', 'lang-cell');
+
+        var btn = el('button', 'lang-btn' + (l.code === current ? ' on' : ''), l.native);
+        btn.type = 'button';
+        btn.setAttribute('aria-pressed', l.code === current ? 'true' : 'false');
+        btn.addEventListener('click', function () {
+          Store.prefs.update(function (p) { p.lang = l.code; });
+          I18N.apply();
+          render();
+          if (typeof onChange === 'function') onChange(l.code);
+        });
+        cell.appendChild(btn);
+
+        cell.appendChild(audioButton(function () {
+          return { text: l.native, lang: l.code };
+        }, l.name + ' 듣기'));
+
+        box.appendChild(cell);
+      });
+    }
+
+    render();
+  }
+
   /* 관리자 화면 상단 머리띠를 채운다. 세 화면이 똑같이 필요하다. */
   function fillAdminBar(user) {
     var setup = Store.setup.load();
@@ -823,7 +865,7 @@ var UI = (function () {
     chip: chip, checkedValues: checkedValues, pickedValue: pickedValue,
     fillSelect: fillSelect, toast: toast,
     emptyRow: emptyRow, itemRow: itemRow,
-    fillAdminBar: fillAdminBar, fillWorkerBar: fillWorkerBar,
+    fillAdminBar: fillAdminBar, fillWorkerBar: fillWorkerBar, preloginLangPicker: preloginLangPicker,
     markCurrentTab: markCurrentTab,
     warnIfBlocked: warnIfBlocked, formatDate: formatDate,
 

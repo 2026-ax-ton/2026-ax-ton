@@ -2,6 +2,9 @@
    다른 세 분 담당 화면이 내 변경으로 깨지면 안 된다. */
 const { boot, ok, eq, has, report, iconName, SRC } = require('./harness');
 
+const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
+const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+
 const PAGES = [
   ['worker/home.html',      'worker/home.js',      'W-4821-07'],
   ['worker/learn.html',     'worker/learn.js',     'W-4821-07'],
@@ -469,6 +472,57 @@ function bootWithSpeech(mode) {
   const t = boot('index.html', { seed: false });
   eq('★ 로그인 화면에서는 next 를 만들지 않는다', t.win.Auth.wantedPath(), '');
   eq('그냥 로그인 화면', t.win.Auth.loginUrl(), 'index.html');
+}
+
+/* =================================================================
+   로그인 전 언어 선택 + QR 안내 (H9 · FR-CM-01-08·09)
+   ================================================================= */
+{
+  const t = boot('index.html', { page: 'assets/login.js' });
+
+  const btns = t.$('lang-gate').querySelectorAll('.lang-btn');
+  eq('언어 6개가 뜬다', btns.length, 6);
+  has('★ 모국어 글자로 뜬다 (한국어를 몰라도 찾을 수 있다)', text(btns[0]), 'ភាសាខ្មែរ');
+  eq('음성 버튼도 언어마다 하나씩', t.$('lang-gate').querySelectorAll('.btn-audio').length, 6);
+
+  const koBtn = [...btns].find((b) => text(b) === '한국어');
+  eq('★ 아직 고르지 않았으면 한국어가 기본으로 골라져 있다', koBtn.getAttribute('aria-pressed'), 'true');
+
+  eq('처음에는 QR 안내가 없다', t.$('qr-note').hidden, true);
+
+  const kmBtn = [...btns].find((b) => text(b).indexOf('ភាសាខ្មែរ') !== -1);
+  click(t.win, kmBtn);
+
+  eq('★ 크메르어를 고르면 저장된다', t.win.Store.prefs.load().lang, 'km');
+  has('★ 화면 글자가 그 자리에서 바뀐다 (새로고침 없이)',
+    text(t.win.document.querySelector('label[for="login-id"]')), t.win.I18N.t('login.id', 'km'));
+  has('비밀번호 칸도 바뀐다',
+    text(t.win.document.querySelector('label[for="login-pw"]')), t.win.I18N.t('login.pw', 'km'));
+
+  /* render() 가 버튼을 다시 그리므로 고른 뒤에는 다시 찾아야 한다 */
+  const kmBtnAfter = [...t.$('lang-gate').querySelectorAll('.lang-btn')]
+    .find((b) => text(b).indexOf('ភាសាខ្មែរ') !== -1);
+  eq('고른 언어에 표시가 남는다', kmBtnAfter.getAttribute('aria-pressed'), 'true');
+  eq('★ 문서 언어도 함께 바뀐다 (브라우저가 글꼴을 맞춘다)',
+    t.win.document.documentElement.getAttribute('lang'), 'km');
+}
+
+{
+  /* QR 로 들어왔으면 어느 교육이 열릴지 미리 말한다 (FR-CM-01-09) */
+  const t = boot('index.html?next=' + encodeURIComponent('worker/learn.html?course=c-press'),
+    { page: 'assets/login.js' });
+
+  eq('★ QR 로 들어오면 안내가 뜬다', t.$('qr-note').hidden, false);
+  has('어느 교육이 열릴지 이름으로 말한다', text(t.$('qr-note')), '프레스 3호기 안전교육');
+  has('로그인하면 바로 열린다고 말한다', text(t.$('qr-note')), '로그인하면');
+  ok('안내도 음성으로 들을 수 있다', !!t.$('qr-note').querySelector('.btn-audio'));
+
+  /* 언어를 바꾸면 안내 문장도 그 언어로 다시 그려진다 */
+  const idBtn = [...t.$('lang-gate').querySelectorAll('.lang-btn')]
+    .find((b) => text(b).indexOf('Bahasa Indonesia') !== -1);
+  click(t.win, idBtn);
+  has('★ 언어를 바꾸면 QR 안내도 그 언어로 바뀐다',
+    text(t.$('qr-note')), t.win.I18N.t('login.qrNote', 'id').split('{')[0]);
 }
 
 {

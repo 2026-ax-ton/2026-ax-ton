@@ -312,7 +312,7 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
 | `Store.progress` | 노동자 기능3·4 | 관리자 기능5·6 |
 | `Store.reports` | 노동자 기능8 | 관리자 기능6 |
 | `Store.posts` | 노동자 기능7 | 노동자 기능7 |
-| `Store.prefs` | 노동자 아무 화면 (글자 크기) | 노동자 전부 |
+| `Store.prefs` | 노동자 아무 화면 (글자 크기) · 🆕 `index.html`/`signup.html`(로그인 전 언어, H9) | 노동자 전부 |
 | `Store.orders` | 관리자 기능6 (재교육 지시) | 노동자 홈 · 관리자 기능6 |
 
 **저장 데이터의 모양을 바꾸면 다른 사람 화면이 깨집니다.**
