@@ -79,6 +79,48 @@ function open(page, opts = {}) {
 }
 
 /* =================================================================
+   홈 — ★ 오역 신고를 바로 접수한다 (H1 · FR-WK-01-06)
+   ================================================================= */
+{
+  /* ph-1 하나만 남겨 "오늘의 문구" 자리를 고정한다 —
+     날짜에 따라 바뀌는 todayIndex 에 흔들리지 않게 하기 위해서다. */
+  const onlyPh1 = (win) => { win.Store.library.update((list) => list.filter((p) => p.id === 'ph-1')); };
+
+  const t = open('home', { before: onlyPh1 });
+  has('신고 대상이 ph-1 로 고정됐다', text(t.$('today-text')), 'កុំដាក់ដៃចូល');
+
+  const btn = t.$('today-report');
+  ok('신고 버튼이 있다', !!btn && btn.querySelector('.btn-sm') !== null);
+  has('★ 내 언어로 뜬다 (크메르어)', text(btn), t.win.I18N.t('home.reportTrans', 'km'));
+
+  click(t.win, btn.querySelector('.btn-sm'));
+
+  const after1 = t.win.Store.findBy(t.win.Store.library.load(), 'id', 'ph-1');
+  const flag = (after1.flags || []).find((f) => !f.resolvedAt);
+  ok('신고가 기록에 남는다', !!flag);
+  ok('★ 신고자를 저장하지 않는다', !('workerId' in flag) && !('userId' in flag) && !('by' in flag));
+  eq('어느 언어의 신고인지 남는다', flag.lang, 'km');
+  ok('★ 접수 즉시 그 언어만 중지된다', after1.translations.km.status === 'stopped');
+  ok('다른 언어(인도네시아어)는 그대로 쓸 수 있다',
+    !after1.translations.id || after1.translations.id.status !== 'stopped');
+
+  has('★ 접수했다고 알려 준다 (내 언어로)', text(t.$('toast')), t.win.I18N.t('home.reportSent', 'km'));
+
+  /* --- 신고한 언어가 사라지면 홈이 다음 문구로 넘어간다 (확인한 뒤 내리는 순서가 아니다) --- */
+  const t2 = open('home', { before: onlyPh1 });
+  click(t2.win, t2.$('today-report').querySelector('.btn-sm'));
+  has('★ 신고 즉시 그 문구가 더 이상 안전 지시로 뜨지 않는다',
+    text(t2.$('today-text')), '아직 안전 문구가 준비되지 않았습니다');
+
+  /* --- 한국어 사용자는 번역 칸이 없다 — 문구 전체를 내린다 (library.js 의 "문구 전체" 신고와 같은 경로) --- */
+  const tk = open('home', { login: 'W-4821-31', before: onlyPh1 });
+  click(tk.win, tk.$('today-report').querySelector('.btn-sm'));
+  const koAfter = tk.win.Store.findBy(tk.win.Store.library.load(), 'id', 'ph-1');
+  eq('★ 한국어 신고는 lang 이 빈 문자열이다', (koAfter.flags || []).find((f) => !f.resolvedAt).lang, '');
+  eq('★ 문구 전체가 중지된다 (언어별 칸이 없으므로)', koAfter.status, 'stopped');
+}
+
+/* =================================================================
    기능8 신고 — ★★ 익명이 지켜지는가
    ================================================================= */
 {

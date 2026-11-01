@@ -30,9 +30,9 @@
 
 ### FE-WK-01 · 홈 ✅
 - 파일: `src/worker/home.html`·`home.js` · 역할 가드 `worker`
-- 읽기: `setup`, `courses`, `library`(`phraseOk`), `progress`, `orders`(`orderOpen`) · 쓰기: 없음
+- 읽기: `setup`, `courses`, `library`(`phraseOk`), `progress`, `orders`(`orderOpen`) · 쓰기: `library`(오역 신고만)
 - 구성: 오늘의 문구 캐러셀(검수 완료만) → 3단계 진행 → 재교육 지시 카드 → 큰 메뉴 4개 + 배지
-- ⬜ FR-WK-01-06 오역 신고 (결정): 문구 카드에 [이 번역이 이상해요] → 그 문구의 기존 `flags[]`에 `{note, lang, at, resolvedAt:null}`을 더하고 그 언어만 `stopped` (`library.js` `fileFlag`와 같은 규칙 — 계약 변경 없음). **신고자를 저장하지 않는다.** 관리자앱 FE-AD-02 「오역 신고 목록」에 그대로 뜨고, 다시 살리는 판정은 사람이 한다
+- ✅ (2026-11-01) FR-WK-01-06 오역 신고: 문구 카드에 [이 번역이 이상해요] → 그 문구의 기존 `flags[]`에 `{note, lang, at, resolvedAt:null}`을 더하고 그 언어만 `stopped` (`library.js` `fileFlag`와 같은 규칙 — 계약 변경 없음). **신고자를 저장하지 않는다.** 한국어 사용자는 번역 칸이 없어 `lang:''`(문구 전체)로 접수된다. 관리자앱 FE-AD-02 「오역 신고 목록」에 그대로 뜨고, 다시 살리는 판정은 사람이 한다
 - 탭바: 하단 4개 메뉴는 지금 코드 그대로 (2회차 시안에서 확인)
 
 ### FE-WK-02 · 교육 수강 ✅
@@ -178,3 +178,4 @@
 | 0.1 | 2026-10-22 | byeonsoyun | 최초 작성 (PRD 14개 + 코드 확인) |
 | 1.0 | 2026-10-22 | byeonsoyun | Figma 2회차 반영(FR 추가 반영), 제안을 결정으로 닫음, CodeGen 순서 6단계로 확정 |
 | 1.0.1 | 2026-10-23 | byeonsoyun | 운영 공지(현장 시연 = 제출 HTML `file://`) 반영: [AI 번역 받기]를 `file://`에서도 `API_BASE`로 쓰게 함 |
+| 1.0.2 | 2026-11-01 | byeonsoyun | H1 FR-WK-01-06 오역 신고 구현 완료로 ⬜→✅, 쓰기 칸 갱신 |

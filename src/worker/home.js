@@ -4,7 +4,7 @@
    담당: P2
    기능번호: — (진입점)
    읽는 키: setup, courses, library, progress, orders
-   쓰는 키: 없음
+   쓰는 키: library (오늘의 문구 오역 신고만 — H1 · FR-WK-01-06)
    근거: SCREEN 화면2 · PRD §4.2
 
    ★ 글자를 한 자도 읽지 않고 어디로 가야 할지 알 수 있어야 한다.
@@ -164,6 +164,7 @@
       $('today-note').textContent = '';
       $('today-listen').textContent = '';
       nav.hidden = true;
+      renderTodayReport(null);
       return;
     }
 
@@ -207,6 +208,70 @@
     /* 넘겨 볼 것이 하나뿐이면 버튼을 아예 두지 않는다 (C5) */
     nav.hidden = now.total < 2;
     $('today-pos').textContent = now.total < 2 ? '' : (now.at + 1) + ' / ' + now.total;
+
+    renderTodayReport(phrase);
+  }
+
+  /* -----------------------------------------------------------------
+     1-0. 오역 신고 — 홈에서 바로 접수 (H1 · FR-WK-01-06)
+
+     ★ 오역을 가장 먼저 알아채는 사람이 그것을 쓰는 노동자다. 운영자 화면
+       (기능9)까지 가서 신고하라고 하면 아무도 안 한다. 그래서 지금 보고
+       있는 문구 바로 아래에 버튼을 둔다.
+
+     ★ 신고자를 저장하지 않는다 (library.js 의 fileFlag 와 같은 규칙).
+       로그인한 사람이 누구인지와 무관하게 접수돼야, 보복을 걱정해 신고를
+       참는 일이 없다.
+
+     ★ 접수 즉시 그 언어만 중지한다. 확인한 뒤 내리는 순서가 아니다 —
+       오역이 현장에 한 시간 더 붙어 있는 것이 더 위험하다.
+
+     ★ 한국어를 쓰는 노동자에게는 번역 칸이 없다(translations.ko 는 생기지
+       않는다). 그 사람이 보는 것은 원문 그 자체이므로, 신고하면 문구
+       전체를 내린다 — library.js 의 "문구 전체" 신고와 같은 경로다. */
+  function renderTodayReport(phrase) {
+    var box = $('today-report');
+    if (!box) return;
+    box.textContent = '';
+
+    if (!phrase) { box.hidden = true; return; }
+    box.hidden = false;
+
+    var btn = UI.el('button', 'btn-sm');
+    btn.type = 'button';
+    btn.appendChild(UI.iconBox('alert', 'ico'));
+    btn.appendChild(document.createTextNode(' ' + I18N.t('home.reportTrans')));
+    btn.addEventListener('click', function () { reportPhrase(phrase); });
+    box.appendChild(btn);
+
+    box.appendChild(UI.audioButton(function () {
+      return I18N.say('speech.reportTrans');
+    }, I18N.t('home.reportTrans') + ' ' + I18N.t('action.listenGuide')));
+  }
+
+  function reportPhrase(phrase) {
+    var lang = me.lang === 'ko' ? '' : me.lang;
+
+    var result = Store.library.update(function (list) {
+      var p = Store.findBy(list, 'id', phrase.id);
+      if (!p) return;
+      if (!Array.isArray(p.flags)) p.flags = [];
+      p.flags.push({ note: '', lang: lang, at: new Date().toISOString(), resolvedAt: null });
+
+      if (lang && (p.translations || {})[lang]) p.translations[lang].status = 'stopped';
+      else p.status = 'stopped';
+    });
+
+    if (!result.ok) {
+      UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.');
+      return;
+    }
+
+    /* 이 문구가 목록에서 빠지면서 자리 번호가 바뀐다 — 처음부터 다시 센다 */
+    phraseAt = null;
+    UI.toast(I18N.t('home.reportSent'));
+    UI.speak(I18N.say('home.reportSent'));
+    renderToday();
   }
 
   /* -----------------------------------------------------------------
