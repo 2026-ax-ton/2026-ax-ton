@@ -75,6 +75,13 @@ function open(opts = {}) {
   eq('막대 길이가 0%', first.querySelector('.bar-fill').style.width, '0%');
   has('몇 문항 중 몇 개인지', text(first.querySelector('.what')), '0/1문항');
 
+  /* ★ H7 — 언어×위험유형 막대마다 응답 인원(n명)을 보인다 (FR-AD-05-10).
+     예시 데이터는 언어마다 1명뿐이라 전부 3명 미만 — 숨기지 않고 알려야 한다 */
+  has('★ 응답 인원이 n명으로 뜬다', text(first.querySelector('.what')), '1명');
+  ok('★ 인원이 3명 미만이면 개인 노출 주의 문구가 뜬다 (숨기지 않는다)',
+    bars.every((b) => text(b).indexOf('인원이 적어 개인이 드러날 수 있습니다') !== -1),
+    bars.map((b) => text(b)).join(' || '));
+
   // 100% 항목
   const good = bars[bars.length - 1];
   eq('양호 등급', good.getAttribute('data-level'), 'ok');
@@ -83,6 +90,36 @@ function open(opts = {}) {
   // 무엇부터 하면 되는지 말해 준다
   has('가장 낮은 항목을 지목한다', text(t.$('weak-hint')), '인도네시아어');
   has('무엇을 하라고 말한다', text(t.$('weak-hint')), '설명을 다시 만드는 것부터');
+}
+
+/* =================================================================
+   3-1. ★ H7 — 인원이 3명 이상이면 주의 문구가 사라진다 (그 항목만)
+   ================================================================= */
+{
+  const t = open({
+    before(win) {
+      // 끼임(km) 에만 3명을 더 채운다 — 감전(km) 은 그대로 1명으로 둔다
+      win.Store.progress.update((list) => {
+        ['TEST-A', 'TEST-B', 'TEST-C'].forEach((id) => {
+          list.push({ workerId: id, courseId: 'c-press', lang: 'km',
+            learnedAt: '2026-08-12T00:00:00.000Z',
+            quiz: { score: 100, passed: true, answers: [1], at: '2026-08-12T00:00:00.000Z' } });
+        });
+      });
+    },
+  });
+
+  const bars = [...t.$('weak-bars').querySelectorAll('.bar-item')];
+  const byLabel = {};
+  bars.forEach((b) => { byLabel[text(b.querySelector('.what'))] = b; });
+  const pinchLabel = Object.keys(byLabel).find((l) => l.includes('크메르어 · 끼임'));
+  const shockLabel = Object.keys(byLabel).find((l) => l.includes('크메르어 · 감전'));
+
+  has('★ 인원이 늘면 n명 표기도 따라 늘어난다', pinchLabel, '4명');
+  ok('★ 4명이 되면 주의 문구가 사라진다 (그 항목만)',
+    text(byLabel[pinchLabel]).indexOf('인원이 적어') === -1, text(byLabel[pinchLabel]));
+  ok('★ 다른 항목(감전, 그대로 1명)은 주의 문구가 남는다',
+    text(byLabel[shockLabel]).indexOf('인원이 적어 개인이 드러날 수 있습니다') !== -1);
 }
 
 /* =================================================================

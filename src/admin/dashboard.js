@@ -230,9 +230,12 @@
         // hazard 가 없는 문항은 유형으로 묶는다. 묶을 이름이 없으면 셀 수 없다.
         var topic = q.hazard || ('type:' + q.type);
         var key = (row.lang || '-') + '|' + topic;
-        if (!buckets[key]) buckets[key] = { right: 0, total: 0, lang: row.lang, topic: topic };
+        if (!buckets[key]) buckets[key] = { right: 0, total: 0, lang: row.lang, topic: topic, people: {} };
         buckets[key].total += 1;
         if (correct === 1) buckets[key].right += 1;
+        // ★ 응답 인원 (H7 · FR-AD-05-10) — 문항 수(total)와 다르다. 한 사람이
+        //   같은 위험유형 문항을 여러 개 풀면 total 은 늘지만 사람은 한 명이다.
+        buckets[key].people[row.workerId] = true;
       });
     });
 
@@ -245,7 +248,8 @@
         icon: haz ? haz.icon : '📋',
         rate: Math.round((b.right / b.total) * 100),
         right: b.right,
-        total: b.total
+        total: b.total,
+        people: Object.keys(b.people).length
       };
     }).sort(function (a, b) {
       return a.rate - b.rate;        // 낮은 것이 위로
@@ -284,12 +288,20 @@
       what.appendChild(UI.iconBox(item.icon, 'ico'));
       what.appendChild(document.createTextNode(' '));
       what.appendChild(document.createTextNode(langName(item.lang) + ' · ' + item.label));
-      what.appendChild(UI.el('em', null, item.right + '/' + item.total + '문항'));
+      what.appendChild(UI.el('em', null, item.right + '/' + item.total + '문항 · ' + item.people + '명'));
       head.appendChild(what);
 
       // 숫자 + 등급 글자. 색을 지워도 뜻이 남아야 한다.
       head.appendChild(UI.el('span', 'num', item.rate + '% ' + g.word));
       wrap.appendChild(head);
+
+      /* ★ 인원이 적으면 숨기지 않고 알린다 (H7 · FR-AD-05-10, AC-AD-05-02).
+         3명 미만이면 퍼센트가 사실상 한두 사람의 점수가 된다 — 그 사실을
+         적지, 막대 자체를 숨기지는 않는다(숨기면 "작은 현장일수록 안 보인다"는
+         더 나쁜 결과가 된다). */
+      if (item.people < 3) {
+        wrap.appendChild(UI.waitBadge('인원이 적어 개인이 드러날 수 있습니다'));
+      }
 
       var track = UI.el('div', 'bar-track');
       var fill = UI.el('div', 'bar-fill');
