@@ -680,7 +680,7 @@
         var b = row.querySelector('.pair-b').value.trim();
         if (a && b) pairs.push([a, b]);
       });
-      if (pairs.length < 2) { UI.toast('짝을 두 개 이상 채워 주세요.'); return; }
+      if (pairs.length < 3) { UI.toast('짝을 세 개 이상 채워 주세요.'); return; }
 
       var mi = collectI18n('match', null);
 
@@ -695,6 +695,7 @@
       $('q-ma-pairs').textContent = '';
       addPairRow();
       addPairRow();
+      addPairRow();           // 최소 세 쌍 (H4, FR-WK-03-15)
     }
 
     UI.toast(editingCourseId
@@ -1130,6 +1131,7 @@
     $('q-ma-pairs').textContent = '';
     addPairRow();
     addPairRow();
+    addPairRow();           // 최소 세 쌍 (H4, FR-WK-03-15)
     showTypeForm();
   }
 

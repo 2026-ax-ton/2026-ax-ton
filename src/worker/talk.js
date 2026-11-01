@@ -149,6 +149,16 @@
     box.hidden = !note;
   }
 
+  /* ★ H5 (FR-WK-05-09) — "여기 글은 안전 지시가 아닙니다" 를 들어 볼 수 있게 */
+  function renderNotSafetyListen() {
+    var box = $('notsafety-listen');
+    if (!box) return;
+    box.textContent = '';
+    box.appendChild(UI.audioButton(function () {
+      return I18N.say('talk.notSafety');
+    }, I18N.t('action.listen')));
+  }
+
 
   /* ★ 관리자는 글을 쓰지 않는다 — 여기는 노동자가 묻는 자리다 (C7).
        버튼을 남겨 두고 누르면 막는 것보다, 아예 안 보이는 쪽이 정직하다. */
@@ -575,6 +585,7 @@
   applyRoleUI();
   buildAnonChips();
   renderVoiceNote();
+  renderNotSafetyListen();
   renderList();
   show('list');
 })();

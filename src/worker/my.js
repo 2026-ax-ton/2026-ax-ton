@@ -142,11 +142,16 @@
      2. 받은 교육 — 못 들은 것도 그대로
      ----------------------------------------------------------------- */
 
+  /* ★ H6 (FR-WK-06-09) — admin/proof.js 와 같은 이름·같은 색으로 맞춘다
+     (이수 · 미통과 · 미수강 세 가지. '검증 미실시' 도 proof.js 와 같은 중립색이다).
+     전에는 noquiz 에 waitBadge(대기, 노란색)를 썼는데, proof.js 는 그 상태도
+     미수강과 같은 중립색으로 다룬다 — 같은 상태가 화면마다 다른 색으로 보이면
+     안 된다 (AC-WK-06-01, 미통과가 이력에서 빠지지 않는다는 원칙과 같은 맥락). */
   function badgeFor(state) {
-    if (state === 'pass') return UI.okBadge(I18N.t('state.done'));
-    if (state === 'fail') return UI.stopBadge(I18N.t('state.retry'));
-    if (state === 'noquiz') return UI.waitBadge(I18N.t('state.quizLeft'));
-    return UI.neutralBadge(I18N.t('state.notStarted'));
+    if (state === 'pass') return UI.okBadge(I18N.t('state.passed'));
+    if (state === 'fail') return UI.stopBadge(I18N.t('state.failed'));
+    if (state === 'noquiz') return UI.neutralBadge(I18N.t('my.resNoquiz'));
+    return UI.neutralBadge(I18N.t('my.resNone'));
   }
 
   function renderHistory() {

@@ -38,6 +38,9 @@ desktop.ini
 *.key
 secrets/
 
+# scripts/backup.mjs 출력 — 사업장 개인정보가 섞인 JSON. 개인 PC 에만 둔다 (T14)
+backups/
+
 # ------------------------------------------
 # 4. Python 환경 및 가상환경 (venv, pycache)
 # ------------------------------------------

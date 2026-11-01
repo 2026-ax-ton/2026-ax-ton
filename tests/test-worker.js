@@ -252,7 +252,7 @@ function open(page, opts = {}) {
   // 받은 교육
   const rows = [...t.$('history-list').querySelectorAll('.course-card')];
   eq('받은 교육 1건', rows.length, 1);
-  has('완료로 보인다', text(rows[0]), t.win.I18N.t('state.done', 'km'));
+  has('이수로 보인다', text(rows[0]), t.win.I18N.t('state.passed', 'km'));
   has('점수도 보인다', text(rows[0]), '100점');
 
   /* --- 통과하지 못한 것도 그대로 보이고, 다시 할 길을 준다 --- */
@@ -266,7 +266,7 @@ function open(page, opts = {}) {
     },
   });
   const row2 = t2.$('history-list').querySelector('.course-card');
-  has('★ 통과하지 못한 것도 숨기지 않는다', text(row2), t2.win.I18N.t('state.retry', 'km'));
+  has('★ 통과하지 못한 것도 숨기지 않는다', text(row2), t2.win.I18N.t('state.failed', 'km'));
   has('점수도 그대로', text(row2), '33점');
   has('다시 할 길을 준다', row2.innerHTML, 'learn.html');
 

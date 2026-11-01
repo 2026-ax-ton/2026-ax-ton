@@ -166,13 +166,17 @@ var Auth = (function () {
   /* ★ 로그아웃은 실패하면 안 된다 (공용 폰).
      서버에 알리는 것은 할 수 있으면 하고, 못 해도 이 기기의 토큰은 반드시 버린다.
      서버에 남은 세션은 만료(12시간)나 다음 로그인 때 정리된다. */
-  function logout() {
+  function endSession() {
     var tok = token();
     if (tok && canServer()) {
       Net.post('/api/auth/logout', {}, { token: tok, timeoutMs: 3000 });
     }
     dropServer();
     Store.session.clear();
+  }
+
+  function logout() {
+    endSession();
     location.href = baseDir() + 'index.html';
   }
 
@@ -325,6 +329,7 @@ var Auth = (function () {
     signupServer: signupServer,
     signupWorkplaceServer: signupWorkplaceServer,
     logout: logout,
+    endSession: endSession,
     go: go,
     require: require,
     baseDir: baseDir,

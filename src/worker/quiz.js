@@ -637,6 +637,14 @@
       review.appendChild(li);
     });
 
+    /* ★ 공용 폰 대응 (A04 2-5, D04 US-65) — 통과하면 이 사람이 이 기기에서
+       할 일은 끝났다. 다음 사람이 이 세션 그대로 이어받지 않도록 로그아웃한다.
+       화면은 그대로 둔다(이미 그린 결과는 메모리에 남아 있다) — 아래 버튼을
+       누르면 그때 로그인 화면으로 간다(Auth.require 가드).
+       ★ 통과하지 못했을 때는 하지 않는다 — "지금 다시 풀기" 가 같은 세션으로
+       이어져야 하고, 끝내지 못한 사람을 로그아웃으로 내쫓으면 안 된다. */
+    if (r.passed) Auth.endSession();
+
     var actions = $('result-actions');
     actions.textContent = '';
     if (r.passed) {

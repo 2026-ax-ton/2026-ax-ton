@@ -63,7 +63,6 @@ var I18N = (function () {
     'state.quizLeft':   { ko: '이해도 검증이 남았습니다', km: 'នៅសល់ការត្រួតពិនិត្យ', id: 'Uji pemahaman belum', vi: 'Còn phần kiểm tra', ne: 'जाँच बाँकी', th: 'เหลือการตรวจสอบ' },
     'state.passed':     { ko: '이수',                   km: 'ជាប់',        id: 'Lulus',         vi: 'Đạt',        ne: 'उत्तीर्ण',      th: 'ผ่าน' },
     'state.failed':     { ko: '미통과',                 km: 'មិនជាប់',     id: 'Belum lulus',   vi: 'Chưa đạt',   ne: 'अनुत्तीर्ण',    th: 'ไม่ผ่าน' },
-    'state.retry':      { ko: '다시 해야 합니다',       km: 'ត្រូវធ្វើម្តងទៀត', id: 'Harus diulang', vi: 'Phải làm lại', ne: 'फेरि गर्नुपर्छ', th: 'ต้องทำใหม่' },
     'state.allDone':    { ko: '모두 마침',              km: 'បញ្ចប់ទាំងអស់', id: 'Semua selesai', vi: 'Xong tất cả', ne: 'सबै सकियो',   th: 'เสร็จทั้งหมด' },
     'state.correct':    { ko: '정답',                   km: 'ត្រឹមត្រូវ',    id: 'Benar',         vi: 'Đúng',       ne: 'सही',          th: 'ถูก' },
     'state.wrong':      { ko: '틀림',                   km: 'ខុស',         id: 'Salah',         vi: 'Sai',        ne: 'गलत',          th: 'ผิด' },
@@ -149,6 +148,9 @@ var I18N = (function () {
     'talk.comments':   { ko: '댓글', km: 'មតិយោបល់', id: 'Komentar', vi: 'Bình luận', ne: 'टिप्पणी', th: 'ความคิดเห็น' },
     'talk.commentSubmit': { ko: '댓글 올리기', km: 'ផ្ញើមតិ', id: 'Kirim komentar', vi: 'Gửi bình luận', ne: 'टिप्पणी पठाउने', th: 'ส่งความคิดเห็น' },
     'talk.official':   { ko: '공식 답변',             km: 'ចម្លើយផ្លូវការ',  id: 'Jawaban resmi', vi: 'Trả lời chính thức', ne: 'आधिकारिक जवाफ', th: 'คำตอบทางการ' },
+    /* ★ H5 (FR-WK-05-09) — 이 화면의 글은 안전 지시가 아니다. 검수를 지난 문구만
+       안전 지시가 된다는 규칙을 노동자가 이 글들과 혼동하지 않아야 한다 */
+    'talk.notSafety':  { ko: '여기 글은 안전 지시가 아닙니다.', km: 'សារទាំងនេះមិនមែនជាការណែនាំសុវត្ថិភាពទេ', id: 'Tulisan di sini bukan instruksi keselamatan.', vi: 'Bài viết ở đây không phải là chỉ dẫn an toàn.', ne: 'यहाँका लेखहरू सुरक्षा निर्देशन होइनन्।', th: 'ข้อความที่นี่ไม่ใช่คำสั่งด้านความปลอดภัย' },
 
     /* 마이 */
     'my.title':    { ko: '내 기록',        km: 'កំណត់ត្រារបស់ខ្ញុំ', id: 'Catatan saya',  vi: 'Hồ sơ của tôi', ne: 'मेरो अभिलेख', th: 'บันทึกของฉัน' },
@@ -163,6 +165,11 @@ var I18N = (function () {
     'my.proofWhy':   { ko: '못 들은 교육을 빼고 뽑는 기능은 없습니다. 있는 그대로 나옵니다.', km: 'គ្មានមុខងារដកការបណ្តុះបណ្តាលដែលមិនបានស្តាប់ចេញទេ។ បង្ហាញតាមការពិត', id: 'Tidak ada fitur menyembunyikan pelatihan yang belum diikuti. Ditampilkan apa adanya.', vi: 'Không có chức năng loại bỏ khóa chưa học. Hiển thị đúng như thực tế.', ne: 'नसुनेको तालिम हटाएर निकाल्ने सुविधा छैन। जस्तो छ त्यस्तै देखिन्छ।', th: 'ไม่มีฟังก์ชันตัดการอบรมที่ยังไม่ได้เรียนออก แสดงตามจริง' },
     'my.reports':    { ko: '위험 신고', km: 'របាយការណ៍គ្រោះថ្នាក់', id: 'Laporan bahaya', vi: 'Báo cáo nguy hiểm', ne: 'जोखिम सूचना', th: 'แจ้งอันตราย' },
     'my.fontSize': { ko: '글자 크기',      km: 'ទំហំអក្សរ',       id: 'Ukuran huruf',   vi: 'Cỡ chữ',      ne: 'अक्षर आकार',  th: 'ขนาดตัวอักษร' },
+    /* ★ H6 (FR-WK-06-09) — admin/proof.js 의 네 가지 결과(이수·미통과는 기존
+       state.passed·state.failed 재사용)와 같은 이름으로 맞춘다. '미수강'·'검증 미실시' 는
+       proof.js 에 있는데 worker 쪽에 아직 없던 것만 새로 더한다 */
+    'my.resNone':   { ko: '미수강',       km: 'មិនទាន់ស្តាប់', id: 'Belum diikuti', vi: 'Chưa học',    ne: 'सुनेको छैन',  th: 'ยังไม่ได้เรียน' },
+    'my.resNoquiz': { ko: '검증 미실시',  km: 'មិនទាន់ត្រួតពិនិត្យ', id: 'Belum diuji', vi: 'Chưa kiểm tra', ne: 'जाँच भएको छैन', th: 'ยังไม่ได้ตรวจสอบ' },
 
     /* 말로만 나가는 안내 — 화면에 글자로는 없고 음성으로만 흐른다.
        ★ 여기 있는 것도 "안전 지시" 가 아니다. 무엇을 하면 되는지의 안내다. */

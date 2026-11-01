@@ -136,6 +136,10 @@ function openQuiz(opts) {
 
   has('교육을 다시 들으러 갈 수 있다', t.$('result-actions').innerHTML, 'learn.html');
 
+  /* ★ 미통과일 때는 로그아웃하지 않는다 — "지금 다시 풀기" 가 같은 세션으로
+     이어져야 한다. 끝내지 못한 사람을 로그아웃으로 내쫓지 않는다 */
+  eq('★ 미통과면 로그인 상태가 남아 있다', t.win.Store.session.load().userId, 'W-4821-07');
+
   /* --- 저장 모양 --- */
   const row = t.win.Store.progress.load()
     .find((r) => r.workerId === 'W-4821-07' && r.courseId === 'c-press');
@@ -210,6 +214,14 @@ function openQuiz(opts) {
   eq('점수 100', row.quiz.score, 100);
   eq('시도 횟수가 늘었다', row.quiz.attempt, 2);
   eq('★ 최초 통과율의 근거는 덮이지 않는다', row.quiz.firstPassed, false);
+
+  /* ★★ 공용 폰 (A04 2-5, D04 US-65, STC-E25-011) — 통과하면 자동 로그아웃.
+     다음 사람이 이 세션을 이어받지 못하게 이 기기의 로그인 상태를 지운다.
+     (화면 자체는 이미 그려 둔 결과를 그대로 보여 준다 — 아래 "홈으로" 를
+     눌러야 로그인 화면으로 넘어간다, Auth.require 가드) */
+  eq('★★ 통과하면 이 기기의 로그인 상태가 지워진다', t.win.Store.session.load().userId, '');
+  ok('결과 화면은 그대로 보인다 (로그아웃이 화면을 지우지 않는다)',
+    t.$('view-result').hidden === false);
 }
 
 /* =================================================================

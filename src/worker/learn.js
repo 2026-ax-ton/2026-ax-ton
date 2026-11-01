@@ -225,6 +225,11 @@
     $('view-list').hidden = which !== 'list';
     $('view-step').hidden = which !== 'step';
     $('view-nophrase').hidden = which !== 'nophrase';
+    /* ★ H8 (FR-WK-02-10) — 수강 중에는 머리의 음성 안내를 접어 두고,
+       그 안내를 문구 카드 안 "번역 준비 중" 아래에 다시 보여 준다 (renderStep).
+       그래야 번역 없음이 먼저, 음성 없음이 그 아래라는 순서가 지켜진다. */
+    if (which === 'step') $('voicenote').hidden = true;
+    else renderVoiceNote();
     window.scrollTo(0, 0);
   }
 
@@ -298,6 +303,11 @@
         card.appendChild(miss);
       }
     }
+
+    /* ★ H8 (FR-WK-02-10) — 번역 없음(위) 다음에 음성 없음(아래) 순서로.
+       머리의 voicenote 는 수강 중엔 접어 두고(show) 여기서 같은 문장을 보여 준다. */
+    var voiceNote = UI.voiceNote(me.lang);
+    if (voiceNote) card.appendChild(UI.el('p', 'voicenote', voiceNote));
 
     var listen = UI.el('div', 'listen');
     listen.appendChild(UI.audioButton(function () { return speechFor(phrase); }, I18N.t('learn.listenAgain')));

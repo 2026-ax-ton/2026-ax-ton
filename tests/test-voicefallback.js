@@ -239,6 +239,22 @@ function pickTo(t, code) {
   ok('★ 수강 화면에도 "번역 준비 중" 이 뜨지 않는다',
     text(l.win.document.body).indexOf(l.win.I18N.t('learn.transPending', 'ko')) === -1);
 
+  /* ★★ H8 (FR-WK-02-10) — 번역 없음과 음성 없음이 한 문구에서 겹치면
+     "번역 준비 중" 이 먼저, 그 아래에 음성 안내가 와야 한다. 순서가 바뀌면
+     글을 못 읽는 사람은 위에서부터 본 것으로 다 봤다고 여기고,
+     아래에 있는 번역 안내를 놓칠 수 있다.
+     W-4821-11(인도네시아어) + 기본 음성(한국어만) = 둘 다 걸리는 조합 */
+  const idLearn = open('learn', { login: 'W-4821-11' });
+  click(idLearn.win, idLearn.$('course-list').querySelector('.course-open'));
+  click(idLearn.win, idLearn.$('btn-next'));      // 1장(번역 있음) → 2장(ph-6, 번역 없음)
+  const cardText = text(idLearn.$('phrase-card'));
+  const pendingAt = cardText.indexOf(idLearn.win.I18N.t('learn.transPending', 'id'));
+  const voiceAt = cardText.indexOf(idLearn.win.UI.voiceNote('id'));
+  ok('★ 번역 안내가 뜬다', pendingAt !== -1, cardText);
+  ok('★ 음성 안내도 뜬다 (인도네시아어 음성이 이 기기에 없다)', voiceAt !== -1, cardText);
+  ok('★★ 번역 준비 중이 먼저, 음성 안내가 그 아래', pendingAt < voiceAt,
+    'pending=' + pendingAt + ' voice=' + voiceAt);
+
   /* ★★ 배지를 없앤 것이 아니라 한국어에만 안 띄운 것이다.
      이 짝이 없으면 "배지를 통째로 지웠다" 와 구분되지 않는다.
      W-4821-11(인도네시아어)의 문구 풀에는 그 언어 번역이 있는 것과

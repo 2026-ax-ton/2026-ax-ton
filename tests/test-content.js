@@ -286,22 +286,24 @@ const checkAll = (win, root, name, values) => {
   click(t.win, t.$('btn-add-q'));
   eq('선택지가 두 개 미만이면 추가되지 않는다', t.$('quiz-list').querySelectorAll('.item').length, 0);
 
-  // match 에 짝이 하나뿐
+  // match 에 짝이 둘뿐 (★ H4 — 최소 세 쌍, FR-WK-03-15)
   [...t.$('pick-qtype').querySelectorAll('input')].find((r) => r.value === 'match').checked = true;
   change(t.win, t.$('pick-qtype'));
   input(t.win, t.$('q-ma-prompt'), '연결하세요');
   const rows = t.$('q-ma-pairs').querySelectorAll('.pair-row');
-  eq('짝 입력줄이 2개로 시작한다', rows.length, 2);
+  eq('★ 짝 입력줄이 3개로 시작한다', rows.length, 3);
   rows[0].querySelector('.pair-a').value = '작업1';
   rows[0].querySelector('.pair-b').value = '보호구1';
-  click(t.win, t.$('btn-add-q'));
-  eq('짝이 두 개 미만이면 추가되지 않는다', t.$('quiz-list').querySelectorAll('.item').length, 0);
-
-  // 제대로 채우면 추가된다
   rows[1].querySelector('.pair-a').value = '작업2';
   rows[1].querySelector('.pair-b').value = '보호구2';
   click(t.win, t.$('btn-add-q'));
-  eq('제대로 채우면 추가된다', t.$('quiz-list').querySelectorAll('.item').length, 1);
+  eq('★ 짝이 세 개 미만이면 추가되지 않는다', t.$('quiz-list').querySelectorAll('.item').length, 0);
+
+  // 제대로 채우면 추가된다
+  rows[2].querySelector('.pair-a').value = '작업3';
+  rows[2].querySelector('.pair-b').value = '보호구3';
+  click(t.win, t.$('btn-add-q'));
+  eq('세 쌍을 채우면 추가된다', t.$('quiz-list').querySelectorAll('.item').length, 1);
 }
 
 /* =================================================================
