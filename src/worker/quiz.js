@@ -191,8 +191,18 @@
     return { text: text, lang: me.lang, ko: koText || text };
   }
 
+  /* 문항 진행(n/총)과 "한 번만 답할 수 있어요" 를 먼저 알리고 이어서 문항을 읽는다
+     (H2 · FR-WK-03-12). 한 번의 발화로 합쳐야 한다 — UI.speak 는 새로 부르면
+     앞의 발화를 끊으므로, 두 번 나눠 부르면 안내만 들리고 문항이 끊긴다. */
+  function stepAnnounce(lang) {
+    return I18N.t('quiz.stepLabel', lang) + ' ' + (run.index + 1) + ' / ' + run.questions.length +
+      '. ' + I18N.t('quiz.onceOnly', lang);
+  }
+
   function promptSpeech(q) {
-    return say(qt(q, 'prompt'), q.prompt);
+    var announce = stepAnnounce(me.lang);
+    var announceKo = stepAnnounce('ko');
+    return say(announce + ' ' + qt(q, 'prompt'), announceKo + ' ' + q.prompt);
   }
 
   function renderQuestion() {
@@ -211,6 +221,10 @@
       dot.setAttribute('data-state', i < run.index ? 'done' : (i === run.index ? 'now' : 'todo'));
       dots.appendChild(dot);
     });
+
+    /* 한 번만 답할 수 있다는 것을 내 언어로, 글자로도 미리 적는다
+       (음성은 promptSpeech 에 합쳐 아래에서 읽는다) */
+    $('step-once').textContent = I18N.t('quiz.onceOnly');
 
     UI.setIcon($('quiz-kind'), kind.ico);
     $('quiz-prompt').textContent = qt(q, 'prompt');
@@ -607,10 +621,11 @@
 
     UI.setIcon($('result-ico'), r.passed ? 'check-circle' : 'repeat');
     $('result-title').textContent = r.passed ? '이해도 검증을 통과했습니다' : '아직 통과하지 못했습니다';
-    $('result-score').textContent = r.score + '점';
-    $('result-note').textContent = r.total
-      ? r.total + '문항 중 ' + r.right + '문항 정답 · 통과 기준 ' + PASS_SCORE + '점'
-      : '';
+    /* ★ 점수(%)가 아니라 문항 수로 보인다 (H2 · FR-WK-03-13, 1회차 시안 결정).
+       "67점"은 100점 만점을 전제해야 뜻이 통하지만, "3문항 중 2문항"은
+       셈을 몰라도 그림처럼 읽힌다. */
+    $('result-score').textContent = r.total ? r.total + '문항 중 ' + r.right + '문항' : '';
+    $('result-note').textContent = r.total ? '통과 기준 — 전 문항 정답' : '';
 
     var fault = $('result-fault');
     if (r.passed) {

@@ -118,6 +118,9 @@ var I18N = (function () {
     /* 이해도 검증 */
     'quiz.nextQuestion': { ko: '다음 문항',        km: 'សំណួរបន្ទាប់',    id: 'Soal berikutnya', vi: 'Câu hỏi tiếp', ne: 'अर्को प्रश्न', th: 'ข้อถัดไป' },
     'quiz.listenAgain':  { ko: '문항을 다시 듣기', km: 'ស្តាប់សំណួរម្តងទៀត', id: 'Dengarkan soal lagi', vi: 'Nghe lại câu hỏi', ne: 'प्रश्न फेरि सुन्नुहोस्', th: 'ฟังคำถามอีกครั้ง' },
+    /* 🆕 H2 — 문항 머리에 진행(n/총)과 "한 번만" 을 미리 알린다 (FR-WK-03-12) */
+    'quiz.stepLabel':    { ko: '문항', km: 'សំណួរ', id: 'Soal', vi: 'Câu hỏi', ne: 'प्रश्न', th: 'ข้อ' },
+    'quiz.onceOnly':     { ko: '한 번만 답할 수 있어요', km: 'ឆ្លើយបានតែម្តងប៉ុណ្ណោះ', id: 'Hanya bisa jawab sekali', vi: 'Chỉ được trả lời một lần', ne: 'एक पटक मात्र जवाफ दिन सकिन्छ', th: 'ตอบได้เพียงครั้งเดียว' },
 
     /* 신고 */
     'report.title':     { ko: '위험한 곳 알리기',        km: 'ជូនដំណឹងកន្លែងគ្រោះថ្នាក់', id: 'Laporkan tempat berbahaya', vi: 'Báo nơi nguy hiểm', ne: 'खतरा ठाउँ जनाउनु', th: 'แจ้งจุดอันตราย' },

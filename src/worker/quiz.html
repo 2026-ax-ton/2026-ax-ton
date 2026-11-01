@@ -43,6 +43,10 @@
       <span class="step-dots" id="step-dots" aria-hidden="true"></span>
     </div>
 
+    <!-- 한 번만 답할 수 있다고 미리 알린다 (H2 · FR-WK-03-12). 음성은
+         문항 안내(promptSpeech)에 함께 실어 읽는다 — 따로 읽으면 앞 음성이 끊긴다. -->
+    <p class="step-once" id="step-once"></p>
+
     <div class="quiz-head">
       <span class="quiz-kind" id="quiz-kind" aria-hidden="true"></span>
       <p class="quiz-prompt" id="quiz-prompt"></p>
@@ -82,9 +86,11 @@
     <!-- 미통과 화면에서 가장 중요한 한 줄 (SCREEN 기능4) -->
     <p class="not-your-fault" id="result-fault" hidden></p>
 
-    <ul class="result-review" id="result-review"></ul>
-
+    <!-- 다음 행동을 문항별 복기보다 앞에 둔다 (H2 · FR-WK-03-13) —
+         무엇을 할지가 상세 복기보다 먼저 와야 한다 -->
     <div class="big-actions" id="result-actions"></div>
+
+    <ul class="result-review" id="result-review"></ul>
 
   </div>
 
