@@ -41,6 +41,10 @@ secrets/
 # scripts/backup.mjs 출력 — 사업장 개인정보가 섞인 JSON. 개인 PC 에만 둔다 (T14)
 backups/
 
+# scripts/build-submission.mjs 출력 — 해커톤용 Gemini 임시 키가 파일 안에 들어간다.
+# 저장소에 올리지 않는다 (C06 D-034 ②, C08 §7.1). 행사 뒤 키를 폐기한다 (A04 6-2)
+submission/
+
 # ------------------------------------------
 # 4. Python 환경 및 가상환경 (venv, pycache)
 # ------------------------------------------

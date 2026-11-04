@@ -96,7 +96,7 @@ var Agent = (function () {
     /* ★ 제출본(file:// 더블클릭)에서는 우리 서버를 부르지 않는다 (C06 D-034 ·
        C08 §7.1). 버튼을 조용히 숨기지 않고 **왜**인지 적는다 — 운영자가 손 입력
        칸으로 바로 갈 수 있어야 한다 (FR-AD-03-07). */
-    if (typeof Net !== 'undefined' && !Net.onHttps()) {
+    if (typeof Net !== 'undefined' && !Net.aiReady()) {
       return '인터넷 없이 도는 파일(제출본)에서는 AI 를 부르지 않습니다. 직접 입력하실 수 있습니다.';
     }
     if (offline()) return '인터넷이 끊겨 있습니다. 직접 입력하실 수 있습니다.';

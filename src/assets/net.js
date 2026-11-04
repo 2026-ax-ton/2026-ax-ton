@@ -62,6 +62,26 @@ var Net = (function () {
     return typeof location !== 'undefined' && location.protocol === 'https:';
   }
 
+  /** AI 를 부를 수 있는 자리인가 — **바꿔 끼울 수 있는 한 칸**이다 (C06 D-034 ②).
+   *
+   *  기본값은 `onHttps()` 다. 배포본에서는 우리 `/api/translate` 를 거쳐 부른다.
+   *
+   *  ★ 제출본만 이 칸을 바꿔 끼운다. 2026-11-03 개정 공지는 팀이 운영하는 백엔드는
+   *    막았지만 **「AI 모델 API 를 HTML 에서 직접 호출하는 것」은 허용**했다. 그래서
+   *    제출본에는 Gemini 를 직접 부르는 조각(`assets/submission-ai.js`)이 한 장 더
+   *    실리고, 그 조각이 이 함수와 `post` 를 갈아 끼운다.
+   *
+   *  ★ 그 조각은 **`src/` 안에 두지 않는다.** 틀은 `scripts/submission-ai.template.js`
+   *    에 있고 `scripts/build-submission.mjs` 가 `submission/` 으로 찍어 낸다 —
+   *    `src/` 는 「제3자 요청 0건·키 0건」을 검사로 증명한 상태를 유지한다
+   *    (`tests/test-smoke.js`·`tests/test-agent-boundary.js`).
+   *
+   *  ★ 키가 파일에 들어가므로 **해커톤용 임시 키**를 쓰고 행사 뒤 폐기한다
+   *    (개정 공지 권고 · C08 §7.1). 운영 키는 서버 환경변수에만 둔다. */
+  function aiReady() {
+    return onHttps();
+  }
+
   /** 부를 수단이 있는가. 아주 오래된 인앱 브라우저에는 fetch 가 없다.
       없으면 부르는 쪽이 **묻기 전에** 손 입력·로컬 모드를 고를 수 있어야 한다. */
   function available() {
@@ -132,6 +152,7 @@ var Net = (function () {
     request: request,
     available: available,
     onHttps: onHttps,
+    aiReady: aiReady,
     apiUrl: apiUrl,
     DEFAULT_TIMEOUT_MS: DEFAULT_TIMEOUT_MS
   };

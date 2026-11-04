@@ -501,8 +501,11 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
   const t = open();
   eq('https 에서는 막지 않는다', t.win.Agent.blockedReason(), '');
 
+  /* ★ 갈아 끼우는 칸은 `Net.aiReady` 다 (C06 D-034). `onHttps()` 를 바꿔도
+     소용없다 — 그것은 net.js 안에서만 쓰는 이름이라 바깥에서 바꿔도 안 보인다.
+     제출본 조각(`scripts/submission-ai.template.js`)도 이 칸을 바꾼다. */
   const t2 = open();
-  t2.win.Net.onHttps = () => false;      // 제출본을 더블클릭한 상태
+  t2.win.Net.aiReady = () => false;      // 제출본을 더블클릭한 상태
   const why = t2.win.Agent.blockedReason();
   ok('★ 제출본에서는 막는다', why !== '');
   ok('★ 이유에 「제출본」이 들어 있다', /제출본/.test(why));
