@@ -119,7 +119,10 @@ export async function guardBasic(request, opts) {
   const allowFile = process.env.ALLOW_FILE_ORIGIN === '1';
 
   /* 제출 HTML 을 file:// 로 열면 브라우저가 Origin: null 을 보낸다 (C08 §7).
-     막는 힘이 약해서 시연 기간에만 켠다 (A02 §5.2, C06 D-019). */
+     ★ 2026-11-04 — **이 스위치를 켜지 않는다.** 11/3 개정 공지가 「팀에서 직접
+       운영하는 백엔드 서버와 통신하는 방식은 불가」로 정해, 제출본은 우리 서버를
+       부르면 실격이다 (C06 D-034, C08 §7.1, A04 7-6). 스위치는 되돌릴 수 있게
+       남겨 두지만 값은 언제나 0 이다 — 막는 힘이 약하기도 하다 (A02 §5.2). */
   const nullOrigin = origin === 'null' && allowFile;
   const sameOrigin = !!origin && allowedOrigins().indexOf(origin) !== -1;
   const cors = nullOrigin ? CORS_NULL : undefined;

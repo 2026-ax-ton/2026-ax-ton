@@ -32,8 +32,11 @@ var Agent = (function () {
 
      ★ 서버를 부르는 일 자체는 `assets/net.js` 가 한다 (2026-11-01, C06 D-030).
        브라우저에서 우리 서버를 부르는 자리를 한 곳에 모아, 「제3자 요청 0건」을
-       검사가 파일 하나만 보고 지킬 수 있게 했다. 배포 주소·file:// 처리도 거기 있다. */
-  var API_BASE = Net.API_BASE;      // A02 §5.2 · C06 D-019 · D-030
+       검사가 파일 하나만 보고 지킬 수 있게 했다.
+
+     ★ 2026-11-04 — 여기 있던 `API_BASE` 가 없어졌다 (C06 D-034). 제출본(file://)이
+       우리 서버를 부르는 것이 규정 위반이 되어, net.js 에서 배포 주소를 지웠다.
+       제출본에서는 AI 를 부르지 않고 **손 입력**으로 간다 (blockedReason 아래). */
 
   var MAX_RETRY = 2;              // A02 §6.2 — 첫 시도 + 재시도 2회 = 최대 3번
   var CALL_TIMEOUT_MS = 25000;    // A02 §6.2 — 서버는 20초, 여기는 조금 더 준다
@@ -90,6 +93,12 @@ var Agent = (function () {
   /** 부를 수 없으면 이유를 돌려준다. 부를 수 있으면 빈 문자열.
    *  ★ 버튼을 조용히 숨기지 않는다 — 이유를 보여 주고 손 입력 칸을 연다. */
   function blockedReason() {
+    /* ★ 제출본(file:// 더블클릭)에서는 우리 서버를 부르지 않는다 (C06 D-034 ·
+       C08 §7.1). 버튼을 조용히 숨기지 않고 **왜**인지 적는다 — 운영자가 손 입력
+       칸으로 바로 갈 수 있어야 한다 (FR-AD-03-07). */
+    if (typeof Net !== 'undefined' && !Net.onHttps()) {
+      return '인터넷 없이 도는 파일(제출본)에서는 AI 를 부르지 않습니다. 직접 입력하실 수 있습니다.';
+    }
     if (offline()) return '인터넷이 끊겨 있습니다. 직접 입력하실 수 있습니다.';
     if (!hasPass()) return '운영자 통과 문구를 입력하세요.';
     return '';
@@ -336,7 +345,6 @@ var Agent = (function () {
     MAX_RETRY: MAX_RETRY,
     MAX_CALLS_PER_PHRASE: MAX_CALLS_PER_PHRASE,
     STAGGER_MS: STAGGER_MS,
-    CALL_TIMEOUT_MS: CALL_TIMEOUT_MS,
-    API_BASE: API_BASE
+    CALL_TIMEOUT_MS: CALL_TIMEOUT_MS
   };
 })();
