@@ -795,6 +795,9 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
 
 - [ ] **T17. 🆕 관리자 사진 → AI 위험 요소 인식** — C06 D-027 · **팀원 PRD 11/7 확정 뒤**
 
+  - ✅ **서버 함수** (2026-11-05, yesol, 브랜치 `feat/agent-photo-hazard`) — `api/hazards.mjs` + `api/_hazards.mjs`(거르는 규칙을 실측 도구에서 옮겨 둘이 함께 씀). 담당자 토큰만 · 6종·5개 거르기 · 사람이 찍히면 지점 0개 · 저장·로그에 사진 없음. 검사 `tests/test-api-hazards.mjs` 65건. 명세 A02 §5.4.1
+  - ⬜ **남은 것** — ① 화면(`admin/content.js` 3단계 hotspot 에 [사진으로 시작]: 촬영 안내 → 긴 변 1024px JPEG 로 줄이기 → `Net.post('/api/hazards')` → 사진 위 지점 고치기 → 확정 → 문항 초안, 실패면 손 흐름) ② 제출본 조각(`scripts/submission-ai.template.js`)이 `/api/hazards` 도 가로채고 교육 만들기 화면에도 실리게 ③ `sw.js` `VERSION` ④ 좌표 실측(키·사진 2~3장 필요) ⑤ PRD Q1(B안이면 사진 좌표 → 도해 구역은 담당자가 다시 고름)·FR-09(문구에 위험유형 칸이 없다 — 데이터 모양 변경이라 확인 필요) 11/7 확정
+
   - ✅ **2026-11-04 준비 끝** — 11/7 전에 개발자가 할 수 있는 것은 전부 했다
     - ✅ **방식 확정 (a) Gemini** — C06 **D-027**. 자체 학습(YOLO)은 추론 서버가 「팀이 운영하는 백엔드」라 **제출본에서 쓸 수 없다** (11/3 개정 공지 · D-034). 심사 25점을 현장에서 증명할 수단이 사라진다 → 이것으로 결정이 끝났다
     - ✅ **처리방침 개정** — [A05 §3.1](documentations/20_기술명세/A05_개인정보-처리방침-초안.md) 신설 (PRD §11 Q6 답)

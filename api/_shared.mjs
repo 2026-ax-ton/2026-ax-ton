@@ -209,8 +209,16 @@ export function readConfig(modelEnvName) {
 }
 
 /** 모델을 한 번 부르고 문장 하나를 돌려준다.
- *  돌려주는 값: { text } 또는 { error: 'model' | 'timeout' } */
-export async function callModel({ key, model, timeoutMs }, systemText, userText) {
+ *  돌려주는 값: { text } 또는 { error: 'model' | 'timeout' }
+ *
+ *  `userText` 에 **배열**을 주면 그대로 `parts` 로 보낸다 — 사진(`inline_data`)을
+ *  함께 보낼 때 쓴다 (T17 `api/hazards.mjs`). 문자열이면 지금처럼 글 한 조각이다.
+ *  `opts.maxOutputTokens`·`opts.maxText` 로 상한을 바꿀 수 있다 — 지점 5개짜리 JSON 은
+ *  번역문 한 문장보다 길다. 주지 않으면 번역용 기본값 그대로다. */
+export async function callModel({ key, model, timeoutMs }, systemText, userText, opts) {
+  const maxOut = (opts && opts.maxOutputTokens) || MAX_OUTPUT_TOKENS;
+  const maxText = (opts && opts.maxText) || MAX_TEXT;
+  const userParts = Array.isArray(userText) ? userText : [{ text: userText }];
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);
 
@@ -225,10 +233,10 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
       },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemText }] },
-        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        contents: [{ role: 'user', parts: userParts }],
         // temperature 를 보내지 않는다 — 최신 모델은 무시하고 경고를 낸다 (A02 §5.3)
         generationConfig: {
-          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          maxOutputTokens: maxOut,
           thinkingConfig: { thinkingLevel: 'low' },
         },
       }),
@@ -275,7 +283,7 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
 
   // 빈 출력·길이 초과는 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도
   // 문자열 그대로 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
-  if (out.length < 1 || out.length > MAX_TEXT) {
+  if (out.length < 1 || out.length > maxText) {
     return { error: 'model', why: out.length < 1 ? '빈 출력' : '출력이 너무 김' };
   }
 
@@ -295,9 +303,11 @@ const MODEL_ERRORS = {
   limit: [429, 'AI 사용 한도에 걸렸습니다. 잠시 뒤 다시 받거나 직접 입력해 주세요.'],
 };
 
-/** 모델 실패를 HTTP 응답으로 바꾼다. why 는 공급사 본문이 아니라 우리가 지은 한 마디다. */
-export function modelFail(r, cors) {
-  const [status, message] = MODEL_ERRORS[r.error];
+/** 모델 실패를 HTTP 응답으로 바꾼다. why 는 공급사 본문이 아니라 우리가 지은 한 마디다.
+ *  `messages` 를 주면 안내 문장만 바꾼다 (상태 코드는 그대로) — 번역이 아닌 함수가 쓴다. */
+export function modelFail(r, cors, messages) {
+  const status = MODEL_ERRORS[r.error][0];
+  const message = (messages && messages[r.error]) || MODEL_ERRORS[r.error][1];
   return {
     status,
     response: fail(status, r.error, r.why ? message + ' (' + r.why + ')' : message, cors),
