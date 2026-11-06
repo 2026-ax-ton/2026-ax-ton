@@ -15,6 +15,7 @@ const PAGES = [
   ['admin/setup.html',      'admin/setup.js',      'kim@daesung.co.kr'],
   ['admin/dashboard.html',  'admin/dashboard.js',  'kim@daesung.co.kr'],
   ['admin/content.html',    'admin/content.js',    'kim@daesung.co.kr'],
+  ['admin/autogen.html',    'admin/autogen.js',    'kim@daesung.co.kr'],
   ['admin/proof.html',      'admin/proof.js',      'kim@daesung.co.kr'],
   ['admin/library.html',    'admin/library.js',    'oper@safety.kr'],
 ];

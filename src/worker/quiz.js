@@ -285,6 +285,22 @@
   /* --- hotspot — 설비 도해에서 위험 지점 짚기 --- */
 
   function renderHotspot(body, q) {
+    /* 🆕 사진 문항 (PRD-AD-08 S6) — AI로 만든 교육은 실제 설비 사진 위에서 짚는다.
+       사진은 교육(courses)에 줄인 사본(data URL)으로 들어 있다 — 네트워크 요청이 없다.
+       사진 좌표는 도해 구역과 맞지 않으므로 아무 곳이나 짚는 방식으로만 간다 */
+    if (q.figure === 'photo' && typeof run.course.photo === 'string'
+        && run.course.photo.indexOf('data:image/') === 0) {
+      var pf = UI.el('div', 'quiz-figure photo');
+      var img = UI.el('img');
+      img.src = run.course.photo;
+      img.alt = '';
+      pf.appendChild(img);
+      renderFreeTap(pf, q);
+      body.appendChild(pf);
+      body.appendChild(UI.el('p', 'zonehint', '사진에서 위험한 곳을 한 번 누르세요.'));
+      return;
+    }
+
     var name = Diagrams.nameFor(run.equipment);
 
     var figure = UI.el('div', 'quiz-figure');

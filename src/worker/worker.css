@@ -1575,3 +1575,8 @@
   line-height: 1.5;
 }
 .syncbar .ico { flex: 0 0 auto; }
+
+/* 🆕 사진 문항 (PRD-AD-08 S6) — 사진 비율 그대로. 퍼센트 좌표가 사진 위 같은 자리를 가리키게
+   상자 높이를 사진이 정한다 (정사각형 aspect-ratio 를 끈다) */
+.quiz-figure.photo { aspect-ratio: auto; height: auto; padding-top: 0; }
+.quiz-figure.photo > img { display: block; width: 100%; height: auto; pointer-events: none; }
