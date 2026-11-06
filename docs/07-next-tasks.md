@@ -795,6 +795,7 @@ cd <저장소> && NODE_PATH=~/jsdom-box/node_modules node tests/run-all.js
 
 - [ ] **T17. 🆕 관리자 사진 → AI 위험 요소 인식** — C06 D-027 · **팀원 PRD 11/7 확정 뒤**
 
+  - 🆕 **범위 넓히기 제안** (2026-11-06, yesol) — [PRD-AD-08](documentations/30_제품정의/prd/PRD-AD-08_AI-교육-자동생성.md) v0.1 · [C06 D-035](documentations/00_개발컨벤션/C06_결정기록.md) (제안). 기계 정보 → AI 리서치 → 사진 좌표·필요 사진 → 자동 검증 → 영상·퀴즈 → 1클릭 승인. **11/7 팀 회의에서 확정할 때까지 코드는 멈춘다** (아래 서버 함수는 보류)
   - ✅ **서버 함수** (2026-11-05, yesol, 브랜치 `feat/agent-photo-hazard`) — `api/hazards.mjs` + `api/_hazards.mjs`(거르는 규칙을 실측 도구에서 옮겨 둘이 함께 씀). 담당자 토큰만 · 6종·5개 거르기 · 사람이 찍히면 지점 0개 · 저장·로그에 사진 없음. 검사 `tests/test-api-hazards.mjs` 65건. 명세 A02 §5.4.1
   - ⬜ **남은 것** — ① 화면(`admin/content.js` 3단계 hotspot 에 [사진으로 시작]: 촬영 안내 → 긴 변 1024px JPEG 로 줄이기 → `Net.post('/api/hazards')` → 사진 위 지점 고치기 → 확정 → 문항 초안, 실패면 손 흐름) ② 제출본 조각(`scripts/submission-ai.template.js`)이 `/api/hazards` 도 가로채고 교육 만들기 화면에도 실리게 ③ `sw.js` `VERSION` ④ 좌표 실측(키·사진 2~3장 필요) ⑤ PRD Q1(B안이면 사진 좌표 → 도해 구역은 담당자가 다시 고름)·FR-09(문구에 위험유형 칸이 없다 — 데이터 모양 변경이라 확인 필요) 11/7 확정
 
