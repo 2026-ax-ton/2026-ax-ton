@@ -5,6 +5,18 @@
 
 ---
 
+## ★★ 2026-11-06 — 이 폴더는 이예솔(yesol)의 **개인 비공개 사본**입니다 (아래 팀 규칙보다 이 절이 먼저)
+
+- `origin` = **`https://github.com/yesoool2824/safety-ai-pipeline`** (private). **여기에만 push 합니다.**
+  팀 저장소(`2026-ax-ton/2026-ax-ton`, **공개**)는 remote 로 두지 않습니다 — 팀에 올릴 것은 사용자가 따로 정합니다
+- 작업 브랜치는 `main` 입니다. 아래 팀 규칙의 `feat/agent-prd-v1`·`develop`·배포 절차·PR 은 **이 사본에는 해당하지 않습니다**
+- 할 일: [PRD-AD-08](docs/documentations/30_제품정의/prd/PRD-AD-08_AI-교육-자동생성.md) §11 Q3 의 순서. 개발일지는 `docs/devlog/yesol.md`
+- **비밀값** — 키는 `.env.local`(`.gitignore`)과 사용자 본인 Vercel 환경변수에만. `tests/test-no-secrets.mjs` 가 올라간 파일 전부를 보고,
+  로컬 `.git/hooks/pre-push` 가 ① 이 저장소가 아닌 곳으로의 push ② 키 모양 문자열을 막습니다. **훅을 건너뛰지 않습니다**
+- 데이터 모양 변경·서버 의존성 추가는 이 사본에서는 **사용자(yesol)가 결정**합니다 (2026-11-06 "임의로 진행" 승인). 변소윤 님 확인이 필요한 것(팀 저장소·팀 키·팀 Vercel·팀 Neon)은 건드리지 않습니다
+
+---
+
 ## ★ 2026-10-23 — 개발 루틴 두 개: "진행" 과 "마무리"
 
 **개발할 때만 쓰는 루틴입니다.** 사업·발표 문서 작업에는 쓰지 않습니다.
