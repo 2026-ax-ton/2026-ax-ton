@@ -9,6 +9,8 @@
 
 /* ── 결정에 걸린 값 (A02 §5.2·§5.3·§5.5) ───────────────────────────── */
 
+import { callOpenAI } from './_openai.mjs';
+
 export const MAX_BODY_BYTES = 4096;      // A02 §5.2 본문 상한
 export const MAX_KO = 300;               // A02 §5.3 ko 1~300자
 export const MAX_TEXT = 600;             // A02 §5.4 text·모델 출력 1~600자
@@ -196,16 +198,23 @@ export function isAllowedLang(lang) {
 /* ── 모델 호출 (A02 §5.3) ──────────────────────────────────────────── */
 
 export function readConfig(modelEnvName) {
+  const limits = {
+    timeoutMs: Number(process.env.AI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
+    dailyLimit: Number(process.env.AI_DAILY_LIMIT) || DEFAULT_DAILY_LIMIT,
+  };
+  /* 🆕 개인 사본 선택지 — AI_PROVIDER=openai 면 GPT (api/_openai.mjs). 기본은 Gemini (C06 D-018).
+     모델은 OPENAI_MODEL 하나만 본다 — Gemini 모델 이름(AI_MODEL_*)을 GPT 에 넘기지 않는다 */
+  if (process.env.AI_PROVIDER === 'openai') {
+    const okey = process.env.OPENAI_API_KEY || '';
+    const omodel = process.env.OPENAI_MODEL || '';
+    if (!okey || !omodel) return null;
+    return { provider: 'openai', key: okey, model: omodel, ...limits };
+  }
   const key = process.env.GEMINI_API_KEY || '';
   const model = process.env[modelEnvName] || '';
   // 키 값은 어디에도 내지 않는다 (STC-E19-001)
   if (!key || !model) return null;
-  return {
-    key,
-    model,
-    timeoutMs: Number(process.env.AI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
-    dailyLimit: Number(process.env.AI_DAILY_LIMIT) || DEFAULT_DAILY_LIMIT,
-  };
+  return { key, model, ...limits };
 }
 
 /** 모델을 한 번 부르고 문장 하나를 돌려준다.
@@ -215,7 +224,9 @@ export function readConfig(modelEnvName) {
  *  함께 보낼 때 쓴다 (T17 `api/hazards.mjs`). 문자열이면 지금처럼 글 한 조각이다.
  *  `opts.maxOutputTokens`·`opts.maxText` 로 상한을 바꿀 수 있다 — 지점 5개짜리 JSON 은
  *  번역문 한 문장보다 길다. 주지 않으면 번역용 기본값 그대로다. */
-export async function callModel({ key, model, timeoutMs }, systemText, userText, opts) {
+export async function callModel(cfg, systemText, userText, opts) {
+  if (cfg && cfg.provider === 'openai') return callOpenAI(cfg, systemText, userText, opts);
+  const { key, model, timeoutMs } = cfg;
   const maxOut = (opts && opts.maxOutputTokens) || MAX_OUTPUT_TOKENS;
   const maxText = (opts && opts.maxText) || MAX_TEXT;
   const userParts = Array.isArray(userText) ? userText : [{ text: userText }];

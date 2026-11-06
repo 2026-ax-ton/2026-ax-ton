@@ -26,8 +26,11 @@
   - 막힌 것: 검사에서 `Store.courses.update((l) => l.push(x))` 처럼 화살표가 숫자를 돌려주면 그 숫자가 저장돼 교육이 통째로 사라졌다 → 중괄호로 감싸 아무것도 안 돌려주게 했다 (화면 코드는 원래 그렇게 쓰고 있었다)
   - 막힌 것: jsdom 에는 `fetch`·canvas 가 없다 → 검사에서 `Net.available` 만 켜고, 사진 줄이기는 사람이 실기기에서 본다
 
+- GPT 로 바꿔 끼우기: `AI_PROVIDER=openai` 면 `api/_openai.mjs`(Responses API)로 부른다. `callModel` 과 같은 모양으로 돌려줘서 리서치·사진·번역 코드는 그대로다. 출처(`url_citation`)를 검색 근거 모양으로 바꿔 「지어낸 출처 버리기」도 그대로 돈다. 검사 33건 — 전체 34묶음 2,769건 통과. 팀 기본(Gemini)은 그대로
+  - 막힌 것: GPT 모델 이름을 확실히 알 수 없다(계정·시기마다 다름) → 코드에 박지 않고 `OPENAI_MODEL` 을 꼭 넣게 했다
+
 **다음에 할 것**
-- 실제 키로 한 번 돌려 보기(`.env.local`) + 내 Vercel·Neon 에 올려 폰으로 확인 · 문항 번역(AD-03 흐름) · choice 문항 초안 · S5 영상
+- `.env.local` 에 OpenAI 키·모델 넣고 `node scripts/measure-pipeline.mjs` 로 실측 + 내 Vercel·Neon 에 올려 폰으로 확인 · 문항 번역(AD-03 흐름) · choice 문항 초안 · S5 영상
 
 ## 2026-11-06
 

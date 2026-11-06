@@ -37,17 +37,22 @@ function args() {
 async function main() {
   const o = args();
   const env = { ...readEnvLocal(), ...process.env };
-  const key = (env.GEMINI_API_KEY || env.GEMINI_HACKATHON_KEY || '').trim();
-  if (!key) { console.error('.env.local 에 GEMINI_API_KEY 를 넣어 주세요.'); process.exit(1); }
+  /* AI_PROVIDER=openai 면 GPT (api/_openai.mjs), 아니면 Gemini — 서버와 같은 갈림 */
+  const gpt = (env.AI_PROVIDER || '').trim() === 'openai';
+  if (gpt && env.OPENAI_REASONING) process.env.OPENAI_REASONING = env.OPENAI_REASONING;
+  const key = (gpt ? env.OPENAI_API_KEY : (env.GEMINI_API_KEY || env.GEMINI_HACKATHON_KEY) || '').trim();
+  if (!key) { console.error('.env.local 에 ' + (gpt ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY') + ' 를 넣어 주세요.'); process.exit(1); }
   if (!o.name) { console.error('--name "설비 종류" 가 필요하다. 예: --name "유압 프레스" --maker Hwacheon --model HPC-110'); process.exit(1); }
 
-  const model = o['model-id'] || env.AI_MODEL_RESEARCH || env.AI_MODEL_TRANSLATE || 'gemini-3.1-flash-lite';
+  const model = o['model-id'] || (gpt ? env.OPENAI_MODEL : (env.AI_MODEL_RESEARCH || env.AI_MODEL_TRANSLATE || 'gemini-3.1-flash-lite'));
+  if (!model) { console.error('.env.local 에 OPENAI_MODEL 을 넣어 주세요 (platform.openai.com 모델 목록에서 확인).'); process.exit(1); }
+  const provider = gpt ? 'openai' : undefined;
   const eq = { name: cleanField(o.name, 60), maker: cleanField(o.maker, 60), model: cleanField(o.model, 60), year: null };
 
   /* ── S2 리서치 ── */
-  console.log('── S2 리서치 · 모델 ' + model + ' · ' + [eq.name, eq.maker, eq.model].filter(Boolean).join(' / '));
+  console.log('── S2 리서치 · ' + (gpt ? 'GPT' : 'Gemini') + ' ' + model + ' · ' + [eq.name, eq.maker, eq.model].filter(Boolean).join(' / '));
   let t0 = Date.now();
-  const r = await callModel({ key, model, timeoutMs: 60000 }, systemText(), userText(eq),
+  const r = await callModel({ provider, key, model, timeoutMs: 60000 }, systemText(), userText(eq),
     { maxOutputTokens: 4000, maxText: 16000, tools: [{ google_search: {} }] });
   if (r.error) { console.log('  ✗ ' + r.error + ' · ' + (r.why || '') + ' · ' + (Date.now() - t0) + 'ms'); process.exit(1); }
   const raw = parseModelJson(r.text);
@@ -81,7 +86,7 @@ async function main() {
   const items = cleanGuidedItems(res.items.map((it) => ({ id: it.id, part: it.part, hazard: it.hazard })));
   console.log('\n── S3 사진 위치 · ' + path.basename(abs) + ' ' + Math.round(buf.length / 1024) + 'KB · 항목 ' + items.length + '개');
   t0 = Date.now();
-  const g = await callModel({ key, model, timeoutMs: 45000 }, guidedSystemText(), [
+  const g = await callModel({ provider, key, model, timeoutMs: 45000 }, guidedSystemText(), [
     { inline_data: { mime_type: mime, data: buf.toString('base64') } },
     { text: guidedUserText(items) },
   ], { maxOutputTokens: 2400, maxText: 4000 });
