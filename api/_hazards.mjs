@@ -101,6 +101,106 @@ export function filterPoints(raw, hazardCodes, max = MAX_POINTS) {
   return { points: kept, dropped };
 }
 
+/* ── 안내형 — 리서치 항목마다 「사진 속 어디인가」 (PRD-AD-08 S3 · FR-09·10) ─────
+   자유 탐색(위)보다 정확하다 — 무엇을 찾을지 알려 주고 위치만 묻는다.
+   좌표는 Gemini 가 잘 내는 모양 그대로 `box_2d` [ymin, xmin, ymax, xmax] 0~1000 으로 받고
+   서버가 퍼센트로 바꾼다. 사진에 안 보이면 null + 필요한 사진. */
+
+export const MAX_GUIDED_ITEMS = 12;   // /api/research 의 MAX_ITEMS 와 같다
+const MIN_BOX = 1;                    // 0~100 기준 가로·세로 1% 미만은 박스가 아니다
+const R_MIN = 5;                      // 문항 정답 원 반지름 (diagrams.js answerFor 의 12 와 같은 단위)
+const R_MAX = 40;
+
+function cleanText(v, max) {
+  return typeof v === 'string' ? v.replace(/[\r\n"`{}<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max) : '';
+}
+
+/** 요청의 리서치 항목에서 id·부위·위험유형만 꺼낸다. 모양이 틀리면 버린다 */
+export function cleanGuidedItems(list, hazardCodes = HAZARD_CODES) {
+  if (!Array.isArray(list)) return null;
+  const seen = new Set();
+  const out = [];
+  list.slice(0, MAX_GUIDED_ITEMS).forEach((it) => {
+    if (!it || typeof it !== 'object') return;
+    const id = typeof it.id === 'string' && /^[A-Za-z0-9_-]{1,20}$/.test(it.id) ? it.id : '';
+    const part = cleanText(it.part, 40);
+    if (!id || !part || seen.has(id)) return;
+    seen.add(id);
+    out.push({ id, part, hazard: hazardCodes.indexOf(it.hazard) !== -1 ? it.hazard : 'unknown' });
+  });
+  return out;
+}
+
+export function guidedSystemText() {
+  return '너는 산업안전 점검자다. 공장 설비 사진 한 장과 확인할 부위 목록을 받는다.\n'
+    + '규칙:\n'
+    + '1) 목록의 부위마다 사진 속 위치를 box_2d 로 낸다. box_2d 는 [ymin, xmin, ymax, xmax] 이고 0~1000 으로 정규화한다.\n'
+    + '2) 사진에서 그 부위를 확실히 찾을 수 없으면 추측하지 말고 box_2d 를 null 로 하고,'
+    + ' needsPhoto 에 어떤 부위를 어느 각도에서 찍어야 하는지 한국어로 짧게 쓴다.\n'
+    + '3) 목록에 없는 id 를 만들지 않는다.\n'
+    + '4) 사진에 사람의 얼굴이나 몸, 이름표가 보이면 person 을 true 로 한다.\n'
+    + '5) 설명 없이 아래 모양의 JSON 하나만 출력한다.\n'
+    + '{"person": false, "boxes": [{"id": "r1", "box_2d": [380, 300, 620, 700], "needsPhoto": ""}]}';
+}
+
+export function guidedUserText(items) {
+  return '확인할 부위 목록:\n'
+    + items.map((it) => it.id + ': ' + it.part + ' (' + it.hazard + ')').join('\n')
+    + '\n이 사진에서 각 부위의 위치를 찾아라.';
+}
+
+function boxPercent(b) {
+  if (!Array.isArray(b) || b.length !== 4 || !b.every((n) => typeof n === 'number' && isFinite(n))) return null;
+  const [ymin, xmin, ymax, xmax] = b.map((n) => n / 10);
+  if (ymin < 0 || xmin < 0 || ymax > 100 || xmax > 100) return null;
+  if (xmax - xmin < MIN_BOX || ymax - ymin < MIN_BOX) return null;
+  return { x0: xmin, y0: ymin, x1: xmax, y1: ymax };
+}
+
+/** 모델이 준 박스를 항목에 붙인다.
+ *  돌려주는 값: { mapped: [{id, part, hazard, box, answer}], missing: [{id, part, hazard, needsPhoto}], dropped }
+ *  ★ 항목 1개에 박스 1개 — 같은 id 가 두 번 오면 처음 것만 (FR-AD-08-13 「1:1」)
+ *  ★ `answer {x,y,r}` 는 지금 `courses` hotspot 정답 모양 그대로다 — 문항 초안(S6)이 그대로 쓴다 */
+export function mapBoxes(raw, items) {
+  const dropped = { unknownId: 0, duplicate: 0, badBox: 0 };
+  const byId = new Map(items.map((it) => [it.id, it]));
+  const got = new Map();
+  const list = raw && Array.isArray(raw.boxes) ? raw.boxes : [];
+
+  list.forEach((b) => {
+    if (!b || typeof b !== 'object' || !byId.has(b.id)) { dropped.unknownId += 1; return; }
+    if (got.has(b.id)) { dropped.duplicate += 1; return; }
+    if (b.box_2d === null || b.box_2d === undefined) {
+      got.set(b.id, { needsPhoto: cleanText(b.needsPhoto, 80) });
+      return;
+    }
+    const box = boxPercent(b.box_2d);
+    if (!box) { dropped.badBox += 1; got.set(b.id, { needsPhoto: cleanText(b.needsPhoto, 80) }); return; }
+    got.set(b.id, { box });
+  });
+
+  const mapped = [];
+  const missing = [];
+  items.forEach((it) => {
+    const g = got.get(it.id);
+    if (g && g.box) {
+      const b = g.box;
+      const r = Math.min(R_MAX, Math.max(R_MIN, Math.max(b.x1 - b.x0, b.y1 - b.y0) / 2));
+      const round = (n) => Math.round(n * 10) / 10;
+      mapped.push({
+        ...it,
+        box: { x0: round(b.x0), y0: round(b.y0), x1: round(b.x1), y1: round(b.y1) },
+        answer: { x: round((b.x0 + b.x1) / 2), y: round((b.y0 + b.y1) / 2), r: round(r) },
+      });
+    } else {
+      /* 모델이 아무 말도 안 했거나 좌표가 틀렸으면 우리가 필요한 사진을 적는다 (FR-10) */
+      missing.push({ ...it, needsPhoto: (g && g.needsPhoto) || '「' + it.part + '」이(가) 잘 보이게 다시 찍어 주세요' });
+    }
+  });
+
+  return { mapped, missing, dropped };
+}
+
 /** 터치 구역이 겹치는 지점 쌍을 센다 (FR-AD-07-21 · WK-03 FR-14 의 60px).
  *  합치는 규칙(어느 쪽 위험유형을 남기나)은 화면이 정한다 — 담당자가 보고 고르는 자리다. */
 export function overlapCount(points) {
