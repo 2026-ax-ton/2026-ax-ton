@@ -79,7 +79,7 @@ export { MAX_POINTS, systemText, parseModelJson, filterPoints, overlapCount };
 
 /* ── 여기서부터는 실제로 부르는 부분 ───────────────────────────────── */
 
-function readEnvLocal() {
+export function readEnvLocal() {
   const p = path.join(ROOT, '.env.local');
   if (!fs.existsSync(p)) return {};
   const out = {};
