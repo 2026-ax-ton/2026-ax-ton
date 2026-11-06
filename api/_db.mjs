@@ -71,6 +71,15 @@ export async function authed(sql, request) {
   return accountFromToken(sql, bearer(request));
 }
 
+/** 담당자(`admin`)만 통과시킨다 — AI 교육 자동 생성 함수들(`/api/hazards`·`/api/research`)이 쓴다.
+ *  돌려주는 값: { account } 또는 { done: Response } */
+export async function requireAdmin(sql, request, cors) {
+  const account = await authed(sql, request);
+  if (!account) return { done: fail(401, 'unauthorized', '다시 로그인해 주세요.', cors) };
+  if (account.role !== 'admin') return { done: fail(403, 'forbidden', '담당자 계정만 쓸 수 있습니다.', cors) };
+  return { account };
+}
+
 /** 만료된 세션을 치운다. 로그인할 때 한 번씩 부른다 (따로 도는 것을 두지 않는다). */
 export async function sweepSessions(sql) {
   await sql`delete from sessions where expires_at < now()`;

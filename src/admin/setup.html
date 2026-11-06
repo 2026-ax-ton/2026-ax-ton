@@ -151,6 +151,22 @@
               </div>
             </div>
 
+            <!-- AI 교육 자동 생성(PRD-AD-08 S1)이 리서치에 쓰는 값. 비워 두면 같은 종류 일반 정보로 찾는다 -->
+            <div class="field-pair">
+              <div class="field">
+                <label for="equip-maker">제조사 <small>(선택)</small></label>
+                <input id="equip-maker" name="maker" type="text" placeholder="예: 화천기계" maxlength="60">
+              </div>
+              <div class="field">
+                <label for="equip-model">모델명 <small>(선택)</small></label>
+                <input id="equip-model" name="model" type="text" placeholder="예: HPC-110" maxlength="60">
+              </div>
+            </div>
+            <div class="field">
+              <label for="equip-year">연식 <small>(선택)</small></label>
+              <input id="equip-year" name="year" type="number" inputmode="numeric" min="1950" max="2100" placeholder="2019">
+            </div>
+
             <div class="field">
               <label id="l-hazard">위험유형</label>
               <p class="field-hint" style="margin:-2px 0 6px">여러 개 고를 수 있습니다.</p>

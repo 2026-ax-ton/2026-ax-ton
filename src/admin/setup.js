@@ -171,7 +171,9 @@
       return;
     }
     state.equipments.forEach(function (eq) {
-      var li = UI.itemRow(eq.icon, eq.name, processName(state, eq.processId));
+      var spec = [eq.maker, eq.model, eq.year].filter(function (v) { return v; }).join(' · ');
+      var li = UI.itemRow(eq.icon, eq.name,
+        processName(state, eq.processId) + (spec ? ' · ' + spec : ''));
 
       var tags = UI.el('div', 'tags');
       var hazards = Array.isArray(eq.hazards) ? eq.hazards : [];
@@ -331,14 +333,25 @@
       var hazards = UI.checkedValues('hazard');
       var icon = UI.pickedValue('equip-icon') || Store.ICONS[0];
 
+      /* 제조사·모델명·연식 — AI 리서치(PRD-AD-08 S1)용. 선택이라 비어도 된다.
+         연식은 숫자로만 받고, 범위 밖이면 버린다 (잘못된 값으로 리서치하지 않게) */
+      var maker = $('equip-maker').value.trim().slice(0, 60);
+      var model = $('equip-model').value.trim().slice(0, 60);
+      var yearNum = Number($('equip-year').value);
+      var year = Number.isInteger(yearNum) && yearNum >= 1950 && yearNum <= 2100 ? yearNum : null;
+
       commit(function (s) {
         s.equipments.push({
           id: Store.uid(), processId: processId, name: name,
-          icon: icon, hazards: hazards, note: ''
+          icon: icon, hazards: hazards, note: '',
+          maker: maker, model: model, year: year
         });
       }, '설비를 추가했습니다.');
 
       $('equip-name').value = '';
+      $('equip-maker').value = '';
+      $('equip-model').value = '';
+      $('equip-year').value = '';
       // 위험유형은 초기화한다. 다음 설비에 앞 설비의 위험이 딸려 들어가면 안 된다.
       UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = false; });
       $('equip-name').focus();

@@ -20,7 +20,7 @@ import {
   guardBasic, parseJson, readConfig, takeDailyCall, callModel,
   json, fail, log, modelFail,
 } from './_shared.mjs';
-import { getSql, authed, withDb } from './_db.mjs';
+import { getSql, requireAdmin, withDb } from './_db.mjs';
 import {
   HAZARD_CODES, systemText, USER_TEXT, parseModelJson, filterPoints, overlapCount,
 } from './_hazards.mjs';
@@ -94,11 +94,8 @@ async function run(request) {
   if (!sql) return fail(500, 'config', '서버 설정 오류입니다.', cors);
 
   /* ★ 누구인지는 토큰으로만 안다. 본문에 역할을 적어 보내도 안 먹는다 */
-  const account = await authed(sql, request);
-  if (!account) return fail(401, 'unauthorized', '다시 로그인해 주세요.', cors);
-  if (account.role !== 'admin') {
-    return fail(403, 'forbidden', '담당자 계정만 쓸 수 있습니다.', cors);
-  }
+  const who = await requireAdmin(sql, request, cors);
+  if (who.done) return who.done;
 
   const img = readImage(parseJson(text));
   if (!img) return fail(400, 'bad_request', '사진을 읽을 수 없습니다. JPEG·PNG·WebP 로 다시 찍어 주세요.', cors);

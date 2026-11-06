@@ -7,6 +7,21 @@
 
 ---
 
+## 2026-11-06 (오후 · 개인 비공개 사본)
+
+**한 것**
+- 개인 비공개 저장소 `yesoool2824/safety-ai-pipeline` 으로 옮겼다. 팀 저장소(공개)는 remote 에서 뺐고, 로컬 push 훅이 다른 곳으로의 push 와 키 모양 문자열을 막는다. `tests/test-no-secrets.mjs` 추가
+- S1: 설비 등록에 제조사·모델명·연식(선택) 칸 — `tests/test-setup-equipment.js` 13건
+- S2: `POST /api/research` — Gemini + Google 검색 근거로 주의사항 목록. 출처는 검색 근거에 있는 도메인만 인정, 등급은 서버가 도메인으로, 항목마다 ok/check — `tests/test-api-research.mjs` 57건. 전체 31묶음 2,659건 통과
+
+**막혔던 것 / 어떻게 풀었는지**
+- 검색 근거의 주소는 `vertexaisearch…/grounding-api-redirect/…` 경유 주소라 원래 사이트 주소가 아니다 → 근거 조각의 `title`(보통 도메인)로 대조했다
+- 모델이 「제조사 자료」라고 해도 믿을 수 없다 → 등급은 도메인으로만 정한다(블로그는 3, 공공은 2, 도메인에 제조사 영문 이름이 있을 때만 1)
+- push 가 `workflow` 권한 없음으로 거절됐다 → 사용자가 `gh auth refresh -s workflow` 를 해야 한다
+
+**다음에 할 것**
+- 실제 키로 한 번 돌려 보기(`.env.local`) · S3 — `/api/hazards` 를 리서치 항목 안내형 + `box_2d` 로
+
 ## 2026-11-06
 
 **한 것**

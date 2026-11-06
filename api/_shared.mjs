@@ -239,6 +239,8 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText,
           maxOutputTokens: maxOut,
           thinkingConfig: { thinkingLevel: 'low' },
         },
+        // 검색 근거(google_search) 같은 도구 — 리서치(PRD-AD-08 S2)만 쓴다
+        ...(opts && opts.tools ? { tools: opts.tools } : {}),
       }),
       signal: ac.signal,
     });
@@ -277,9 +279,13 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText,
     return { error: 'model', why: '모델이 막음' };
   }
 
-  const parts = data && data.candidates && data.candidates[0]
-    && data.candidates[0].content && data.candidates[0].content.parts;
-  const out = parts && parts[0] && typeof parts[0].text === 'string' ? parts[0].text.trim() : '';
+  const cand = data && data.candidates && data.candidates[0];
+  const parts = cand && cand.content && cand.content.parts;
+  /* 도구를 쓰면 답이 여러 조각으로 올 수 있어 글 조각을 이어 붙인다.
+     도구가 없으면 지금까지처럼 첫 조각만 본다 (번역 동작을 바꾸지 않는다) */
+  const out = opts && opts.tools
+    ? (Array.isArray(parts) ? parts.map((p) => (p && typeof p.text === 'string' ? p.text : '')).join('').trim() : '')
+    : (parts && parts[0] && typeof parts[0].text === 'string' ? parts[0].text.trim() : '');
 
   // 빈 출력·길이 초과는 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도
   // 문자열 그대로 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
@@ -287,7 +293,8 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText,
     return { error: 'model', why: out.length < 1 ? '빈 출력' : '출력이 너무 김' };
   }
 
-  return { text: out };
+  /* 검색 근거 — 모델이 실제로 본 출처 목록. 리서치가 「지어낸 출처」를 거르는 데 쓴다 */
+  return opts && opts.tools ? { text: out, grounding: (cand && cand.groundingMetadata) || null } : { text: out };
 }
 
 /* ── 로그 (A02 §5.2) ────────────────────────────────────────────────
