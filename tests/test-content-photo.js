@@ -112,9 +112,13 @@ const GOOD = {
 
     const fresh = open([]);
     eq('서버 로그인 + https 면 쓸 수 있다', fresh.$('btn-photo').disabled, false);
-    /* D-038 — capture 를 붙이면 폰이 카메라만 연다. 없으면 「찍기 / 앨범」 을 고른다 */
-    ok('★ 카메라와 앨범을 둘 다 고를 수 있다 (capture 없음)', !fresh.$('photo-input').hasAttribute('capture'));
-    eq('그림 파일이면 받는다', fresh.$('photo-input').getAttribute('accept'), 'image/*');
+    /* D-038 개정 — 안드로이드 14+ 크롬은 capture 없는 칸에서 카메라를 안 보여 준다. 칸을 둘로 */
+    eq('★ 찍기 칸은 카메라를 연다 (capture)', fresh.$('photo-camera').getAttribute('capture'), 'environment');
+    ok('★ 고르기 칸은 앨범을 연다 (capture 없음)', !fresh.$('photo-input').hasAttribute('capture'));
+    eq('그림 파일이면 받는다 (찍기)', fresh.$('photo-camera').getAttribute('accept'), 'image/*');
+    eq('그림 파일이면 받는다 (고르기)', fresh.$('photo-input').getAttribute('accept'), 'image/*');
+    eq('앨범 버튼도 쓸 수 있다', fresh.$('btn-photo-album').disabled, false);
+    eq('★ 잠길 때는 둘 다 잠긴다', t.$('btn-photo-album').disabled, true);
   }
 
   /* =================================================================
@@ -218,6 +222,18 @@ const GOOD = {
     ok('★ 저장된 교육에 사진·AI 이유가 없다',
       JSON.stringify(made).indexOf(IMG) === -1 && JSON.stringify(made).indexOf('램과 금형 사이') === -1);
     eq('문구 후보로 더한 ph-1 이 들어 있다', made.phraseIds.indexOf('ph-1') !== -1, true);
+  }
+
+  /* 2-1. 찍기 칸으로 들어와도 같은 흐름이다 */
+  {
+    const t = open([GOOD]);
+    const cam = t.$('photo-camera');
+    Object.defineProperty(cam, 'files', { configurable: true,
+      value: [{ name: 'cam.jpg', type: 'image/jpeg', size: 2 * 1024 * 1024 }] });
+    cam.dispatchEvent(new t.win.Event('change', { bubbles: true }));
+    await settle();
+    eq('★ 카메라로 찍은 사진도 /api/hazards 로 간다', t.hazardCalls().length, 1);
+    eq('지점이 그려진다', t.$('photo-figure').querySelectorAll('.photo-pt').length, 2);
   }
 
   /* =================================================================

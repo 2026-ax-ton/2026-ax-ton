@@ -502,9 +502,14 @@
 
   function setPhotoStatus(text) { $('photo-status').textContent = text || ''; }
 
+  function setPhotoButtons(off) {
+    $('btn-photo').disabled = off;
+    $('btn-photo-album').disabled = off;
+  }
+
   function renderPhotoBlock() {
     var why = photoBlocked();
-    $('btn-photo').disabled = !!why;
+    setPhotoButtons(!!why);
     if (why) setPhotoStatus(why + PHOTO_MANUAL);
   }
 
@@ -528,6 +533,7 @@
     }
     photo = { url: '', points: [], selected: -1, confirmed: false };
     $('photo-input').value = '';
+    $('photo-camera').value = '';
     renderPhoto();
     $('photo-result').hidden = true;
     $('photo-result').textContent = '';
@@ -636,8 +642,8 @@
     renderPhoto();
   }
 
-  function onPhotoPicked() {
-    var input = $('photo-input');
+  function onPhotoPicked(e) {
+    var input = (e && e.target) || $('photo-input');
     var file = input.files && input.files[0];
     if (!file) return;
     var why = photoBlocked();
@@ -647,12 +653,12 @@
     if (window.URL && URL.createObjectURL) {
       try { photo.url = URL.createObjectURL(file); } catch (e) { photo.url = ''; }
     }
-    $('btn-photo').disabled = true;
+    setPhotoButtons(true);
     setPhotoStatus('사진을 줄이는 중입니다…');
 
     Photo.shrink(file).then(function (s) {
       if (s.failed) {
-        $('btn-photo').disabled = false;
+        setPhotoButtons(false);
         setPhotoStatus(s.message + PHOTO_MANUAL);
         return null;
       }
@@ -663,7 +669,7 @@
         { token: Auth.token(), timeoutMs: PHOTO_TIMEOUT_MS });
     }).then(function (r) {
       if (!r) return;
-      $('btn-photo').disabled = false;
+      setPhotoButtons(false);
       if (r.failed) {
         setPhotoStatus((r.failed === 'timeout'
           ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.') + PHOTO_MANUAL);
@@ -1571,12 +1577,15 @@
   $('pick-qtype').addEventListener('change', showTypeForm);
 
   // T17 — 사진으로 위험 지점 찾기
-  $('btn-photo').addEventListener('click', function () {
+  function openPicker(id) {
     var why = photoBlocked();
     if (why) { setPhotoStatus(why + PHOTO_MANUAL); return; }
-    $('photo-input').click();
-  });
+    $(id).click();
+  }
+  $('btn-photo').addEventListener('click', function () { openPicker('photo-camera'); });
+  $('btn-photo-album').addEventListener('click', function () { openPicker('photo-input'); });
   $('photo-input').addEventListener('change', onPhotoPicked);
+  $('photo-camera').addEventListener('change', onPhotoPicked);
   $('photo-figure').addEventListener('click', onPhotoTap);
   $('btn-photo-confirm').addEventListener('click', confirmPhoto);
   $('btn-photo-clear').addEventListener('click', function () {
