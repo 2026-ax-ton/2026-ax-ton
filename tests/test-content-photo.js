@@ -112,7 +112,9 @@ const GOOD = {
 
     const fresh = open([]);
     eq('서버 로그인 + https 면 쓸 수 있다', fresh.$('btn-photo').disabled, false);
-    has('★ 폰 카메라로 찍는다 (FR-01)', fresh.$('photo-input').getAttribute('capture'), 'environment');
+    /* D-038 — capture 를 붙이면 폰이 카메라만 연다. 없으면 「찍기 / 앨범」 을 고른다 */
+    ok('★ 카메라와 앨범을 둘 다 고를 수 있다 (capture 없음)', !fresh.$('photo-input').hasAttribute('capture'));
+    eq('그림 파일이면 받는다', fresh.$('photo-input').getAttribute('accept'), 'image/*');
   }
 
   /* =================================================================

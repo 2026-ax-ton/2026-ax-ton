@@ -79,8 +79,16 @@ const ui = fs.readFileSync(path.join(SRC, 'assets/ui.js'), 'utf8');
 
   has('판이 바뀌면 옛 캐시를 지운다', sw, 'caches.delete');
   has('캐시 이름에 판 번호가 붙는다', sw, 'VERSION');
-  ok('★ skipWaiting 을 부르지 않는다 (보던 중에 파일이 갈리면 반쪽 화면이 된다)',
-    !/self\.skipWaiting\s*\(/.test(sw));
+  /* 2026-11-07 개정 (C06 D-038) — 새 판을 다 담은 뒤 바로 넘어가고,
+     화면 쪽이 손대지 않은 화면만 다시 연다 */
+  ok('★ 새 판을 다 담은 **뒤에** skipWaiting 한다 (D-038)',
+    /addAll\(PRECACHE\)[\s\S]{0,80}\.then\(function \(\) \{[\s\S]*?self\.skipWaiting\(\)/.test(sw));
+  ok('옛 판 정리 뒤 열린 화면을 넘겨받는다 (clients.claim)', /self\.clients\.claim\(\)/.test(sw));
+  const ui = fs.readFileSync(path.join(SRC, 'assets/ui.js'), 'utf8');
+  ok('★ 화면이 판 바뀜을 알아챈다 (controllerchange)', /controllerchange/.test(ui));
+  ok('★ 입력한 화면은 다시 열지 않는다 (쓰던 것을 날리지 않음)', /touched\)\s*return/.test(ui) || /\|\| touched\) return/.test(ui));
+  ok('★ 처음 설치한 기기는 다시 열지 않는다', /!hadController/.test(ui));
+  ok('폰으로 돌아올 때마다 새 판을 묻는다 (visibilitychange → update)', /visibilitychange[\s\S]{0,200}reg\.update\(\)/.test(ui));
   ok('남의 캐시는 지우지 않는다', sw.indexOf("indexOf('safety-') === 0") !== -1);
 }
 

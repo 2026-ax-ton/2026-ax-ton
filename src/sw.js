@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v15';   // 2026-11-07 — 배포: H1~H9 · 제출본 차단(D-034) · T17 사진 위험 지점(content)
+var VERSION = 'v16';   // 2026-11-07 — 새 판 자동 적용(D-038) · 사진 고르기에 앨범 추가
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.
@@ -95,11 +95,17 @@ self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(CACHE).then(function (cache) {
       return cache.addAll(PRECACHE);
+    }).then(function () {
+      /* ★ 새 판을 다 담은 **뒤에** 바로 넘어간다 (2026-11-07, C06 D-038).
+         예전에는 skipWaiting 을 부르지 않아 「탭을 전부 닫아야」 새 판이 들어왔다 —
+         모바일은 탭을 닫아도 앱이 살아 있어 사실상 안 바뀌었다.
+         반쪽 화면(옛 HTML + 새 JS) 걱정은 이렇게 막는다:
+           · 우리 화면은 처음 열 때 스크립트를 **전부** 싣는다 (뒤늦게 불러오는 파일이 없다)
+           · 화면 쪽(ui.js)이 판이 바뀐 것을 알아채면 **손대지 않은 화면만** 바로 다시 연다.
+             입력 중인 화면은 그대로 두고, 다음 화면 이동 때 새 판으로 열린다 */
+      return self.skipWaiting();
     })
   );
-  /* ★ skipWaiting() 을 부르지 않는다.
-     보고 있는 중에 파일이 새 것으로 갈리면 옛 HTML 이 새 JS 를 부르는
-     반쪽 화면이 된다. 새 판은 탭을 닫았다 열 때 들어온다. */
 });
 
 self.addEventListener('activate', function (e) {
