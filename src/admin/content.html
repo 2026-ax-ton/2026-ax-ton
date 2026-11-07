@@ -152,8 +152,12 @@
         </p>
         <p class="photo-guide" id="photo-guide">사람 얼굴과 이름표가 나오지 않게 <b>설비만</b> 찍어 주세요.</p>
         <div class="btn-row">
-          <button class="btn" type="button" id="btn-photo">사진 찍기 · 고르기</button>
-          <!-- capture 를 붙이지 않는다 — 붙이면 폰이 카메라만 연다. 없으면 「사진 찍기 / 앨범」 을 고르게 한다 (D-038) -->
+          <!-- 버튼을 둘로 나눈다 (D-038 개정). 안드로이드 14+ 크롬은 capture 가 없으면
+               「선택한 사진만」 사진 고르기 창을 열고 카메라를 안 보여 준다.
+               그래서 찍기는 capture 붙은 칸, 고르기는 capture 없는 칸으로 따로 둔다 -->
+          <button class="btn" type="button" id="btn-photo">사진 찍기</button>
+          <button class="btn btn-quiet" type="button" id="btn-photo-album">앨범에서 고르기</button>
+          <input type="file" id="photo-camera" accept="image/*" capture="environment" hidden>
           <input type="file" id="photo-input" accept="image/*" hidden>
         </div>
         <p class="photo-status" id="photo-status" role="status" aria-live="polite"></p>
