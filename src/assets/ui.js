@@ -615,7 +615,35 @@ var UI = (function () {
     try {
       if (typeof location === 'undefined' || location.protocol !== 'https:') return false;
       if (typeof navigator === 'undefined' || !navigator.serviceWorker) return false;
-      navigator.serviceWorker.register(swPath()).catch(function () {
+      /* ★ 새 판 자동 적용 (2026-11-07, C06 D-038)
+           sw.js 가 새 판을 다 담으면 바로 넘어오고(skipWaiting), 여기서 판이 바뀐 것을
+           알아챈다(controllerchange). **손대지 않은 화면**이면 한 번 다시 열어 새 판을 보이고,
+           입력·선택을 한 화면이면 그대로 둔다 — 쓰던 것을 날리지 않는다.
+           그 화면도 다음 이동부터는 새 판으로 열린다. 처음 설치(옛 판이 없던 기기)는 다시 열지 않는다. */
+      var hadController = !!navigator.serviceWorker.controller;
+      var touched = false;
+      var reloaded = false;
+      var mark = function () { touched = true; };
+      if (typeof document !== 'undefined' && document.addEventListener) {
+        document.addEventListener('input', mark, true);
+        document.addEventListener('change', mark, true);
+      }
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!hadController || reloaded || touched) return;
+        reloaded = true;
+        try { location.reload(); } catch (e) { /* 다시 열지 못해도 다음 이동 때 새 판이다 */ }
+      });
+
+      navigator.serviceWorker.register(swPath()).then(function (reg) {
+        /* 폰은 앱을 닫지 않고 오래 둔다 — 화면으로 돌아올 때마다 새 판이 있는지 묻는다 */
+        if (reg && reg.update && typeof document !== 'undefined' && document.addEventListener) {
+          document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+              try { reg.update(); } catch (e) { /* 다음에 다시 묻는다 */ }
+            }
+          });
+        }
+      }).catch(function () {
         /* 등록이 안 돼도 화면은 그대로 돌아야 한다. 오프라인만 못 쓸 뿐이다. */
       });
       return true;

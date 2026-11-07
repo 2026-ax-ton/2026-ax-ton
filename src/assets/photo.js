@@ -101,7 +101,9 @@ var Photo = (function () {
         return done(fail('unsupported',
           '이 브라우저에서는 사진을 줄일 수 없습니다. 도해에서 직접 고르실 수 있습니다.'));
       }
-      if (file.type && MIMES.indexOf(file.type) === -1) {
+      /* ★ 입력은 그림이면 다 받는다 — 앨범의 아이폰 사진(HEIC)·GIF 도 브라우저가 그릴 수 있으면
+         줄여서 JPEG 로 바꿔 보낸다. 서버가 받는 형식(MIMES)은 출력에만 걸린다 (D-038) */
+      if (file.type && !/^image\//.test(file.type)) {
         return done(fail('type', '사진 파일(JPG·PNG·WebP)만 넣을 수 있습니다.'));
       }
       if (file.size && file.size > MAX_INPUT_BYTES) {

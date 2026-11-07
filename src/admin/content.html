@@ -152,8 +152,9 @@
         </p>
         <p class="photo-guide" id="photo-guide">사람 얼굴과 이름표가 나오지 않게 <b>설비만</b> 찍어 주세요.</p>
         <div class="btn-row">
-          <button class="btn" type="button" id="btn-photo">사진 찍기</button>
-          <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" capture="environment" hidden>
+          <button class="btn" type="button" id="btn-photo">사진 찍기 · 고르기</button>
+          <!-- capture 를 붙이지 않는다 — 붙이면 폰이 카메라만 연다. 없으면 「사진 찍기 / 앨범」 을 고르게 한다 (D-038) -->
+          <input type="file" id="photo-input" accept="image/*" hidden>
         </div>
         <p class="photo-status" id="photo-status" role="status" aria-live="polite"></p>
         <div class="photo-figure" id="photo-figure" hidden></div>

@@ -141,8 +141,10 @@ const Photo = load();
   WithCanvas.shrink({ type: 'application/pdf', size: 10 }).then((r) => {
     eq('★ 사진이 아닌 파일은 type', r.failed, 'type');
   });
-  WithCanvas.shrink({ type: 'image/gif', size: 10 }).then((r) => {
-    eq('★ 받지 않는 그림 형식도 type (gif)', r.failed, 'type');
+  /* 2026-11-07 (D-038) — 앨범의 HEIC·GIF 도 그림이면 받는다. 출력은 언제나 JPEG */
+  ok('★ 입력은 image/* 면 받는다 (앨범 사진)', /\^image\\\//.test(code));
+  WithCanvas.shrink({ type: 'text/plain', size: 10 }).then((r) => {
+    eq('★ 그림이 아닌 파일은 type', r.failed, 'type');
   });
   WithCanvas.shrink({ type: 'image/jpeg', size: 21 * 1024 * 1024 }).then((r) => {
     eq('★ 20MB 를 넘으면 too_big', r.failed, 'too_big');
