@@ -135,6 +135,38 @@
 
       <hr class="hr">
 
+      <!-- T17 — 사진으로 위험 지점 찾기 (PRD-AD-07 · C06 D-027 · D-037)
+           ★ AI 는 제안까지. 확정은 담당자가 누른다.
+           ★ 사진은 저장하지 않는다 — 이 화면에서 보고 버린다 (B안, D-037).
+             노동자 문항은 지금처럼 도해에서 짚는다.
+           ★ 쓸 수 없을 때(파일로 열었을 때 · 이 기기 안 로그인 · 오래된 브라우저)
+             버튼을 숨기지 않고 이유를 적는다 (FR-AD-07-11). -->
+      <div class="photo-ai" id="photo-ai">
+        <div class="photo-ai-head">
+          <h3 id="t-photo">사진으로 위험 지점 찾기</h3>
+          <span class="badge badge-neutral" id="b-photo">AI 제안</span>
+        </div>
+        <p class="why">
+          설비 앞에서 사진을 찍으면 AI 가 위험한 곳을 <b>최대 5개</b> 제안합니다.
+          <b>AI 는 제안까지 · 확정은 담당자</b>입니다. 사진은 저장하지 않습니다.
+        </p>
+        <p class="photo-guide" id="photo-guide">사람 얼굴과 이름표가 나오지 않게 <b>설비만</b> 찍어 주세요.</p>
+        <div class="btn-row">
+          <button class="btn" type="button" id="btn-photo">사진 찍기</button>
+          <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" capture="environment" hidden>
+        </div>
+        <p class="photo-status" id="photo-status" role="status" aria-live="polite"></p>
+        <div class="photo-figure" id="photo-figure" hidden></div>
+        <ol class="photo-points" id="photo-points"></ol>
+        <div class="btn-row" id="photo-actions" hidden>
+          <button class="btn" type="button" id="btn-photo-confirm">확정</button>
+          <button class="btn btn-quiet" type="button" id="btn-photo-clear">사진 지우기</button>
+        </div>
+        <div class="photo-result" id="photo-result" hidden></div>
+      </div>
+
+      <hr class="hr">
+
       <div class="field">
         <label id="l-qtype">문항 유형</label>
         <div class="picker" id="pick-qtype" role="group" aria-labelledby="l-qtype"></div>
@@ -149,6 +181,7 @@
         <p class="muted">아래 그림에서 <b>정답이 될 위험 구역</b>을 누르세요. 노동자는 같은 그림을 봅니다.</p>
         <div class="quiz-figure" id="q-hot-figure"></div>
         <p class="zonehint" id="q-hot-picked">아직 고르지 않았습니다.</p>
+        <p class="zonehint" id="q-hot-hazard" hidden></p>
       </div>
 
       <!-- choice — 올바른 작업 고르기 -->
@@ -258,6 +291,7 @@
 <script src="../assets/icons.js"></script>
 <script src="../assets/ui.js"></script>
 <script src="../assets/net.js"></script>
+<script src="../assets/photo.js"></script>
 <script src="../assets/review.js"></script>
 <script src="../assets/diagrams.js"></script>
 <script src="../assets/qr.js"></script>

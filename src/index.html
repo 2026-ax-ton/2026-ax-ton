@@ -14,6 +14,13 @@
 <main class="gate">
 
   <section class="gate-hero">
+    <!-- 언어 선택 — 로그인 전이라 이 기기에 둔다 (H9 · FR-CM-01-08).
+         글을 못 읽어도 모국어 글자와 음성으로 자기 언어를 찾을 수 있다. -->
+    <div class="lang-gate" id="lang-gate"></div>
+
+    <!-- QR 로 들어왔으면 로그인 뒤 어디로 가는지 미리 알린다 (H9 · FR-CM-01-09) -->
+    <p class="qr-note" id="qr-note" hidden></p>
+
     <p class="gate-kicker">이주노동자 안전교육</p>
     <h1>이해했는지 확인되지 않으면<br>교육이 끝나지 않습니다</h1>
     <p class="gate-lead">
@@ -43,12 +50,12 @@
 
       <form id="form-login" autocomplete="off">
         <div class="field">
-          <label for="login-id">아이디</label>
+          <label for="login-id" data-i18n="login.id">아이디</label>
           <input id="login-id" type="text" placeholder="식별번호 또는 업무용 이메일" autocomplete="username">
           <p class="field-hint">노동자는 사업장에서 받은 식별번호, 담당자·운영자는 업무용 이메일입니다.</p>
         </div>
         <div class="field">
-          <label for="login-pw">비밀번호</label>
+          <label for="login-pw" data-i18n="login.pw">비밀번호</label>
           <input id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password">
         </div>
 
@@ -58,13 +65,13 @@
         <p class="why" id="login-mode" hidden></p>
 
         <button class="btn btn-primary" type="submit" id="btn-login">
-          <span aria-hidden="true">→</span> 로그인
+          <span aria-hidden="true">→</span> <span data-i18n="login.submit">로그인</span>
         </button>
       </form>
 
       <hr class="hr">
       <a class="btn btn-ghost" href="signup.html">
-        <span aria-hidden="true">＋</span> 회원가입
+        <span aria-hidden="true">＋</span> <span data-i18n="login.signupTitle">회원가입</span>
       </a>
     </div>
 
@@ -109,6 +116,7 @@
 <script src="assets/store.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/icons.js"></script>
+<script src="assets/i18n.js"></script>
 <script src="assets/ui.js"></script>
 <script src="assets/seed.js"></script>
 <script src="assets/net.js"></script>

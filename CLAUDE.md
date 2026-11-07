@@ -64,10 +64,37 @@
 5. **보기용 문서 다시 만들기·링크 검사** — `node docs/infos/_build.js` (infos html 재생성) →
    `node docs/infos/_check-links.js` (깨진 링크 0개여야 함)
 6. **개발일지** — `docs/devlog/byeonsoyun.md` 맨 위에 오늘 날짜: 한 것 / 막혔던 것·어떻게 풀었는지 / 다음에 할 것
-7. **git** — 고친 파일만 `git add` → `docs: 세션을 닫는다 — …` 커밋 → `git push origin feat/agent-prd-v1`
+7. **★ 개인 작업 폴더 갱신 (저장소 밖)** — 아래 **「개인 작업 폴더」** 절 참고.
+   `../개인작업폴더/` 의 html 세 개를 이번 세션 내용으로 **반드시** 갱신합니다
+8. **git** — 고친 파일만 `git add` → `docs: 세션을 닫는다 — …` 커밋 → `git push origin feat/agent-prd-v1`
    → 열린 PR 이 없으면 `gh pr create --base develop --draft` 로 **초안 PR** 을 만들고, 있으면 그대로 둡니다
    (머지는 2차(T1~T9)나 3차가 끝났거나 사용자가 "머지해 줘" 할 때. 배포는 "배포해 줘" 할 때만 — 아래 배포 절차)
-8. **보고** — 사용자에게 5줄 안: 끝낸 것 · 검사 결과 · 다음 세션 첫 일 · 사용자가 할 일(계정 작업·확인) · 사용자가 눈으로 볼 곳
+9. **보고** — 사용자에게 5줄 안: 끝낸 것 · 검사 결과 · 다음 세션 첫 일 · 사용자가 할 일(계정 작업·확인) · 사용자가 눈으로 볼 곳
+
+### ★ 개인 작업 폴더 — 마무리 때마다 갱신합니다 (2026-11-06)
+
+**저장소 밖** `C:\Users\byeonsoyun\2026-ax-ton\개인작업폴더\` 에 byeonsoyun 개인용 html 문서 넷이 있습니다.
+**git 에 올라가지 않습니다** (저장소 밖이라 추적되지 않음). 팀과 공유하는 문서가 아니라
+**사용자가 혼자 보면서 프로젝트를 파악하고 자기 작업을 추적하는 용도**입니다.
+
+| 파일 | 담는 것 | 마무리 때 무엇을 고치나 |
+|---|---|---|
+| `00_표현-규칙.md` | **문서를 쓸 때의 표현 규칙** — 비유·결과 암시·감정 표현을 제목에 쓰지 않고 사실 명칭으로 적는다 | 고칠 일 거의 없음. **네 html 을 쓸 때 이 규칙을 먼저 본다** |
+| `01_시스템-전체설명.html` | 시스템 개요·기능·비기능·흐름·아키텍처·성능·제약 | 화면·API·데이터 모양·성능 실측치가 바뀌었으면 해당 절. 기능 상태 ⬜→✅ |
+| `02_작업추적.html` | 11/27(발표 전날)까지 전체 작업 — **개발(byeonsoyun) / PM·발표준비(팀원 3명을 한 덩어리로)** 두 포지션으로 나눠 추적 | 끝낸 작업 체크, 새 작업 추가, 기한·상태 변경, 남은 일수 |
+| `03_개발현황.html` | 현재 개발 수준·테스트 건수·화면별 완성도·남은 개발 내역 | 테스트 건수, 마일스톤, T 항목 상태, 남은 개발 목록, 배포 버전 |
+| `04_시스템-한눈에.html` | **한 장짜리 요약** — 개요·역할·기능·흐름·에이전트·비기능·성능·불안한 곳·시연 장면 | 성능 실측치, 검사 건수, 불안한 곳. **성능 표의 「같이 읽어야 하는 것」 칸을 비우지 않는다** |
+
+**규칙**
+- 네 파일 모두 맨 위 **기준일**과 맨 아래 **변경 기록**에 한 줄을 남깁니다 (infos 문서와 같은 방식)
+- **★ 숫자에서 조건을 떼지 않습니다.** `04` 의 성능 표에는 「같이 읽어야 하는 것」 칸이 있습니다 —
+  그 칸은 장식이 아니라 **그 숫자가 무엇의 값인지**입니다. 떼면 「AI 번역이 거의 완벽하다」가 되고
+  그건 사실이 아닙니다 (표본 150건·업종 하나·유료 등급 기준). **새 숫자를 넣을 때도 조건을 같이 적습니다**
+- **포지션 구분을 지킵니다** — 작업은 **개발(byeonsoyun 혼자)** 과 **PM·발표준비(팀원 3명 = 한 포지션)** 둘뿐입니다.
+  팀원 3명을 개별로 쪼개 적지 않습니다. 사용자가 보는 것은 "내 몫 / 남의 몫" 두 갈래입니다
+- 저장소 문서(`07-next-tasks.md`·`현재-진행.md`·`D07`)가 **정답**이고 이 셋은 **그것을 사람이 보기 좋게 정리한 것**입니다.
+  저장소를 먼저 고치고 그다음 이 셋을 맞춥니다 (infos 와 같은 순서)
+- 폴더가 없으면 (다른 PC 등) 조용히 건너뛰고 보고에 한 줄 적습니다
 
 ### 개발 후 문서 갱신 표 — 무엇이 바뀌었으면 어디를 고치나
 
@@ -256,10 +283,10 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 |---|---|
 | 노동자 | `src/worker/home.* learn.* quiz.* report.* talk.* my.*` + `worker.css` |
 | 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` + `admin.css` |
-| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
+| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` · `photo.js`(사진 줄이기, T17 — 교육 만들기만 싣는다) + `app.css style*.css` |
 | 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 11개 화면 전부가 싣습니다 (D-032) |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
-| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + 루트 `package.json` (드라이버 1개) |
+| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) · `api/reports.mjs`(익명 신고) · `api/hazards.mjs`(사진 위험 지점, T17) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs _hazards.mjs` + 루트 `package.json` (드라이버 1개) |
 | DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
 | 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
@@ -312,7 +339,7 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
 | `Store.progress` | 노동자 기능3·4 | 관리자 기능5·6 |
 | `Store.reports` | 노동자 기능8 | 관리자 기능6 |
 | `Store.posts` | 노동자 기능7 | 노동자 기능7 |
-| `Store.prefs` | 노동자 아무 화면 (글자 크기) | 노동자 전부 |
+| `Store.prefs` | 노동자 아무 화면 (글자 크기) · 🆕 `index.html`/`signup.html`(로그인 전 언어, H9) | 노동자 전부 |
 | `Store.orders` | 관리자 기능6 (재교육 지시) | 노동자 홈 · 관리자 기능6 |
 
 **저장 데이터의 모양을 바꾸면 다른 사람 화면이 깨집니다.**

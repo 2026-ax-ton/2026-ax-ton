@@ -856,3 +856,61 @@ table.data .chips .badge { font-size: .68em; }
   line-height: 1.5;
 }
 .syncbar .ico { flex: 0 0 auto; }
+
+/* ===================================================================
+   T17 — 사진으로 위험 지점 찾기 (기능2 3단계 곁, PRD-AD-07)
+   ★ 사진 위 지점은 번호 + 글자(목록) + 테두리 모양으로 구분한다 — 색만 쓰지 않는다.
+     AI 제안은 점선, 직접 추가는 실선, 고른 지점은 두꺼운 테두리.
+   ★ 이 화면은 설비 앞에서 폰으로 쓴다 — 폰 폭에서도 끝까지 (FR-AD-07-01).
+   =================================================================== */
+.photo-ai {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  margin: 4px 0 8px;
+  background: var(--surface);
+}
+.photo-ai-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.photo-ai-head h3 { margin: 0; font-size: 1em; }
+.photo-guide { font-size: .9em; margin: 6px 0; }
+.photo-status { min-height: 1.2em; font-size: .9em; font-weight: 700; margin: 8px 0; }
+.photo-figure {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  min-height: 120px;
+  margin: 8px auto 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f5f7;
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+.photo-figure > img { display: block; width: 100%; height: auto; pointer-events: none; }
+.photo-pt {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border: 3px dashed #b98a00;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .85);
+  color: #3d2c00;
+  font-weight: 800;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+.photo-pt:not([data-ai]) { border-style: solid; border-color: var(--ink-2); color: var(--ink-2); }
+.photo-pt[data-sel] { border-width: 5px; box-shadow: 0 0 0 3px rgba(0, 0, 0, .35); }
+.photo-points { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+.photo-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.photo-no { font-weight: 800; min-width: 2.5em; }
+.photo-why { flex: 1 1 100%; font-size: .85em; color: var(--ink-2); }
+.photo-hint { font-size: .85em; color: var(--ink-2); }
+.photo-result { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.photo-result h4 { margin: 8px 0 4px; font-size: .95em; }
+.photo-hazards { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
+.photo-hazards li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.photo-hz-name { font-weight: 700; min-width: 4em; }

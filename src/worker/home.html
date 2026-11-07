@@ -43,6 +43,10 @@
     <p class="original" id="today-note"></p>
     <div class="listen" id="today-listen"></div>
 
+    <!-- 오역 신고 (H1 · FR-WK-01-06). ★ 신고자를 저장하지 않는다 — 누르는 데
+         로그인 외의 정보가 더 필요 없다. 누르면 그 언어만 바로 중지된다. -->
+    <div class="btn-row" id="today-report"></div>
+
     <!-- 문구 넘겨 보기 (C5).
          ★ 볼 것이 하나뿐이면 JS 가 통째로 감춘다 — 눌러도 아무 일이 없는
            버튼은 글을 못 읽는 사람에게 그냥 고장이다. -->
@@ -119,7 +123,6 @@
     <h2>여기부터 채우시면 됩니다</h2>
     <p class="why">아래는 골격에 넣지 않은 것들입니다. 지금 상태로도 데이터는 끝까지 흐릅니다.</p>
     <dl>
-      <dt>오역 신고 버튼</dt><dd>이 화면에서 눌러 바로 기능9 큐로 보내는 경로. 지금은 안내만 있습니다 (우선순위 3층)</dd>
       <dt>내 파일</dt><dd><code>worker/home.html</code> · <code>worker/home.js</code> · <code>worker/worker.css</code></dd>
     </dl>
   </section>

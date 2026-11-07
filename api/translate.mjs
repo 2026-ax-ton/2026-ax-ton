@@ -14,7 +14,11 @@ import {
 
 export const config = { maxDuration: 30 }; // A02 §5.2
 
-function systemText(langName, hint) {
+/** ★ 내보내는 이유는 하나다 — 제출본 빌드(`scripts/build-submission.mjs`)가
+ *  이 함수를 그대로 불러 지시문을 **뽑아 간다** (C06 D-034 ②).
+ *  두 곳에 손으로 베끼면 서버와 제출본의 AI 가 서로 다른 말을 하게 된다.
+ *  Vercel 이 특별히 보는 것은 메서드 이름(GET·POST…)뿐이라 이 이름은 안전하다. */
+export function systemText(langName, hint) {
   const base =
     `너는 산업안전 지시문 번역가다. 한국어 지시문을 ${langName}으로 번역한다. ` +
     '규칙: 1) 금지·부정(하지 마세요, 금지, 안 됩니다)을 반드시 보존한다. ' +

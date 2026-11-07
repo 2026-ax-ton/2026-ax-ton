@@ -25,6 +25,12 @@
 
    · AI 는 문구를 새로 쓰지 않는다. 고르기만 한다 (화면 상단 고지).
 
+   · 🆕 사진으로 위험 지점 찾기 (T17, 2026-11-07) — AI 는 사진 위 위험 지점을
+     **제안**만 하고, 담당자가 고쳐서 [확정] 한다. 사진은 저장하지 않는다 (C06 D-037).
+     확정한 위험유형으로 도해 문항 초안과 **검수 완료** 문구 후보를 보여 줄 뿐,
+     courses 에는 담당자가 [문항 더하기]·[승인·발급] 을 눌러야 들어간다.
+     서버는 net.js 로만 부른다 (/api/hazards, 담당자 토큰).
+
    -------------------------------------------------------------------
    골격입니다. 남은 것은 화면 아래 "여기부터 채우시면 됩니다" 에 적혀 있습니다.
    =================================================================== */
@@ -425,6 +431,384 @@
     $('q-choice').hidden = type !== 'choice';
     $('q-match').hidden = type !== 'match';
     if (type === 'hotspot') renderHotspotFigure();
+    renderPendingHazard();
+  }
+
+  /* -----------------------------------------------------------------
+     3단계 곁 — 사진으로 위험 지점 찾기 (T17 · PRD-AD-07 · C06 D-027 · D-037)
+
+     흐름: [사진 찍기] → 줄이기(Photo.shrink) → 우리 서버 /api/hazards (net.js)
+           → 사진 위 제안 지점(최대 5) → 담당자가 지우기·유형 바꾸기·옮기기·더하기
+           → [확정] → 위험유형별 ① 문항 초안(도해 위 hotspot) ② 검수 완료 문구 후보
+
+     ★ AI 는 제안까지다. 이 블록은 courses 에 아무것도 쓰지 않는다.
+       문항은 담당자가 [문항 더하기] 를, 교육은 [승인·발급] 을 눌러야 저장된다 (AC-AD-07-02).
+     ★ 사진은 저장하지 않는다 (B안 — C06 D-037). 화면에서 보고 버린다.
+       노동자 문항은 지금처럼 도해에서 짚는다 — 사진 위 좌표는 도해로 옮길 수 없으므로
+       확정한 **위험유형**만 문항 초안·문구 후보로 넘긴다.
+     ★ 안전 문구를 만들지 않는다. 후보는 검수 완료 문구(usablePhrases)에서만 고른다.
+       AI 의 「이유」 문장은 담당자 참고용이고 어디에도 저장하지 않는다 (FR-09).
+     ★ AI 출력은 믿을 수 없는 문자열이다 — textContent 로만 (UI.el, FR-12).
+     ★ 쓸 수 없으면 버튼을 숨기지 않고 이유를 적는다. 손 흐름은 그대로다 (FR-11).
+     ----------------------------------------------------------------- */
+
+  var PHOTO_MAX_POINTS = 5;           // PRD-AD-07 §11 Q4 (서버 api/_hazards.mjs 와 같다)
+  var PHOTO_TIMEOUT_MS = 65000;       // 서버 함수 상한 60초 + 여유 (api/hazards.mjs maxDuration)
+  var PHOTO_MANUAL = ' 아래 「위험 지점 짚기」 그림에서 직접 고르실 수 있습니다.';
+
+  /* 위험유형별 문항 초안 — 우리가 정한 고정 문장이다 (AI 가 쓴 것이 아니다).
+     담당자가 그대로 쓰거나 고친다. */
+  var HAZARD_PROMPT = {
+    pinch:    '이 설비에서 손이 끼일 수 있는 곳을 누르세요',
+    shock:    '이 설비에서 감전될 수 있는 곳을 누르세요',
+    fire:     '이 설비에서 불이 날 수 있는 곳을 누르세요',
+    fall:     '이 설비에서 떨어질 수 있는 곳을 누르세요',
+    choke:    '이 설비에서 숨이 막힐 수 있는 곳을 누르세요',
+    chemical: '이 설비에서 화학물질에 닿을 수 있는 곳을 누르세요'
+  };
+
+  /* 검수 완료 문구 후보를 고르는 낱말 — 문구에 위험유형 칸이 없어서 낱말로 맞춘다.
+     ★ 후보일 뿐이다. 담당자가 골라야 들어간다. 맞는 것이 없으면 "없다" 고 적는다. */
+  var HAZARD_WORDS = {
+    pinch:    ['끼', '손', '프레스', '롤러', '회전', '금형', '램', '안전핀'],
+    shock:    ['감전', '전기', '전원', '차단', '분전반', '배전반', '단자', '접지'],
+    fire:     ['화재', '화기', '불', '소화', '용접', '인화'],
+    fall:     ['추락', '떨어', '사다리', '높은', '안전대', '난간', '발판'],
+    choke:    ['질식', '마스크', '환기', '밀폐', '유증기', '산소'],
+    chemical: ['화학', '도료', '방독', '보호구', '장갑', '용제', '물질']
+  };
+
+  var photo = { url: '', points: [], selected: -1, confirmed: false };
+  var pendingHazard = '';             // [이 위험으로 문항 쓰기] 를 누른 위험유형
+
+  function hazardLabel(code) {
+    var h = Store.hazard(code);
+    return h ? h.label : code;
+  }
+
+  /** 지금 이 화면에서 쓸 수 없으면 그 이유. 쓸 수 있으면 빈 문자열. */
+  function photoBlocked() {
+    if (typeof Net === 'undefined' || !Net.onHttps()) {
+      return '사진 찾기는 인터넷 배포 주소(https)에서만 됩니다. 지금은 파일로 열려 있습니다.';
+    }
+    if (typeof Auth === 'undefined' || !Auth.token || !Auth.token()) {
+      return '사진 찾기는 서버 로그인일 때만 됩니다. 지금은 이 기기 안에서만 로그인돼 있습니다.';
+    }
+    if (typeof Photo === 'undefined' || !Photo.available()) {
+      return '이 브라우저에서는 사진을 줄일 수 없습니다.';
+    }
+    return '';
+  }
+
+  function setPhotoStatus(text) { $('photo-status').textContent = text || ''; }
+
+  function renderPhotoBlock() {
+    var why = photoBlocked();
+    $('btn-photo').disabled = !!why;
+    if (why) setPhotoStatus(why + PHOTO_MANUAL);
+  }
+
+  /** 서버 응답을 한 번 더 거른다 — 서버가 걸렀어도 화면이 믿지 않는다 (FR-05·12). */
+  function cleanPoints(raw) {
+    var out = [];
+    (Array.isArray(raw) ? raw : []).forEach(function (p) {
+      if (out.length >= PHOTO_MAX_POINTS || !p) return;
+      if (!Store.hazard(p.hazard)) return;
+      var x = Number(p.x), y = Number(p.y);
+      if (!(x >= 0 && x <= 100 && y >= 0 && y <= 100)) return;
+      out.push({ x: x, y: y, hazard: p.hazard,
+        why: typeof p.why === 'string' ? p.why.slice(0, 120) : '', ai: true });
+    });
+    return out;
+  }
+
+  function clearPhoto() {
+    if (photo.url && window.URL && URL.revokeObjectURL) {
+      try { URL.revokeObjectURL(photo.url); } catch (e) { /* 이미 풀렸다 */ }
+    }
+    photo = { url: '', points: [], selected: -1, confirmed: false };
+    $('photo-input').value = '';
+    renderPhoto();
+    $('photo-result').hidden = true;
+    $('photo-result').textContent = '';
+  }
+
+  function renderPhoto() {
+    var fig = $('photo-figure');
+    var list = $('photo-points');
+    fig.textContent = '';
+    list.textContent = '';
+    var has = !!photo.url || photo.points.length > 0;
+    fig.hidden = !has;
+    $('photo-actions').hidden = !has;
+    if (!has) return;
+
+    if (photo.url) {
+      var img = document.createElement('img');
+      img.src = photo.url;
+      img.alt = '찍은 설비 사진 (저장하지 않음)';
+      fig.appendChild(img);
+    }
+
+    photo.points.forEach(function (p, i) {
+      var mark = UI.el('button', 'photo-pt');
+      mark.type = 'button';
+      mark.style.left = p.x + '%';
+      mark.style.top = p.y + '%';
+      mark.textContent = String(i + 1);
+      mark.setAttribute('aria-label', (i + 1) + '번 지점 — ' + hazardLabel(p.hazard) +
+        (p.ai ? ' (AI 제안)' : ' (직접 추가)'));
+      if (p.ai) mark.setAttribute('data-ai', '1');
+      if (i === photo.selected) mark.setAttribute('data-sel', '1');
+      mark.addEventListener('click', function (e) {
+        e.stopPropagation();
+        photo.selected = photo.selected === i ? -1 : i;
+        renderPhoto();
+      });
+      fig.appendChild(mark);
+
+      var li = UI.el('li', 'photo-row');
+      li.appendChild(UI.el('span', 'photo-no', (i + 1) + '번'));
+
+      var sel = document.createElement('select');
+      sel.id = 'photo-hz-' + i;
+      sel.setAttribute('aria-label', (i + 1) + '번 지점 위험유형');
+      Store.HAZARDS.forEach(function (h) {
+        var o = document.createElement('option');
+        o.value = h.code;
+        o.textContent = h.label;
+        if (h.code === p.hazard) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', function () {
+        p.hazard = sel.value;
+        photo.confirmed = false;
+        $('photo-result').hidden = true;
+      });
+      li.appendChild(sel);
+
+      li.appendChild(p.ai ? UI.waitBadge('AI 제안') : UI.neutralBadge('직접 추가'));
+      if (p.why) li.appendChild(UI.el('span', 'photo-why', '참고: ' + p.why));
+
+      var del = UI.el('button', 'btn-sm danger', '지우기');
+      del.type = 'button';
+      del.addEventListener('click', function () {
+        photo.points.splice(i, 1);
+        photo.selected = -1;
+        photo.confirmed = false;
+        $('photo-result').hidden = true;
+        renderPhoto();
+      });
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+
+    var hint = photo.selected >= 0
+      ? (photo.selected + 1) + '번 지점을 옮길 자리를 사진에서 누르세요.'
+      : (photo.points.length < PHOTO_MAX_POINTS
+        ? '사진을 누르면 지점을 직접 더합니다. 번호를 누른 뒤 다른 곳을 누르면 옮깁니다.'
+        : '지점은 ' + PHOTO_MAX_POINTS + '개까지입니다. 하나를 지운 뒤 더하세요.');
+    list.appendChild(UI.el('li', 'photo-hint', hint));
+    $('btn-photo-confirm').disabled = photo.points.length === 0;
+  }
+
+  /** 사진을 누른 자리 — 고른 지점이 있으면 옮기고, 없으면 더한다 (FR-07). */
+  function onPhotoTap(e) {
+    var fig = $('photo-figure');
+    var rect = fig.getBoundingClientRect();
+    if (!rect || !rect.width || !rect.height) return;
+    var x = Math.round(((e.clientX - rect.left) / rect.width) * 1000) / 10;
+    var y = Math.round(((e.clientY - rect.top) / rect.height) * 1000) / 10;
+    if (!(x >= 0 && x <= 100 && y >= 0 && y <= 100)) return;
+    if (photo.selected >= 0 && photo.points[photo.selected]) {
+      photo.points[photo.selected].x = x;
+      photo.points[photo.selected].y = y;
+      photo.selected = -1;
+    } else if (photo.points.length < PHOTO_MAX_POINTS) {
+      var eq = equipmentOf(draft.equipmentId);
+      var first = eq && eq.hazards && eq.hazards[0];
+      photo.points.push({ x: x, y: y, hazard: Store.hazard(first) ? first : 'pinch', why: '', ai: false });
+    } else {
+      return;
+    }
+    photo.confirmed = false;
+    $('photo-result').hidden = true;
+    renderPhoto();
+  }
+
+  function onPhotoPicked() {
+    var input = $('photo-input');
+    var file = input.files && input.files[0];
+    if (!file) return;
+    var why = photoBlocked();
+    if (why) { setPhotoStatus(why + PHOTO_MANUAL); return; }
+
+    clearPhoto();
+    if (window.URL && URL.createObjectURL) {
+      try { photo.url = URL.createObjectURL(file); } catch (e) { photo.url = ''; }
+    }
+    $('btn-photo').disabled = true;
+    setPhotoStatus('사진을 줄이는 중입니다…');
+
+    Photo.shrink(file).then(function (s) {
+      if (s.failed) {
+        $('btn-photo').disabled = false;
+        setPhotoStatus(s.message + PHOTO_MANUAL);
+        return null;
+      }
+      setPhotoStatus('AI 가 사진을 보는 중입니다… (최대 1분)');
+      /* ★ 보내는 것은 줄인 사본과 형식뿐이다 — 계정·진도·신고를 붙이지 않는다 (FR-14).
+           누구인지는 토큰 헤더로만 안다 (A02 §14.6). */
+      return Net.post('/api/hazards', { image: s.image, mime: s.mime },
+        { token: Auth.token(), timeoutMs: PHOTO_TIMEOUT_MS });
+    }).then(function (r) {
+      if (!r) return;
+      $('btn-photo').disabled = false;
+      if (r.failed) {
+        setPhotoStatus((r.failed === 'timeout'
+          ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.') + PHOTO_MANUAL);
+        renderPhoto();
+        return;
+      }
+      if (!r.ok) {
+        var msg = r.data && typeof r.data.message === 'string' ? r.data.message : 'AI 가 사진을 읽지 못했습니다.';
+        setPhotoStatus(msg + PHOTO_MANUAL);
+        renderPhoto();
+        return;
+      }
+      var d = r.data || {};
+      if (d.person === true || d.retake === true) {
+        /* 사람이 찍힌 사진 위에는 아무것도 그리지 않고 버린다 (FR-20) */
+        clearPhoto();
+        setPhotoStatus('사람이나 이름표가 찍혔습니다. 설비만 다시 찍어 주세요.');
+        return;
+      }
+      photo.points = cleanPoints(d.points);
+      var dropped = 0;
+      if (d.dropped && typeof d.dropped === 'object') {
+        Object.keys(d.dropped).forEach(function (k) { dropped += Number(d.dropped[k]) || 0; });
+      }
+      var parts = [];
+      parts.push(photo.points.length
+        ? 'AI 가 위험 지점 ' + photo.points.length + '개를 제안했습니다. 고친 뒤 [확정] 을 누르세요.'
+        : 'AI 가 위험 지점을 찾지 못했습니다. 사진을 눌러 직접 더하실 수 있습니다.');
+      if (dropped) parts.push('쓸 수 없는 제안 ' + dropped + '개는 뺐습니다.');
+      if (d.overlaps) parts.push('겹치는 지점이 ' + d.overlaps + '쌍 있습니다. 하나를 지우거나 옮겨 주세요.');
+      setPhotoStatus(parts.join(' '));
+      renderPhoto();
+    });
+  }
+
+  function confirmPhoto() {
+    if (!photo.points.length) { UI.toast('확정할 지점이 없습니다.'); return; }
+    photo.confirmed = true;
+    photo.selected = -1;
+    renderPhoto();
+    renderPhotoResult();
+  }
+
+  function confirmedHazards() {
+    var seen = [];
+    photo.points.forEach(function (p) {
+      if (seen.indexOf(p.hazard) === -1) seen.push(p.hazard);
+    });
+    return seen;
+  }
+
+  /** 확정한 위험유형에 맞는 **검수 완료** 문구 — usablePhrases 안에서만 찾는다. */
+  function phraseCandidates(hazards) {
+    return usablePhrases().filter(function (p) {
+      var hay = (p.ko || '') + ' ' + (p.category || '');
+      return hazards.some(function (code) {
+        return (HAZARD_WORDS[code] || []).some(function (w) { return hay.indexOf(w) !== -1; });
+      });
+    });
+  }
+
+  function renderPhotoResult() {
+    var box = $('photo-result');
+    box.textContent = '';
+    box.hidden = false;
+    var hazards = confirmedHazards();
+
+    box.appendChild(UI.el('h4', null, '확정한 위험유형 ' + hazards.length + '개'));
+    box.appendChild(UI.el('p', 'muted',
+      '노동자 문항은 아래 도해에서 짚습니다. 사진과 AI 의 참고 문장은 저장하지 않습니다.'));
+
+    var rows = UI.el('ul', 'photo-hazards');
+    hazards.forEach(function (code) {
+      var li = UI.el('li');
+      var h = Store.hazard(code);
+      if (h) li.appendChild(UI.iconBox(h.icon, 'ico'));
+      li.appendChild(UI.el('span', 'photo-hz-name', hazardLabel(code)));
+      var go = UI.el('button', 'btn-sm', '이 위험으로 문항 쓰기');
+      go.type = 'button';
+      go.setAttribute('data-hazard', code);
+      go.addEventListener('click', function () { startHazardQuestion(code); });
+      li.appendChild(go);
+      rows.appendChild(li);
+    });
+    box.appendChild(rows);
+
+    /* 문구 후보 — 발급된 교육을 고치는 중이면 문구를 바꿀 수 없다 (C6) */
+    box.appendChild(UI.el('h4', null, '검수 완료 문구 후보'));
+    if (editingCourseId) {
+      box.appendChild(UI.el('p', 'muted', '발급된 교육을 고치는 중에는 문구를 더할 수 없습니다.'));
+      return;
+    }
+    var cands = phraseCandidates(hazards);
+    if (!cands.length) {
+      box.appendChild(UI.el('p', 'muted',
+        '맞는 검수 완료 문구가 없습니다. AI 는 문구를 만들지 않습니다 — 운영자에게 문구 등록을 요청해 주세요.'));
+      return;
+    }
+    var pick = UI.el('div', 'picker');
+    pick.id = 'photo-phrases';
+    cands.forEach(function (p) {
+      pick.appendChild(UI.chip({
+        type: 'checkbox', name: 'photo-phrase', value: p.id,
+        label: p.ko, sub: p.category || '',
+        checked: draft.phraseIds.indexOf(p.id) !== -1
+      }));
+    });
+    box.appendChild(pick);
+    var add = UI.el('button', 'btn btn-quiet', '고른 문구를 2단계에 더하기');
+    add.type = 'button';
+    add.id = 'btn-photo-phrases';
+    add.addEventListener('click', function () {
+      var ids = UI.checkedValues('photo-phrase', pick);
+      ids.forEach(function (id) {
+        if (draft.phraseIds.indexOf(id) === -1) draft.phraseIds.push(id);
+      });
+      buildPhrasePicker();
+      renderPhraseWarn();
+      renderCheck();
+      badge($('b-step2'), draft.phraseIds.length > 0, draft.phraseIds.length + '개 문구', '미설정');
+      UI.toast(ids.length ? '문구 ' + ids.length + '개를 2단계에 더했습니다.' : '고른 문구가 없습니다.');
+    });
+    box.appendChild(add);
+  }
+
+  /** 위험유형 하나로 「위험 지점 짚기」 문항 초안을 연다.
+   *  문항 문장은 고정표에서, 정답 구역은 담당자가 도해에서 고른다. */
+  function startHazardQuestion(code) {
+    var radio = document.querySelector('input[name="qtype"][value="hotspot"]');
+    if (radio) radio.checked = true;
+    showTypeForm();
+    $('q-hot-prompt').value = HAZARD_PROMPT[code] || '';
+    pendingHazard = code;
+    renderPendingHazard();
+    if ($('q-hotspot').scrollIntoView) $('q-hotspot').scrollIntoView();
+    $('q-hot-prompt').focus();
+  }
+
+  function renderPendingHazard() {
+    var p = $('q-hot-hazard');
+    if (!p) return;
+    p.hidden = !pendingHazard || currentType() !== 'hotspot';
+    p.textContent = pendingHazard
+      ? '사진에서 확정한 위험유형 — ' + hazardLabel(pendingHazard) + '. 그림에서 정답 구역을 고른 뒤 [문항 더하기] 를 누르세요.'
+      : '';
   }
 
   /* -----------------------------------------------------------------
@@ -624,12 +1008,18 @@
 
       var hi = collectI18n('hotspot', null);
 
-      if (!pushQuestion({
+      var hq = {
         type: 'hotspot',
         prompt: hp,
         answer: Diagrams.answerFor(pickedZone),
         i18n: hi.i18n
-      })) return;
+      };
+      /* 사진에서 확정한 위험유형이 있으면 문항에 붙인다 — 대시보드가 언어×위험유형으로
+         묶는 칸이다 (seed 의 quiz[].hazard 와 같은 칸, 새 칸이 아니다) */
+      if (pendingHazard && Store.hazard(pendingHazard)) hq.hazard = pendingHazard;
+      if (!pushQuestion(hq)) return;
+      pendingHazard = '';
+      renderPendingHazard();
       $('q-hot-prompt').value = '';
       clearI18nInputs();
 
@@ -1179,6 +1569,22 @@
   });
 
   $('pick-qtype').addEventListener('change', showTypeForm);
+
+  // T17 — 사진으로 위험 지점 찾기
+  $('btn-photo').addEventListener('click', function () {
+    var why = photoBlocked();
+    if (why) { setPhotoStatus(why + PHOTO_MANUAL); return; }
+    $('photo-input').click();
+  });
+  $('photo-input').addEventListener('change', onPhotoPicked);
+  $('photo-figure').addEventListener('click', onPhotoTap);
+  $('btn-photo-confirm').addEventListener('click', confirmPhoto);
+  $('btn-photo-clear').addEventListener('click', function () {
+    clearPhoto();
+    pendingHazard = '';
+    renderPendingHazard();
+    setPhotoStatus('사진을 지웠습니다. 사진은 어디에도 저장되지 않았습니다.');
+  });
   $('q-ma-add').addEventListener('click', addPairRow);
   $('btn-add-q').addEventListener('click', addQuestion);
   $('btn-edit-done').addEventListener('click', stopEditing);
@@ -1200,4 +1606,5 @@
   buildTypePicker();
   resetForms();
   render();
+  renderPhotoBlock();
 })();

@@ -201,7 +201,9 @@ const LANGS = ['km', 'id', 'vi', 'ne', 'th'];
   const scan = (dir) => fs.readdirSync(path.join(SRC, dir))
     .filter((n) => /\.(html|js)$/.test(n) && n !== 'i18n.js')
     .map((n) => fs.readFileSync(path.join(SRC, dir, n), 'utf8'));
-  const sources = [...scan('worker'), ...scan('assets'), selfCode];
+  /* ★ H9 — index.html · signup.html(저장소 루트)도 이제 i18n.js 를 쓴다
+     (로그인 전 언어 선택 · QR 안내). 그 전까지는 worker 화면만 봤다. */
+  const sources = [...scan('worker'), ...scan('assets'), ...scan('.'), selfCode];
 
   const unused = KEYS.filter((k) => !OK_UNUSED[k] &&
     !sources.some((src) => src.includes("'" + k + "'") || src.includes('"' + k + '"')));

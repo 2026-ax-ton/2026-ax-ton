@@ -41,6 +41,8 @@ function openQuiz(opts) {
   has('유형을 적는다', text(t.$('step-count')), '위험 지점 짚기');
   eq('유형 픽토그램', iconName(t.$('quiz-kind')), 'touch');
   has('문항을 읽어 준다', t.$('prompt-audio').innerHTML, 'btn-audio');
+  has('★ 한 번만 답할 수 있다고 내 언어로 미리 알린다 (H2 · FR-WK-03-12)',
+    text(t.$('step-once')), t.win.I18N.t('quiz.onceOnly', 'km'));
 
   const svg = t.$('quiz-body').querySelector('.quiz-figure svg');
   ok('프레스 도해가 들어온다', !!svg);
@@ -123,8 +125,9 @@ function openQuiz(opts) {
 
   eq('결과 화면이 뜬다', t.$('view-result').hidden, false);
   has('세 문항 중 두 문항 정답 → 미통과', text(t.$('result-title')), '아직 통과하지 못했습니다');
-  eq('점수', text(t.$('result-score')), '67점');
-  has('통과 기준을 밝힌다', text(t.$('result-note')), '통과 기준 100점');
+  eq('★ 점수(%) 대신 문항 수로 보인다 (H2)', text(t.$('result-score')), '3문항 중 2문항');
+  ok('★ 결과에 "점"이 없다', text(t.$('result-score')).indexOf('점') === -1);
+  has('통과 기준을 밝힌다', text(t.$('result-note')), '전 문항 정답');
 
   eq('미통과 화면에 그 문장이 있다', t.$('result-fault').hidden, false);
   has('노동자의 실패가 아니라 교육의 실패',
@@ -135,6 +138,9 @@ function openQuiz(opts) {
   has('둘째 문항은 정답', text(t.$('result-review').children[1]), t.win.I18N.t('state.correct', 'km'));
 
   has('교육을 다시 들으러 갈 수 있다', t.$('result-actions').innerHTML, 'learn.html');
+  ok('★ 다음 행동이 문항별 복기보다 앞에 온다 (H2)',
+    !!(t.$('result-actions').compareDocumentPosition(t.$('result-review')) &
+      t.win.Node.DOCUMENT_POSITION_FOLLOWING));
 
   /* ★ 미통과일 때는 로그아웃하지 않는다 — "지금 다시 풀기" 가 같은 세션으로
      이어져야 한다. 끝내지 못한 사람을 로그아웃으로 내쫓지 않는다 */
@@ -204,7 +210,7 @@ function openQuiz(opts) {
   click(t.win, t.$('btn-next'));
 
   has('통과', text(t.$('result-title')), '이해도 검증을 통과했습니다');
-  eq('만점', text(t.$('result-score')), '100점');
+  eq('만점', text(t.$('result-score')), '3문항 중 3문항');
   eq('통과 화면에는 그 문장을 띄우지 않는다', t.$('result-fault').hidden, true);
   has('홈으로 갈 수 있다', t.$('result-actions').innerHTML, 'home.html');
 
@@ -252,7 +258,7 @@ function openQuiz(opts) {
     text(t.$('consequence-text')), '방독마스크 없이 들어가면');
 
   click(t.win, t.$('btn-next'));
-  eq('1문항 오답이라 미통과', text(t.$('result-score')), '50점');
+  eq('1문항 오답이라 미통과', text(t.$('result-score')), '2문항 중 1문항');
 
   const row = t.win.Store.progress.load()
     .find((r) => r.workerId === 'W-4821-11' && r.courseId === 'c-paint');
@@ -485,6 +491,39 @@ function openQuiz(opts) {
   /* 그래도 courses 에서는 안 지웠다 — 옛 기록이 가리킬 곳이 남아야 한다 */
   eq('★ 배열에서는 빠지지 않았다',
     t.win.Store.courses.load().find((c) => c.id === 'c-press').quiz.length, 3);
+}
+
+/* =================================================================
+   11. ★ 그림 문제 구역의 터치 영역이 60px 이상인가 (H3 · FR-WK-03-14)
+
+   zone 버튼의 보이는 크기(z.w·z.h, 퍼센트)는 도해 위 위험 구역의 실제
+   모양을 가리키는 것이라 그대로 둔다. 작은 화면에서 퍼센트가 60px 보다
+   작게 계산되더라도, CSS min-width/min-height 가 실제 터치 영역을
+   60px 로 밀어 올린다 — 투명 여백이라 보이는 테두리는 그대로다
+   (기본 background: none · border-color: transparent).
+   ================================================================= */
+{
+  const fs = require('fs');
+  const workerCss = fs.readFileSync(SRC + '/worker/worker.css', 'utf8');
+  const styleCss = fs.readFileSync(SRC + '/assets/style.css', 'utf8');
+  const quizJs = fs.readFileSync(SRC + '/worker/quiz.js', 'utf8');
+
+  has('★ --tap-min 이 60px 로 정의돼 있다', styleCss, '--tap-min: 60px');
+
+  const zoneBlock = (workerCss.match(/\.zone\s*\{[^}]*\}/) || [''])[0];
+  has('★ .zone 의 터치 영역 하한이 --tap-min 이다 (가로)', zoneBlock, 'min-width: var(--tap-min)');
+  has('★ .zone 의 터치 영역 하한이 --tap-min 이다 (세로)', zoneBlock, 'min-height: var(--tap-min)');
+
+  /* 보이는 크기는 그대로 — 기본 상태에 테두리·배경이 없어야
+     여백이 늘어도 눈에는 보이지 않는다 */
+  has('★ 기본 테두리가 투명하다 (여백이 보이지 않는다)', zoneBlock, 'border: 3px dashed transparent');
+  has('★ 기본 배경이 없다 (여백이 보이지 않는다)', zoneBlock, 'background: none');
+
+  /* quiz.js 가 인라인으로 min-width/min-height 를 지정하면 위 CSS 하한이
+     덮인다 — zone 버튼에는 left·top·width·height 만 인라인으로 준다 */
+  const renderZones = (quizJs.match(/function renderZones[\s\S]*?\n  \}/) || [''])[0];
+  ok('★ 화면 코드가 인라인으로 최소 크기를 덮어쓰지 않는다',
+    !/style\.(minWidth|minHeight)/.test(renderZones));
 }
 
 report('기능4 이해도 검증');

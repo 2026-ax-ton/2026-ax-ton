@@ -30,9 +30,9 @@
 
 ### FE-WK-01 · 홈 ✅
 - 파일: `src/worker/home.html`·`home.js` · 역할 가드 `worker`
-- 읽기: `setup`, `courses`, `library`(`phraseOk`), `progress`, `orders`(`orderOpen`) · 쓰기: 없음
+- 읽기: `setup`, `courses`, `library`(`phraseOk`), `progress`, `orders`(`orderOpen`) · 쓰기: `library`(오역 신고만)
 - 구성: 오늘의 문구 캐러셀(검수 완료만) → 3단계 진행 → 재교육 지시 카드 → 큰 메뉴 4개 + 배지
-- ⬜ FR-WK-01-06 오역 신고 (결정): 문구 카드에 [이 번역이 이상해요] → 그 문구의 기존 `flags[]`에 `{note, lang, at, resolvedAt:null}`을 더하고 그 언어만 `stopped` (`library.js` `fileFlag`와 같은 규칙 — 계약 변경 없음). **신고자를 저장하지 않는다.** 관리자앱 FE-AD-02 「오역 신고 목록」에 그대로 뜨고, 다시 살리는 판정은 사람이 한다
+- ✅ (2026-11-01) FR-WK-01-06 오역 신고: 문구 카드에 [이 번역이 이상해요] → 그 문구의 기존 `flags[]`에 `{note, lang, at, resolvedAt:null}`을 더하고 그 언어만 `stopped` (`library.js` `fileFlag`와 같은 규칙 — 계약 변경 없음). **신고자를 저장하지 않는다.** 한국어 사용자는 번역 칸이 없어 `lang:''`(문구 전체)로 접수된다. 관리자앱 FE-AD-02 「오역 신고 목록」에 그대로 뜨고, 다시 살리는 판정은 사람이 한다
 - 탭바: 하단 4개 메뉴는 지금 코드 그대로 (2회차 시안에서 확인)
 
 ### FE-WK-02 · 교육 수강 ✅
@@ -42,15 +42,15 @@
 - 다 들으면 `quiz.html?course=<id>`로 이동
 - ✅ (2026-11-01) FR-WK-02-10: 번역 없음 + 음성 없음이 겹치면 "번역 준비 중"을 먼저, `voiceNote`를 그 아래에 둔다
 
-### FE-WK-03 · 이해도 검증 ✅ (+ 시안 1·2회차 결정 ⬜)
+### FE-WK-03 · 이해도 검증 ✅
 - 파일: `src/worker/quiz.html`·`quiz.js`, `assets/diagrams.js`(도해·구역 좌표 — AD-04와 공유)
 - 상태: `run = {course, equipment, questions, index, answers, locked}` (`quiz.js` 151행)
 - 문항 렌더: `hotspot`(구역 버튼 + 퍼센트 좌표 `Diagrams.inAnswer`) · `choice`(`options`, `answer` 인덱스) · `match`(`pairs`)
 - 답 처리 `answered(correct, consequenceText, consequenceKo)`: 잠금 → `data-mark` ok/no (정답 함께 표시) → 결과 문장 표시 + `UI.speak`
 - 채점: `PASS_SCORE` = 전 문항 정답. 기록 `progress.quiz = {score, passed, answers, asked, at, attempt, firstPassed}`
-- ⬜ FR-WK-03-12: 문항 머리에 `n / 총`과 "한 번만 답할 수 있어요" (i18n 키 6개 언어)
-- ⬜ FR-WK-03-13 (결정): 결과 `result-score`를 `n점` 대신 "n문항 중 m문항"으로, 다음 행동 버튼을 앞에 둔다
-- ⬜ FR-WK-03-14: hotspot 구역 버튼의 터치 영역 지름 ≥ 60px (CSS `min-width/min-height` + 투명 여백). 실기기에서 잰다
+- ✅ (2026-11-01) FR-WK-03-12: 문항 머리에 `n / 총`과 "한 번만 답할 수 있어요" (i18n 키 `quiz.stepLabel`·`quiz.onceOnly`, 6개 언어). 음성은 `promptSpeech()`에 합쳐 한 번에 읽는다(따로 부르면 `UI.speak`가 앞 발화를 끊는다)
+- ✅ (2026-11-01) FR-WK-03-13 (결정): 결과 `result-score`를 `n점` 대신 "n문항 중 m문항"으로, `result-actions`를 `result-review`보다 앞에 배치(HTML 순서)
+- ✅ (2026-11-01, 코드 확인) FR-WK-03-14: hotspot 구역 버튼의 터치 영역 지름 ≥ 60px — `.zone`의 기존 `min-width/min-height: var(--tap-min)`(투명 여백)이 이미 지키고 있었다. `test-quiz.js` §11 로 고정. 실기기 확인은 남음
 - ✅ (2026-11-01) FR-WK-03-15: match 짝 3쌍 이상 — 출제 쪽(FE-AD-04 `content.js` 검사)에서 막는다. 화면 코드는 바뀌지 않는다
 - 하지 않음: 응답 시간 기록 (FR-WK-03-09, P-5)
 - 시험: `test-quiz.js`에 FR-12·13 케이스, `test-content.js`(또는 기존 출제 시험)에 2쌍 거부 케이스 추가
@@ -133,10 +133,11 @@
 - `src/admin/content.html`·`content.js` · 마법사 5단계, 검수 완료 문구만, `qr.js`(바이트 모드·EC M) · 발급 후 문항은 `retired` + 새로 붙이기만
 - FR-AD-04-04 (기존 동작 명확화): 번역 없는 언어가 있으면 목록으로 경고하고 **발급은 허용** (번역 없음 ≠ 중지, 249~293행)
 - ✅ (2026-11-01) FR-WK-03-15: match 짝 검사 기준을 2쌍 → 3쌍으로 (683행)
+- ✅ (2026-11-07) **PRD-AD-07 사진 위험 지점 (T17)** — 3단계 위 「사진으로 위험 지점 찾기」 칸(`#photo-ai`). [사진 찍기](`capture="environment"`) → `Photo.shrink()` → `Net.post('/api/hazards', {image, mime}, {token})` → 사진 위 번호 지점(AI 제안 점선 · 직접 추가 실선) · 지점별 유형 바꾸기·지우기 · 사진 누르기로 더하기·옮기기(최대 5) → [확정] → 위험유형별 [이 위험으로 문항 쓰기](고정 문장 + 문항 `hazard`) · 검수 완료 문구 후보 → 2단계에 더하기. 사진은 저장하지 않는다(C06 D-037). https·서버 로그인·캔버스가 없으면 버튼을 잠그고 이유를 적는다
 
 ### FE-AD-05 · 대시보드·재교육 ✅
 - `src/admin/dashboard.html`·`dashboard.js` · 정보 위계: 언어×위험유형 막대 최대 · 필수 문장 3개 · `orders` 쓰기(해소는 저장 안 함)
-- ⬜ FR-AD-05-10: 막대마다 응답 인원 "n명". n < 3이면 "인원이 적어 개인이 드러날 수 있습니다" 표시. 숨기지는 않는다 (외부 보고의 5명 기준과 다름)
+- ✅ (2026-11-01) FR-AD-05-10: 막대마다 응답 인원 "n명"(`weakItems()`가 `row.workerId`로 중복 제거해 센다). n < 3이면 "인원이 적어 개인이 드러날 수 있습니다" 표시(`UI.waitBadge`). 숨기지는 않는다 (외부 보고의 5명 기준과 다름)
 
 ### FE-AD-06 · 교육 증빙 ✅
 - `src/admin/proof.html`·`proof.js` · 쓰는 키 없음 · `window.print()` + `@media print` · 범위 밖 건수 표기
@@ -148,8 +149,8 @@
 
 ### FE-CM-01 · 계정·로그인 ✅
 - `src/index.html`·`signup.html`, `assets/auth.js`·`login.js`·`signup.js` · `Auth.require(role)` · `?next=` 검증 후 이동 · 목업 고지
-- ⬜ FR-CM-01-08: 로그인·가입 화면 머리에 언어 6개 선택 + 읽어 주기. 로그인 전이라 기기 단위 `prefs.lang`에 둔다
-- ⬜ FR-CM-01-09: `?next=`가 교육 링크(QR)면 "로그인하면 「교육명」이 바로 열립니다" 표시. 교육명은 `courses`에서 `textContent`로
+- ✅ (2026-11-01) FR-CM-01-08: 로그인·가입 화면 머리에 언어 6개 선택 + 읽어 주기. 로그인 전이라 기기 단위 `prefs.lang`에 둔다(`UI.preloginLangPicker`). "언어를 고르세요" 자체는 번역하지 않는다 — 모국어 글자 + 그 언어로 자기 이름을 읽는 음성으로 고른다
+- ✅ (2026-11-01) FR-CM-01-09: `?next=`가 교육 링크(QR)면 "로그인하면 「교육명」이 바로 열립니다" 표시. 교육명은 `courses`에서 `textContent`로(`login.js` `renderQrNote`)
 - ⬜ 서버 인증으로 바꿀 때: `Auth` 내부만 `/api/auth/*` 호출로 교체 (SPEC-BE §3). 화면 코드는 그대로
 
 ### FE-CM-02 · 다국어·접근성·오프라인 ✅
@@ -176,5 +177,11 @@
 | 버전 | 날짜 | 작성자 | 내용 |
 |---|---|---|---|
 | 0.1 | 2026-10-22 | byeonsoyun | 최초 작성 (PRD 14개 + 코드 확인) |
+| 1.4 | 2026-11-07 | byeonsoyun | FE-AD-04 에 PRD-AD-07 사진 위험 지점 화면 (T17, C06 D-037) |
 | 1.0 | 2026-10-22 | byeonsoyun | Figma 2회차 반영(FR 추가 반영), 제안을 결정으로 닫음, CodeGen 순서 6단계로 확정 |
 | 1.0.1 | 2026-10-23 | byeonsoyun | 운영 공지(현장 시연 = 제출 HTML `file://`) 반영: [AI 번역 받기]를 `file://`에서도 `API_BASE`로 쓰게 함 |
+| 1.0.2 | 2026-11-01 | byeonsoyun | H1 FR-WK-01-06 오역 신고 구현 완료로 ⬜→✅, 쓰기 칸 갱신 |
+| 1.0.3 | 2026-11-01 | byeonsoyun | H2 FR-WK-03-12·13 구현 완료로 ⬜→✅ (진행 안내 + 결과 문항 수 표기) |
+| 1.0.4 | 2026-11-01 | byeonsoyun | H3 FR-WK-03-14 코드 확인으로 ⬜→✅ (기존 CSS가 이미 60px을 지키고 있었음을 검사로 고정) |
+| 1.0.5 | 2026-11-01 | byeonsoyun | H7 FR-AD-05-10 구현 완료로 ⬜→✅ (대시보드 막대에 응답 인원 n명 + 3명 미만 주의 문구) |
+| 1.0.6 | 2026-11-01 | byeonsoyun | H9 FR-CM-01-08·09 구현 완료로 ⬜→✅ (로그인 전 언어 선택 + QR 안내). `prefs`에 `lang` 필드 추가 |

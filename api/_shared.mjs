@@ -58,23 +58,36 @@ export function fail(status, code, message, cors) {
    KV 저장소가 필요하다(후보). 최악의 비용은 4층(공급사 예산)이 막는다. */
 
 let countDay = '';
-let countUsed = 0;
+const countUsed = {};
 
-export function takeDailyCall(limit) {
+/** 쓰임새(bucket)별로 따로 센다.
+ *
+ *  ★ 왜 가르나 — 사진 한 장은 번역 한 줄보다 훨씬 비싸다 (이미지 토큰).
+ *    한 통에 같이 세면 **사진 몇 장이 그날의 번역 예산을 먹는다.**
+ *    번역은 운영자가 하루에 수십 번 하고, 사진은 담당자가 가끔 한다 —
+ *    둘이 서로의 한도를 깎지 않게 통을 나눈다 (A02 §5.6).
+ *    마지막 방어는 여전히 공급사 예산 상한이다 (A04 6-1). */
+export function takeDailyCallFor(bucket, limit) {
   const today = new Date().toISOString().slice(0, 10);
   if (today !== countDay) {
     countDay = today;
-    countUsed = 0;
+    Object.keys(countUsed).forEach((k) => { delete countUsed[k]; });
   }
-  if (countUsed >= limit) return false;
-  countUsed += 1;
+  const used = countUsed[bucket] || 0;
+  if (used >= limit) return false;
+  countUsed[bucket] = used + 1;
   return true;
+}
+
+/** 번역·역번역이 쓰는 통. 옛 이름을 그대로 둔다 (부르는 곳을 고치지 않는다). */
+export function takeDailyCall(limit) {
+  return takeDailyCallFor('ai', limit);
 }
 
 /** 검사에서만 쓴다. 상한 계산이 묶음 사이로 새지 않게 한다. */
 export function resetDailyCall() {
   countDay = '';
-  countUsed = 0;
+  Object.keys(countUsed).forEach((k) => { delete countUsed[k]; });
 }
 
 /* ── 같은 출처로 볼 주소 (A02 §5.2) ─────────────────────────────────
@@ -119,7 +132,10 @@ export async function guardBasic(request, opts) {
   const allowFile = process.env.ALLOW_FILE_ORIGIN === '1';
 
   /* 제출 HTML 을 file:// 로 열면 브라우저가 Origin: null 을 보낸다 (C08 §7).
-     막는 힘이 약해서 시연 기간에만 켠다 (A02 §5.2, C06 D-019). */
+     ★ 2026-11-04 — **이 스위치를 켜지 않는다.** 11/3 개정 공지가 「팀에서 직접
+       운영하는 백엔드 서버와 통신하는 방식은 불가」로 정해, 제출본은 우리 서버를
+       부르면 실격이다 (C06 D-034, C08 §7.1, A04 7-6). 스위치는 되돌릴 수 있게
+       남겨 두지만 값은 언제나 0 이다 — 막는 힘이 약하기도 하다 (A02 §5.2). */
   const nullOrigin = origin === 'null' && allowFile;
   const sameOrigin = !!origin && allowedOrigins().indexOf(origin) !== -1;
   const cors = nullOrigin ? CORS_NULL : undefined;
@@ -205,9 +221,15 @@ export function readConfig(modelEnvName) {
   };
 }
 
-/** 모델을 한 번 부르고 문장 하나를 돌려준다.
- *  돌려주는 값: { text } 또는 { error: 'model' | 'timeout' } */
-export async function callModel({ key, model, timeoutMs }, systemText, userText) {
+/** 모델을 한 번 부르고 **자른 적 없는 출력 문자열**을 돌려준다.
+ *
+ *  `parts` 는 Gemini 가 받는 모양 그대로다 — 글만 보낼 때는 `[{text}]`,
+ *  사진을 보낼 때는 `[{inline_data}, {text}]` 다 (T17, `api/hazards.mjs`).
+ *  길이 판정은 **부르는 쪽**이 한다 — 번역문(600자)과 사진 응답 JSON 은
+ *  쓸 만한 길이가 다르다.
+ *
+ *  돌려주는 값: { text } 또는 { error: 'model' | 'timeout' | 'limit', why } */
+export async function callModelParts({ key, model, timeoutMs }, systemText, parts, maxOutput) {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);
 
@@ -222,10 +244,10 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
       },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemText }] },
-        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        contents: [{ role: 'user', parts }],
         // temperature 를 보내지 않는다 — 최신 모델은 무시하고 경고를 낸다 (A02 §5.3)
         generationConfig: {
-          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          maxOutputTokens: maxOutput || MAX_OUTPUT_TOKENS,
           thinkingConfig: { thinkingLevel: 'low' },
         },
       }),
@@ -266,17 +288,24 @@ export async function callModel({ key, model, timeoutMs }, systemText, userText)
     return { error: 'model', why: '모델이 막음' };
   }
 
-  const parts = data && data.candidates && data.candidates[0]
+  const got = data && data.candidates && data.candidates[0]
     && data.candidates[0].content && data.candidates[0].content.parts;
-  const out = parts && parts[0] && typeof parts[0].text === 'string' ? parts[0].text.trim() : '';
+  const out = got && got[0] && typeof got[0].text === 'string' ? got[0].text.trim() : '';
 
-  // 빈 출력·길이 초과는 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도
-  // 문자열 그대로 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
-  if (out.length < 1 || out.length > MAX_TEXT) {
-    return { error: 'model', why: out.length < 1 ? '빈 출력' : '출력이 너무 김' };
-  }
+  // 빈 출력은 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도 문자열 그대로
+  // 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
+  if (out.length < 1) return { error: 'model', why: '빈 출력' };
 
   return { text: out };
+}
+
+/** 글 한 줄을 보내고 **문장 하나**를 돌려준다 (번역·역번역).
+ *  길이 상한 `MAX_TEXT`(600자)는 여기서 본다 — 지금까지와 같다. */
+export async function callModel(cfg, systemText, userText) {
+  const r = await callModelParts(cfg, systemText, [{ text: userText }], MAX_OUTPUT_TOKENS);
+  if (r.error) return r;
+  if (r.text.length > MAX_TEXT) return { error: 'model', why: '출력이 너무 김' };
+  return r;
 }
 
 /* ── 로그 (A02 §5.2) ────────────────────────────────────────────────

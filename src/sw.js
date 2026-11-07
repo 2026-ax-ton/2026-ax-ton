@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v13';
+var VERSION = 'v15';   // 2026-11-07 — 배포: H1~H9 · 제출본 차단(D-034) · T17 사진 위험 지점(content)
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.
@@ -75,6 +75,7 @@ var PRECACHE = [
   'assets/review.js',
   'assets/net.js',
   'assets/agent.js',
+  'assets/photo.js',
 
   /* 화면 JS 11 */
   'worker/home.js',

@@ -2,7 +2,7 @@
    signup.js — 회원가입 화면 (signup.html)
 
    담당: 공용
-   쓰는 키: accounts, session
+   쓰는 키: accounts, session, prefs(언어, H9)
    읽는 키: setup (노동자 가입 시 언어·공정 선택지)
 
    ★ 노동자의 언어 선택지는 기능1에서 등록한 언어만 나온다.
@@ -15,6 +15,9 @@
   var $ = UI.$;
 
   UI.warnIfBlocked();
+
+  /* 로그인 전 언어 선택 (H9 · FR-CM-01-08) — login.js 와 같은 공용 조각 */
+  UI.preloginLangPicker('lang-gate');
 
   function showError(msg) {
     var box = $('join-error');

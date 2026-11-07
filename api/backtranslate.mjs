@@ -17,7 +17,11 @@ import {
 
 export const config = { maxDuration: 30 }; // A02 §5.2
 
-function systemText(langName) {
+/** ★ 내보내는 이유는 하나다 — 제출본 빌드(`scripts/build-submission.mjs`)가
+ *  이 함수를 그대로 불러 지시문을 **뽑아 간다** (C06 D-034 ②).
+ *  두 곳에 손으로 베끼면 서버와 제출본의 AI 가 서로 다른 말을 하게 된다.
+ *  Vercel 이 특별히 보는 것은 메서드 이름(GET·POST…)뿐이라 이 이름은 안전하다. */
+export function systemText(langName) {
   return `다음 ${langName} 문장을 한국어로 직역한다. 원문을 추측해 고치지 말고 쓰인 그대로 옮긴다. `
     + '부정은 부정으로, 긍정은 긍정으로 옮긴다. 한국어 문장 하나만 출력한다.';
 }

@@ -49,6 +49,25 @@ var I18N = (function () {
     'nav.talk':   { ko: '소통', km: 'សន្ទនា',   id: 'Obrolan',   vi: 'Trao đổi', ne: 'कुराकानी', th: 'พูดคุย' },
     'nav.my':     { ko: '마이', km: 'ខ្ញុំ',      id: 'Saya',      vi: 'Của tôi',  ne: 'मेरो',   th: 'ของฉัน' },
 
+    /* 🆕 H9 — 로그인·가입 화면 (FR-CM-01-08·09). 로그인 전이라 I18N.lang() 은
+       Store.prefs.lang(이 화면에서 고른 것)을 본다. "언어를 고르세요" 자체는
+       번역하지 않는다 — 그 문장을 번역하려면 이미 그 사람의 언어를 알아야
+       하는 모순이 생긴다. 대신 모국어 글자와 그 언어로 그 이름을 읽어 주는
+       음성으로 고르게 한다 (UI.preloginLangPicker). */
+    'login.id':      { ko: '아이디', km: 'ID', id: 'ID', vi: 'ID', ne: 'आईडी', th: 'ไอดี' },
+    'login.pw':      { ko: '비밀번호', km: 'ពាក្យសម្ងាត់', id: 'Kata sandi', vi: 'Mật khẩu', ne: 'पासवर्ड', th: 'รหัสผ่าน' },
+    'login.submit':  { ko: '로그인', km: 'ចូលប្រើ', id: 'Masuk', vi: 'Đăng nhập', ne: 'लगइन', th: 'เข้าสู่ระบบ' },
+    'login.signupTitle': { ko: '회원가입', km: 'ចុះឈ្មោះ', id: 'Daftar', vi: 'Đăng ký', ne: 'दर्ता गर्नुहोस्', th: 'สมัครสมาชิก' },
+    'login.signupSubmit': { ko: '가입하고 시작하기', km: 'ចុះឈ្មោះ ហើយចាប់ផ្តើម', id: 'Daftar dan mulai', vi: 'Đăng ký và bắt đầu', ne: 'दर्ता गरी सुरु गर्नुहोस्', th: 'สมัครแล้วเริ่มเลย' },
+    'login.backToLogin': { ko: '로그인으로', km: 'ត្រឡប់ទៅចូលប្រើ', id: 'Kembali ke masuk', vi: 'Về đăng nhập', ne: 'लगइनमा फर्कनुहोस्', th: 'กลับไปเข้าสู่ระบบ' },
+    /* {course} 는 코드가 교육 이름으로 바꿔 넣는다 (FR-CM-01-09) */
+    'login.qrNote':  { ko: '로그인하면 「{course}」이 바로 열립니다',
+      km: 'នៅពេលចូលប្រើ 「{course}」 នឹងបើកភ្លាម',
+      id: 'Setelah masuk, 「{course}」akan langsung terbuka',
+      vi: 'Sau khi đăng nhập, 「{course}」sẽ mở ngay',
+      ne: 'लगइन गरेपछि 「{course}」 तुरुन्तै खुल्छ',
+      th: 'เมื่อเข้าสู่ระบบ 「{course}」จะเปิดทันที' },
+
     /* 공통 동작 */
     'action.logout': { ko: '로그아웃',   km: 'ចាកចេញ',      id: 'Keluar',      vi: 'Đăng xuất', ne: 'बाहिरिनु',  th: 'ออกจากระบบ' },
     'action.listen': { ko: '들어 보기',  km: 'ស្តាប់',        id: 'Dengarkan',   vi: 'Nghe',      ne: 'सुन्नुहोस्',  th: 'ฟัง' },
@@ -98,6 +117,9 @@ var I18N = (function () {
     'home.officialMark': { ko: '공식 답변 표시', km: 'បង្ហាញចម្លើយផ្លូវការ', id: 'Tanda jawaban resmi', vi: 'Hiển thị trả lời chính thức', ne: 'आधिकारिक जवाफ चिन्ह', th: 'แสดงคำตอบทางการ' },
     'home.proofPrint':   { ko: '증빙 출력', km: 'បោះពុម្ពភស្តុតាង', id: 'Cetak bukti', vi: 'In chứng nhận', ne: 'प्रमाण छपाइ', th: 'พิมพ์หลักฐาน' },
     'home.unreviewedMarked': { ko: '검수되지 않은 번역은 화면에 따로 표시됩니다.', km: 'ការបកប្រែដែលមិនទាន់ត្រួតពិនិត្យ ត្រូវបានសម្គាល់ដាច់ដោយឡែក', id: 'Terjemahan yang belum diperiksa ditandai terpisah di layar.', vi: 'Bản dịch chưa kiểm duyệt được đánh dấu riêng trên màn hình.', ne: 'जाँच नभएको अनुवाद पर्दामा छुट्टै देखाइन्छ।', th: 'คำแปลที่ยังไม่ตรวจสอบจะถูกทำเครื่องหมายแยกไว้' },
+    /* 🆕 H1 — 홈에서 바로 오역 신고 (FR-WK-01-06) */
+    'home.reportTrans':  { ko: '이 번역이 이상해요', km: 'ការបកប្រែនេះខុស', id: 'Terjemahan ini salah', vi: 'Bản dịch này sai', ne: 'यो अनुवाद गलत छ', th: 'คำแปลนี้ผิด' },
+    'home.reportSent':   { ko: '신고했습니다. 확인될 때까지 이 번역은 보이지 않습니다.', km: 'បានរាយការណ៍ហើយ។ ការបកប្រែនេះនឹងមិនបង្ហាញទេ រហូតដល់ត្រួតពិនិត្យរួច', id: 'Laporan terkirim. Terjemahan ini tidak akan tampil sampai diperiksa.', vi: 'Đã báo cáo. Bản dịch này sẽ không hiển thị cho đến khi được kiểm duyệt.', ne: 'सूचना दिइयो। जाँच नभएसम्म यो अनुवाद देखिँदैन।', th: 'แจ้งแล้ว คำแปลนี้จะไม่แสดงจนกว่าจะตรวจสอบ' },
     'home.unreviewedNotUsed': { ko: '안전 지시로 쓰지 않습니다.', km: 'មិនប្រើជាការណែនាំសុវត្ថិភាពទេ', id: 'Tidak dipakai sebagai instruksi keselamatan.', vi: 'Không dùng làm chỉ dẫn an toàn.', ne: 'सुरक्षा निर्देशनका रूपमा प्रयोग गरिँदैन।', th: 'ไม่ใช้เป็นคำสั่งด้านความปลอดภัย' },
     'home.menuLearn':    { ko: '안전교육 듣기', km: 'ស្តាប់ការបណ្តុះបណ្តាលសុវត្ថិភាព', id: 'Dengarkan pelatihan keselamatan', vi: 'Nghe đào tạo an toàn', ne: 'सुरक्षा तालिम सुन्नुहोस्', th: 'ฟังการอบรมความปลอดภัย' },
     'home.offlineOk':    { ko: '오프라인 가능',           km: 'ប្រើបានគ្មានអ៊ីនធឺណិត', id: 'Bisa tanpa internet', vi: 'Dùng được khi mất mạng', ne: 'इन्टरनेट बिना चल्छ', th: 'ใช้ได้แบบออฟไลน์' },
@@ -115,6 +137,9 @@ var I18N = (function () {
     /* 이해도 검증 */
     'quiz.nextQuestion': { ko: '다음 문항',        km: 'សំណួរបន្ទាប់',    id: 'Soal berikutnya', vi: 'Câu hỏi tiếp', ne: 'अर्को प्रश्न', th: 'ข้อถัดไป' },
     'quiz.listenAgain':  { ko: '문항을 다시 듣기', km: 'ស្តាប់សំណួរម្តងទៀត', id: 'Dengarkan soal lagi', vi: 'Nghe lại câu hỏi', ne: 'प्रश्न फेरि सुन्नुहोस्', th: 'ฟังคำถามอีกครั้ง' },
+    /* 🆕 H2 — 문항 머리에 진행(n/총)과 "한 번만" 을 미리 알린다 (FR-WK-03-12) */
+    'quiz.stepLabel':    { ko: '문항', km: 'សំណួរ', id: 'Soal', vi: 'Câu hỏi', ne: 'प्रश्न', th: 'ข้อ' },
+    'quiz.onceOnly':     { ko: '한 번만 답할 수 있어요', km: 'ឆ្លើយបានតែម្តងប៉ុណ្ណោះ', id: 'Hanya bisa jawab sekali', vi: 'Chỉ được trả lời một lần', ne: 'एक पटक मात्र जवाफ दिन सकिन्छ', th: 'ตอบได้เพียงครั้งเดียว' },
 
     /* 신고 */
     'report.title':     { ko: '위험한 곳 알리기',        km: 'ជូនដំណឹងកន្លែងគ្រោះថ្នាក់', id: 'Laporkan tempat berbahaya', vi: 'Báo nơi nguy hiểm', ne: 'खतरा ठाउँ जनाउनु', th: 'แจ้งจุดอันตราย' },
@@ -182,6 +207,8 @@ var I18N = (function () {
     'speech.menuTalk':    { ko: '궁금한 것을 물어봅니다', km: 'សួរអ្វីដែលអ្នកចង់ដឹង', id: 'Menanyakan hal yang ingin diketahui', vi: 'Hỏi điều bạn muốn biết', ne: 'जान्न चाहेको कुरा सोध्ने', th: 'ถามสิ่งที่อยากรู้' },
     'speech.menuMy':      { ko: '내 교육 기록을 봅니다', km: 'មើលកំណត់ត្រាបណ្តុះបណ្តាលរបស់ខ្ញុំ', id: 'Melihat catatan pelatihan saya', vi: 'Xem hồ sơ đào tạo của tôi', ne: 'मेरो तालिम अभिलेख हेर्ने', th: 'ดูบันทึกการอบรมของฉัน' },
     'speech.badTrans':    { ko: '안전 문구의 말이 이상하면 관리자에게 알려 주세요. 알려 주신 분이 누구인지는 기록하지 않습니다.', km: 'បើពាក្យក្នុងសារសុវត្ថិភាពខុស សូមប្រាប់អ្នកគ្រប់គ្រង។ យើងមិនកត់ត្រាថាអ្នកណាបានប្រាប់ទេ។', id: 'Jika kalimat pesan keselamatan terasa aneh, beri tahu pengelola. Kami tidak mencatat siapa yang memberi tahu.', vi: 'Nếu câu chữ trong thông điệp an toàn có vẻ sai, hãy báo cho người quản lý. Chúng tôi không ghi lại ai đã báo.', ne: 'सुरक्षा वाक्यको भाषा अनौठो लागे प्रबन्धकलाई भन्नुहोस्। कसले भन्यो भन्ने राखिँदैन।', th: 'หากข้อความความปลอดภัยดูผิดเพี้ยน โปรดแจ้งผู้ดูแล เราไม่บันทึกว่าใครเป็นผู้แจ้ง' },
+    /* 🆕 H1 — 오늘의 문구 카드의 신고 버튼이 읽어 주는 안내 */
+    'speech.reportTrans': { ko: '이 번역이 이상하면 눌러 주세요. 신고한 사람은 기록하지 않습니다.', km: 'ប្រសិនបើការបកប្រែនេះខុស សូមចុច។ យើងមិនកត់ត្រាថាអ្នកណាបានរាយការណ៍ទេ។', id: 'Jika terjemahan ini salah, tekan tombol ini. Kami tidak mencatat siapa yang melapor.', vi: 'Nếu bản dịch này sai, hãy nhấn vào đây. Chúng tôi không ghi lại ai đã báo.', ne: 'यो अनुवाद गलत भए यहाँ थिच्नुहोस्। कसले सूचना दियो भन्ने राखिँदैन।', th: 'ถ้าคำแปลนี้ผิด กดที่นี่ เราไม่บันทึกว่าใครเป็นผู้แจ้ง' },
     'action.listenGuide': { ko: '설명 듣기',        km: 'ស្តាប់ការពន្យល់',  id: 'Dengarkan penjelasan', vi: 'Nghe giải thích', ne: 'व्याख्या सुन्नुहोस्', th: 'ฟังคำอธิบาย' },
     'report.listenDone':  { ko: '접수 안내 듣기',   km: 'ស្តាប់ការជូនដំណឹង', id: 'Dengarkan info laporan', vi: 'Nghe thông báo tiếp nhận', ne: 'दर्ता जानकारी सुन्नुहोस्', th: 'ฟังข้อมูลการรับแจ้ง' },
     'report.listenAnon':  { ko: '익명 안내 듣기',   km: 'ស្តាប់ការពន្យល់អនាមិក', id: 'Dengarkan info anonim', vi: 'Nghe giải thích ẩn danh', ne: 'गुमनाम जानकारी सुन्नुहोस्', th: 'ฟังข้อมูลการไม่ระบุชื่อ' },
@@ -226,11 +253,17 @@ var I18N = (function () {
      ----------------------------------------------------------------- */
 
   /* 지금 화면을 보는 사람의 언어.
-     로그인 전이거나 관리자면 한국어다 — 관리자 화면은 번역하지 않는다. */
+     로그인 상태면 계정 언어, 아니면 이 기기에서 미리 고른 언어(H9 · FR-CM-01-08),
+     둘 다 없으면 한국어다 — 관리자 화면은 로그인 뒤 번역하지 않는다. */
   function lang() {
     try {
       var u = (typeof Auth !== 'undefined') && Auth.current();
-      return (u && u.lang) || 'ko';
+      if (u && u.lang) return u.lang;
+      if (typeof Store !== 'undefined' && Store.prefs) {
+        var p = Store.prefs.load();
+        if (p && p.lang) return p.lang;
+      }
+      return 'ko';
     } catch (e) {
       return 'ko';
     }

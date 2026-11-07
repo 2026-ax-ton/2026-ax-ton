@@ -507,14 +507,20 @@ var Store = (function () {
        기기마다 있는 음성이 다르므로 이건 그 기기의 사정이다. */
   var VOICE_FALLBACKS = ['silent', 'ko'];
 
+  /* ★ lang — 로그인 전 화면(로그인·가입)의 표시 언어 (H9 · FR-CM-01-08, 🆕 2026-11-01).
+       로그인 전이라 계정(accounts.lang)을 아직 모른다 — fontScale 과 같은 이유로
+       기기에 둔다. 빈 문자열이면 "아직 고르지 않음" 이고, 그때는 한국어로 보인다
+       (I18N.lang() 이 그 순서로 내려간다). 로그인한 뒤에는 accounts.lang 이 우선이고
+       이 값은 쓰이지 않는다 — 계정 언어와 기기 언어가 다르면 계정 쪽이 맞다. */
   var prefs = makeStore('prefs',
-    function () { return { fontScale: 'normal', voiceFallback: 'silent' }; },
+    function () { return { fontScale: 'normal', voiceFallback: 'silent', lang: '' }; },
     function (d) {
       d = obj(d);
       return {
         fontScale: FONT_SCALES.indexOf(d.fontScale) === -1 ? 'normal' : d.fontScale,
         voiceFallback: VOICE_FALLBACKS.indexOf(d.voiceFallback) === -1
-          ? 'silent' : d.voiceFallback
+          ? 'silent' : d.voiceFallback,
+        lang: findBy(LANGUAGES, 'code', d.lang) ? d.lang : ''
       };
     });
 

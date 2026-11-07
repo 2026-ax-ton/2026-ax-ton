@@ -428,29 +428,88 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
 }
 
 /* =================================================================
-   16. file:// 로 열면 배포 주소로 부른다 (T8 · C06 D-019 · C08 §7)
+   16. 제출본(file://)은 우리 서버를 부르지 않는다 (C06 D-034 · C08 §7.1)
+
+   2026-11-03 개정 공지: 「프론트엔드 HTML + 팀에서 직접 운영하는 백엔드 서버와
+   통신하는 방식은 불가」. 그래서 **배포 주소를 붙이는 길 자체를 지웠다** —
+   옛 규칙(file:// 이면 API_BASE 를 붙인다, C06 D-019)은 대체됐다.
    ================================================================= */
 {
   const t = open();
-  /* agent.js 는 location.protocol 을 보고 고른다. 하네스는 https 로 띄운다. */
-  eq('https 로 열면 상대 경로', t.win.Agent.apiUrl('/api/translate'), '/api/translate');
+  eq('언제나 같은 출처 상대 경로다', t.win.Agent.apiUrl('/api/translate'), '/api/translate');
 
   const fs = require('fs');
   const path = require('path');
   /* 2026-11-01 — 부르는 일은 net.js 가 한다 (C06 D-030). 규칙은 그대로 거기서 지켜진다 */
   const code = fs.readFileSync(path.join(SRC, 'assets/net.js'), 'utf8');
-  ok('★ file: 일 때만 배포 주소를 붙인다', /location\.protocol === 'file:'/.test(code));
-  ok('그 밖에는 같은 출처를 부른다 (제3자 요청 0건)',
-    /\(file \? API_BASE : ''\)/.test(code));
+  ok('★★ 배포 주소가 net.js 에 없다 (붙일 수단 자체가 없다)',
+    !/2026-ax-ton\.vercel\.app/.test(code));
+  ok('★ https 일 때만 부른다', /location\.protocol === 'https:'/.test(code));
   const agentCode = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
   ok('★ 에이전트는 그 자리를 거쳐서만 부른다', /Net\.(post|apiUrl)\(/.test(agentCode)
-    && !/fetch\s*\(/.test(agentCode));
+    && !/fetch\s*\(/.test(agentCode));
 
-  /* 서버 쪽 짝 — file:// 의 Origin: null 은 허용을 켰을 때만 통과한다 */
+  /* 서버 쪽 짝 — 스위치는 남아 있지만 켜지 않는다 (A04 7-6) */
   const shared = fs.readFileSync(path.join(ROOT, 'api/_shared.mjs'), 'utf8');
   ok('★ 서버는 ALLOW_FILE_ORIGIN=1 일 때만 null 출처를 받는다',
     /ALLOW_FILE_ORIGIN.*===.*'1'/.test(shared));
-  ok('★ 시연 기간에만 켠다고 적어 두었다', /시연 기간에만/.test(shared));
+  ok('★ 이제는 켜지 않는다고 적어 두었다', /켜지 않는다/.test(shared));
+
+  /* ── 글자만 보는 것으로는 모자란다. **실제로 안 나가는지** 센다 ─────────
+     net.js 를 location·fetch 를 바꿔 끼운 자리에서 그대로 돌린다 (의존성 0 —
+     measure-ai.mjs 가 review.js 를 쓰는 것과 같은 방법이다). */
+  const netCode = fs.readFileSync(path.join(SRC, 'assets/net.js'), 'utf8');
+  const makeNet = (protocol) => {
+    let calls = 0;
+    const fakeFetch = () => {
+      calls += 1;
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ text: 'x' }) });
+    };
+    const Net = new Function('location', 'fetch', netCode + '\n;return Net;')(
+      { protocol: protocol }, fakeFetch);
+    return { Net: Net, calls: () => calls };
+  };
+
+  const file = makeNet('file:');
+  ok('★ file: 에서는 onHttps() 가 거짓이다', file.Net.onHttps() === false);
+  pending.push(file.Net.post('/api/translate', { ko: '손을 넣지 마십시오', lang: 'km' })
+    .then((r) => {
+      eq('★★ file: 에서는 fetch 가 한 번도 불리지 않는다 (제출본 요청 0건)', file.calls(), 0);
+      ok('★ 부르는 쪽은 「닿지 못했다」를 받는다 — 던지지 않는다',
+        r.ok === false && r.failed === 'network');
+    }));
+
+  const http = makeNet('http:');
+  ok('★ http: 에서도 부르지 않는다 (https 만)', http.Net.onHttps() === false);
+
+  const https = makeNet('https:');
+  ok('★ https 에서는 부를 수 있다', https.Net.onHttps() === true);
+  pending.push(https.Net.post('/api/translate', { ko: '손을 넣지 마십시오', lang: 'km' })
+    .then(() => {
+      eq('★ https 에서는 한 번 부른다', https.calls(), 1);
+    }));
+  eq('★ 주소는 언제나 같은 출처 상대 경로다', https.Net.apiUrl('/api/translate'), '/api/translate');
+}
+
+/* =================================================================
+   16-1. 제출본에서는 **왜** 못 부르는지 적는다 (C06 D-034 · FR-AD-03-07)
+
+   버튼을 조용히 숨기지 않는다는 규칙이 제출본에도 걸린다 — 운영자가 손 입력
+   칸으로 바로 갈 수 있어야 한다.
+   ================================================================= */
+{
+  const t = open();
+  eq('https 에서는 막지 않는다', t.win.Agent.blockedReason(), '');
+
+  /* ★ 갈아 끼우는 칸은 `Net.aiReady` 다 (C06 D-034). `onHttps()` 를 바꿔도
+     소용없다 — 그것은 net.js 안에서만 쓰는 이름이라 바깥에서 바꿔도 안 보인다.
+     제출본 조각(`scripts/submission-ai.template.js`)도 이 칸을 바꾼다. */
+  const t2 = open();
+  t2.win.Net.aiReady = () => false;      // 제출본을 더블클릭한 상태
+  const why = t2.win.Agent.blockedReason();
+  ok('★ 제출본에서는 막는다', why !== '');
+  ok('★ 이유에 「제출본」이 들어 있다', /제출본/.test(why));
+  ok('★ 손 입력으로 가라고 적어 준다', /직접 입력/.test(why));
 }
 
 /* =================================================================
@@ -479,20 +538,21 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
 }
 
 /* =================================================================
-   13. file:// 로 열면 배포 주소로 부른다 (C06 D-019 · C08 §7)
+   13. 제출본에서는 이유를 보여 주고 손 입력으로 보낸다 (C06 D-034)
+
+   버튼을 조용히 숨기지 않는다는 규칙(FR-AD-03-07)이 제출본에도 걸린다.
    ================================================================= */
 {
   const t = open();
   ok('같은 출처면 상대 경로로 부른다', t.win.Agent.apiUrl('/api/translate') === '/api/translate');
-  ok('배포 주소가 맨 위 상수로 한 곳에 있다', /^https:\/\//.test(t.win.Agent.API_BASE));
 
   const fs = require('fs');
   const path = require('path');
   const net = fs.readFileSync(path.join(SRC, 'assets/net.js'), 'utf8');
-  eq('API_BASE 는 한 번만 적혀 있다 (여기저기 박아 두지 않는다)',
-    (net.match(/https:\/\/2026-ax-ton\.vercel\.app/g) || []).length, 1);
+  eq('★★ 배포 주소가 net.js 에 0번 적혀 있다 (C06 D-034 로 지웠다)',
+    (net.match(/https:\/\/2026-ax-ton\.vercel\.app/g) || []).length, 0);
   const agent2 = fs.readFileSync(path.join(SRC, 'assets/agent.js'), 'utf8');
-  eq('★ 에이전트에는 배포 주소가 적혀 있지 않다 (한 곳에서 가져온다)',
+  eq('★ 에이전트에도 배포 주소가 없다',
     (agent2.match(/https:\/\/2026-ax-ton\.vercel\.app/g) || []).length, 0);
 }
 
