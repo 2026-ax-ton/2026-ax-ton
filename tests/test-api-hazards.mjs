@@ -260,7 +260,7 @@ console.log = (...a) => logs.push(a.join(' '));
     Object.keys(r.data.points[0]).sort().join(','), 'hazard,r,why,x,y');
 
   const src = require('fs').readFileSync(
-    require('path').join(require('path').dirname(new URL(import.meta.url).pathname.slice(1)), '../api/hazards.mjs'),
+    require('path').join(require('path').dirname(require('url').fileURLToPath(import.meta.url)), '../api/hazards.mjs'),
     'utf8',
   );
   /* 주석을 뺀 **실제 코드**만 본다 — 주석에는 "courses 에 쓰지 않는다" 같은
