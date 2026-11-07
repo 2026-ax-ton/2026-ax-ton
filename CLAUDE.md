@@ -283,10 +283,10 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 |---|---|
 | 노동자 | `src/worker/home.* learn.* quiz.* report.* talk.* my.*` + `worker.css` |
 | 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` + `admin.css` |
-| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
+| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` · `photo.js`(사진 줄이기, T17 — 교육 만들기만 싣는다) + `app.css style*.css` |
 | 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 11개 화면 전부가 싣습니다 (D-032) |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
-| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + 루트 `package.json` (드라이버 1개) |
+| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) · `api/reports.mjs`(익명 신고) · `api/hazards.mjs`(사진 위험 지점, T17) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs _hazards.mjs` + 루트 `package.json` (드라이버 1개) |
 | DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
 | 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
