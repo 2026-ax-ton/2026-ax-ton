@@ -20,8 +20,8 @@
    무엇을 갈아 끼우나
 
      Net.aiReady()  false → true   (제출본에서도 AI 버튼이 산다)
-     Net.post()     /api/translate · /api/backtranslate 두 길만 가로챈다.
-                    그 밖의 길(로그인·동기화·신고)은 **원래대로 둔다** —
+     Net.post()     /api/translate · /api/backtranslate · /api/hazards 세 길만
+                    가로챈다. 그 밖의 길(로그인·동기화·신고)은 **원래대로 둔다** —
                     우리 서버는 부르지 않으므로 그대로 로컬 모드로 간다.
 
    넘지 않는 선 (배포본과 똑같이 지킨다)
@@ -32,6 +32,11 @@
      · 역번역에는 원문 한국어를 주지 않는다 (A02 §5.4)
      · 지시문은 서버(`api/*.mjs`)에서 **그대로 뽑아 온다** — 두 곳에
        손으로 베끼지 않는다 (빌드가 끼워 넣는다)
+     · 사진 위험 지점의 **거르는 규칙**(6종 밖 버림·5개 상한·퍼센트 검사)도
+       `api/_hazards.mjs` 의 **소스를 그대로 끼워 넣는다** — 베끼지 않는다.
+       제출본에서 경계가 느슨해지면 그게 가장 위험하다 (C06 D-027)
+     · 사진은 담당자가 찍은 설비 사진만 보낸다. 사람·이름표가 찍혔다고 하면
+       지점을 **돌려주지 않고** 다시 찍게 한다 (FR-AD-07-20)
      · 실패·한도·시간 초과면 이유를 적고 손 입력으로 돌아간다 (FR-AD-03-07)
      · 모델 출력은 믿을 수 없는 문자열이다 — 보여 주는 쪽이 textContent 를 쓴다
 
@@ -52,6 +57,8 @@
   var SYS_TRANSLATE = __SYS_TRANSLATE__;      // api/translate.mjs 에서 뽑아 왔다
   var SYS_TRANSLATE_RETRY = __SYS_TRANSLATE_RETRY__;
   var SYS_BACK = __SYS_BACK__;                // api/backtranslate.mjs 에서
+  var MODEL_PHOTO = '__MODEL_PHOTO__';        // 사진 (없으면 번역과 같은 모델)
+  var SYS_HAZARDS = __SYS_HAZARDS__;          // api/_hazards.mjs 의 systemText
 
   /* ── 서버와 같은 값 (A02 §5.2·§5.3) ─────────────────────────────── */
 
@@ -59,6 +66,17 @@
   var TIMEOUT_MS = 20000;
   var MAX_OUTPUT_TOKENS = 600;
   var MAX_TEXT = 600;
+  var MAX_PHOTO_TOKENS = 1200;      // 사진 응답은 JSON 이라 번역문보다 길다
+  var MAX_PHOTO_ANSWER = 4000;
+  var PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+  var BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+
+  /* ── api/_hazards.mjs 를 그대로 끼워 넣은 자리 (빌드가 채운다) ──────
+     `export` 만 떼고 소스를 옮긴다. HAZARDS·MAX_POINTS·systemText·
+     parseModelJson·filterPoints·overlapCount 가 여기서 생긴다. */
+  /* eslint-disable */
+__HAZARD_RULES__
+  /* eslint-enable */
 
   /* 하루 상한 — 서버의 3층 방어 중 우리가 파일 안에서 흉내 낼 수 있는 몫이다
      (A02 §5.6). 공급사 예산 상한이 마지막 방어로 남아 있다 (A04 6-1). */
@@ -69,7 +87,7 @@
 
   /* ── 공급사를 한 번 부른다 ──────────────────────────────────────── */
 
-  function callModel(model, systemText, userText) {
+  function callModel(model, systemText, parts, maxTokens) {
     var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = setTimeout(function () { if (ac) ac.abort(); }, TIMEOUT_MS);
 
@@ -82,9 +100,9 @@
       },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemText }] },
-        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        contents: [{ role: 'user', parts: parts }],
         generationConfig: {
-          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          maxOutputTokens: maxTokens || MAX_OUTPUT_TOKENS,
           thinkingConfig: { thinkingLevel: 'low' }
         }
       })
@@ -100,12 +118,10 @@
           if (data && data.promptFeedback && data.promptFeedback.blockReason) {
             return { error: 'model', why: '모델이 막음' };
           }
-          var parts = data && data.candidates && data.candidates[0]
+          var got = data && data.candidates && data.candidates[0]
             && data.candidates[0].content && data.candidates[0].content.parts;
-          var out = parts && parts[0] && typeof parts[0].text === 'string'
-            ? parts[0].text.trim() : '';
+          var out = got && got[0] && typeof got[0].text === 'string' ? got[0].text.trim() : '';
           if (out.length < 1) return { error: 'model', why: '빈 출력' };
-          if (out.length > MAX_TEXT) return { error: 'model', why: '출력이 너무 김' };
           return { text: out };
         }, function () { return { error: 'model', why: 'JSON 이 아님' }; });
       }, function () {
@@ -164,10 +180,13 @@
     var sys = SYS_TRANSLATE.replace('__LANG__', name);
     /* 재시도에는 앞 역번역을 붙여 무엇이 뒤집혔는지 알린다 (A02 §5.3) */
     if (attempt > 0 && hint) sys += SYS_TRANSLATE_RETRY.replace('__HINT__', hint);
-    return callModel(MODEL_TRANSLATE, sys, ko).then(function (r) {
-      return r.error ? failBody(r)
-        : okBody({ text: r.text, model: MODEL_TRANSLATE, attempt: attempt });
-    });
+    return callModel(MODEL_TRANSLATE, sys, [{ text: ko }], MAX_OUTPUT_TOKENS)
+      .then(function (r) {
+        if (r.error) return failBody(r);
+        /* 길이 상한은 부르는 쪽이 본다 — 번역문 600자, 사진 응답 JSON 은 다르다 */
+        if (r.text.length > MAX_TEXT) return failBody({ error: 'model', why: '출력이 너무 김' });
+        return okBody({ text: r.text, model: MODEL_TRANSLATE, attempt: attempt });
+      });
   }
 
   function backtranslate(body) {
@@ -181,10 +200,62 @@
     }
     /* ★ 한국어 원문은 주지 않는다 — 주면 모델이 원문에 맞춰 고쳐서
          대조가 무의미해진다 (A02 §5.4). 여기서도 `text` 만 넘긴다. */
-    return callModel(MODEL_BACK, SYS_BACK.replace('__LANG__', name), text)
+    return callModel(MODEL_BACK, SYS_BACK.replace('__LANG__', name),
+      [{ text: text }], MAX_OUTPUT_TOKENS)
       .then(function (r) {
-        return r.error ? failBody(r) : okBody({ back: r.text, model: MODEL_BACK });
+        if (r.error) return failBody(r);
+        if (r.text.length > MAX_TEXT) return failBody({ error: 'model', why: '출력이 너무 김' });
+        return okBody({ back: r.text, model: MODEL_BACK });
       });
+  }
+
+  /* ── 사진 위험 지점 (T17 · FR-AD-07) ─────────────────────────────
+     `api/hazards.mjs` 와 **같은 울타리**를 지킨다 — 거르는 규칙은 위에 끼워 넣은
+     `api/_hazards.mjs` 소스를 그대로 쓴다. 다른 점은 둘뿐이다:
+       ① 토큰·역할 검사가 없다 (제출본에는 서버도 계정도 없다 — 목업 로그인이다)
+       ② 사진 크기 상한을 화면 쪽(`photo.js` 300KB)에 맡긴다 */
+  function hazards(body) {
+    var image = body && typeof body.image === 'string' ? body.image.trim() : '';
+    var mime = body && typeof body.mime === 'string' ? body.mime.trim() : '';
+    if (!image || PHOTO_MIMES.indexOf(mime) === -1 || !BASE64.test(image)) {
+      return Promise.resolve({
+        ok: false, status: 400,
+        data: { error: 'bad_request', message: '사진을 읽을 수 없습니다. 다시 찍어 주세요.' }
+      });
+    }
+    return callModel(MODEL_PHOTO, SYS_HAZARDS, [
+      { inline_data: { mime_type: mime, data: image } },
+      { text: '이 설비 사진의 위험 지점을 찾아라.' }
+    ], MAX_PHOTO_TOKENS).then(function (r) {
+      if (r.error) return failBody(r);
+      if (r.text.length > MAX_PHOTO_ANSWER) {
+        return failBody({ error: 'model', why: '출력이 너무 김' });
+      }
+      var answer = parseModelJson(r.text);
+      if (!answer) {
+        /* 받은 글을 응답에 담지 않는다 — 화면은 손 흐름으로 간다 (FR-11) */
+        return {
+          ok: false, status: 502,
+          data: { error: 'model', message: 'AI 응답을 읽을 수 없습니다. 직접 만드실 수 있습니다.' }
+        };
+      }
+      /* ★ 사람·이름표가 찍혔으면 지점을 **아예 돌려주지 않는다** (FR-20).
+         화면에서 가리는 것으로 두지 않는다 — 서버가 하는 것과 같다 */
+      if (answer.person === true) {
+        return okBody({
+          person: true, retake: true, points: [], dropped: null, overlaps: 0, model: MODEL_PHOTO
+        });
+      }
+      var kept = filterPoints(answer.points, HAZARDS, MAX_POINTS);
+      return okBody({
+        person: false,
+        retake: false,
+        points: kept.points,
+        dropped: kept.dropped,
+        overlaps: overlapCount(kept.points),
+        model: MODEL_PHOTO
+      });
+    });
   }
 
   var realPost = Net.post;
@@ -193,6 +264,7 @@
     if (used >= DAILY_LIMIT) return Promise.resolve(overLimit());
     if (path === '/api/translate') { used += 1; return translate(body); }
     if (path === '/api/backtranslate') { used += 1; return backtranslate(body); }
+    if (path === '/api/hazards') { used += 1; return hazards(body); }
     /* 그 밖의 길은 건드리지 않는다. 우리 서버는 어차피 부르지 않으므로
        `onHttps()` 가 거짓이라 손 입력·로컬 모드로 간다 (C06 D-034). */
     return realPost(path, body, opts);

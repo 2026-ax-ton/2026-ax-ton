@@ -46,6 +46,7 @@ import { fileURLToPath } from 'url';
 import { LANG_NAMES } from '../api/_shared.mjs';
 import { systemText as translateSystem } from '../api/translate.mjs';
 import { systemText as backSystem } from '../api/backtranslate.mjs';
+import { HAZARDS, systemText as hazardSystem } from '../api/_hazards.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
@@ -56,6 +57,7 @@ const OUT = process.argv[2]
   ? path.resolve(process.cwd(), process.argv[2])
   : path.join(ROOT, 'submission');
 const TEMPLATE = path.join(ROOT, 'scripts', 'submission-ai.template.js');
+const HAZARD_RULES = path.join(ROOT, 'api', '_hazards.mjs');
 
 /* 조각을 싣는 화면 — 운영자(문구 검수) 화면 한 장뿐이다.
    관리자·노동자 화면은 AI 를 부르지 않는다 (C06 D-002·D-025). */
@@ -86,6 +88,9 @@ const env = { ...readEnvLocal(), ...process.env };
 const KEY = (env.GEMINI_HACKATHON_KEY || '').trim();
 const MODEL_TRANSLATE = (env.AI_MODEL_TRANSLATE || DEFAULT_MODEL).trim();
 const MODEL_BACK = (env.AI_MODEL_BACK || DEFAULT_MODEL).trim();
+/* 사진 모델은 서버와 같은 규칙이다 — `AI_MODEL_PHOTO` 가 있으면 그것, 없으면 번역 모델
+   (`api/hazards.mjs` 의 readConfig 순서와 같다) */
+const MODEL_PHOTO = (env.AI_MODEL_PHOTO || MODEL_TRANSLATE).trim();
 
 if (!KEY) {
   console.error('GEMINI_HACKATHON_KEY 가 없다. 위 주석대로 .env.local 에 적는다.');
@@ -107,6 +112,22 @@ const SYS_TRANSLATE = translateSystem('__LANG__', '');
 const SYS_TRANSLATE_FULL = translateSystem('__LANG__', '__HINT__');
 const SYS_TRANSLATE_RETRY = SYS_TRANSLATE_FULL.slice(SYS_TRANSLATE.length);
 const SYS_BACK = backSystem('__LANG__');
+const SYS_HAZARDS = hazardSystem(HAZARDS);
+
+/* ── 거르는 규칙을 **소스째로** 끼워 넣는다 ───────────────────────────
+   `api/_hazards.mjs` 는 바깥을 부르지 않는 순수 함수만 모아 둔 파일이라,
+   `export` 만 떼면 브라우저에서 그대로 돈다. 베끼지 않고 옮기는 것이 요점이다 —
+   제출본에서 경계(6종 밖 버림·5개 상한)가 느슨해지면 그게 가장 위험하다. */
+const hazardSrc = fs.readFileSync(HAZARD_RULES, 'utf8');
+if (/^\s*import\s/m.test(hazardSrc)) {
+  console.error('api/_hazards.mjs 가 다른 파일을 부른다 — 그대로 끼워 넣을 수 없다.');
+  process.exit(1);
+}
+const hazardRules = hazardSrc
+  .replace(/^export\s+/gm, '')                 // export 만 뗀다
+  .split(/\r?\n/)
+  .map((line) => (line ? '  ' + line : line))  // 조각 안쪽으로 들여쓴다
+  .join('\n');
 
 if (!SYS_TRANSLATE_FULL.startsWith(SYS_TRANSLATE) || !SYS_TRANSLATE_RETRY) {
   console.error('지시문 모양이 바뀌었다 — api/translate.mjs 의 systemText 를 확인한다.');
@@ -140,6 +161,9 @@ const filled = template
   .replace("'__GEMINI_KEY__'", JSON.stringify(KEY))
   .replace("'__MODEL_TRANSLATE__'", JSON.stringify(MODEL_TRANSLATE))
   .replace("'__MODEL_BACK__'", JSON.stringify(MODEL_BACK))
+  .replace("'__MODEL_PHOTO__'", JSON.stringify(MODEL_PHOTO))
+  .replace('__HAZARD_RULES__', hazardRules)
+  .replace('__SYS_HAZARDS__', JSON.stringify(SYS_HAZARDS))
   .replace('__LANG_NAMES__', JSON.stringify(LANG_NAMES))
   .replace('__SYS_TRANSLATE_RETRY__', JSON.stringify(SYS_TRANSLATE_RETRY))
   .replace('__SYS_TRANSLATE__', JSON.stringify(SYS_TRANSLATE))
@@ -148,7 +172,8 @@ const filled = template
 /* 빌드가 채우는 빈칸만 본다. `__LANG__`·`__HINT__` 는 **실행 중에** 채우는
    자리라 그대로 남아 있어야 한다 (지시문 안의 언어명·앞 역번역). */
 const BUILD_BLANKS = ['__GEMINI_KEY__', '__MODEL_TRANSLATE__', '__MODEL_BACK__',
-  '__LANG_NAMES__', '__SYS_TRANSLATE__', '__SYS_TRANSLATE_RETRY__', '__SYS_BACK__'];
+  '__MODEL_PHOTO__', '__LANG_NAMES__', '__SYS_TRANSLATE__', '__SYS_TRANSLATE_RETRY__',
+  '__SYS_BACK__', '__SYS_HAZARDS__', '__HAZARD_RULES__'];
 const left = BUILD_BLANKS.filter((name) => filled.indexOf(name) !== -1);
 if (left.length) {
   console.error('빈칸이 남았다: ' + left.join(', '));
@@ -177,12 +202,15 @@ const outRel = path.relative(ROOT, OUT).split(path.sep).join('/');
 
 console.log('제출본을 만들었다 → ' + outRel + '/');
 console.log('  조각 1장: ' + SHIM_REL + ' (운영자 화면 ' + AI_PAGE + ' 에만 실린다)');
-console.log('  모델: 번역 ' + MODEL_TRANSLATE + ' · 역번역 ' + MODEL_BACK);
+console.log('  모델: 번역 ' + MODEL_TRANSLATE + ' · 역번역 ' + MODEL_BACK
+  + ' · 사진 ' + MODEL_PHOTO);
+console.log('  거르는 규칙: api/_hazards.mjs 를 소스째로 끼워 넣었다 (베끼지 않는다)');
 console.log('');
 console.log('손으로 확인할 것 (C08 §7.1 · D07 STC-E15-003)');
 console.log('  1. ' + outRel + '/index.html 을 빈 크롬에서 더블클릭한다');
 console.log('  2. 개발자도구 네트워크 탭 — 우리 서버(2026-ax-ton.vercel.app) 요청이 0건이어야 한다');
 console.log('  3. 운영자(oper@safety.kr / 1234) → 문구 → [AI 번역 받기] 가 실제로 돈다');
+console.log('     사진 위험 지점(T17)도 같은 조각이 받는다 — 화면이 붙은 뒤에 확인한다');
 console.log('     (여기서는 generativelanguage.googleapis.com 만 보인다 — 공지가 허용한 길)');
 console.log('  4. 노동자(W-4821-07 / 1234) → 수강·이해도 검증·증빙까지 요청 0건으로 끝까지 된다');
 console.log('');

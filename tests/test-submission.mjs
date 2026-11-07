@@ -203,14 +203,15 @@ const shim = fs.existsSync(shimPath) ? fs.readFileSync(shimPath, 'utf8') : '';
    7. 가로채는 길과 경계
    ================================================================= */
 {
-  ok('★★ 가로채는 길은 번역·역번역 둘뿐이다',
+  ok('★★ 가로채는 길은 번역·역번역·사진 셋뿐이다',
     /'\/api\/translate'/.test(shim) && /'\/api\/backtranslate'/.test(shim)
+    && /'\/api\/hazards'/.test(shim)
     && !/'\/api\/auth/.test(shim) && !/'\/api\/store'/.test(shim)
     && !/'\/api\/reports'/.test(shim));
   ok('★ 그 밖의 길은 원래 자리로 넘긴다 (로그인·동기화는 로컬 모드로 간다)',
     /realPost\(path, body, opts\)/.test(shim));
-  ok('★★ 역번역에 한국어 원문을 주지 않는다',
-    /callModel\(MODEL_BACK, SYS_BACK\.replace\('__LANG__', name\), text\)/.test(shim));
+  ok('★★ 역번역에 한국어 원문을 주지 않는다 — `text` 만 넘긴다',
+    /SYS_BACK\.replace\('__LANG__', name\),\s*\n?\s*\[\{ text: text \}\]/.test(shim));
   ok('★★ 승인 상태(status)를 만들지 않는다 — 승인은 사람만 한다',
     !/['"]approved['"]|['"]reviewed['"]/.test(shim));
   ok('★ 실패하면 이유를 담아 돌려준다 (버튼이 조용히 사라지지 않는다)',
@@ -229,5 +230,41 @@ const shim = fs.existsSync(shimPath) ? fs.readFileSync(shimPath, 'utf8') : '';
 }
 
 fs.rmSync(OUT, { recursive: true, force: true });
+
+/* =================================================================
+   8. 🆕 사진 위험 지점 — 거르는 규칙을 **베끼지 않고 옮겼다** (T17 · D-027)
+   ================================================================= */
+{
+  const rules = fs.readFileSync(path.join(ROOT, 'api/_hazards.mjs'), 'utf8');
+
+  ok('★★ 거르는 규칙 소스가 조각 안에 들어 있다 (베끼지 않았다)',
+    /function filterPoints\(/.test(shim) && /function parseModelJson\(/.test(shim)
+    && /function overlapCount\(/.test(shim));
+
+  /* 값이 서버와 같은지 — 숫자 하나가 달라지면 제출본의 경계가 느슨해진다 */
+  const pick = (src, name) => (new RegExp('const ' + name + ' = ([^;]+);').exec(src) || [])[1];
+  eq('★★ 위험유형 6종이 서버와 같다', pick(shim, 'HAZARDS'), pick(rules, 'HAZARDS'));
+  eq('★★ 지점 상한이 서버와 같다 (§11 Q4)', pick(shim, 'MAX_POINTS'), pick(rules, 'MAX_POINTS'));
+  eq('★ 이유 길이 상한도 같다', pick(shim, 'MAX_WHY'), pick(rules, 'MAX_WHY'));
+
+  ok('★ 사진 지시문도 서버에서 뽑아 왔다 (6종이 박혀 있다)',
+    /pinch, shock, fire, fall, choke, chemical/.test(shim));
+
+  ok('★★ 사람·이름표가 찍히면 지점을 돌려주지 않는다 (FR-20)',
+    /answer\.person === true/.test(shim) && /points: \[\]/.test(shim));
+  ok('★ 사진은 inline_data 로 보낸다', /inline_data: \{ mime_type: mime, data: image \}/.test(shim));
+  ok('★ 받는 형식이 서버와 같다 (jpeg·png·webp)',
+    /PHOTO_MIMES = \['image\/jpeg', 'image\/png', 'image\/webp'\]/.test(shim));
+  ok('★ base64 몸통만 받는다 (data: 머리를 고쳐 주지 않는다)', /BASE64\.test\(image\)/.test(shim));
+  ok('★ 사진 응답도 JSON 이 아니면 손 흐름으로 보낸다',
+    /직접 만드실 수 있습니다/.test(shim));
+
+  /* 서버와 제출본이 같은 모양을 돌려주는지 — 부르는 쪽(화면)은 둘을 구분하지 않는다 */
+  const api = fs.readFileSync(path.join(ROOT, 'api/hazards.mjs'), 'utf8');
+  ['person', 'retake', 'points', 'dropped', 'overlaps', 'model'].forEach((k) => {
+    ok('★ 응답 칸 「' + k + '」가 서버·제출본 양쪽에 있다',
+      new RegExp(k + ':').test(api) && new RegExp(k + ':').test(shim));
+  });
+}
 
 report('제출본 빌드 — 키는 저장소 밖, 조각은 운영자 화면 한 장');
