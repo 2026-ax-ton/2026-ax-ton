@@ -863,3 +863,11 @@ table.data .chips .badge { font-size: .68em; }
 .ag-box { position: absolute; border: 3px solid var(--danger, #c62828); border-radius: 6px; box-sizing: border-box; }
 .ag-box-label { position: absolute; left: 0; top: -26px; white-space: nowrap; font-size: 13px; font-weight: 700;
   background: var(--danger, #c62828); color: #fff; padding: 2px 6px; border-radius: 4px; }
+
+/* 담당자 판정 (2026-11-09) — 누른 판정은 테두리로, 틀림은 박스를 흐리게 */
+.ag-judge { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.ag-judge [aria-pressed="true"] { outline: 3px solid var(--ink, #222); }
+.item[data-judge="wrong"] .body > strong, .item[data-judge="wrong"] .meta { text-decoration: line-through; opacity: .6; }
+.ag-edit { margin-top: 8px; padding: 8px; border: 1px dashed var(--line, #bbb); border-radius: 8px; }
+.ag-box[data-judge="wrong"] { opacity: .35; border-style: dashed; }
+.ag-add { margin-top: 12px; }

@@ -1,16 +1,18 @@
-/* AI로 교육 만들기 화면 (admin/autogen) + 노동자 사진 문항 — PRD-AD-08 S1~S4·S6 · 1클릭 승인
+/* AI로 교육 만들기 화면 (admin/autogen) + 노동자 사진 문항 — PRD-AD-08 S1~S4·S6 · 담당자 판정 · 1클릭 승인
 
    ★ 서버를 부르지 않는다. Net.post 를 가짜로 바꿔 끼운다.
    ★ jsdom 에는 canvas 가 없어 사진 줄이기는 사람이 확인한다. 여기서는 그 뒤(위치 결과)부터 본다.
 
    이 묶음이 지키는 것
      1. ★★ 승인 전에는 courses 에 아무것도 쓰지 않는다 (AC-AD-08-05)
-     2. ★★ 「확인 필요」 항목은 펼쳐 보이고 문항에 기본으로 넣지 않는다 (FR-14)
-     3. ★★ AI 가 준 글은 글자로만 — HTML 이 섞여도 요소가 생기지 않는다 (FR-25)
-     4. ★ 안전 문구는 검수 완료만 고를 수 있다 (P-1)
-     5. ★★ 승인하면 사진 문항이 든 교육 1건 — 지금 courses 모양 + photo · figure 만 더한다
-     6. ★ https 가 아니거나 토큰이 없으면 서버를 부르지 않고 손 흐름으로 안내한다
-     7. ★★ 노동자 퀴즈가 사진 위에서 짚고 채점한다 · 사진이 data URL 이 아니면 쓰지 않는다 */
+     2. ★★ 「확인 필요」 항목은 판정 전에는 승인이 안 켜진다 — 판정하면 켜진다 (2026-11-09)
+     3. ★★ [틀림]은 문항에서 빠지고, [고치기]한 부위·위험유형이 문항에 쓰인다
+     4. ★ 담당자가 빠진 위험을 더할 수 있고, 판정 기록이 aiDraft.review 에 남는다
+     5. ★★ AI 가 준 글은 글자로만 — HTML 이 섞여도 요소가 생기지 않는다 (FR-25)
+     6. ★ 안전 문구는 검수 완료만 고를 수 있다 (P-1)
+     7. ★★ 결과 파일 모드 — 서버를 부르지 않고 같은 검토를 한다 · 모양 틀린 파일은 거절
+     8. ★ https 가 아니거나 토큰이 없으면 서버를 부르지 않는다
+     9. ★★ 노동자 퀴즈가 사진 위에서 짚고 채점한다 · 사진이 data URL 이 아니면 쓰지 않는다 */
 
 const { boot, ok, eq, has, report } = require('./harness');
 const click = (win, n) => n.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
@@ -18,14 +20,22 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 
 const RESEARCH = {
   overview: '유압 프레스', general: false, sourceCount: 3, thin: false, model: 'gemini-3.1-flash-lite',
+  limits: ['nypress.co.kr 인증서 오류로 못 열림'],
   items: [
     { id: 'r1', part: '램과 금형 사이', hazard: 'pinch', risk: '손이 끼인다.', status: 'ok', reasons: [],
       sources: [{ title: 'KOSHA', url: 'https://kosha.or.kr/a', host: 'kosha.or.kr', tier: 2 }], conflict: '' },
     { id: 'r2', part: '제어반', hazard: 'shock', risk: '<img src=x onerror=alert(1)>', status: 'check',
       reasons: ['출처끼리 말이 다름'], sources: [], conflict: '설명서와 웹 글이 다름' },
+    { id: 'r3', part: '페달', hazard: 'unknown', risk: '오조작', status: 'check', reasons: ['위험유형을 정하지 못함'], sources: [] },
   ],
 };
 const PHOTO = 'data:image/jpeg;base64,' + Buffer.alloc(200, 1).toString('base64');
+const GUIDED = { mapped: [
+  { id: 'r1', part: '램과 금형 사이', hazard: 'pinch', box: { x0: 30, y0: 40, x1: 70, y1: 60 }, answer: { x: 50, y: 50, r: 20 } },
+  { id: 'r2', part: '제어반', hazard: 'shock', box: { x0: 0, y0: 0, x1: 20, y1: 20 }, answer: { x: 10, y: 10, r: 10 } },
+  { id: 'r3', part: '페달', hazard: 'unknown', box: { x0: 60, y0: 80, x1: 80, y1: 100 }, answer: { x: 70, y: 90, r: 10 } },
+], missing: [] };
+const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[data-id="' + id + '"] button[data-judge="' + kind + '"]');
 
 (async () => {
   const t = boot('admin/autogen.html', {
@@ -52,64 +62,90 @@ const PHOTO = 'data:image/jpeg;base64,' + Buffer.alloc(200, 1).toString('base64'
   eq('★ 리서치를 /api/research 로 부른다', calls[0] && calls[0].path, '/api/research');
   eq('★ 토큰을 함께 보낸다', calls[0] && calls[0].opts.token, 'tok-test');
   ok('★ 설비 정보만 보낸다 (계정 값 없음)', calls[0] && !/kim@daesung|김현수/.test(JSON.stringify(calls[0].body)));
-  ok('주의사항이 보인다', $('ag-items').children.length === 2);
+  eq('주의사항 3개가 보인다', $('ag-items').children.length, 3);
   ok('★★ AI 글에 HTML 이 있어도 요소가 생기지 않는다', !$('ag-items').querySelector('img'));
   has('그 글이 글자 그대로 보인다', $('ag-items').textContent, '<img src=x onerror=alert(1)>');
+  has('★ 막힌 지점(limits)을 보인다', $('ag-limits').textContent, '인증서 오류');
   const dets = $('ag-items').querySelectorAll('details');
   ok('★★ 확인 필요는 펼쳐 두고, ok 는 접어 둔다', dets[1].open === true && dets[0].open === false);
   has('충돌 내용을 보인다', $('ag-items').textContent, '설명서와 웹 글이 다름');
-  const inc = $('ag-items').querySelectorAll('input[name="ag-include"]');
-  ok('★★ 확인 필요는 문항에 기본으로 넣지 않는다', inc[0].checked === true && inc[1].checked === false);
   ok('출처 링크는 새 창 + noopener', $('ag-items').querySelector('a').rel.indexOf('noopener') !== -1);
+  ok('★ 판정 버튼 셋이 항목마다 있다', !!judgeBtn(t, 'r2', 'right') && !!judgeBtn(t, 'r2', 'wrong') && !!judgeBtn(t, 'r2', 'edit'));
 
-  /* 승인 전 */
-  ok('승인 칸이 열린다', $('sec-approve').hidden === false);
-  ok('★ 사진 전에는 승인 버튼이 꺼져 있다', $('btn-approve').disabled === true);
-  eq('★★ 아직 courses 에 아무것도 안 썼다', JSON.stringify(S.courses.load()), before);
-
-  /* 검수 완료 문구만 */
-  const phraseIds = Array.from($('ag-phrases').querySelectorAll('input')).map((n) => n.value);
-  const lib = S.library.load();
-  ok('★ 고를 수 있는 문구는 전부 검수 완료(어느 언어든)', phraseIds.every((id) => {
-    const p = S.findBy(lib, 'id', id);
-    return S.phraseOk(p, 'ko') || (S.setup.load().languages || []).some((c) => S.phraseOk(p, c));
-  }));
-  ok('검수 대기 문구(ph-5)는 고를 수 없다', phraseIds.indexOf('ph-5') === -1);
-
-  /* S3 결과를 끼워 넣는다 (canvas 없음) */
+  /* 사진 결과를 끼워 넣는다 (canvas 없음) */
   const st = win.__autogen.state();
-  st.guided = { mapped: [{ id: 'r1', part: '램과 금형 사이', hazard: 'pinch', box: { x0: 30, y0: 40, x1: 70, y1: 60 }, answer: { x: 50, y: 50, r: 20 } },
-                         { id: 'r2', part: '제어반', hazard: 'shock', box: { x0: 0, y0: 0, x1: 20, y1: 20 }, answer: { x: 10, y: 10, r: 10 } }], missing: [] };
+  st.guided = JSON.parse(JSON.stringify(GUIDED));
   st.keepPhoto = PHOTO;
-  const quiz = win.__autogen.draftQuiz();
-  eq('★★ 넣기로 한 것만 문항이 된다 (확인 필요 r2 는 빠짐)', quiz.length, 1);
-  eq('사진 문항', quiz[0].figure + '|' + quiz[0].type, 'photo|hotspot');
-  eq('★ 정답은 지금 courses 모양 {x,y,r}', JSON.stringify(quiz[0].answer), JSON.stringify({ x: 50, y: 50, r: 20 }));
+  eq('★★ 판정 전: ok 항목만 문항 (확인 필요 r2·r3 빠짐)', win.__autogen.draftQuiz().length, 1);
 
-  /* 담당자가 확인 필요 항목을 직접 넣으면 들어간다 */
-  inc[1].checked = true;
-  inc[1].dispatchEvent(new win.Event('change', { bubbles: true }));
-  eq('담당자가 체크하면 확인 필요도 문항이 된다', win.__autogen.draftQuiz().length, 2);
-  inc[1].checked = false;
-  inc[1].dispatchEvent(new win.Event('change', { bubbles: true }));
-
-  /* 문구 하나 고르고 승인 */
+  /* 문구 하나 고르기 */
   const firstPhrase = $('ag-phrases').querySelector('input');
   firstPhrase.checked = true;
   firstPhrase.dispatchEvent(new win.Event('change', { bubbles: true }));
-  ok('★ 다 채우면 승인 버튼이 켜진다', $('btn-approve').disabled === false, $('ag-check').textContent);
+  ok('★★ 확인 필요가 남아 있으면 승인이 꺼져 있다', $('btn-approve').disabled === true, $('ag-check').textContent);
+  has('남은 판정 수를 보인다', $('ag-check').textContent, '2개 남음');
+  eq('★★ 아직 courses 에 아무것도 안 썼다', JSON.stringify(S.courses.load()), before);
+
+  /* 판정: r2 틀림, r3 고치기(위험유형 끼임 · 부위 이름 고침) */
+  click(win, judgeBtn(t, 'r2', 'wrong'));
+  click(win, judgeBtn(t, 'r3', 'edit'));
+  const editBox = win.document.querySelector('#ag-items li[data-id="r3"] .ag-edit');
+  ok('고치기를 누르면 고칠 칸이 열린다', !!editBox);
+  const inputs = editBox.querySelectorAll('input, select');
+  inputs[0].value = '발판 페달'; inputs[0].dispatchEvent(new win.Event('change', { bubbles: true }));
+  inputs[1].value = 'pinch'; inputs[1].dispatchEvent(new win.Event('change', { bubbles: true }));
+  const quiz = win.__autogen.draftQuiz();
+  eq('★★ 틀림(r2)은 빠지고 고친 r3 는 들어간다', quiz.length, 2);
+  has('★★ 고친 부위 이름으로 문항을 만든다', quiz[1].prompt, '발판 페달');
+  eq('★ 고친 위험유형이 문항에 들어간다', quiz[1].hazard, 'pinch');
+  ok('틀린 항목은 줄을 그어 보인다', win.document.querySelector('#ag-items li[data-id="r2"]').getAttribute('data-judge') === 'wrong');
+
+  /* 빠진 위험 추가 */
+  $('ag-add-part').value = '유압호스';
+  $('ag-add-risk').value = '고압 기름이 뿜어진다';
+  $('ag-add-hazard').value = 'fire';
+  click(win, $('btn-add-item'));
+  has('★ 담당자가 더한 위험이 목록에 보인다', $('ag-items').textContent, '유압호스 (담당자 추가)');
+  eq('추가 항목은 사진 위치가 없어 문항은 늘지 않는다', win.__autogen.draftQuiz().length, 2);
+
+  ok('★★ 판정이 끝나면 승인이 켜진다', $('btn-approve').disabled === false, $('ag-check').textContent);
   click(win, $('btn-approve'));
   const courses = S.courses.load();
   const c = courses[courses.length - 1];
   eq('★★ 승인하면 교육 1건이 늘어난다', courses.length, JSON.parse(before).length + 1);
   eq('발급 상태', c.approved, true);
   eq('사진이 함께 들어간다', c.photo, PHOTO);
-  eq('문항 1개', c.quiz.length, 1);
+  eq('문항 2개', c.quiz.length, 2);
   ok('기존 모양 필드가 다 있다', ['id', 'title', 'equipmentId', 'languages', 'phraseIds', 'quiz', 'dueAt', 'createdAt'].every((k) => k in c));
-  ok('★ 문구는 검수 완료만', c.phraseIds.every((id) => phraseIds.indexOf(id) !== -1));
-  ok('AI 기록(판정 아님)을 남긴다', c.aiDraft && c.aiDraft.items === 2 && c.aiDraft.checks === 1);
+  const rv = c.aiDraft && c.aiDraft.review;
+  ok('★ 판정 기록이 남는다 (틀림 1 · 고침 1 · 추가 1)', rv && rv.wrong === 1 && rv.edited === 1 && rv.added === 1, JSON.stringify(rv));
+  eq('틀린 부위 이름이 기록된다', rv && rv.wrongParts.join(), '제어반');
   ok('승인 뒤 초안을 비운다', $('sec-approve').hidden === true);
 
+  /* 검수 완료 문구만 */
+  const phraseIds = Array.from($('ag-phrases').querySelectorAll('input')).map((n) => n.value);
+  ok('★ 검수 대기 문구(ph-5)는 고를 수 없다', phraseIds.indexOf('ph-5') === -1);
+
+  /* 7. 결과 파일 모드 */
+  {
+    const t5 = boot('admin/autogen.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js' });
+    let called = 0;
+    t5.win.Net.post = () => { called += 1; return Promise.resolve({ ok: true, data: RESEARCH }); };
+    const A = t5.win.__autogen;
+    eq('★ 모양 틀린 파일은 거절', A.readRun({ kind: 'other', research: { items: [] } }), null);
+    eq('research 가 없으면 거절', A.readRun({ kind: 'safety-ai-run' }), null);
+    const bad = A.readRun({ kind: 'safety-ai-run', research: RESEARCH, guided: GUIDED, photo: { data: 'https://evil.example/x.jpg' } });
+    ok('★★ 사진이 data URL 이 아니면 쓰지 않는다 (위치도 버림)', bad.photo === '' && bad.guided === null);
+    const personRun = A.readRun({ kind: 'safety-ai-run', research: RESEARCH, guided: { ...GUIDED, person: true }, photo: { data: PHOTO } });
+    ok('★ 사람 찍힘 결과는 위치를 쓰지 않는다', personRun.guided === null);
+    const run = A.readRun({ kind: 'safety-ai-run', provider: 'openai', model: 'gpt-x', equipment: { name: 'C형 유압프레스' },
+      research: JSON.parse(JSON.stringify(RESEARCH)), guided: JSON.parse(JSON.stringify(GUIDED)), photo: { data: PHOTO } });
+    A.loadRun(run);
+    eq('★★ 결과 파일로 같은 검토 화면이 열린다', t5.$('ag-items').children.length, 3);
+    has('어느 설비를 조사한 결과인지 보인다', t5.$('ag-research-status').textContent, 'C형 유압프레스');
+    eq('★★ 결과 파일 모드에서 서버를 부르지 않는다', called, 0);
+    eq('결과 파일 출처 기록', A.state().source, 'file');
+  }
   /* 6. https 가 아니면 */
   {
     const t2 = boot('admin/autogen.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js' });
