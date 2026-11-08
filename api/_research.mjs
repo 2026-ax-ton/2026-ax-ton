@@ -28,6 +28,7 @@ export const LIMITS = { overview: 400, part: 40, risk: 160, needsPhoto: 80, titl
      블로그·위키 도메인이면 1 이 되지 않는다. */
 export const PUBLIC_DOMAINS = [
   'kosha.or.kr', 'law.go.kr', 'moel.go.kr', 'go.kr', 'osha.gov', 'cdc.gov', 'hse.gov.uk', 'iso.org',
+  'esafetykorea.or.kr',   // 고용노동부·안전보건공단 공식 근로자 교육자료(OPS) 게시처 (2026-11-09 사람 조사)
 ];
 export const VIDEO_DOMAINS = ['youtube.com', 'youtu.be'];
 export const BLOG_DOMAINS = [
@@ -41,22 +42,32 @@ export function cleanField(v, max) {
   return typeof v === 'string' ? v.replace(/[\r\n"`{}<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max) : '';
 }
 
+/* 지시문 — 2026-11-09 사람 조사 규칙(docs/infos/09_AI교육자동생성/2026-11-09_기계조사-규칙.md)을 합쳤다.
+   두 기계를 실제로 조사하다 걸린 함정(검색 요약의 틀린 문서번호·틀린 사고 날짜, 동명이인 모델,
+   못 열린 자료를 「참고용」으로 뭉뚱그리기)을 모델에게도 똑같이 금지한다. */
 export function systemText(hazardCodes = HAZARD_CODES) {
   return '너는 산업안전 자료 조사원이다. 공장 설비 한 대의 위험과 주의할 점을 공개 자료에서 찾아 정리한다.\n'
+    + '조사 순서:\n'
+    + 'A) 먼저 설비의 구조 방식(예: C형·O형, 횡형·수형, 유압·기계식)을 정한다. 제조사·점유율 통계는 없을 때가 많으니 구조로 좁힌다.\n'
+    + 'B) 공식 기준 문서(KOSHA GUIDE, 산업안전보건기준에 관한 규칙)를 찾는다. 공식 근로자용 교육자료(OPS·한 장 자료)가 있으면 그것을 가장 먼저 쓴다.\n'
+    + 'C) 공통 기준만으로 안 나오는 이 설비 고유의 위험(구조·동력 방식 때문에 생기는 것)을 따로 찾는다.\n'
+    + 'D) 제조사·모델명이 있으면 그 제조사 자료를 찾되, 모델명이 같아도 제조사가 다르면 다른 제품이다.\n'
     + '규칙:\n'
-    + '1) 반드시 Google 검색으로 찾은 자료만 근거로 쓴다. 자료 우선순위: 제조사 설명서 > 안전보건공단(KOSHA GUIDE)·'
-    + '산업안전보건기준에 관한 규칙 > 일반 웹 > 동영상.\n'
-    + '2) 모델명 자료를 찾지 못하면 추측하지 말고 같은 종류 설비의 일반 자료를 쓰고 general 을 true 로 한다.\n'
-    + `3) 항목은 많아도 ${MAX_ITEMS}개. 항목마다 부위(part), 위험유형(hazard), 위험 설명(risk), 근거(sources)를 쓴다.\n`
-    + `4) hazard 는 다음 중 하나만 쓴다: ${hazardCodes.join(', ')}. 어디에도 맞지 않으면 unknown.\n`
-    + '5) risk 는 무엇이 왜 위험한지 한국어 한 문장으로 쓴다. 노동자에게 하는 지시문(~하십시오)을 쓰지 않는다.\n'
-    + '6) sources 에는 실제로 본 자료의 제목(title)과 주소(url)만 쓴다. 주소를 지어내지 않는다.\n'
-    + '7) 자료끼리 말이 다르면 하나를 고르지 말고 conflict 에 양쪽 내용을 짧게 쓴다.\n'
-    + '8) 사진으로 확인해야 할 부위면 needsPhoto 에 찍을 부위와 각도를 짧게 쓴다(예: 램과 금형 사이를 정면에서).\n'
-    + '9) 설명 없이 아래 모양의 JSON 하나만 출력한다.\n'
+    + '1) 반드시 검색으로 실제로 본 자료만 근거로 쓴다. 우선순위: 제조사 설명서 > 공식 교육자료·KOSHA GUIDE·법령 > 일반 웹 > 동영상.\n'
+    + '2) 문서 번호(예: KOSHA CODE M-30-2002)·사고 날짜·장소는 검색 요약이 틀리는 일이 많다. 자료 본문에서 확인한 것만 쓰고, 확인 못 했으면 쓰지 않는다.\n'
+    + '3) 동영상은 있다는 것만 알릴 수 있다. 동영상 내용을 근거로 쓰지 않는다.\n'
+    + '4) 모델명 자료를 찾지 못하면 추측하지 말고 같은 종류 설비의 일반 자료를 쓰고 general 을 true 로 한다.\n'
+    + `5) 항목은 많아도 ${MAX_ITEMS}개. 항목마다 부위(part), 위험유형(hazard), 위험 설명(risk), 근거(sources)를 쓴다.\n`
+    + `6) hazard 는 다음 중 하나만 쓴다: ${hazardCodes.join(', ')}. 어디에도 맞지 않으면 unknown.\n`
+    + '7) risk 는 무엇이 왜 위험한지 한국어 한 문장으로 쓴다. 노동자에게 하는 지시문(~하십시오)을 쓰지 않는다.\n'
+    + '8) sources 에는 실제로 본 자료의 제목(title)과 주소(url)만 쓴다. 주소를 지어내지 않는다.\n'
+    + '9) 자료끼리 말이 다르면 하나를 고르지 말고 conflict 에 양쪽 내용을 짧게 쓴다.\n'
+    + '10) 사진으로 확인해야 할 부위면 needsPhoto 에 찍을 부위와 각도를 짧게 쓴다(예: 램과 금형 사이를 정면에서).\n'
+    + '11) 열리지 않은 자료, 내용을 못 본 자료, 찾지 못한 것은 limits 에 「무엇을, 어디까지 확인했고 어디서 막혔는지」로 구체적으로 적는다. 「참고용」처럼 뭉뚱그리지 않는다.\n'
+    + '12) 설명 없이 아래 모양의 JSON 하나만 출력한다.\n'
     + '{"overview": "...", "general": false, "items": [{"part": "...", "hazard": "'
     + hazardCodes[0] + '", "risk": "...", "sources": [{"title": "...", "url": "https://..."}],'
-    + ' "conflict": "", "needsPhoto": ""}]}';
+    + ' "conflict": "", "needsPhoto": ""}], "limits": ["..."]}';
 }
 
 export function userText(eq) {
@@ -177,6 +188,8 @@ export function cleanResult(raw, grounding, eq, hazardCodes = HAZARD_CODES) {
 
   return {
     overview: clip(raw && raw.overview, LIMITS.overview),
+    /* 못 받은 자료·막힌 지점 — 「참고용」으로 뭉뚱그리지 않게 모델이 적고, 화면이 그대로 보인다 (조사 규칙) */
+    limits: (raw && Array.isArray(raw.limits) ? raw.limits : []).map((x) => clip(x, LIMITS.conflict)).filter(Boolean).slice(0, 10),
     general: !!(raw && raw.general === true) || !(eq && eq.model),
     items,
     dropped,
@@ -186,6 +199,11 @@ export function cleanResult(raw, grounding, eq, hazardCodes = HAZARD_CODES) {
 }
 
 /** 항목 하나의 판정 — ok 는 아래를 **전부** 만족할 때만 (FR-AD-08-13) */
+/* 문서번호(예: M-30-2002, KOSHA GUIDE G-12-2020) · 사고 사례 · 날짜 */
+export const DOC_NO = /\b[A-Z]{1,2}-\d{1,3}-(?:19|20)\d{2}\b/;
+export const INCIDENT = /사고|사망|재해|부상|협착/;
+export const DATED = /(?:19|20)\d{2}\s*년|(?:19|20)\d{2}[./-]\d{1,2}/;
+
 export function judge(item) {
   const reasons = [];
   if (item.hazard === 'unknown') reasons.push('위험유형을 정하지 못함');
@@ -195,5 +213,13 @@ export function judge(item) {
   else if (!item.sources.some((s) => s.tier <= 2) && item.sources.length < 2) reasons.push('믿을 만한 출처가 하나뿐');
   if (item.sources.length && item.sources.every((s) => s.tier === 4)) reasons.push('동영상 출처만 있음');
   if (item.conflict) reasons.push('출처끼리 말이 다름');
+  /* 2026-11-09 사람 조사에서 실제로 겪은 함정 — 검색 요약이 문서번호(M-122-2012 → 실제 M-30-2002)와
+     사고 날짜·장소(2020 평택 → 실제 2004 서울)를 틀리게 냈다. 그런 값이 든 문장은 공공 출처가 받쳐야 ok */
+  const hasPublic = item.sources.some((s) => s.tier === 2);
+  const text = String(item.part || '') + ' ' + String(item.risk || '');
+  if (DOC_NO.test(text) && !hasPublic) reasons.push('문서번호가 있는데 공공 출처로 확인되지 않음');
+  if (INCIDENT.test(text) && DATED.test(text) && !hasPublic && item.sources.length < 2) {
+    reasons.push('날짜가 든 사고 사례인데 출처가 하나뿐');
+  }
   return { status: reasons.length ? 'check' : 'ok', reasons };
 }

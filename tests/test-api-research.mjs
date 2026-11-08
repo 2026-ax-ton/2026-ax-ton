@@ -229,6 +229,31 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   setEnv();
 }
 
+/* 6-b. 2026-11-09 사람 조사 규칙을 합친 것 */
+{
+  const sys = R.systemText();
+  has('★ 구조 방식부터 좁힌다', sys, '구조 방식');
+  has('★ 공식 근로자 교육자료(OPS) 우선', sys, 'OPS');
+  has('★ 문서번호·날짜는 본문에서 확인한 것만', sys, '검색 요약이 틀리는 일이 많다');
+  has('★ 동영상 내용은 근거로 못 쓴다', sys, '동영상 내용을 근거로 쓰지 않는다');
+  has('★ 모델명 동명이인', sys, '제조사가 다르면 다른 제품');
+  has('★ 막힌 지점을 limits 에', sys, 'limits');
+
+  const base = (risk, sources) => R.judge({ part: 'p', hazard: 'pinch', risk, sources, unverifiedSources: 0, conflict: '' });
+  const web = { tier: 3 }; const pub = { tier: 2 };
+  eq('★★ 문서번호가 있는데 공공 출처가 없으면 check', base('KOSHA CODE M-122-2012 에 따르면 끼인다', [web, { tier: 3 }]).status, 'check');
+  eq('문서번호 + 공공 출처면 ok', base('KOSHA CODE M-30-2002 에 따르면 끼인다', [pub]).status, 'ok');
+  eq('★★ 날짜 든 사고 사례 + 일반 출처 하나뿐이면 check', base('2020년 평택에서 끼임 사망 사고', [web]).reasons.indexOf('날짜가 든 사고 사례인데 출처가 하나뿐') !== -1, true);
+  eq('날짜 든 사고 + 공공 출처면 ok', base('2004년 서울 협착 사망 사고', [pub]).status, 'ok');
+  eq('모델명(HPC-110)은 문서번호로 보지 않는다', base('HPC-110 의 램 사이', [web, { tier: 3 }]).status, 'ok');
+  eq('★ OPS 게시처(esafetykorea.or.kr)는 공공(2)', R.tierOf('esafetykorea.or.kr', ''), 2);
+
+  fakeModel({ ...GOOD, limits: ['nypress.co.kr 인증서 오류로 못 열림', '', 'TB-G5 스펙표 JS 라 못 받음'] });
+  const r = await call(EQ);
+  eq('★ limits 를 그대로 전한다 (빈 줄은 뺀다)', r.data.limits.length, 2);
+  has('limits 내용', r.data.limits[0], '인증서 오류');
+}
+
 /* 7. 로그 */
 {
   const all = logs.join('\n');
