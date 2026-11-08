@@ -48,7 +48,7 @@ const checkAll = (win, root, name, values) => {
   eq('★ 쓸 수 있는 문구 5개가 선택지에 오른다', phrases.length, 5);
   const pids = [...phrases].map((i) => i.value).sort();
   eq('ph-5(대기) 는 없다', pids.join(','), 'ph-1,ph-2,ph-3,ph-4,ph-6');
-  has('몇 개가 빠졌는지 밝힌다', text(t.$('phrase-note')), '1개는 고를 수 없습니다');
+  has('몇 개가 빠졌는지 밝힌다', text(t.$('phrase-note')), '10개는 고를 수 없습니다');
 
   // 설비를 고르면 제목이 채워진다
   eq('설비가 3대', t.$('draft-equip').querySelectorAll('option').length, 3);

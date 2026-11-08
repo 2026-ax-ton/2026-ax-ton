@@ -180,7 +180,7 @@ ok('인덱스도 if not exists 로 만든다',
     seedSrc, "'src/assets/seed.js'");
 
   eq('계정 6개를 읽었다', data.accounts.length, 6);
-  eq('문구 6개를 읽었다', data.library.length, 6);
+  eq('문구 15개를 읽었다', data.library.length, 15);
   eq('교육 2개를 읽었다', data.courses.length, 2);
   eq('신고 2건을 읽었다', data.reports.length, 2);
   eq('사업장 이름을 읽었다', data.setup.site.name, '대성정밀');

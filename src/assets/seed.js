@@ -125,7 +125,56 @@ var Seed = (function () {
       translations: {
         km: { text: 'ប៊ូតុងបញ្ឈប់សង្គ្រោះបន្ទាន់', back: '비상정지 버튼은 설비 오른쪽 아래에 있습니다' },
         vi: { text: 'Nút dừng khẩn cấp ở phía dưới bên phải', back: '비상정지 버튼은 오른쪽 아래에 있습니다' }
-      } }
+      } },
+    /* ph-7~9 — C형(갭) 유압프레스 전용 조사 결과. 아직 번역도 사람 검수도 안 됐다 (status: waiting).
+         출처: KOSHA CODE M-30-2002 「프레스 방호장치의 선정·설치 및 사용 기술지침」§5.1·§6.5·§7.2
+         (가드 측방·상방·하방 금지, 가드 재전환 확인) +
+         ADH Machine Tool "Types of Press Machines" (C형 프레임은 편심하중 시 벌어짐·비틀림이
+         O형/H형보다 심하다는 구조적 특성, https://www.adhmt.com/types-of-press-machines-drive-frame-and-application-guide/) +
+         고용노동부 정책자료실 2004 협착 사망사례(서울, 재생업체, 근로자 2명,
+         https://www.moel.go.kr/policy/policydata/view.do?bbs_seq=4842) — 영세사업장 실사례로 확인.
+         대상 설비 예시: 남양기공 C형 유압프레스 NCP-20/NCP-30 (제조사 홈페이지는 인증서
+         오류로 직접 확인 못함 — 모델명은 참고용, 구조 유형 확정만 신뢰). */
+    { id: 'ph-7', category: '프레스', status: 'waiting',
+      ko: '덮개(가드) 옆이나 아래로 손을 넣지 마십시오',
+      translations: {} },
+    { id: 'ph-8', category: '프레스', status: 'waiting',
+      ko: '소재는 작업판(테이블) 가운데에 놓고 누르십시오. 한쪽으로 치우쳐 놓지 마십시오',
+      translations: {} },
+    { id: 'ph-9', category: '프레스', status: 'waiting',
+      ko: '덮개를 열고 임시로 조작했다면, 다시 작업을 시작하기 전에 덮개를 제자리로 돌려놓으십시오',
+      translations: {} },
+    /* ph-10~12 — 유압프레스 전용(기계식엔 없는 위험). 아직 번역도 사람 검수도 안 됐다 (status: waiting).
+         출처: 기계설비신문 "유압프레스의 특성과 안전관리의 핵심 수칙" (노정진, 2026.04.06)
+         http://www.kmecnews.co.kr/news/articleView.html?idxno=46338
+         — C형 유압프레스를 "가장 일반적인 형태"로 명시. 배관·호스 누유, 금형 미고정·과압에
+         따른 파편 비산, 안전장치(양수조작·광전자식) 임의해제를 사고 원인으로 지적. */
+    { id: 'ph-10', category: '프레스', status: 'waiting',
+      ko: '작업 전 유압호스와 배관에서 기름이 새는지 확인하십시오',
+      translations: {} },
+    { id: 'ph-11', category: '프레스', status: 'waiting',
+      ko: '금형을 제대로 고정하지 않았거나 정해진 압력을 넘겨서 누르지 마십시오',
+      translations: {} },
+    { id: 'ph-12', category: '프레스', status: 'waiting',
+      ko: '양손 버튼이나 안전장치를 임의로 풀거나 가리지 마십시오',
+      translations: {} },
+    /* ph-13~15 — 사출성형기(두 번째 기계, 다른 종류) 조사 결과. 아직 번역도 사람 검수도 안 됐다
+         (status: waiting). 같은 조사 방법을 그대로 반복한 것 — docs/devlog/c형프레스-조사-방법.md 참고.
+         출처: 안전보건공단 근로자용 OPS "사출성형기 작업안전" (2023-교육혁신실-859, 고용노동부·
+         안전보건공단 공동 제작) — 실제 PDF를 직접 열어 확인함.
+         https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf
+         법적 근거(KOSHA Guide M-187-2016 「사출성형기 방호조치에 관한 기술지침」,
+         산업안전보건기준에관한규칙 §121)는 게시글 본문으로 존재만 확인, 첨부 PDF 자체는
+         다운로드 실패(세션 필요 추정) — 본문 인용은 전부 OPS 쪽에서 가져왔다. */
+    { id: 'ph-13', category: '사출성형', status: 'waiting',
+      ko: '제품을 꺼낼 때 금형 사이로 손을 넣지 마십시오',
+      translations: {} },
+    { id: 'ph-14', category: '사출성형', status: 'waiting',
+      ko: '안전문의 연동장치(리미트 스위치)를 임의로 무효화하지 마십시오',
+      translations: {} },
+    { id: 'ph-15', category: '사출성형', status: 'waiting',
+      ko: '점검·수리·이물질 제거 작업 전에는 전원을 차단하고 잠금장치와 "작업중" 표시를 하십시오',
+      translations: {} }
   ];
 
   /* 교육 콘텐츠.

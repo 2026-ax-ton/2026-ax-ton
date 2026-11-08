@@ -30,17 +30,18 @@ function open(opts = {}) {
   has('AI 경계를 화면에 적는다', text(doc.querySelector('.ai-note')), 'AI 여기까지');
   has('승인은 사람이 한다고 적는다', text(doc.querySelector('.ai-note')), '승인은 사람이 합니다');
 
-  /* 예시 데이터 — 문구 6개.
-       ph-1,2,4,6 검수 완료 · ph-5 검수 대기
+  /* 예시 데이터 — 문구 15개.
+       ph-1,2,4,6 검수 완료 · ph-5,7,8,9,10,11,12,13,14,15 검수 대기
+       (ph-7~9 C형프레스 구조 · ph-10~12 유압프레스 전용 · ph-13~15 사출성형기 — 전부 조사만 됐고 미검수)
        ph-3 은 한국어·크메르어는 검수 완료인데 인도네시아어만 중지 (오역 신고 1건)
      타일은 "한 언어라도" 기준으로 센다. ph-3 은 완료에도 중지에도 들어간다 —
      크메르어로는 나가고 인도네시아어로는 안 나가는 것이 사실이다. */
   const tiles = [...t.$('stats').querySelectorAll('.kpi')].map(
     (k) => text(k.querySelector('dt')) + '=' + text(k.querySelector('dd')));
   has('검수 완료 5개', tiles.join(' '), '검수 완료=5개');
-  has('검수 대기 1개', tiles.join(' '), '검수 대기=1개');
+  has('검수 대기 10개', tiles.join(' '), '검수 대기=10개');
   has('사용 중지 1개', tiles.join(' '), '사용 중지=1개');
-  has('전체 6개', tiles.join(' '), '전체=6개');
+  has('전체 15개', tiles.join(' '), '전체=15개');
 
   /* ★ 예시 데이터의 신고는 인도네시아어 한 언어에 대한 것이다 */
   const seedItems = t.$('flag-queue').querySelectorAll('.queue-item');
@@ -49,9 +50,9 @@ function open(opts = {}) {
   has('그 언어만 중지됐다고 알린다', text(seedItems[0]), '인도네시아어 중지');
   has('문구 전체는 검수 완료로 남아 있다', text(seedItems[0]), '검수 완료');
 
-  /* --- 판정이 필요한 문구 = reviewed 가 아닌 것 (ph-3, ph-5) --- */
+  /* --- 판정이 필요한 문구 = reviewed 가 아닌 것 (ph-3, ph-5, ph-7~9, ph-10~12, ph-13~15) --- */
   const blocks = t.$('review-list').querySelectorAll('.review-block');
-  eq('판정 대상 2건', blocks.length, 2);
+  eq('판정 대상 11건', blocks.length, 11);
 
   /* --- ★ ph-3 의 역번역 대조 — 부정이 뒤집힌 장면 --- */
   const ph3 = [...blocks].find((b) => text(b).includes('프레스가 멈춰도'));
@@ -180,7 +181,7 @@ function open(opts = {}) {
    ================================================================= */
 {
   const t = open();
-  eq('전체 6줄', t.$('phrase-rows').querySelectorAll('tr').length, 6);
+  eq('전체 15줄', t.$('phrase-rows').querySelectorAll('tr').length, 15);
 
   click(t.win, t.$('filter-stopped'));
   eq('사용 중지만 1줄', t.$('phrase-rows').querySelectorAll('tr').length, 1);
@@ -192,7 +193,7 @@ function open(opts = {}) {
   eq('검수 완료 5줄', t.$('phrase-rows').querySelectorAll('tr').length, 5);
 
   click(t.win, t.$('filter-all'));
-  eq('다시 6줄', t.$('phrase-rows').querySelectorAll('tr').length, 6);
+  eq('다시 15줄', t.$('phrase-rows').querySelectorAll('tr').length, 15);
 
   // 목록에서 바로 중지
   const row = [...t.$('phrase-rows').querySelectorAll('tr')]
