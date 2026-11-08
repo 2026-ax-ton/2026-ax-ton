@@ -251,6 +251,12 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   fakeModel({ ...GOOD, limits: ['nypress.co.kr 인증서 오류로 못 열림', '', 'TB-G5 스펙표 JS 라 못 받음'] });
   const r = await call(EQ);
   eq('★ limits 를 그대로 전한다 (빈 줄은 뺀다)', r.data.limits.length, 2);
+
+  /* 2026-11-09 GPT 실측: limits 에 틀린 번호 M-122-2012 를 적었다 → 어디에 나오든 모아 확인 대상으로 */
+  fakeModel({ ...GOOD, overview: '프레스', limits: ['KOSHA M-122-2012 전문은 못 받음'] });
+  const d = await call(EQ);
+  eq('★★ limits·개요에 나온 문서번호도 「원문 확인」 목록에', d.data.docNumbers.join(), 'M-122-2012');
+  eq('문서번호가 없으면 빈 목록', R.cleanResult({ items: [] }, null, { name: 'x' }).docNumbers.length, 0);
   has('limits 내용', r.data.limits[0], '인증서 오류');
 }
 

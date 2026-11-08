@@ -109,7 +109,9 @@ export function filterPoints(raw, hazardCodes, max = MAX_POINTS) {
 export const MAX_GUIDED_ITEMS = 12;   // /api/research 의 MAX_ITEMS 와 같다
 const MIN_BOX = 1;                    // 0~100 기준 가로·세로 1% 미만은 박스가 아니다
 const R_MIN = 5;                      // 문항 정답 원 반지름 (diagrams.js answerFor 의 12 와 같은 단위)
-const R_MAX = 40;
+/* 2026-11-09 실측 — 긴 변 절반을 그대로 쓰면 반지름이 17~26 이 되어 문항 정답 원이 5쌍 겹쳤다.
+   노동자는 한 점을 짚는다 — 도해 정답 원(diagrams.js answerFor)이 12 이므로 15 를 천장으로 둔다 */
+const R_MAX = 15;
 
 function cleanText(v, max) {
   return typeof v === 'string' ? v.replace(/[\r\n"`{}<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max) : '';

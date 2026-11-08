@@ -100,6 +100,17 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   eq('★ 고친 위험유형이 문항에 들어간다', quiz[1].hazard, 'pinch');
   ok('틀린 항목은 줄을 그어 보인다', win.document.querySelector('#ag-items li[data-id="r2"]').getAttribute('data-judge') === 'wrong');
 
+  /* 위치 고치기 — AI 박스가 엉뚱한 곳이면 사진을 눌러 다시 짚는다 (2026-11-09 실측에서 필요했다) */
+  ok('★ 틀림 항목에는 위치 고치기가 없다', !win.document.querySelector('button[data-move="r2"]'));
+  click(win, win.document.querySelector('button[data-move="r1"]'));
+  const fig = $('ag-figure');
+  fig.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 100 });
+  fig.dispatchEvent(new win.MouseEvent('click', { bubbles: true, clientX: 50, clientY: 80 }));
+  const q1 = win.__autogen.draftQuiz()[0];
+  eq('★★ 누른 자리가 새 정답 중심이 된다 (퍼센트)', q1.answer.x + ',' + q1.answer.y, '25,80');
+  eq('반지름은 AI 박스 크기 그대로', q1.answer.r, 20);
+  eq('한 번 누르면 위치 고치기가 끝난다', win.__autogen.state().moving, '');
+
   /* 빠진 위험 추가 */
   $('ag-add-part').value = '유압호스';
   $('ag-add-risk').value = '고압 기름이 뿜어진다';
@@ -109,6 +120,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   eq('추가 항목은 사진 위치가 없어 문항은 늘지 않는다', win.__autogen.draftQuiz().length, 2);
 
   ok('★★ 판정이 끝나면 승인이 켜진다', $('btn-approve').disabled === false, $('ag-check').textContent);
+  eq('겹치지 않는 문항이면 겹침 안내가 없다', /겹치는 문항/.test($('ag-lang-note').textContent), false);
   click(win, $('btn-approve'));
   const courses = S.courses.load();
   const c = courses[courses.length - 1];
@@ -118,7 +130,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   eq('문항 2개', c.quiz.length, 2);
   ok('기존 모양 필드가 다 있다', ['id', 'title', 'equipmentId', 'languages', 'phraseIds', 'quiz', 'dueAt', 'createdAt'].every((k) => k in c));
   const rv = c.aiDraft && c.aiDraft.review;
-  ok('★ 판정 기록이 남는다 (틀림 1 · 고침 1 · 추가 1)', rv && rv.wrong === 1 && rv.edited === 1 && rv.added === 1, JSON.stringify(rv));
+  ok('★ 판정 기록이 남는다 (틀림 1 · 고침 1 · 추가 1 · 위치 고침 1)', rv && rv.wrong === 1 && rv.edited === 1 && rv.added === 1 && rv.moved === 1, JSON.stringify(rv));
   eq('틀린 부위 이름이 기록된다', rv && rv.wrongParts.join(), '제어반');
   ok('승인 뒤 초안을 비운다', $('sec-approve').hidden === true);
 
@@ -145,6 +157,21 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     has('어느 설비를 조사한 결과인지 보인다', t5.$('ag-research-status').textContent, 'C형 유압프레스');
     eq('★★ 결과 파일 모드에서 서버를 부르지 않는다', called, 0);
     eq('결과 파일 출처 기록', A.state().source, 'file');
+
+    const docRun = A.readRun({ kind: 'safety-ai-run', equipment: { name: 'x' },
+      research: { ...JSON.parse(JSON.stringify(RESEARCH)), docNumbers: ['M-122-2012'] } });
+    A.loadRun(docRun);
+    has('★★ AI 가 적은 문서번호를 원문 확인 대상으로 보인다', t5.$('ag-limits').textContent, '문서번호 M-122-2012');
+
+    /* 겹치는 정답 원 안내 */
+    const st5 = A.state();
+    st5.guided = { mapped: [
+      { id: 'r1', box: { x0: 40, y0: 40, x1: 60, y1: 60 }, answer: { x: 50, y: 50, r: 10 } },
+      { id: 'r2', box: { x0: 45, y0: 45, x1: 65, y1: 65 }, answer: { x: 55, y: 55, r: 10 } }], missing: [] };
+    st5.keepPhoto = PHOTO;
+    st5.judge.r2 = 'right'; st5.judge.r3 = 'wrong';
+    t5.$('ag-title').dispatchEvent(new t5.win.Event('input', { bubbles: true }));
+    has('★ 정답 위치가 겹치면 알린다 (막지는 않음)', t5.$('ag-lang-note').textContent, '겹치는 문항이 1쌍');
   }
   /* 6. https 가 아니면 */
   {

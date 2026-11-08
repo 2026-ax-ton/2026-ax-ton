@@ -49,6 +49,8 @@
       equipment: eq || null, research: null, guided: null, keepPhoto: '', source: '',
       judge: {},   // id → 'right' | 'wrong' | 'edit'
       edits: {},   // id → { part, hazard, risk, memo }
+      moves: {},   // id → { x, y } 담당자가 사진에서 다시 짚은 위치 (퍼센트)
+      moving: '',  // 지금 위치를 고치는 항목 id
       added: []    // 담당자가 더한 위험 [{ id, part, hazard, risk }]
     };
   }
@@ -282,6 +284,10 @@
     var lim = $('ag-limits');
     lim.textContent = '';
     (data.limits || []).forEach(function (l) { lim.appendChild(UI.itemRow('alert-circle', '확인하지 못한 자료', l)); });
+    /* AI 가 적은 문서번호는 검색 요약에서 틀리게 오는 일이 있다 — 원문 표지로 확인하라고 따로 보인다 */
+    (data.docNumbers || []).forEach(function (n) {
+      lim.appendChild(UI.itemRow('alert', '문서번호 ' + n, '원문 표지에서 이 번호가 맞는지 확인하세요. 검색 요약이 번호를 틀리게 내는 일이 있습니다.'));
+    });
 
     var list = $('ag-items');
     list.textContent = '';
@@ -315,6 +321,14 @@
       body.appendChild(det);
 
       body.appendChild(judgeButtons(raw));
+      if (mappedOf(raw.id) && state.judge[raw.id] !== 'wrong') {
+        var mv = UI.el('button', 'btn-sm', state.moving === raw.id ? '사진에서 맞는 자리를 누르세요…' : '위치 고치기');
+        mv.type = 'button';
+        mv.setAttribute('data-move', raw.id);
+        mv.addEventListener('click', function () { state.moving = state.moving === raw.id ? '' : raw.id; renderAll(); });
+        body.appendChild(mv);
+        if (state.moves[raw.id]) body.appendChild(UI.el('p', 'meta', '담당자가 위치를 고쳤습니다.'));
+      }
       if (j === 'edit') body.appendChild(editForm(raw));
       li.appendChild(body);
       list.appendChild(li);
@@ -399,6 +413,16 @@
     renderAll();
   }
 
+  /** 담당자가 고친 위치가 있으면 그 자리로 옮긴 박스·정답 원 */
+  function placed(m) {
+    var mv = state.moves[m.id];
+    if (!mv) return m;
+    var w = m.box.x1 - m.box.x0, h = m.box.y1 - m.box.y0;
+    var x0 = Math.max(0, Math.min(100 - w, mv.x - w / 2)), y0 = Math.max(0, Math.min(100 - h, mv.y - h / 2));
+    return { id: m.id, part: m.part, hazard: m.hazard, box: { x0: x0, y0: y0, x1: x0 + w, y1: y0 + h },
+      answer: { x: mv.x, y: mv.y, r: m.answer.r } };
+  }
+
   function renderFigure() {
     var fig = $('ag-figure');
     fig.textContent = '';
@@ -407,7 +431,7 @@
     img.src = state.keepPhoto;
     img.alt = '설비 사진';
     fig.appendChild(img);
-    state.guided.mapped.forEach(function (m) {
+    state.guided.mapped.map(placed).forEach(function (m) {
       var raw = Store.findBy(aiItems(), 'id', m.id);
       var shown = raw ? effective(raw) : m;
       var b = UI.el('div', 'ag-box');
@@ -445,12 +469,23 @@
         type: 'hotspot',
         hazard: it.hazard === 'unknown' ? '' : it.hazard,
         prompt: '사진에서 「' + it.part + '」을(를) 누르세요',
-        answer: m.answer,
+        answer: placed(m).answer,
         figure: 'photo',
         i18n: {}
       });
     });
     return out;
+  }
+
+  function overlapPairs(quiz) {
+    var n = 0;
+    for (var i = 0; i < quiz.length; i += 1) {
+      for (var j = i + 1; j < quiz.length; j += 1) {
+        var a = quiz[i].answer, b = quiz[j].answer;
+        if (Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) < a.r + b.r) n += 1;
+      }
+    }
+    return n;
   }
 
   function renderPhrases() {
@@ -504,9 +539,11 @@
       list.appendChild(li);
     });
     var langs = (setup().languages || []).filter(function (c) { return c !== 'ko'; });
-    $('ag-lang-note').textContent = langs.length
-      ? '문항 문장은 아직 한국어로만 나갑니다 — 노동자 화면은 한국어 문장을 읽어 줍니다. 번역은 교육 콘텐츠 생성 화면에서 더할 수 있습니다.'
-      : '';
+    /* 정답 원이 겹치면 노동자가 어느 문항의 답인지 헷갈린다 (FR-AD-07-21) — 막지는 않고 알린다 */
+    var overlaps = overlapPairs(draftQuiz());
+    $('ag-lang-note').textContent = (langs.length
+      ? '문항 문장은 아직 한국어로만 나갑니다 — 노동자 화면은 한국어 문장을 읽어 줍니다. 번역은 교육 콘텐츠 생성 화면에서 더할 수 있습니다. '
+      : '') + (overlaps ? '정답 위치가 서로 겹치는 문항이 ' + overlaps + '쌍 있습니다 — 겹치는 항목은 [틀림·빼기]나 [고치기]로 정리하는 것이 좋습니다.' : '');
     $('btn-approve').disabled = !all.every(function (s) { return s.done; });
   }
 
@@ -522,6 +559,7 @@
     Object.keys(state.judge).forEach(function (id) { count[state.judge[id]] += 1; });
     return {
       right: count.right, wrong: count.wrong, edited: count.edit, added: state.added.length,
+      moved: Object.keys(state.moves).length,
       wrongParts: aiItems().filter(function (it) { return state.judge[it.id] === 'wrong'; }).map(function (it) { return it.part; }),
       addedParts: state.added.map(function (a) { return a.part; })
     };
@@ -577,6 +615,17 @@
   $('btn-add-item').addEventListener('click', addItem);
   $('ag-title').addEventListener('input', renderApprove);
   $('btn-approve').addEventListener('click', approve);
+  /* 위치 고치기 — 사진을 한 번 누르면 그 자리가 새 정답 중심이 된다 (FR-AD-07-07 옮기기) */
+  $('ag-figure').addEventListener('click', function (ev) {
+    if (!state.moving) return;
+    var r = $('ag-figure').getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    var x = Math.round(((ev.clientX - r.left) / r.width) * 1000) / 10;
+    var y = Math.round(((ev.clientY - r.top) / r.height) * 1000) / 10;
+    state.moves[state.moving] = { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
+    state.moving = '';
+    renderAll();
+  });
 
   renderEquipments();
   if (!serverReady()) $('offline-note').hidden = false;

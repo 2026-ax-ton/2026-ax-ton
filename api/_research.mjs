@@ -186,10 +186,20 @@ export function cleanResult(raw, grounding, eq, hazardCodes = HAZARD_CODES) {
     });
   }
 
+  const overview = clip(raw && raw.overview, LIMITS.overview);
+  /* 못 받은 자료·막힌 지점 — 「참고용」으로 뭉뚱그리지 않게 모델이 적고, 화면이 그대로 보인다 (조사 규칙) */
+  const limits = (raw && Array.isArray(raw.limits) ? raw.limits : []).map((x) => clip(x, LIMITS.conflict)).filter(Boolean).slice(0, 10);
+
+  /* 🆕 2026-11-09 실측 — GPT 가 막힌 지점(limits)에 「M-122-2012」를 적었다. 사람이 원문 표지로
+     확인한 진짜 번호는 M-30-2002 다. 항목 판정(judge)은 limits·개요를 보지 않으므로,
+     글 어디에 나온 문서번호든 모아 「원문으로 확인할 번호」로 따로 돌려준다 (담당자 화면에 보인다) */
+  const docText = [overview].concat(limits, items.map((it) => it.part + ' ' + it.risk)).join('\n');
+  const docNumbers = Array.from(new Set(docText.match(DOC_NO_ALL) || [])).slice(0, 10);
+
   return {
-    overview: clip(raw && raw.overview, LIMITS.overview),
-    /* 못 받은 자료·막힌 지점 — 「참고용」으로 뭉뚱그리지 않게 모델이 적고, 화면이 그대로 보인다 (조사 규칙) */
-    limits: (raw && Array.isArray(raw.limits) ? raw.limits : []).map((x) => clip(x, LIMITS.conflict)).filter(Boolean).slice(0, 10),
+    overview,
+    limits,
+    docNumbers,
     general: !!(raw && raw.general === true) || !(eq && eq.model),
     items,
     dropped,
@@ -201,6 +211,7 @@ export function cleanResult(raw, grounding, eq, hazardCodes = HAZARD_CODES) {
 /** 항목 하나의 판정 — ok 는 아래를 **전부** 만족할 때만 (FR-AD-08-13) */
 /* 문서번호(예: M-30-2002, KOSHA GUIDE G-12-2020) · 사고 사례 · 날짜 */
 export const DOC_NO = /\b[A-Z]{1,2}-\d{1,3}-(?:19|20)\d{2}\b/;
+export const DOC_NO_ALL = /\b[A-Z]{1,2}-\d{1,3}-(?:19|20)\d{2}\b/g;
 export const INCIDENT = /사고|사망|재해|부상|협착/;
 export const DATED = /(?:19|20)\d{2}\s*년|(?:19|20)\d{2}[./-]\d{1,2}/;
 
