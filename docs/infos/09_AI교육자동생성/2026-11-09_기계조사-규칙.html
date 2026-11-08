@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>영세사업장 위험기계 안전콘텐츠 조사 — 규칙 (재현 가능한 체크리스트)</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../README.html">처음 (사용법)</a>
+<a href="../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../05_%EB%A9%98%ED%86%A0%EB%A7%81/%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+<a href="README.html">09 AI 교육 자동 생성 (yesol)</a>
+<div class="sub">09_AI교육자동생성</div>
+<a href="README.html">이 폴더 안내</a>
+<a href="2026-11-09_AI%EC%8B%A4%EC%B8%A1-%EB%B9%84%EA%B5%90.html">2026-11-09 AI실측-비교</a>
+<a href="2026-11-09_%EA%B8%B0%EA%B3%84%EC%A1%B0%EC%82%AC-%EA%B2%B0%EA%B3%BC.html">2026-11-09 기계조사-결과</a>
+<a href="2026-11-09_%EA%B8%B0%EA%B3%84%EC%A1%B0%EC%82%AC-%EA%B7%9C%EC%B9%99.html" class="on">2026-11-09 기계조사-규칙</a>
+<a href="2026-11-09_%EB%8B%B4%EB%8B%B9%EC%9E%90-%EA%B2%80%ED%86%A0.html">2026-11-09 담당자-검토</a>
+</nav>
+<main>
+<h1 id="영세사업장-위험기계-안전콘텐츠-조사--규칙-재현-가능한-체크리스트">영세사업장 위험기계 안전콘텐츠 조사 — 규칙 (재현 가능한 체크리스트)</h1>
+<p>다른 모델/세션이 새 기계를 조사할 때 <strong>이 문서만 보고 그대로 따라 할 수 있게</strong> 적는다. 실제로 두 기계(C형 유압프레스, 사출성형기)에 이 절차를 돌려보고 다듬은 결과다 — 구체적으로 뭘 찾았는지, 어디서 막혔는지는 <a href="./2026-11-09_기계조사-결과.html"><code>2026-11-09_기계조사-결과.md</code></a>에 있다.</p>
+<h2 id="절차-순서대로">절차 (순서대로)</h2>
+<ol><li><strong>질문을 명확히 한다</strong> — &quot;이 기계 중 영세사업장에서 제일 많이 쓰는 게 뭔가&quot; 같은 범위 질문으로 시작한다.</li><li>브랜드 점유율보다 <strong>구조방식</strong>으로 먼저 좁힐 수 있는지 본다 (통계가 없는 경우가 많다). 구조방식에서 더 못 좁히면(사출성형기의 횡형처럼) 거기서 멈춰도 된다 — 억지로 톤수·브랜드까지 내려갈 필요 없음.</li><li>공식 기준문서(KOSHA Guide 등)를 찾으면 <strong>번호와 표지를 직접 열어 대조</strong>한다 (검색 요약의 코드번호를 그대로 믿지 않는다). 첨부 PDF 다운로드가 막히면 (세션 필요 등) 본문 페이지에서 확인된 선까지만 쓰고 한계를 밝힌다.</li><li>&quot;이 설비 전용&quot; 특성은 공통기준 문서만으로는 안 나올 때가 많다 — 구조공학 설명(해외 제조사 블로그 등)·실제 사고사례·<strong>공식 &quot;근로자용 교육자료&quot;</strong>를 따로 찾는다. 공식 교육자료가 품질 좋게 걸리면 블로그 단계는 생략해도 된다.</li><li>사고사례·뉴스 검색 요약은 날짜·장소·경위가 <strong>틀리게 요약되는 경우가 있다</strong> — 인용 전에 반드시 원문 URL을 직접 열어 대조한다.</li><li>동력/구동 방식이 다르면(유압 vs 기계식, 가열+사출 vs 압착) 고유 위험도 다르다 — 업계 전문지·현장 기고문·공식 교육자료로 보완한다.</li><li>특정 제조사·모델명 추적은 기본값으로는 <strong>비용 대비 효과를 먼저 판단</strong>해 생략할 수 있다. <strong>단, 사용자가 &quot;다른 기계와 같은 깊이로 조사해 달라&quot;고 명시적으로 요구하면 그 지시가 생략 판단보다 우선한다</strong> — 그땐 처음부터 다시 한다. 공식 홈페이지가 열리면 제품라인·소개문구까지는 1차 확인하고, 안 열리거나(인증서 오류 등) 스펙표·전용 매뉴얼이 못 받아지면 &quot;어디까지 확인됐고 어디서부터 막혔는지&quot;를 구체적으로 남긴다 — &quot;참고용&quot;이라고만 뭉뚱그리지 않는다.</li><li>결과를 안전 지시문 데이터(<code>Store.library</code>)에 넣을 때는 원문 그대로가 아니라 노동자용 한 줄 지시문으로 바꾸고, <code>status: waiting</code> + 출처 주석으로 넣는다. 카테고리는 자유 텍스트이므로 새 기계 종류마다 새 카테고리를 만들어도 된다 (단, 실제 코드에서 하드코딩 목록이 아닌지 한 번은 확인한다).</li><li>예시 데이터 개수를 셈하는 테스트가 있으면 함께 고친다 — 매번 같은 여섯 지점(<code>test-smoke.js</code> 2곳, <code>test-content.js</code> 1곳, <code>test-db.mjs</code> 1곳, <code>test-library.js</code> 5곳)이 움직였다. 전체 검사(<code>tests/run-all.js</code>)를 돌려 실패 목록을 보고 고치는 게 미리 추측하는 것보다 빠르고 정확하다.</li></ol>
+<h2 id="공통-원칙-절차-전체에-깔린-것">공통 원칙 (절차 전체에 깔린 것)</h2>
+<ul><li><strong>검색엔진 요약을 그대로 인용하지 않는다.</strong> 코드번호·날짜·장소가 틀리게 요약된 사례가 두 번 다 나왔다 (M-122-2012 → 실제 M-30-2002, 평택 2020 → 실제 서울 2004). 인용할 내용은 항상 실제로 fetch/Read 해서 원문 대조한다.</li><li><strong>못 받은 건 못 받았다고 남긴다.</strong> &quot;참고용&quot;이라고 뭉뚱그리지 말고 어디까지 열렸고 어디서부터 막혔는지(인증서 오류/빈 응답/JS 렌더링/세션 필요 등)를 구체적으로 적는다 — 다음 조사자가 같은 곳에서 또 막히지 않거나, 막힌 지점부터 다시 시도할 수 있게.</li><li><strong>단계를 기계적으로 다 채울 필요는 없다.</strong> 품질 좋은 공식 자료 하나가 걸리면 뒤 단계(블로그 등)를 생략해도 된다. 반대로 사용자가 &quot;다른 조사와 같은 깊이로&quot; 같은 명시적 요구를 하면, 생략 판단보다 그 지시를 우선한다.</li></ul>
+<p class="src">이 페이지는 <code>2026-11-09_기계조사-규칙.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>

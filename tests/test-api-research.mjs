@@ -248,6 +248,20 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   eq('모델명(HPC-110)은 문서번호로 보지 않는다', base('HPC-110 의 램 사이', [web, { tier: 3 }]).status, 'ok');
   eq('★ OPS 게시처(esafetykorea.or.kr)는 공공(2)', R.tierOf('esafetykorea.or.kr', ''), 2);
 
+  /* 2026-11-09 사용자 결정 — ok 를 공공·제조사로 좁히지 않는다. 경험 글·전문지는 세고, 판매·중계(5)는 안 센다 */
+  const sale = { tier: 5 };
+  eq('★★ 판매사 블로그(blog.daara.co.kr)는 판매·중계(5) — 블로그(3)보다 먼저', R.tierOf('blog.daara.co.kr', ''), 5);
+  eq('★ 카탈로그·문서 중계(komachine·scribd)도 5', R.tierOf('cdn.komachine.com', '') + R.tierOf('scribd.com', ''), 10);
+  eq('★★ 일반 웹(경험 글) 2곳이면 공공 없이도 ok', base('램 사이에 손이 끼인다', [web, { tier: 3 }]).status, 'ok');
+  eq('★★ 판매 페이지만 있으면 check', base('램 사이에 손이 끼인다', [sale, sale]).reasons.join(), '판매·자료 중계 페이지만 있음');
+  eq('★ 경험 글 1곳 + 판매 1곳은 「하나뿐」 (판매는 안 센다)', base('램 사이에 손이 끼인다', [web, sale]).reasons.join(), '믿을 만한 출처가 하나뿐');
+  eq('공공 1곳 + 판매 1곳은 ok', base('램 사이에 손이 끼인다', [pub, sale]).status, 'ok');
+  eq('★ 종류: 일반 웹이면 모델 표시(experience)를 받는다', R.kindOf(3, 'experience'), 'experience');
+  eq('★ 종류: 판매 도메인은 모델이 experience 라 해도 sales', R.kindOf(5, 'experience'), 'sales');
+  eq('종류: 모르는 표시는 web', R.kindOf(3, 'official'), 'web');
+  has('★ 현장 경험 글을 찾게 한다', sys, '현장 경험 글을 넓게 찾는다');
+  has('★ 판매 페이지는 위험 근거로 쓰지 않는다', sys, '위험의 근거로 쓰지 않는다');
+
   fakeModel({ ...GOOD, limits: ['nypress.co.kr 인증서 오류로 못 열림', '', 'TB-G5 스펙표 JS 라 못 받음'] });
   const r = await call(EQ);
   eq('★ limits 를 그대로 전한다 (빈 줄은 뺀다)', r.data.limits.length, 2);

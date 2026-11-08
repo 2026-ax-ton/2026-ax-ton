@@ -23,7 +23,8 @@ import { readEnvLocal } from './measure-hazards.mjs';
 
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;   // api/hazards.mjs 와 같다
-const TIER = ['', '제조사', '공공', '일반', '동영상'];
+const TIER = ['', '제조사', '공공', '일반', '동영상', '판매'];
+const KIND = { experience: '경험', journal: '전문지' };
 
 function args() {
   const a = process.argv.slice(2);
@@ -63,7 +64,7 @@ async function main() {
   console.log('── S2 리서치 · ' + (gpt ? 'GPT' : 'Gemini') + ' ' + model + ' · ' + [eq.name, eq.maker, eq.model].filter(Boolean).join(' / '));
   let t0 = Date.now();
   const r = await callModel({ provider, key, model, timeoutMs: 60000 }, systemText(), userText(eq),
-    { maxOutputTokens: 4000, maxText: 16000, tools: [{ google_search: {} }] });
+    { maxOutputTokens: 8000, maxText: 24000, tools: [{ google_search: {} }] });
   if (r.error) { console.log('  ✗ ' + r.error + ' · ' + (r.why || '') + ' · ' + (Date.now() - t0) + 'ms'); process.exit(1); }
   const raw = parseModelJson(r.text);
   if (!raw) { console.log('  ✗ JSON 이 아니다. 앞부분: ' + JSON.stringify(String(r.text).slice(0, 200))); process.exit(1); }
@@ -75,7 +76,7 @@ async function main() {
   (res.limits || []).forEach((l) => console.log('  막힘: ' + l));
   res.items.forEach((it) => {
     console.log('  ' + (it.status === 'ok' ? '✓' : '?') + ' [' + it.id + '] ' + it.part + ' · ' + it.hazard + ' — ' + it.risk);
-    it.sources.forEach((s) => console.log('       출처(' + TIER[s.tier] + ') ' + s.host + ' — ' + s.title));
+    it.sources.forEach((s) => console.log('       출처(' + (KIND[s.kind] || TIER[s.tier]) + ') ' + s.host + ' — ' + s.title));
     if (it.unverifiedSources) console.log('       ✗ 검색 근거에 없는 출처 ' + it.unverifiedSources + '개 (버림)');
     if (it.reasons.length) console.log('       확인 필요: ' + it.reasons.join(' · '));
     if (it.conflict) console.log('       충돌: ' + it.conflict);

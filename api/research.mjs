@@ -28,8 +28,8 @@ export const config = { maxDuration: 60 };
 const MAX_BODY = 2048;
 /* 검색을 몇 번 하고 읽느라 번역보다 오래 걸린다 */
 export const DEFAULT_RESEARCH_TIMEOUT_MS = 45000;
-const MAX_OUTPUT_TOKENS = 4000;
-const MAX_TEXT = 16000;
+const MAX_OUTPUT_TOKENS = 8000;   // 2026-11-09 경험 글까지 찾게 하자 4000 에서 JSON 이 잘렸다 (GPT 는 추론 토큰도 여기서 센다)
+const MAX_TEXT = 24000;
 /* 모델 — 따로 두지 않으면 번역 모델을 쓴다 (C06 D-028). 품질이 모자라면 AI_MODEL_RESEARCH 로 올린다 */
 const MODEL_ENVS = ['AI_MODEL_RESEARCH', 'AI_MODEL_TRANSLATE'];
 const TOOLS = [{ google_search: {} }];

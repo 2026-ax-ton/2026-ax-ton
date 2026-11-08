@@ -41,7 +41,8 @@
   var KEEP_QUALITY = 0.7;
   var TIMEOUT_MS = 60000;     // 리서치는 검색을 몇 번 해서 오래 걸린다
   var MAX_RUN_BYTES = 6 * 1024 * 1024;   // 결과 파일 상한 (사진 data URL 포함)
-  var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상'];
+  var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계(근거로 안 셈)'];
+  var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
 
   /* 초안 — 메모리에만. 새로고침하면 사라진다 (반쯤 만든 교육이 노동자에게 가지 않게) */
   function emptyState(eq) {
@@ -210,7 +211,7 @@
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     li.appendChild(a);
-    li.appendChild(UI.el('span', 'meta', ' · ' + (TIER[s.tier] || '')));
+    li.appendChild(UI.el('span', 'meta', ' · ' + (KIND[s.kind] || TIER[s.tier] || '')));
     return li;
   }
 
