@@ -82,8 +82,11 @@ async function main() {
   });
   if (res.dropped.shape || res.dropped.over) console.log('  버린 항목 — 모양 틀림 ' + res.dropped.shape + ' · 상한 초과 ' + res.dropped.over);
 
+  const record = { at: new Date().toISOString(), provider: gpt ? 'openai' : 'gemini', model, equipment: eq,
+    research: { ...res, model }, guided: null, photo: null, ms: { research: Date.now() - t0 }, groundingCount: chunks };
   if (!o.photo) {
     console.log('\n(사진은 없다 — --photo <파일> 로 S3 까지 잴 수 있다)');
+    save(o, record);
     return;
   }
 

@@ -52,6 +52,13 @@ export function readOutput(data) {
   let refused = false;
   const cites = [];
   out.forEach((item) => {
+    /* 검색 도구가 실제로 본 주소 — 「검색 근거」로 인정한다 (Gemini 의 groundingChunks 와 같은 자리) */
+    if (item && item.type === 'web_search_call' && item.action && Array.isArray(item.action.sources)) {
+      item.action.sources.forEach((s) => {
+        if (s && typeof s.url === 'string') cites.push({ uri: s.url, title: String(s.title || '') });
+      });
+      return;
+    }
     if (!item || item.type !== 'message' || !Array.isArray(item.content)) return;
     item.content.forEach((c) => {
       if (!c) return;
@@ -83,7 +90,12 @@ export async function callOpenAI({ key, model, timeoutMs }, systemText, userText
     input: [{ role: 'user', content: toContent(userText) }],
     max_output_tokens: maxOut,
   };
-  if (tools) body.tools = tools;
+  if (tools) {
+    body.tools = tools;
+    /* ★ 2026-11-09 실측 — JSON 만 내라고 하면 본문에 인용 주석(url_citation)이 하나도 안 붙는다.
+       검색 도구가 실제로 연 주소 목록을 따로 받아야 출처 대조가 된다 */
+    body.include = ['web_search_call.action.sources'];
+  }
   /* 추론 모델이면 생각에 토큰을 다 쓰지 않게 — 추론 모델이 아니면 이 칸이 400 을 내므로 넣을 때만 */
   if (process.env.OPENAI_REASONING) body.reasoning = { effort: process.env.OPENAI_REASONING };
 

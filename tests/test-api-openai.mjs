@@ -117,6 +117,13 @@ console.log = () => {};
   const g = O.readOutput({ output: [{ type: 'message', content: [{ type: 'output_text', text: 'a', annotations: [
     { type: 'url_citation', url: 'https://a.example/1', title: 'A' }, { type: 'url_citation', url: 'https://a.example/1', title: 'A' }] }] }] });
   eq('같은 주소 인용은 한 번만', g.chunks.length, 1);
+
+  /* 2026-11-09 실측: JSON 만 내면 인용 주석이 0개 → 검색 도구가 연 주소 목록으로 대조한다 */
+  eq('★★ 검색 도구가 있으면 연 주소 목록을 함께 달라고 한다', JSON.stringify(sent.include), JSON.stringify(['web_search_call.action.sources']));
+  const ws = O.readOutput({ output: [
+    { type: 'web_search_call', status: 'completed', action: { sources: [{ type: 'url', url: 'https://www.esafetykorea.or.kr/x.pdf' }, { type: 'url', url: 'https://kosha.or.kr/y' }] } },
+    { type: 'message', content: [{ type: 'output_text', text: '{}', annotations: [] }] }] });
+  eq('★★ 인용 주석이 없어도 검색 도구가 연 주소를 근거로', ws.chunks.map((c) => c.web.uri).join(' '), 'https://www.esafetykorea.or.kr/x.pdf https://kosha.or.kr/y');
 }
 
 /* 3. 사진 — input_image 로 */
