@@ -3,8 +3,10 @@
 
    요청  { equipment: { name, maker?, model?, year? } }
    응답  { overview, general, items: [{id, part, hazard, risk, sources[{title,url,host,tier}],
-           unverifiedSources, conflict, needsPhoto, status: 'ok'|'check', reasons[]}],
-           dropped, sourceCount, thin, model }
+           unverifiedSources, conflict, needsPhoto, specific, official?, status: 'ok'|'check', reasons[]}],
+           officialDocs, noOfficial, docNumbers, limits, dropped, sourceCount, thin, model }
+   ★ 확인된 공식 문서 항목(_official.mjs, id o1…)이 맨 앞이고, 그 뒤가 AI 항목(r1…)이다.
+     AI 에는 질문을 둘 보낸다 — 기본 조사와 「이 기계에만 있는 위험」(specific: true).
 
    ★ AI 는 제안만 한다. 이 함수는 아무것도 저장하지 않는다 — 확정은 담당자, 저장은 승인 때만.
    ★ 출처는 **검색 근거에 실제로 있는 것만** 인정한다. 모델이 적은 주소를 그대로 믿지 않는다.
@@ -19,7 +21,9 @@ import {
 } from './_shared.mjs';
 import { getSql, requireAdmin, withDb } from './_db.mjs';
 import { parseModelJson } from './_hazards.mjs';
-import { systemText, userText, cleanField, cleanResult } from './_research.mjs';
+import {
+  systemText, specificSystemText, userText, cleanField, cleanResult, mergeRaw, mergeGrounding, withOfficial,
+} from './_research.mjs';
 
 export const config = { maxDuration: 60 };
 
@@ -78,8 +82,14 @@ async function run(request) {
     return fail(429, 'limit', MESSAGES.limit, cors);
   }
 
-  const r = await callModel(cfg, systemText(), userText(eq),
-    { maxOutputTokens: MAX_OUTPUT_TOKENS, maxText: MAX_TEXT, tools: TOOLS });
+  /* 두 질문을 나란히 — ① 기본 조사 ② 이 기계에만 있는 위험 (같은 모델, 차례로 하면 60초를 넘는다).
+     ②는 하루 한도를 하나 더 쓴다. 한도에 걸리거나 실패하면 ①만 쓴다 */
+  const opts = { maxOutputTokens: MAX_OUTPUT_TOKENS, maxText: MAX_TEXT, tools: TOOLS };
+  const second = takeDailyCall(cfg.dailyLimit);
+  const [r, r2] = await Promise.all([
+    callModel(cfg, systemText(), userText(eq), opts),
+    second ? callModel(cfg, specificSystemText(), userText(eq), opts) : Promise.resolve(null),
+  ]);
 
   if (r.error) {
     const f = modelFail(r, cors, MESSAGES);
@@ -93,10 +103,14 @@ async function run(request) {
     return fail(502, 'model', MESSAGES.model + ' (응답 모양이 틀림)', cors);
   }
 
-  const out = cleanResult(raw, r.grounding, eq);
+  const raw2 = r2 && !r2.error ? parseModelJson(r2.text) : null;
+  const merged = mergeRaw(raw, raw2);
+  if (!raw2) merged.limits = merged.limits.concat('이 기계 고유 위험 추가 조사가 실패해 기본 조사만 보입니다');
+  const out = withOfficial(cleanResult(merged, mergeGrounding(r.grounding, r2 && r2.grounding), eq), eq);
   log({
     route: 'research', ms: Date.now() - started, status: 200, err: '',
     n: out.items.length, ok: out.items.filter((i) => i.status === 'ok').length, src: out.sourceCount,
+    off: out.items.filter((i) => i.official).length, spec: out.items.filter((i) => i.specific).length, second: !!raw2,
   });
   return json(200, { ...out, model: cfg.model }, cors);
 }

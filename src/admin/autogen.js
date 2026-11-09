@@ -41,7 +41,7 @@
   var KEEP_QUALITY = 0.7;
   var TIMEOUT_MS = 60000;     // 리서치는 검색을 몇 번 해서 오래 걸린다
   var MAX_RUN_BYTES = 6 * 1024 * 1024;   // 결과 파일 상한 (사진 data URL 포함)
-  var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계(근거로 안 셈)'];
+  var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계'];
   var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
 
   /* 초안 — 메모리에만. 새로고침하면 사라진다 (반쯤 만든 교육이 노동자에게 가지 않게) */
@@ -284,6 +284,13 @@
 
     var lim = $('ag-limits');
     lim.textContent = '';
+    /* 2026-11-09 사용자 결정 — 공적인 문서가 1차. 확인된 공식 문서는 맨 앞 항목으로 고정되고, 없으면 크게 알린다 */
+    (data.officialDocs || []).forEach(function (d) {
+      lim.appendChild(UI.itemRow('check', '공식 문서 · ' + d.code, d.title + ' (' + d.publisher + ', ' + d.year + ') — 원문으로 확인한 항목이 맨 앞에 들어 있습니다'));
+    });
+    if (data.noOfficial) {
+      lim.appendChild(UI.itemRow('alert', '공식 기준 문서를 찾지 못했습니다', 'KOSHA GUIDE·산업안전보건기준에 관한 규칙에서 이 설비 기준을 확인해 주세요. 그 전까지 모든 항목이 「확인 필요」입니다.'));
+    }
     (data.limits || []).forEach(function (l) { lim.appendChild(UI.itemRow('alert-circle', '확인하지 못한 자료', l)); });
     /* AI 가 적은 문서번호는 검색 요약에서 틀리게 오는 일이 있다 — 원문 표지로 확인하라고 따로 보인다 */
     (data.docNumbers || []).forEach(function (n) {
@@ -302,7 +309,9 @@
       body.appendChild(UI.el('strong', null, it.part));
       var tags = UI.el('div', 'tags');
       tags.appendChild(UI.badge('badge-wait', (Store.hazard(it.hazard) || {}).icon || '', hazardLabel(it.hazard)));
-      tags.appendChild(raw.status === 'ok' ? UI.okBadge('출처 확인') : UI.stopBadge('확인 필요'));
+      if (raw.official) tags.appendChild(UI.okBadge('공식 문서 · ' + raw.official.code + ' ' + raw.official.section));
+      else tags.appendChild(raw.status === 'ok' ? UI.okBadge('출처 확인') : UI.stopBadge('확인 필요'));
+      if (raw.specific) tags.appendChild(UI.neutralBadge('기계 고유'));
       if (j === 'right') tags.appendChild(UI.okBadge('담당자: 맞음'));
       if (j === 'edit') tags.appendChild(UI.okBadge('담당자: 고침'));
       if (j === 'wrong') tags.appendChild(UI.stopBadge('담당자: 틀림 — 문항에서 뺌'));

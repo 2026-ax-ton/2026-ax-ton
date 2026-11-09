@@ -56,12 +56,14 @@ const calls = [];
 const CHUNKS = ['kosha.or.kr', 'hwacheon.com', 'youtube.com', 'law.go.kr'].map((d) => ({
   web: { uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/' + d, title: d },
 }));
-function fakeModel(body, chunks) {
+/* 두 번째 질문(이 기계 고유 위험)에는 spec 을 답한다 — 안 주면 빈 목록 */
+function fakeModel(body, chunks, spec) {
   globalThis.fetch = async (url, init) => {
     calls.push({ url: String(url), init });
+    const reply = /이 설비에만 있는 위험/.test(String(init && init.body)) ? (spec || { items: [] }) : body;
     return new Response(JSON.stringify({
       candidates: [{
-        content: { parts: [{ text: '```json\n' + JSON.stringify(body).slice(0, 10) }, { text: JSON.stringify(body).slice(10) + '\n```' }] },
+        content: { parts: [{ text: '```json\n' + JSON.stringify(reply).slice(0, 10) }, { text: JSON.stringify(reply).slice(10) + '\n```' }] },
         groundingMetadata: { groundingChunks: chunks === undefined ? CHUNKS : chunks },
       }],
     }), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -104,6 +106,8 @@ async function call(body, token) {
   return { status: res.status, data, raw };
 }
 const EQ = { equipment: { name: '프레스 3호기', maker: 'Hwacheon', model: 'HPC-110', year: 2019 } };
+/* AI 가 낸 항목만 — 프레스는 공식 문서(M-30-2002) 항목 o1·o2 가 맨 앞에 붙는다 */
+const ai = (r) => r.data.items.filter((i) => !i.official);
 
 const logs = [];
 const realLog = console.log;
@@ -140,7 +144,7 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   fakeModel(GOOD);
   const r = await call(EQ);
   const by = (part) => r.data.items.find((i) => i.part === part);
-  eq('항목 6개', r.data.items.length, 6);
+  eq('항목 6개 (AI)', ai(r).length, 6);
   eq('★★ 근거가 고루 있는 항목은 ok', by('램과 금형 사이').status, 'ok');
   eq('★★ 등급: kosha 는 공공(2)', by('램과 금형 사이').sources.find((s) => s.host === 'kosha.or.kr').tier, 2);
   eq('★★ 등급: 도메인에 제조사 이름이 있으면 제조사(1)', by('램과 금형 사이').sources.find((s) => s.host === 'hwacheon.com').tier, 1);
@@ -177,12 +181,12 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   fakeModel({ items: [GOOD.items[0], GOOD.items[1]] }, CHUNKS.slice(0, 2));
   let r = await call(EQ);
   eq('★★ 출처 사이트가 3곳 미만이면 thin', r.data.thin, true);
-  ok('★★ thin 이면 ok 가 하나도 없다', r.data.items.every((i) => i.status === 'check'));
-  ok('이유에 「자료가 모자람」', r.data.items[0].reasons.indexOf('자료가 모자람') !== -1);
+  ok('★★ thin 이면 AI 항목에 ok 가 하나도 없다', ai(r).every((i) => i.status === 'check'));
+  ok('이유에 「자료가 모자람」', ai(r)[0].reasons.indexOf('자료가 모자람') !== -1);
 
   fakeModel({ items: Array.from({ length: 15 }, (_, i) => ({ part: 'p' + i, hazard: 'pinch', risk: 'r', sources: [src('kosha.or.kr')] })) });
   r = await call(EQ);
-  eq('★ 12개까지만', r.data.items.length, R.MAX_ITEMS);
+  eq('★ 기본 조사는 12개까지만', ai(r).length, R.BASE_ITEMS);
   eq('넘친 수를 센다', r.data.dropped.over, 3);
 
   fakeModel({ items: [{ part: '', risk: 'x' }, { part: 'a' }, 'x', GOOD.items[0]] });
@@ -195,11 +199,11 @@ console.log = (...a) => { logs.push(a.join(' ')); };
 
   fakeModel({ items: [{ ...GOOD.items[0], risk: '<img src=x onerror=alert(1)>' }] });
   r = await call(EQ);
-  eq('★ HTML 같은 문장도 문자열 그대로 — 그리는 쪽이 textContent', r.data.items[0].risk, '<img src=x onerror=alert(1)>');
+  eq('★ HTML 같은 문장도 문자열 그대로 — 그리는 쪽이 textContent', ai(r)[0].risk, '<img src=x onerror=alert(1)>');
 
   fakeModel(GOOD, []);
   r = await call(EQ);
-  ok('★★ 검색 근거가 아예 없으면 전부 check', r.data.items.every((i) => i.status === 'check' && i.sources.length === 0));
+  ok('★★ 검색 근거가 아예 없으면 AI 항목은 전부 check', ai(r).every((i) => i.status === 'check' && i.sources.length === 0));
 }
 
 /* 6. 실패 */
@@ -253,14 +257,25 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   eq('★★ 판매사 블로그(blog.daara.co.kr)는 판매·중계(5) — 블로그(3)보다 먼저', R.tierOf('blog.daara.co.kr', ''), 5);
   eq('★ 카탈로그·문서 중계(komachine·scribd)도 5', R.tierOf('cdn.komachine.com', '') + R.tierOf('scribd.com', ''), 10);
   eq('★★ 일반 웹(경험 글) 2곳이면 공공 없이도 ok', base('램 사이에 손이 끼인다', [web, { tier: 3 }]).status, 'ok');
-  eq('★★ 판매 페이지만 있으면 check', base('램 사이에 손이 끼인다', [sale, sale]).reasons.join(), '판매·자료 중계 페이지만 있음');
-  eq('★ 경험 글 1곳 + 판매 1곳은 「하나뿐」 (판매는 안 센다)', base('램 사이에 손이 끼인다', [web, sale]).reasons.join(), '믿을 만한 출처가 하나뿐');
+  /* 사용자 결정 2 — 판매·중계도 원본 링크가 확인되면 근거로 센다 (verifySources 가 링크를 거른다) */
+  eq('★★ 원본이 확인된 판매 페이지 2곳이면 ok', base('램 사이에 손이 끼인다', [sale, sale]).status, 'ok');
+  eq('★ 경험 글 1곳 + 판매 1곳도 ok (둘 다 센다)', base('램 사이에 손이 끼인다', [web, sale]).status, 'ok');
+  eq('판매 1곳뿐이면 「하나뿐」', base('램 사이에 손이 끼인다', [sale]).reasons.join(), '믿을 만한 출처가 하나뿐');
+  {
+    const opened = [{ uri: 'https://www.daara.co.kr/blog/press-safety/?utm_source=x#top', title: 'daara', host: 'daara.co.kr' }];
+    const v1 = R.verifySources([{ title: 'a', url: 'https://daara.co.kr/blog/press-safety' }], opened, '');
+    eq('★★ 판매 페이지: 검색 도구가 연 바로 그 주소면 넣는다 (www·끝 /·utm·# 무시)', v1.sources.length + '|' + v1.sources[0].tier, '1|5');
+    const v2 = R.verifySources([{ title: 'b', url: 'https://daara.co.kr/' }], opened, '');
+    eq('★★ 판매 페이지: 도메인만 같고 주소가 다르면 버린다 (원본 링크만)', v2.sources.length + '|' + v2.unverified, '0|1');
+    const v3 = R.verifySources([{ title: 'c', url: 'https://kosha.or.kr/other' }], [{ uri: 'https://kosha.or.kr/x', host: 'kosha.or.kr' }], '');
+    eq('공공 등 다른 등급은 지금처럼 도메인 대조', v3.sources.length, 1);
+  }
   eq('공공 1곳 + 판매 1곳은 ok', base('램 사이에 손이 끼인다', [pub, sale]).status, 'ok');
   eq('★ 종류: 일반 웹이면 모델 표시(experience)를 받는다', R.kindOf(3, 'experience'), 'experience');
   eq('★ 종류: 판매 도메인은 모델이 experience 라 해도 sales', R.kindOf(5, 'experience'), 'sales');
   eq('종류: 모르는 표시는 web', R.kindOf(3, 'official'), 'web');
   has('★ 현장 경험 글을 찾게 한다', sys, '현장 경험 글을 넓게 찾는다');
-  has('★ 판매 페이지는 위험 근거로 쓰지 않는다', sys, '위험의 근거로 쓰지 않는다');
+  has('★ 판매 페이지는 실제로 연 글 주소만', sys, '실제로 연 그 글의 주소를 그대로');
 
   fakeModel({ ...GOOD, limits: ['nypress.co.kr 인증서 오류로 못 열림', '', 'TB-G5 스펙표 JS 라 못 받음'] });
   const r = await call(EQ);
@@ -280,6 +295,74 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   ok('★ 로그에 설비 이름·모델명이 없다', !/프레스 3호기|HPC-110/.test(all));
   ok('★ 로그에 키가 없다', !all.includes(KEY));
   ok('로그에 route·항목 수가 남는다', /"route":"research"/.test(all) && /"n":/.test(all));
+}
+
+/* 9. 공식 문서 먼저 (2026-11-09 사용자 결정 「공적인 문서가 1차」) */
+{
+  const O = await import('../api/_official.mjs');
+  const H = await import('../api/_hazards.mjs');
+  fakeModel(GOOD);
+  const r = await call(EQ);
+  eq('★★ 프레스면 M-30-2002 항목이 맨 앞에 (o1·o2)', r.data.items.slice(0, 2).map((i) => i.id).join(), 'o1,o2');
+  ok('★★ 공식 항목은 ok · 공공(2) · 공식 표시', r.data.items.slice(0, 2).every((i) => i.status === 'ok' && i.sources[0].tier === 2 && i.official.code === 'M-30-2002'));
+  eq('★★ 가드 재전환(§7.2)이 들어 있다 — AI 가 두 번 다 놓친 것', r.data.items.find((i) => i.part === '가드 재전환').official.section, '§7.2');
+  eq('공식 문서 정보를 돌려준다', r.data.officialDocs[0].code, 'M-30-2002');
+  eq('공식 문서가 있으면 noOfficial 아님', r.data.noOfficial, false);
+  const user = JSON.parse(calls[calls.length - 1].init.body).contents[0].parts[0].text;
+  has('★ AI 에 「이미 들어 있으니 보충하라」와 공식 항목을 알린다', user, 'M-30-2002 §7.2 가드 재전환');
+
+  fakeModel({ items: [{ part: '롤러 사이', hazard: 'pinch', risk: '롤러에 말린다', sources: [src('hwacheon.com'), src('youtube.com')] },
+    { part: '벨트', hazard: 'pinch', risk: '벨트에 감긴다', sources: [src('hwacheon.com'), src('made-up.com')] }] },
+    CHUNKS.filter((c) => c.web.title !== 'kosha.or.kr' && c.web.title !== 'law.go.kr'));
+  const n = await call({ equipment: { name: '절곡기', maker: 'Hwacheon', model: 'X1' } });
+  eq('★★ 공식 문서도 공공 출처도 없으면 noOfficial', n.data.noOfficial, true);
+  ok('★★ 그때는 ok 가 하나도 없다', n.data.items.every((i) => i.status === 'check' && i.reasons.indexOf('공식 문서를 확인하지 못함') !== -1));
+
+  /* 사람이 원문으로 확인한 정답 기준과 어긋나면 깨진다 */
+  for (const [file, re] of [['c-press', '프레스'], ['injection-molder', '사출']]) {
+    const gold = JSON.parse(require('fs').readFileSync(new URL('../research/gold/' + file + '.json', import.meta.url), 'utf8'));
+    const doc = O.OFFICIAL_DOCS.find((d) => d.match.test(re));
+    doc.items.forEach((it) => {
+      const g = gold.items.find((x) => x.id === it.gold);
+      ok('★ 공식 항목 = gold ' + file + ' ' + it.gold + ' (원문 확인 · 같은 문장)', g && g.part === it.part && g.risk === it.risk && g.hazard === it.hazard
+        && g.sources.some((s) => s.host === doc.host && s.checked === '원문'));
+    });
+  }
+  eq('★ 사진 위치 상한 = 공식 + 기본 + 고유', H.MAX_GUIDED_ITEMS, O.MAX_OFFICIAL_ITEMS + R.MAX_ITEMS);
+  ok('사출 공식 항목이 상한 안', O.OFFICIAL_DOCS.every((d) => d.items.length <= O.MAX_OFFICIAL_ITEMS));
+  const w = R.withOfficial({ items: [], docNumbers: ['M-30-2002', 'M-122-2012'] }, { name: '프레스' });
+  eq('★ 원문으로 확인된 번호는 「원문 확인」 목록에서 뺀다', w.docNumbers.join(), 'M-122-2012');
+}
+
+/* 10. 이 기계에만 있는 위험 — 두 번째 질문 */
+{
+  calls.length = 0;
+  fakeModel(GOOD, undefined, { items: [{ part: '프레임 (편심하중)', hazard: 'unknown', risk: '한쪽으로 누르면 C형 프레임이 벌어진다', sources: [src('kosha.or.kr'), src('law.go.kr')] }], limits: ['고유 자료 일부 못 엶'] });
+  const r = await call(EQ);
+  eq('★★ 질문을 두 번 보낸다 (기본 + 기계 고유)', calls.length, 2);
+  const sys2 = calls.map((c) => JSON.parse(c.init.body).system_instruction.parts[0].text);
+  ok('★ 두 번째는 「이 설비에만 있는 위험」 지시문', sys2.some((t) => /이 설비에만 있는 위험/.test(t)) && sys2.some((t) => !/이 설비에만 있는 위험/.test(t)));
+  const sp = r.data.items.filter((i) => i.specific);
+  eq('★★ 고유 위험 항목이 붙고 specific 표시', sp.length + '|' + sp[0].part, '1|프레임 (편심하중)');
+  ok('기본 조사 항목은 specific 아님', ai(r).filter((i) => !i.specific).length === 6);
+  has('두 질문의 limits 를 합친다', r.data.limits.join(), '고유 자료 일부 못 엶');
+  const sys = R.specificSystemText();
+  has('★ 흔한 위험은 빼라', sys, '어느 공장에나 있는 일반 위험');
+  has('★ 작업 단계·방호장치 원위치', sys, '원래대로 돌리지 않고');
+  has('★ 같은 규칙(출처 지어내기 금지)을 쓴다', sys, '주소를 지어내지 않는다');
+  eq('모델이 붙인 pass 표시는 지운다', R.mergeRaw({ items: [{ part: 'a', pass: 'specific' }] }, null).items[0].pass, '');
+
+  /* 두 번째만 실패해도 첫 번째는 살린다 */
+  let n = 0;
+  globalThis.fetch = async (url, init) => {
+    n += 1;
+    const spec = /이 설비에만 있는 위험/.test(String(init.body));
+    if (spec) return new Response('{}', { status: 500 });
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(GOOD) }] }, groundingMetadata: { groundingChunks: CHUNKS } }] }), { status: 200 });
+  };
+  const f = await call(EQ);
+  eq('★★ 두 번째가 실패해도 200 · 기본 조사는 그대로', f.status + '|' + ai(f).length, '200|6');
+  has('★ 실패를 limits 로 알린다', f.data.limits.join(), '고유 위험 추가 조사가 실패');
 }
 
 console.log = realLog;

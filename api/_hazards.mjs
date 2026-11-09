@@ -16,6 +16,8 @@
 
    근거: PRD-AD-07 §4 FR-04·05·09·12·20·21 · §11 Q4·Q5·Q8 · C06 D-027 */
 
+import { MAX_OFFICIAL_ITEMS } from './_official.mjs';
+
 /* ── 결정에 걸린 값 ─────────────────────────────────────────────────── */
 
 export const MAX_POINTS = 5;   // PRD-AD-07 §11 Q4 결정 (사진 1장당 5개)
@@ -106,7 +108,8 @@ export function filterPoints(raw, hazardCodes, max = MAX_POINTS) {
    좌표는 Gemini 가 잘 내는 모양 그대로 `box_2d` [ymin, xmin, ymax, xmax] 0~1000 으로 받고
    서버가 퍼센트로 바꾼다. 사진에 안 보이면 null + 필요한 사진. */
 
-export const MAX_GUIDED_ITEMS = 12;   // /api/research 의 MAX_ITEMS 와 같다
+/* 공식 문서 항목 + /api/research 의 MAX_ITEMS(기본 12 + 고유 5) — 검사가 대조한다 */
+export const MAX_GUIDED_ITEMS = MAX_OFFICIAL_ITEMS + 12 + 5;
 const MIN_BOX = 1;                    // 0~100 기준 가로·세로 1% 미만은 박스가 아니다
 const R_MIN = 5;                      // 문항 정답 원 반지름 (diagrams.js answerFor 의 12 와 같은 단위)
 /* 2026-11-09 실측 — 긴 변 절반을 그대로 쓰면 반지름이 17~26 이 되어 문항 정답 원이 5쌍 겹쳤다.

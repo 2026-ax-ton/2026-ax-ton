@@ -137,7 +137,7 @@ console.log = () => {};
   eq('★ items 가 배열이 아니면 400', (await send({ image: PHOTO, mime: 'image/jpeg', items: 'r1' })).status, 400);
   eq('★ 쓸 항목이 하나도 없으면 400', (await send({ image: PHOTO, mime: 'image/jpeg', items: [{ id: '!', part: '' }] })).status, 400);
   const many = Array.from({ length: 20 }, (_, i) => ({ id: 'r' + i, part: 'p' + i, hazard: 'fire' }));
-  eq('★ 항목은 12개까지만', H.cleanGuidedItems(many).length, 12);
+  eq('★ 항목은 MAX_GUIDED_ITEMS(공식 + 기본 + 고유)까지만', H.cleanGuidedItems(Array.from({ length: 40 }, (_, i) => ({ id: 'r' + i, part: 'p' + i, hazard: 'fire' }))).length, H.MAX_GUIDED_ITEMS);
 }
 
 /* 5. 항목이 없으면 자유 탐색 그대로 */

@@ -18,12 +18,14 @@ import { callModel } from '../api/_shared.mjs';
 import {
   parseModelJson, cleanGuidedItems, guidedSystemText, guidedUserText, mapBoxes, overlapCount,
 } from '../api/_hazards.mjs';
-import { systemText, userText, cleanField, cleanResult } from '../api/_research.mjs';
+import {
+  systemText, specificSystemText, userText, cleanField, cleanResult, mergeRaw, mergeGrounding, withOfficial,
+} from '../api/_research.mjs';
 import { readEnvLocal } from './measure-hazards.mjs';
 
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;   // api/hazards.mjs 와 같다
-const TIER = ['', '제조사', '공공', '일반', '동영상', '판매'];
+const TIER = ['', '제조사', '공공', '일반', '동영상', '판매·중계'];
 const KIND = { experience: '경험', journal: '전문지' };
 
 function args() {
@@ -63,19 +65,29 @@ async function main() {
   /* ── S2 리서치 ── */
   console.log('── S2 리서치 · ' + (gpt ? 'GPT' : 'Gemini') + ' ' + model + ' · ' + [eq.name, eq.maker, eq.model].filter(Boolean).join(' / '));
   let t0 = Date.now();
-  const r = await callModel({ provider, key, model, timeoutMs: 60000 }, systemText(), userText(eq),
-    { maxOutputTokens: 8000, maxText: 24000, tools: [{ google_search: {} }] });
+  /* 서버(api/research.mjs)와 같다 — 기본 조사와 「이 기계에만 있는 위험」 두 질문을 나란히 */
+  const mcfg = { provider, key, model, timeoutMs: 60000 };
+  const mopts = { maxOutputTokens: 8000, maxText: 24000, tools: [{ google_search: {} }] };
+  const [r, r2] = await Promise.all([
+    callModel(mcfg, systemText(), userText(eq), mopts),
+    callModel(mcfg, specificSystemText(), userText(eq), mopts),
+  ]);
   if (r.error) { console.log('  ✗ ' + r.error + ' · ' + (r.why || '') + ' · ' + (Date.now() - t0) + 'ms'); process.exit(1); }
   const raw = parseModelJson(r.text);
   if (!raw) { console.log('  ✗ JSON 이 아니다. 앞부분: ' + JSON.stringify(String(r.text).slice(0, 200))); process.exit(1); }
-  const res = cleanResult(raw, r.grounding, eq);
-  const chunks = r.grounding && Array.isArray(r.grounding.groundingChunks) ? r.grounding.groundingChunks.length : 0;
+  const raw2 = r2 && !r2.error ? parseModelJson(r2.text) : null;
+  if (!raw2) console.log('  ⚠ 두 번째 질문(기계 고유) 실패: ' + (r2.error ? r2.error + ' · ' + (r2.why || '') : 'JSON 아님'));
+  const merged = mergeRaw(raw, raw2);
+  if (!raw2) merged.limits = merged.limits.concat('이 기계 고유 위험 추가 조사가 실패해 기본 조사만 보입니다');
+  const grounding = mergeGrounding(r.grounding, r2 && r2.grounding);
+  const res = withOfficial(cleanResult(merged, grounding, eq), eq);
+  const chunks = grounding.groundingChunks.length;
   console.log('  걸린 시간 ' + (Date.now() - t0) + 'ms · 검색 근거 ' + chunks + '건 · 확인된 출처 사이트 ' + res.sourceCount + '곳'
     + (res.thin ? ' · ⚠ 자료 부족' : '') + (res.general ? ' · 일반 자료' : ''));
   console.log('  개요: ' + res.overview);
   (res.limits || []).forEach((l) => console.log('  막힘: ' + l));
   res.items.forEach((it) => {
-    console.log('  ' + (it.status === 'ok' ? '✓' : '?') + ' [' + it.id + '] ' + it.part + ' · ' + it.hazard + ' — ' + it.risk);
+    console.log('  ' + (it.status === 'ok' ? '✓' : '?') + ' [' + it.id + ']' + (it.official ? ' (공식 ' + it.official.code + ' ' + it.official.section + ')' : it.specific ? ' (기계 고유)' : '') + ' ' + it.part + ' · ' + it.hazard + ' — ' + it.risk);
     it.sources.forEach((s) => console.log('       출처(' + (KIND[s.kind] || TIER[s.tier]) + ') ' + s.host + ' — ' + s.title));
     if (it.unverifiedSources) console.log('       ✗ 검색 근거에 없는 출처 ' + it.unverifiedSources + '개 (버림)');
     if (it.reasons.length) console.log('       확인 필요: ' + it.reasons.join(' · '));
@@ -104,7 +116,7 @@ async function main() {
   const g = await callModel({ provider, key, model, timeoutMs: 45000 }, guidedSystemText(), [
     { inline_data: { mime_type: mime, data: buf.toString('base64') } },
     { text: guidedUserText(items) },
-  ], { maxOutputTokens: 2400, maxText: 4000 });
+  ], { maxOutputTokens: 4800, maxText: 8000 });   // api/hazards.mjs 안내형과 같다
   if (g.error) { console.log('  ✗ ' + g.error + ' · ' + (g.why || '')); return; }
   const out = parseModelJson(g.text);
   if (!out) { console.log('  ✗ JSON 이 아니다. 앞부분: ' + JSON.stringify(String(g.text).slice(0, 200))); return; }

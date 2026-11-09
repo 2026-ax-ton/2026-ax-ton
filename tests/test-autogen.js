@@ -163,6 +163,20 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     A.loadRun(docRun);
     has('★★ AI 가 적은 문서번호를 원문 확인 대상으로 보인다', t5.$('ag-limits').textContent, '문서번호 M-122-2012');
 
+    /* 공식 문서 먼저 · 기계 고유 · 판매·중계 표시 (2026-11-09) */
+    const offRes = JSON.parse(JSON.stringify(RESEARCH));
+    offRes.items[0].official = { code: 'M-30-2002', section: '§7.2', title: 'KOSHA CODE M-30-2002', publisher: '한국산업안전공단', year: 2002 };
+    offRes.items[1].specific = true;
+    offRes.items[1].sources = [{ title: '판매 글', url: 'https://daara.co.kr/a', host: 'daara.co.kr', tier: 5, kind: 'sales' }];
+    offRes.officialDocs = [{ code: 'M-30-2002', title: 'KOSHA CODE M-30-2002', publisher: '한국산업안전공단', year: 2002, url: 'https://moel.go.kr/x' }];
+    A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: '프레스' }, research: offRes }));
+    has('★★ 공식 항목에 「공식 문서 · 번호 조항」 표시', t5.$('ag-items').textContent, '공식 문서 · M-30-2002 §7.2');
+    has('★ 공식 문서 안내', t5.$('ag-limits').textContent, '공식 문서 · M-30-2002');
+    has('★ 기계 고유 표시', t5.$('ag-items').textContent, '기계 고유');
+    has('★ 판매·중계 출처 표시', t5.$('ag-items').textContent, '판매·중계');
+    A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: 'x' }, research: { ...JSON.parse(JSON.stringify(RESEARCH)), noOfficial: true } }));
+    has('★★ 공식 문서가 없으면 크게 알린다', t5.$('ag-limits').textContent, '공식 기준 문서를 찾지 못했습니다');
+
     /* 겹치는 정답 원 안내 */
     const st5 = A.state();
     st5.guided = { mapped: [

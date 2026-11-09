@@ -126,7 +126,8 @@ async function run(request) {
   const r = await callModel(cfg, guided ? guidedSystemText() : systemText(HAZARD_CODES), [
     { inline_data: { mime_type: img.mime, data: img.data } },
     { text: guided ? guidedUserText(guided) : USER_TEXT },
-  ], { maxOutputTokens: guided ? MAX_OUTPUT_TOKENS * 2 : MAX_OUTPUT_TOKENS, maxText: MAX_TEXT });
+  /* 안내형은 항목이 최대 25개(공식 + 기본 + 고유)라 박스 JSON 이 길다 — GPT 는 추론 토큰도 여기서 센다 */
+  ], { maxOutputTokens: guided ? MAX_OUTPUT_TOKENS * 4 : MAX_OUTPUT_TOKENS, maxText: guided ? MAX_TEXT * 2 : MAX_TEXT });
 
   if (r.error) {
     const f = modelFail(r, cors, MESSAGES);
