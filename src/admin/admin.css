@@ -873,4 +873,7 @@ table.data .chips .badge { font-size: .68em; }
 /* 문항이 되지 않은 박스(같은 자리라 합침 · 상한 · 출처 확인 필요) — 흐리게, 라벨 숨김. 문항 박스만 읽히게 */
 .ag-box[data-q="no"] { opacity: .35; border-width: 2px; border-style: dotted; }
 .ag-box[data-q="no"] .ag-box-label { display: none; }
+.ag-choices { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.ag-choice { padding: 8px; border: 1px solid var(--line, #ccc); border-radius: 8px; display: grid; gap: 6px; }
+.ag-choice select { max-width: 100%; min-height: 40px; }
 .ag-add { margin-top: 12px; }

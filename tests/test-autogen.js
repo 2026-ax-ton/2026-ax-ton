@@ -205,6 +205,34 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     const boxes = Array.from(t5.win.document.querySelectorAll('#ag-figure .ag-box'));
     eq('★ 사진 위 박스: 문항이 된 것 6 · 아닌 것 2 (흐리게)', boxes.filter((b) => b.getAttribute('data-q') === 'yes').length + '|' + boxes.filter((b) => b.getAttribute('data-q') === 'no').length, '6|2');
     has('★ 문항 박스에 번호', boxes[0].textContent, '문항 1 · ');
+
+    /* 고르기(choice) 문항 — 사진으로 묻지 못한 항목, 정답은 검수 완료 문구로만 (2026-11-09) */
+    const doc5 = t5.win.document;
+    const ph2 = doc5.querySelector('input[name="ag-phrase"][value="ph-2"]');
+    ok('검수 완료 문구 ph-2(작업 전 전원을 차단하십시오)가 목록에 있다', !!ph2);
+    ph2.checked = true;
+    st5.added = [{ id: 'm1', part: '수리·점검 (전원)', hazard: 'pinch', risk: '전원을 차단하지 않고 수리 작업을 하면 갑자기 움직여 끼인다' }];
+    t5.$('ag-title').dispatchEvent(new t5.win.Event('input', { bubbles: true }));
+    const quizC = A.draftQuiz();
+    const ch = quizC.filter((q) => q.type === 'choice');
+    eq('★★ 사진에 없는 항목 + 맞는 검수 문구 → 고르기 문항 1개', ch.length, 1);
+    eq('★★ 정답 선택지는 검수 문구 그대로', ch[0].options[ch[0].answer], '작업 전 전원을 차단하십시오');
+    eq('선택지 3개 (정답 1 + 틀린 행동 2)', ch[0].options.length, 3);
+    eq('★ 틀린 답을 고르면 위험 설명을 들려준다', ch[0].results[(ch[0].answer + 1) % 3], '전원을 차단하지 않고 수리 작업을 하면 갑자기 움직여 끼인다');
+    eq('사진 문항 뒤에 번호가 이어진다', ch[0].id, 'q7');
+    has('문항 모양 — 수강 화면이 받는 choice', ch[0].type + typeof ch[0].answer + Array.isArray(ch[0].options), 'choicenumbertrue');
+    has('★ 승인 화면에 「자동으로 짝지음」과 들려줄 말이 보인다', t5.$('ag-choices').textContent, '틀린 답을 고르면 들려줄 말');
+    ok('★★ AI 위험 설명이 선택지(안전 지시)로 쓰이지 않는다', ch[0].options.indexOf(st5.added[0].risk) === -1);
+
+    const selC = doc5.querySelector('#ag-choices li[data-id="m1"] select');
+    selC.value = '';
+    selC.dispatchEvent(new t5.win.Event('change', { bubbles: true }));
+    eq('★ 담당자가 「만들지 않음」을 고르면 빠진다', A.draftQuiz().filter((q) => q.type === 'choice').length, 0);
+
+    ph2.checked = false;
+    A.state().choicePick = {};
+    t5.$('ag-title').dispatchEvent(new t5.win.Event('input', { bubbles: true }));
+    eq('★★ 고른 문구가 없으면 고르기 문항을 만들지 않는다 (검수 안 된 문장으로 만들지 않음)', A.draftQuiz().filter((q) => q.type === 'choice').length, 0);
   }
   /* 6. https 가 아니면 */
   {

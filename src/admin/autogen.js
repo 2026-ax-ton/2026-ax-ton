@@ -47,6 +47,14 @@
      두 문항의 답이 되는 자리는 하나로 합치고(FR-AD-07-21), 사진 문항 수에 상한을 둔다.
      앞 순서(공식 문서 → 기본 조사 → 기계 고유)가 먼저 문항이 된다 */
   var MAX_PHOTO_QUESTIONS = 6;
+  /* 고르기(choice) 문항 — 「가드 재전환」처럼 장소가 아니라 **행동**인 항목은 사진으로 묻지 못한다.
+     ★ 정답 선택지는 위에서 고른 **검수 완료 문구**(Store.library)로만 만든다 — AI 가 쓴 문장을 안전 지시로
+       쓰지 않는다 (CLAUDE.md 「검수 완료가 아닌 문구는 안전 지시로 쓰지 않습니다」 · PRD-AD-08 P-1).
+     오답은 어느 설비에서나 틀린 행동 두 개(아래 상수, 사람이 쓴 것)다 */
+  var MAX_CHOICE_QUESTIONS = 3;
+  var MATCH_MIN = 3;          // 항목(부위+위험)과 문구가 두 글자 묶음을 이만큼 같이 가져야 자동으로 짝짓는다
+  var WRONG_OPTIONS = ['하던 대로 그대로 작업을 계속한다', '급하면 혼자 판단해서 빨리 처리한다'];
+  var RIGHT_RESULT = '맞습니다. 이렇게 하면 이 위험을 막을 수 있습니다.';
 
   /* 초안 — 메모리에만. 새로고침하면 사라진다 (반쯤 만든 교육이 노동자에게 가지 않게) */
   function emptyState(eq) {
@@ -56,7 +64,8 @@
       edits: {},   // id → { part, hazard, risk, memo }
       moves: {},   // id → { x, y } 담당자가 사진에서 다시 짚은 위치 (퍼센트)
       moving: '',  // 지금 위치를 고치는 항목 id
-      added: []    // 담당자가 더한 위험 [{ id, part, hazard, risk }]
+      added: [],   // 담당자가 더한 위험 [{ id, part, hazard, risk }]
+      choicePick: {} // 항목 id → 고르기 문항 정답 문구 id ('' = 만들지 않음, 없으면 자동)
     };
   }
   var state = emptyState(null);
@@ -508,11 +517,125 @@
     return plan;
   }
 
-  /** 저장되는 문항 — 합치기용 part 는 떼고 courses 문항 모양 그대로 */
+  /** 저장되는 문항 — 사진 문항(hotspot) 뒤에 고르기 문항(choice). 합치기용 칸은 떼고 courses 문항 모양 그대로 */
   function draftQuiz() {
-    return draftPlan().quiz.map(function (q) {
+    var hot = draftPlan().quiz.map(function (q) {
       return { id: q.id, type: q.type, hazard: q.hazard, prompt: q.prompt, answer: q.answer, figure: q.figure, i18n: q.i18n };
     });
+    return hot.concat(draftChoices().map(function (c, i) { return choiceQuestion(c, i, 'q' + (hot.length + i + 1)); }));
+  }
+
+  /* ── 고르기 문항 ─────────────────────────────────────────────── */
+
+  function grams(t) {
+    var str = String(t || '').replace(/[^가-힣A-Za-z0-9]/g, '');
+    var g = {};
+    for (var i = 0; i < str.length - 1; i += 1) g[str.substr(i, 2)] = true;
+    return g;
+  }
+
+  /** 두 문장이 같이 가진 두 글자 묶음 수 — 「가드를 열고 임시 조작…」과 「덮개를 열고 임시로 조작했다면…」을 잇는다.
+   *  ponytail: 낱말 뜻은 모른다(가드 ↔ 덮개). 틀리게 짝지으면 담당자가 고른다 */
+  function matchScore(a, b) {
+    var ga = grams(a), gb = grams(b), n = 0;
+    Object.keys(ga).forEach(function (k) { if (gb[k]) n += 1; });
+    return n;
+  }
+
+  function checkedPhrases() {
+    var ids = UI.checkedValues('ag-phrase');
+    return Store.library.load().filter(function (p) { return ids.indexOf(p.id) !== -1 && Store.phraseOk(p, 'ko'); });
+  }
+
+  /** 사진으로 묻지 못한 항목 — 위치 없음 · 같은 자리라 합침 · 상한으로 뺌 · 담당자가 더함 */
+  function choiceCandidates() {
+    var hot = {};
+    draftPlan().quiz.forEach(function (q) { hot[q.itemId] = true; });
+    return aiItems().filter(function (raw) { return included(raw) && !hot[raw.id]; }).map(effective).concat(state.added);
+  }
+
+  function bestPhrase(it, phrases) {
+    var best = null, top = MATCH_MIN - 1;
+    phrases.forEach(function (p) {
+      var sc = matchScore(it.part + ' ' + it.risk, p.ko);
+      if (sc > top) { top = sc; best = p; }
+    });
+    return best;
+  }
+
+  /** 담당자가 고른 문구가 있으면 그것, 없으면 자동 짝. 같은 문구로 두 문항을 만들지 않는다 */
+  function draftChoices() {
+    if (!state.research) return [];
+    var phrases = checkedPhrases();
+    var out = [];
+    choiceCandidates().forEach(function (it) {
+      var pick = state.choicePick[it.id];
+      var p = pick === '' ? null : (pick ? Store.findBy(phrases, 'id', pick) : bestPhrase(it, phrases));
+      if (!p || out.length >= MAX_CHOICE_QUESTIONS) return;
+      if (out.some(function (c) { return c.phrase.id === p.id; })) return;
+      out.push({ item: it, phrase: p, auto: pick === undefined });
+    });
+    return out;
+  }
+
+  /** 정답 자리를 문항마다 돌린다(늘 1번이면 외워서 푼다). 오답을 고르면 「지금 이대로 하면 생기는 일」(위험 설명)을 들려준다 */
+  function choiceQuestion(c, i, id) {
+    var at = i % (WRONG_OPTIONS.length + 1);
+    var options = WRONG_OPTIONS.slice();
+    options.splice(at, 0, c.phrase.ko);
+    var results = WRONG_OPTIONS.map(function () { return c.item.risk; });
+    results.splice(at, 0, RIGHT_RESULT);
+    return {
+      id: id,
+      type: 'choice',
+      hazard: c.item.hazard === 'unknown' ? '' : c.item.hazard,
+      prompt: '「' + c.item.part + '」 — 어떻게 해야 합니까?',
+      options: options,
+      answer: at,
+      results: results,
+      i18n: {}
+    };
+  }
+
+  function renderChoices() {
+    var box = $('ag-choices');
+    box.textContent = '';
+    var phrases = checkedPhrases();
+    var made = draftChoices();
+    var madeIds = made.map(function (c) { return c.item.id; });
+    var rest = [];
+    function row(it, parent) {
+      var li = UI.el('li', 'ag-choice');
+      li.setAttribute('data-id', it.id);
+      var c = made.filter(function (m) { return m.item.id === it.id; })[0];
+      li.appendChild(UI.el('strong', null, it.part));
+      if (c) li.appendChild(UI.okBadge(c.auto ? '고르기 문항 · 자동으로 짝지음' : '고르기 문항'));
+      var sel = document.createElement('select');
+      sel.setAttribute('aria-label', it.part + ' 정답 문구');
+      var none = UI.el('option', null, '만들지 않음');
+      none.value = '';
+      sel.appendChild(none);
+      phrases.forEach(function (p) { var o = UI.el('option', null, p.ko); o.value = p.id; sel.appendChild(o); });
+      sel.value = c ? c.phrase.id : '';
+      sel.addEventListener('change', function () { state.choicePick[it.id] = sel.value; renderApprove(); });
+      li.appendChild(sel);
+      if (c) li.appendChild(UI.el('p', 'meta', '틀린 답을 고르면 들려줄 말: ' + it.risk));
+      parent.appendChild(li);
+    }
+    choiceCandidates().forEach(function (it) {
+      if (madeIds.indexOf(it.id) !== -1) row(it, box); else rest.push(it);
+    });
+    if (!phrases.length) box.appendChild(UI.el('li', 'field-hint', '위에서 검수 완료 문구를 고르면 그 문구를 정답으로 고르기 문항을 만듭니다.'));
+    if (rest.length) {
+      var det = UI.el('details');
+      det.appendChild(UI.el('summary', null, '다른 항목 ' + rest.length + '개에도 정답 문구 고르기'));
+      var ul = UI.el('ul', 'ag-choices');
+      rest.forEach(function (it) { row(it, ul); });
+      det.appendChild(ul);
+      var li = UI.el('li');
+      li.appendChild(det);
+      box.appendChild(li);
+    }
   }
 
   function renderPhrases() {
@@ -555,6 +678,7 @@
     if (!$('ag-title').value && state.equipment) $('ag-title').value = state.equipment.name + ' 안전교육';
     if (!$('ag-phrases').children.length) renderPhrases();
 
+    renderChoices();
     var list = $('ag-check');
     list.textContent = '';
     var all = steps();
@@ -621,6 +745,7 @@
         mapped: state.guided.mapped.length,
         merged: draftPlan().merged.length,   // 같은 자리라 합친 항목 수
         cut: draftPlan().cut.length,         // 문항 상한으로 뺀 항목 수
+        choice: draftChoices().length,       // 검수 문구로 만든 고르기 문항 수
         review: reviewRecord()
       }
     };
@@ -665,6 +790,6 @@
 
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
-    state: function () { return state; }, draftQuiz: draftQuiz, draftPlan: draftPlan, loadRun: loadRun, readRun: readRun, steps: steps
+    state: function () { return state; }, draftQuiz: draftQuiz, draftPlan: draftPlan, draftChoices: draftChoices, loadRun: loadRun, readRun: readRun, steps: steps
   };
 })();
