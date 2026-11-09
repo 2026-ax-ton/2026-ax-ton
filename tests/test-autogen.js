@@ -62,14 +62,24 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   eq('★ 리서치를 /api/research 로 부른다', calls[0] && calls[0].path, '/api/research');
   eq('★ 토큰을 함께 보낸다', calls[0] && calls[0].opts.token, 'tok-test');
   ok('★ 설비 정보만 보낸다 (계정 값 없음)', calls[0] && !/kim@daesung|김현수/.test(JSON.stringify(calls[0].body)));
-  eq('주의사항 3개가 보인다', $('ag-items').children.length, 3);
+  /* 2026-11-09 사용자 요청 — 출처 확인 / 확인 필요를 한 목록에 섞지 않고 탭으로 나눈다 */
+  const tab = (name) => click(win, win.document.querySelector('#ag-tabs [data-tab="' + name + '"]'));
+  eq('★★ 처음에는 「출처 확인」 탭 — ok 항목 1개만 보인다', $('ag-items').querySelectorAll('li.item').length, 1);
+  has('★ 탭에 개수와 남은 판정 수', $('ag-tabs').textContent, '확인 필요 2개 · 남은 판정 2개');
+  eq('선택된 탭 표시 (aria-selected)', win.document.querySelector('#ag-tabs [aria-selected="true"]').getAttribute('data-tab'), 'ok');
+  const okDet = $('ag-items').querySelector('details');
+  const okLink = $('ag-items').querySelector('a');
+  ok('★ ok 항목의 출처는 접어 둔다', okDet.open === false);
+  tab('check');
+  eq('★★ 「확인 필요」 탭 — 확인 필요 2개만', $('ag-items').querySelectorAll('li.item').length, 2);
   ok('★★ AI 글에 HTML 이 있어도 요소가 생기지 않는다', !$('ag-items').querySelector('img'));
   has('그 글이 글자 그대로 보인다', $('ag-items').textContent, '<img src=x onerror=alert(1)>');
-  has('★ 막힌 지점(limits)을 보인다', $('ag-limits').textContent, '인증서 오류');
+  has('★ 막힌 지점(limits)을 보인다 (접어 둔 「자세히 보기」 안)', $('ag-limits').textContent, '인증서 오류');
+  has('막힌 지점은 개수만 먼저', $('ag-limits').querySelector('summary').textContent, '자세히 보기');
   const dets = $('ag-items').querySelectorAll('details');
-  ok('★★ 확인 필요는 펼쳐 두고, ok 는 접어 둔다', dets[1].open === true && dets[0].open === false);
+  ok('★★ 확인 필요는 펼쳐 둔다', dets[0].open === true);
   has('충돌 내용을 보인다', $('ag-items').textContent, '설명서와 웹 글이 다름');
-  ok('출처 링크는 새 창 + noopener', $('ag-items').querySelector('a').rel.indexOf('noopener') !== -1);
+  ok('출처 링크는 새 창 + noopener', okLink.rel.indexOf('noopener') !== -1);
   ok('★ 판정 버튼 셋이 항목마다 있다', !!judgeBtn(t, 'r2', 'right') && !!judgeBtn(t, 'r2', 'wrong') && !!judgeBtn(t, 'r2', 'edit'));
 
   /* 사진 결과를 끼워 넣는다 (canvas 없음) */
@@ -102,6 +112,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
 
   /* 위치 고치기 — AI 박스가 엉뚱한 곳이면 사진을 눌러 다시 짚는다 (2026-11-09 실측에서 필요했다) */
   ok('★ 틀림 항목에는 위치 고치기가 없다', !win.document.querySelector('button[data-move="r2"]'));
+  tab('ok');
   click(win, win.document.querySelector('button[data-move="r1"]'));
   const fig = $('ag-figure');
   fig.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 100 });
@@ -121,6 +132,9 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
 
   ok('★★ 판정이 끝나면 승인이 켜진다', $('btn-approve').disabled === false, $('ag-check').textContent);
   eq('겹치지 않는 문항이면 겹침 안내가 없다', /겹치는 문항/.test($('ag-lang-note').textContent), false);
+  /* 검수 완료 문구만 */
+  const phraseIds = Array.from($('ag-phrases').querySelectorAll('input')).map((n) => n.value);
+  ok('★ 검수 대기 문구(ph-5)는 고를 수 없다', phraseIds.length > 0 && phraseIds.indexOf('ph-5') === -1);
   click(win, $('btn-approve'));
   const courses = S.courses.load();
   const c = courses[courses.length - 1];
@@ -134,9 +148,16 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   eq('틀린 부위 이름이 기록된다', rv && rv.wrongParts.join(), '제어반');
   ok('승인 뒤 초안을 비운다', $('sec-approve').hidden === true);
 
-  /* 검수 완료 문구만 */
-  const phraseIds = Array.from($('ag-phrases').querySelectorAll('input')).map((n) => n.value);
-  ok('★ 검수 대기 문구(ph-5)는 고를 수 없다', phraseIds.indexOf('ph-5') === -1);
+  /* 2026-11-09 사용자 신고 — 한 번 발급한 뒤 다른 설비를 고르면 제목·문구가 앞 설비 것으로 남았다 */
+  ok('★★ 발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);
+  eq('★ 발급 뒤 제목을 비운다', $('ag-title').value, '');
+  has('★ 발급 뒤 다음 할 일을 알린다', $('ag-research-status').textContent, '다른 설비를 고르고');
+  const eqSel = $('ag-equip');
+  const other = Array.from(eqSel.options).find((o) => o.value !== eqSel.value);
+  eqSel.value = other.value;
+  eqSel.dispatchEvent(new win.Event('change', { bubbles: true }));
+  eq('★★ 다른 설비를 고르면 그 설비가 발급 대상이 된다', win.__autogen.state().equipment.id, other.value);
+  eq('★★ 제목도 그 설비 이름으로 바뀐다', $('ag-title').value, other.text + ' 안전교육');
 
   /* 7. 결과 파일 모드 */
   {
@@ -153,7 +174,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     const run = A.readRun({ kind: 'safety-ai-run', provider: 'openai', model: 'gpt-x', equipment: { name: 'C형 유압프레스' },
       research: JSON.parse(JSON.stringify(RESEARCH)), guided: JSON.parse(JSON.stringify(GUIDED)), photo: { data: PHOTO } });
     A.loadRun(run);
-    eq('★★ 결과 파일로 같은 검토 화면이 열린다', t5.$('ag-items').children.length, 3);
+    eq('★★ 결과 파일로 같은 검토 화면이 열린다 (출처 확인 탭 1 + 확인 필요 탭 2)', t5.$('ag-items').querySelectorAll('li.item').length + '|' + t5.$('ag-tabs').textContent, '1|출처 확인 1개확인 필요 2개 · 남은 판정 2개');
     has('어느 설비를 조사한 결과인지 보인다', t5.$('ag-research-status').textContent, 'C형 유압프레스');
     eq('★★ 결과 파일 모드에서 서버를 부르지 않는다', called, 0);
     eq('결과 파일 출처 기록', A.state().source, 'file');
@@ -172,6 +193,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: '프레스' }, research: offRes }));
     has('★★ 공식 항목에 「공식 문서 · 번호 조항」 표시', t5.$('ag-items').textContent, '공식 문서 · M-30-2002 §7.2');
     has('★ 공식 문서 안내', t5.$('ag-limits').textContent, '공식 문서 · M-30-2002');
+    t5.win.document.querySelector('#ag-tabs [data-tab="check"]').dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
     has('★ 기계 고유 표시', t5.$('ag-items').textContent, '기계 고유');
     has('★ 판매·중계 출처 표시', t5.$('ag-items').textContent, '판매·중계');
     A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: 'x' }, research: { ...JSON.parse(JSON.stringify(RESEARCH)), noOfficial: true } }));
@@ -244,6 +266,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     click(t2.win, t2.$('btn-research'));
     await tick();
     eq('★ 토큰이 없으면 서버를 부르지 않는다', called, 0);
+    has('★★ 눌러도 조용하지 않다 — 왜 안 되는지와 [결과 파일 불러오기]를 알린다', t2.$('ag-research-status').textContent, '결과 파일 불러오기');
   }
 
   /* 7. 노동자 사진 문항 */
