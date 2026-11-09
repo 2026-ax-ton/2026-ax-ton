@@ -43,6 +43,10 @@
   var MAX_RUN_BYTES = 6 * 1024 * 1024;   // 결과 파일 상한 (사진 data URL 포함)
   var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계'];
   var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
+  /* 2026-11-09 v3 실측 — 항목이 16~22개로 늘자 사진 정답 원이 59쌍 겹쳤다. 노동자가 한 점을 짚을 때
+     두 문항의 답이 되는 자리는 하나로 합치고(FR-AD-07-21), 사진 문항 수에 상한을 둔다.
+     앞 순서(공식 문서 → 기본 조사 → 기계 고유)가 먼저 문항이 된다 */
+  var MAX_PHOTO_QUESTIONS = 6;
 
   /* 초안 — 메모리에만. 새로고침하면 사라진다 (반쯤 만든 교육이 노동자에게 가지 않게) */
   function emptyState(eq) {
@@ -441,16 +445,20 @@
     img.src = state.keepPhoto;
     img.alt = '설비 사진';
     fig.appendChild(img);
+    var qs = draftPlan().quiz;
     state.guided.mapped.map(placed).forEach(function (m) {
       var raw = Store.findBy(aiItems(), 'id', m.id);
       var shown = raw ? effective(raw) : m;
       var b = UI.el('div', 'ag-box');
       if (state.judge[m.id] === 'wrong') b.setAttribute('data-judge', 'wrong');
+      var qi = -1;
+      qs.forEach(function (q, i) { if (q.itemId === m.id) qi = i; });
+      b.setAttribute('data-q', qi === -1 ? 'no' : 'yes');
       b.style.left = m.box.x0 + '%';
       b.style.top = m.box.y0 + '%';
       b.style.width = (m.box.x1 - m.box.x0) + '%';
       b.style.height = (m.box.y1 - m.box.y0) + '%';
-      b.appendChild(UI.el('span', 'ag-box-label', shown.part + ' · ' + hazardLabel(shown.hazard)));
+      b.appendChild(UI.el('span', 'ag-box-label', (qi === -1 ? '' : '문항 ' + (qi + 1) + ' · ') + shown.part + ' · ' + hazardLabel(shown.hazard)));
       fig.appendChild(b);
     });
   }
@@ -465,16 +473,29 @@
 
   /* ── S6 문항 초안 + 승인 ───────────────────────────────────────── */
 
-  /** 들어가는 항목 중 사진 위치가 있는 것 → hotspot 문항 (담당자가 고친 값으로) */
-  function draftQuiz() {
-    if (!state.guided || !state.keepPhoto) return [];
-    var out = [];
+  /** 두 정답 원이 겹치면 한 번 짚은 자리가 두 문항의 답이 된다 */
+  function touches(a, b) {
+    return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) < a.r + b.r;
+  }
+
+  /** 들어가는 항목 중 사진 위치가 있는 것 → hotspot 문항 (담당자가 고친 값으로).
+   *  이미 문항이 된 자리와 겹치면 합치고(merged), 상한을 넘으면 뺀다(cut) */
+  function draftPlan() {
+    var plan = { quiz: [], merged: [], cut: [] };
+    if (!state.guided || !state.keepPhoto) return plan;
+    var out = plan.quiz;
     aiItems().forEach(function (raw) {
       if (!included(raw)) return;
       var m = mappedOf(raw.id);
       if (!m) return;
       var it = effective(raw);
+      var ans = placed(m).answer;
+      var hit = out.filter(function (q) { return touches(q.answer, ans); })[0];
+      if (hit) { plan.merged.push({ id: raw.id, part: it.part, into: hit.part }); return; }
+      if (out.length >= MAX_PHOTO_QUESTIONS) { plan.cut.push({ id: raw.id, part: it.part }); return; }
       out.push({
+        itemId: raw.id,
+        part: it.part,
         id: 'q' + (out.length + 1),
         type: 'hotspot',
         hazard: it.hazard === 'unknown' ? '' : it.hazard,
@@ -484,18 +505,14 @@
         i18n: {}
       });
     });
-    return out;
+    return plan;
   }
 
-  function overlapPairs(quiz) {
-    var n = 0;
-    for (var i = 0; i < quiz.length; i += 1) {
-      for (var j = i + 1; j < quiz.length; j += 1) {
-        var a = quiz[i].answer, b = quiz[j].answer;
-        if (Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) < a.r + b.r) n += 1;
-      }
-    }
-    return n;
+  /** 저장되는 문항 — 합치기용 part 는 떼고 courses 문항 모양 그대로 */
+  function draftQuiz() {
+    return draftPlan().quiz.map(function (q) {
+      return { id: q.id, type: q.type, hazard: q.hazard, prompt: q.prompt, answer: q.answer, figure: q.figure, i18n: q.i18n };
+    });
   }
 
   function renderPhrases() {
@@ -549,11 +566,15 @@
       list.appendChild(li);
     });
     var langs = (setup().languages || []).filter(function (c) { return c !== 'ko'; });
-    /* 정답 원이 겹치면 노동자가 어느 문항의 답인지 헷갈린다 (FR-AD-07-21) — 막지는 않고 알린다 */
-    var overlaps = overlapPairs(draftQuiz());
+    /* 정답 원이 겹치면 노동자가 어느 문항의 답인지 헷갈린다 (FR-AD-07-21) — 자동으로 합치고 무엇을 합쳤는지 알린다 */
+    var plan = draftPlan();
     $('ag-lang-note').textContent = (langs.length
       ? '문항 문장은 아직 한국어로만 나갑니다 — 노동자 화면은 한국어 문장을 읽어 줍니다. 번역은 교육 콘텐츠 생성 화면에서 더할 수 있습니다. '
-      : '') + (overlaps ? '정답 위치가 서로 겹치는 문항이 ' + overlaps + '쌍 있습니다 — 겹치는 항목은 [틀림·빼기]나 [고치기]로 정리하는 것이 좋습니다.' : '');
+      : '')
+      + (plan.merged.length ? '같은 자리를 가리키는 ' + plan.merged.length + '개 항목은 문항 하나로 합쳤습니다 ('
+        + plan.merged.map(function (m) { return m.part + ' → ' + m.into; }).join(', ') + '). 따로 묻고 싶으면 [위치 고치기]로 자리를 옮기세요. ' : '')
+      + (plan.cut.length ? '사진 문항은 ' + MAX_PHOTO_QUESTIONS + '개까지라 ' + plan.cut.length + '개 항목은 문항에서 뺐습니다 ('
+        + plan.cut.map(function (m) { return m.part; }).join(', ') + '). 안전 문구로는 그대로 가르칠 수 있습니다.' : '');
     $('btn-approve').disabled = !all.every(function (s) { return s.done; });
   }
 
@@ -598,6 +619,8 @@
         items: aiItems().length,
         checks: aiItems().filter(function (i) { return i.status !== 'ok'; }).length,
         mapped: state.guided.mapped.length,
+        merged: draftPlan().merged.length,   // 같은 자리라 합친 항목 수
+        cut: draftPlan().cut.length,         // 문항 상한으로 뺀 항목 수
         review: reviewRecord()
       }
     };
@@ -642,6 +665,6 @@
 
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
-    state: function () { return state; }, draftQuiz: draftQuiz, loadRun: loadRun, readRun: readRun, steps: steps
+    state: function () { return state; }, draftQuiz: draftQuiz, draftPlan: draftPlan, loadRun: loadRun, readRun: readRun, steps: steps
   };
 })();

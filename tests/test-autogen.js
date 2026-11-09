@@ -185,7 +185,26 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     st5.keepPhoto = PHOTO;
     st5.judge.r2 = 'right'; st5.judge.r3 = 'wrong';
     t5.$('ag-title').dispatchEvent(new t5.win.Event('input', { bubbles: true }));
-    has('★ 정답 위치가 겹치면 알린다 (막지는 않음)', t5.$('ag-lang-note').textContent, '겹치는 문항이 1쌍');
+    /* 2026-11-09 v3 실측 59쌍 겹침 → 같은 자리는 문항 하나로 합친다 (FR-AD-07-21) */
+    eq('★★ 겹치는 자리는 문항 하나로 합친다 (앞 항목이 남는다)', A.draftQuiz().length, 1);
+    has('★ 무엇을 무엇에 합쳤는지 알린다', t5.$('ag-lang-note').textContent, '1개 항목은 문항 하나로 합쳤습니다');
+    ok('★ 저장 문항에는 합치기용 part 가 없다 (courses 문항 모양 그대로)', A.draftQuiz().every((q) => !('part' in q)));
+
+    /* 사진 문항 상한 — 겹치지 않는 자리 8곳이어도 6문항까지 */
+    st5.research.items = Array.from({ length: 8 }, (_, i) => ({ id: 'p' + i, part: '부위' + i, hazard: 'pinch', risk: 'r', sources: [], status: 'ok', reasons: [] }));
+    st5.guided = { mapped: st5.research.items.map((it, i) => ({ id: it.id, box: { x0: i * 12, y0: 10, x1: i * 12 + 4, y1: 14 }, answer: { x: i * 12 + 2, y: 12, r: 5 } })), missing: [] };
+    st5.judge = {};
+    t5.$('ag-title').dispatchEvent(new t5.win.Event('input', { bubbles: true }));
+    eq('★★ 사진 문항은 6개까지', A.draftQuiz().length, 6);
+    eq('뺀 항목 2개를 센다', A.draftPlan().cut.length, 2);
+    has('★ 뺀 항목을 알린다', t5.$('ag-lang-note').textContent, '사진 문항은 6개까지라 2개 항목은');
+    eq('문항 번호가 이어진다', A.draftQuiz().map((q) => q.id).join(), 'q1,q2,q3,q4,q5,q6');
+    /* 판정 버튼 하나를 누르면 화면 전체(사진 포함)를 다시 그린다 */
+    t5.win.document.querySelector('#ag-items button[data-judge="right"]')
+      .dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
+    const boxes = Array.from(t5.win.document.querySelectorAll('#ag-figure .ag-box'));
+    eq('★ 사진 위 박스: 문항이 된 것 6 · 아닌 것 2 (흐리게)', boxes.filter((b) => b.getAttribute('data-q') === 'yes').length + '|' + boxes.filter((b) => b.getAttribute('data-q') === 'no').length, '6|2');
+    has('★ 문항 박스에 번호', boxes[0].textContent, '문항 1 · ');
   }
   /* 6. https 가 아니면 */
   {

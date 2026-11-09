@@ -870,4 +870,7 @@ table.data .chips .badge { font-size: .68em; }
 .item[data-judge="wrong"] .body > strong, .item[data-judge="wrong"] .meta { text-decoration: line-through; opacity: .6; }
 .ag-edit { margin-top: 8px; padding: 8px; border: 1px dashed var(--line, #bbb); border-radius: 8px; }
 .ag-box[data-judge="wrong"] { opacity: .35; border-style: dashed; }
+/* 문항이 되지 않은 박스(같은 자리라 합침 · 상한 · 출처 확인 필요) — 흐리게, 라벨 숨김. 문항 박스만 읽히게 */
+.ag-box[data-q="no"] { opacity: .35; border-width: 2px; border-style: dotted; }
+.ag-box[data-q="no"] .ag-box-label { display: none; }
 .ag-add { margin-top: 12px; }
