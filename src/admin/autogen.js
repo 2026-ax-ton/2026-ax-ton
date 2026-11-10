@@ -612,7 +612,9 @@
       b.style.top = m.box.y0 + '%';
       b.style.width = (m.box.x1 - m.box.x0) + '%';
       b.style.height = (m.box.y1 - m.box.y0) + '%';
-      b.appendChild(UI.el('span', 'ag-box-label', '#' + number(m.id) + ' ' + shown.part + ' · ' + hazardLabel(shown.hazard)));
+      /* 박스가 많으면 이름이 사진을 덮는다 — 번호만 보이고, 고른 박스만 이름까지 */
+      b.appendChild(UI.el('span', 'ag-box-label', '#' + number(m.id) + (state.active === m.id ? ' ' + shown.part + ' · ' + hazardLabel(shown.hazard) : '')));
+      b.title = '#' + number(m.id) + ' ' + shown.part;
       b.addEventListener('click', function (ev) { if (state.moving) return; ev.stopPropagation(); focusItem(m.id); });
       fig.appendChild(b);
     });
@@ -722,7 +724,7 @@
     }
     if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
     var p = state.quiz.plan || {};
-    plan.appendChild(UI.itemRow('list', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
+    plan.appendChild(UI.itemRow('check', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
     if ((state.quiz.missing || []).length) plan.appendChild(UI.itemRow('alert', '못 채운 칸 ' + state.quiz.missing.length + '개', '규칙을 통과한 후보가 없었습니다. [전체 다시 만들기]를 눌러 주세요.'));
     if ((state.quiz.excluded || []).length) {
       var li0 = UI.el('li');

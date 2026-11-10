@@ -101,11 +101,11 @@ function fakeQuestions(body) {
   /* 사진 · 번호 · 강조 */
   const boxes = Array.from(doc.querySelectorAll('#ag-figure .ag-box'));
   eq('★ 사진 위 박스 = 좌표가 있는 항목 수', boxes.length, 2);
-  has('★★ 박스 번호 = 목록 번호', boxes[1].textContent, '#2 제어반');
+  eq('★★ 박스 번호 = 목록 번호 (번호만, 이름은 title)', boxes[1].textContent + '|' + boxes[1].title, '#2|#2 제어반');
   has('실제 설비 사진 표시', $('ag-figure').textContent, '실제 설비 사진 · AI 탐지');
   click(win, boxes[1]);
   eq('★★ 박스를 누르면 그 항목의 탭으로 가서 강조', win.__autogen.state().itemTab + '|' + doc.querySelector('#ag-items li[data-id="r2"]').getAttribute('data-active'), 'check|yes');
-  eq('그 박스도 강조', doc.querySelector('#ag-figure .ag-box[data-id="r2"]').getAttribute('data-active'), 'yes');
+  eq('그 박스도 강조 · 이름까지 보인다', doc.querySelector('#ag-figure .ag-box[data-id="r2"]').getAttribute('data-active') + '|' + doc.querySelector('#ag-figure .ag-box[data-id="r2"]').textContent, 'yes|#2 제어반 · 감전');
   has('★★ 좌표 없는 항목은 「위치 확인 필요」 — 지어내지 않는다', doc.querySelector('#ag-items li[data-id="r3"]').textContent, '위치 확인 필요');
   has('필요한 사진을 알린다', doc.querySelector('#ag-items li[data-id="r3"]').textContent, '필요한 사진: 페달 옆에서');
   ok('★★ AI 글에 HTML 이 있어도 요소가 생기지 않는다', !doc.querySelector('#ag-items li[data-id="r2"] img'));

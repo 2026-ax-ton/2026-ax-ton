@@ -919,3 +919,7 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 .ag-q-prompt { font-weight: 700; margin: 4px 0; }
 .ag-q-options { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
 .ag-q-options li[data-right="yes"] { font-weight: 800; }
+/* 콘텐츠 탭 설비 카드 — 버튼이 설비 이름을 밀어내지 않게 */
+#eq-cards .item { flex-wrap: wrap; }
+#eq-cards .item .body { flex: 1 1 240px; }
+#eq-cards .item > .btn, #eq-cards .item > .btn-sm { flex: 0 0 auto; width: auto; }
