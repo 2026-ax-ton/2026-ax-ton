@@ -4,7 +4,8 @@
    요청  { equipment: { name, maker?, model?, year? } }
    응답  { overview, general, items: [{id, part, hazard, risk, sources[{title,url,host,tier}],
            unverifiedSources, conflict, needsPhoto, specific, official?, status: 'ok'|'check', reasons[]}],
-           officialDocs, noOfficial, docNumbers, limits, dropped, sourceCount, thin, model }
+           officialDocs, noOfficial, docNumbers, limits, dropped, sourceCount, thin, images, model }
+   항목의 image = { data(data URL), page, host, alt } — 출처 페이지에서 찾은 참고 사진 (없으면 없음)
    ★ 확인된 공식 문서 항목(_official.mjs, id o1…)이 맨 앞이고, 그 뒤가 AI 항목(r1…)이다.
      AI 에는 질문을 둘 보낸다 — 기본 조사와 「이 기계에만 있는 위험」(specific: true).
 
@@ -20,6 +21,7 @@ import {
   json, fail, log, modelFail,
 } from './_shared.mjs';
 import { getSql, requireAdmin, withDb } from './_db.mjs';
+import { attachImages } from './_images.mjs';
 import { parseModelJson } from './_hazards.mjs';
 import {
   systemText, specificSystemText, userText, cleanField, cleanResult, mergeRaw, mergeGrounding, withOfficial,
@@ -34,6 +36,7 @@ const MAX_BODY = 2048;
 export const DEFAULT_RESEARCH_TIMEOUT_MS = 45000;
 const MAX_OUTPUT_TOKENS = 8000;   // 2026-11-09 경험 글까지 찾게 하자 4000 에서 JSON 이 잘렸다 (GPT 는 추론 토큰도 여기서 센다)
 const MAX_TEXT = 24000;
+const IMAGE_BUDGET_MS = 12000;   // 참고 사진 찾기에 쓰는 시간 상한 (모델 두 질문 뒤)
 /* 모델 — 따로 두지 않으면 번역 모델을 쓴다 (C06 D-028). 품질이 모자라면 AI_MODEL_RESEARCH 로 올린다 */
 const MODEL_ENVS = ['AI_MODEL_RESEARCH', 'AI_MODEL_TRANSLATE'];
 const TOOLS = [{ google_search: {} }];
@@ -106,11 +109,13 @@ async function run(request) {
   const raw2 = r2 && !r2.error ? parseModelJson(r2.text) : null;
   const merged = mergeRaw(raw, raw2);
   if (!raw2) merged.limits = merged.limits.concat('이 기계 고유 위험 추가 조사가 실패해 기본 조사만 보입니다');
-  const out = withOfficial(cleanResult(merged, mergeGrounding(r.grounding, r2 && r2.grounding), eq), eq);
+  /* 항목 참고 사진 — 확인된 출처 페이지에서만 (_images.mjs). 함수 상한 60초 안에서 남은 시간만 쓴다 */
+  const out = await attachImages(withOfficial(cleanResult(merged, mergeGrounding(r.grounding, r2 && r2.grounding), eq), eq),
+    { budgetMs: Math.min(IMAGE_BUDGET_MS, 55000 - (Date.now() - started)), eqName: eq.name });
   log({
     route: 'research', ms: Date.now() - started, status: 200, err: '',
     n: out.items.length, ok: out.items.filter((i) => i.status === 'ok').length, src: out.sourceCount,
-    off: out.items.filter((i) => i.official).length, spec: out.items.filter((i) => i.specific).length, second: !!raw2,
+    off: out.items.filter((i) => i.official).length, spec: out.items.filter((i) => i.specific).length, second: !!raw2, img: out.images || 0,
   });
   return json(200, { ...out, model: cfg.model }, cors);
 }

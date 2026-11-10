@@ -22,6 +22,7 @@ import {
   systemText, specificSystemText, userText, cleanField, cleanResult, mergeRaw, mergeGrounding, withOfficial,
 } from '../api/_research.mjs';
 import { readEnvLocal } from './measure-hazards.mjs';
+import { attachImages } from '../api/_images.mjs';
 
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;   // api/hazards.mjs 와 같다
@@ -80,7 +81,7 @@ async function main() {
   const merged = mergeRaw(raw, raw2);
   if (!raw2) merged.limits = merged.limits.concat('이 기계 고유 위험 추가 조사가 실패해 기본 조사만 보입니다');
   const grounding = mergeGrounding(r.grounding, r2 && r2.grounding);
-  const res = withOfficial(cleanResult(merged, grounding, eq), eq);
+  const res = await attachImages(withOfficial(cleanResult(merged, grounding, eq), eq), { budgetMs: 20000, eqName: eq.name });
   const chunks = grounding.groundingChunks.length;
   console.log('  걸린 시간 ' + (Date.now() - t0) + 'ms · 검색 근거 ' + chunks + '건 · 확인된 출처 사이트 ' + res.sourceCount + '곳'
     + (res.thin ? ' · ⚠ 자료 부족' : '') + (res.general ? ' · 일반 자료' : ''));
@@ -89,6 +90,7 @@ async function main() {
   res.items.forEach((it) => {
     console.log('  ' + (it.status === 'ok' ? '✓' : '?') + ' [' + it.id + ']' + (it.official ? ' (공식 ' + it.official.code + ' ' + it.official.section + ')' : it.specific ? ' (기계 고유)' : '') + ' ' + it.part + ' · ' + it.hazard + ' — ' + it.risk);
     it.sources.forEach((s) => console.log('       출처(' + (KIND[s.kind] || TIER[s.tier]) + ') ' + s.host + ' — ' + s.title));
+    if (it.image) console.log('       참고 사진 ' + it.image.host + ' — ' + it.image.alt + ' (' + Math.round(it.image.data.length * 0.75 / 1024) + 'KB)');
     if (it.unverifiedSources) console.log('       ✗ 검색 근거에 없는 출처 ' + it.unverifiedSources + '개 (버림)');
     if (it.reasons.length) console.log('       확인 필요: ' + it.reasons.join(' · '));
     if (it.conflict) console.log('       충돌: ' + it.conflict);

@@ -59,6 +59,7 @@ const CHUNKS = ['kosha.or.kr', 'hwacheon.com', 'youtube.com', 'law.go.kr'].map((
 /* 두 번째 질문(이 기계 고유 위험)에는 spec 을 답한다 — 안 주면 빈 목록 */
 function fakeModel(body, chunks, spec) {
   globalThis.fetch = async (url, init) => {
+    if (!(init && init.body)) return new Response('', { status: 404 });   // 참고 사진 찾기(_images.mjs)의 페이지 열기 — 모델 호출이 아니다
     calls.push({ url: String(url), init });
     const reply = /이 설비에만 있는 위험/.test(String(init && init.body)) ? (spec || { items: [] }) : body;
     return new Response(JSON.stringify({
@@ -71,6 +72,7 @@ function fakeModel(body, chunks, spec) {
 }
 function fakeText(text) {
   globalThis.fetch = async (url, init) => {
+    if (!(init && init.body)) return new Response('', { status: 404 });   // 참고 사진 찾기(_images.mjs)의 페이지 열기 — 모델 호출이 아니다
     calls.push({ url: String(url), init });
     return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), { status: 200 });
   };

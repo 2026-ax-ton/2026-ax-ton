@@ -40,7 +40,7 @@
   var KEEP_MAX = 640;         // 문항에 남기는 사진 긴 변
   var KEEP_QUALITY = 0.7;
   var TIMEOUT_MS = 60000;     // 리서치는 검색을 몇 번 해서 오래 걸린다
-  var MAX_RUN_BYTES = 6 * 1024 * 1024;   // 결과 파일 상한 (사진 data URL 포함)
+  var MAX_RUN_BYTES = 12 * 1024 * 1024;  // 결과 파일 상한 (설비 사진 + 항목 참고 사진 data URL 포함)
   var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계'];
   var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
   /* 2026-11-09 v3 실측 — 항목이 16~22개로 늘자 사진 정답 원이 59쌍 겹쳤다. 노동자가 한 점을 짚을 때
@@ -137,10 +137,8 @@
     var e = Store.findBy(equipments(), 'id', $('ag-equip').value);
     state.equipment = e || null;
     refreshTarget();
-    var spec = e ? [e.maker, e.model, e.year].filter(function (v) { return v; }).join(' · ') : '';
-    $('ag-equip-spec').textContent = spec
-      ? '제조사·모델: ' + spec
-      : '제조사·모델명이 없습니다 — 같은 종류 설비의 일반 자료로 조사합니다.';
+    /* 회색 설명은 꼭 알아야 할 것만 (2026-11-10 사용자 요청) — 모델명이 없으면 조사 품질이 달라진다 */
+    $('ag-equip-spec').textContent = e && !e.model ? '모델명이 없어 같은 종류 설비의 일반 자료로 조사합니다.' : '';
   }
 
   /** 발급 대상 설비가 바뀌면 그 설비에 맞게 — 제목(담당자가 직접 고치지 않았으면)·안전 문구 짝·안내 줄.
@@ -242,7 +240,7 @@
   function sourceLine(s) {
     var li = UI.el('li');
     var a = UI.el('a', null, (s.title || s.host) + ' (' + s.host + ')');
-    a.href = s.url;
+    if (/^https?:\/\//i.test(String(s.url))) a.href = s.url;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     li.appendChild(a);
@@ -265,9 +263,27 @@
     return sel;
   }
 
+  /** 넣기 체크 — 체크 = 맞음(고친 항목은 고침 그대로), 해제 = 틀림·빼기 (2026-11-10 사용자 요청: 버튼 셋 → 체크박스).
+   *  「확인 필요」에서 아직 안 본 항목은 반쯤 찬 표시(indeterminate)라 「뺌」과 구별된다 */
+  function setIncluded(it, on) {
+    if (on) { if (state.judge[it.id] !== 'edit') state.judge[it.id] = 'right'; }
+    else { state.judge[it.id] = 'wrong'; delete state.edits[it.id]; }
+  }
+
+  function includeBox(it) {
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'ag-include';
+    box.checked = included(it);
+    box.indeterminate = it.status !== 'ok' && !state.judge[it.id];
+    box.setAttribute('aria-label', it.part + ' — 교육에 넣기');
+    box.addEventListener('change', function () { setIncluded(it, box.checked); renderAll(); });
+    return box;
+  }
+
   function judgeButtons(it) {
     var row = UI.el('div', 'ag-judge');
-    [['right', '맞음'], ['wrong', '틀림·빼기'], ['edit', '고치기']].forEach(function (p) {
+    [['edit', '고치기']].forEach(function (p) {
       var b = UI.el('button', 'btn-sm', p[1]);
       b.type = 'button';
       b.setAttribute('data-judge', p[0]);
@@ -310,38 +326,33 @@
   function renderItems() {
     var data = state.research;
     $('sec-items').hidden = false;
-    $('ag-overview').textContent = data.overview || '';
     var items = aiItems();
-    var checks = items.filter(function (i) { return i.status !== 'ok'; }).length;
-    $('ag-summary').textContent = '항목 ' + items.length + '개 · 확인 필요 ' + checks + '개 (남은 판정 ' + undecided().length + '개) · 출처 사이트 ' + (data.sourceCount || 0) + '곳'
-      + (data.general ? ' · 모델명 자료가 없어 일반 자료로 조사했습니다' : '')
-      + (data.thin ? ' · 자료가 모자라 전부 확인이 필요합니다' : '');
 
     var lim = $('ag-limits');
     lim.textContent = '';
     var gaps = data.limits || [];
     /* 2026-11-09 사용자 결정 — 공적인 문서가 1차. 확인된 공식 문서는 맨 앞 항목으로 고정되고, 없으면 크게 알린다 */
     (data.officialDocs || []).forEach(function (d) {
-      lim.appendChild(UI.itemRow('check', '공식 문서 · ' + d.code, d.title + ' (' + d.publisher + ', ' + d.year + ') — 원문으로 확인한 항목이 맨 앞에 들어 있습니다'));
+      lim.appendChild(UI.itemRow('check', '공식 문서 · ' + d.code, d.title));
     });
+    if (data.thin) lim.appendChild(UI.itemRow('alert', '자료가 모자랍니다', '모든 항목이 「확인 필요」입니다.'));
     if (data.noOfficial) {
       lim.appendChild(UI.itemRow('alert', '공식 기준 문서를 찾지 못했습니다', 'KOSHA GUIDE·산업안전보건기준에 관한 규칙에서 이 설비 기준을 확인해 주세요. 그 전까지 모든 항목이 「확인 필요」입니다.'));
     }
-    /* AI 가 적은 조사 한계는 길다 — 접어 두고 개수만 보인다 */
-    if (gaps.length) {
+    /* AI 가 적은 조사 한계·문서번호는 길다 — 접어 두고 개수만 보인다.
+       문서번호는 검색 요약에서 틀리게 오는 일이 있어 원문 표지로 확인할 대상이다 */
+    var nums = data.docNumbers || [];
+    if (gaps.length || nums.length) {
       var gli = UI.el('li');
       var gdet = UI.el('details');
-      gdet.appendChild(UI.el('summary', null, 'AI 가 확인하지 못한 자료 ' + gaps.length + '개 — 자세히 보기'));
+      gdet.appendChild(UI.el('summary', null, 'AI 가 확인하지 못한 자료 ' + (gaps.length + nums.length) + '개 — 자세히 보기'));
       var gul = UI.el('ul', 'item-list');
+      nums.forEach(function (n) { gul.appendChild(UI.itemRow('alert', '문서번호 ' + n, '원문 표지에서 번호 확인')); });
       gaps.forEach(function (l) { gul.appendChild(UI.itemRow('alert-circle', '확인하지 못한 자료', l)); });
       gdet.appendChild(gul);
       gli.appendChild(gdet);
       lim.appendChild(gli);
     }
-    /* AI 가 적은 문서번호는 검색 요약에서 틀리게 오는 일이 있다 — 원문 표지로 확인하라고 따로 보인다 */
-    (data.docNumbers || []).forEach(function (n) {
-      lim.appendChild(UI.itemRow('alert', '문서번호 ' + n, '원문 표지에서 이 번호가 맞는지 확인하세요. 검색 요약이 번호를 틀리게 내는 일이 있습니다.'));
-    });
 
     /* 출처 확인 / 확인 필요를 탭으로 나눈다 — 한 목록에 섞으면 길어서 무엇을 봐야 할지 묻힌다 */
     var okItems = items.filter(function (i) { return i.status === 'ok'; });
@@ -364,6 +375,18 @@
     var list = $('ag-items');
     list.textContent = '';
     var shown = state.itemTab === 'check' ? chkItems : okItems;
+
+    /* 전체 선택 — 지금 탭에 보이는 항목 전부를 넣거나 뺀다 (2026-11-10 사용자 요청) */
+    var allBox = $('ag-all-box');
+    var on = shown.filter(included).length;
+    $('ag-all').hidden = !shown.length;
+    allBox.checked = !!shown.length && on === shown.length;
+    allBox.indeterminate = on > 0 && on < shown.length;
+    $('ag-all-text').textContent = '전체 선택 (' + on + '/' + shown.length + ')';
+    allBox.onchange = function () {
+      shown.forEach(function (it) { setIncluded(it, allBox.checked); });
+      renderAll();
+    };
     if (!shown.length) list.appendChild(UI.el('li', 'field-hint', state.itemTab === 'check' ? '확인이 필요한 항목이 없습니다.' : '출처가 확인된 항목이 없습니다 — 「확인 필요」 탭을 보세요.'));
     shown.forEach(function (raw) {
       var it = effective(raw);
@@ -371,6 +394,7 @@
       var li = UI.el('li', 'item');
       li.setAttribute('data-id', raw.id);
       if (j) li.setAttribute('data-judge', j);
+      li.appendChild(includeBox(raw));
       var body = UI.el('div', 'body');
       body.appendChild(UI.el('strong', null, it.part));
       var tags = UI.el('div', 'tags');
@@ -378,17 +402,15 @@
       if (raw.official) tags.appendChild(UI.okBadge('공식 문서 · ' + raw.official.code + ' ' + raw.official.section));
       else tags.appendChild(raw.status === 'ok' ? UI.okBadge('출처 확인') : UI.stopBadge('확인 필요'));
       if (raw.specific) tags.appendChild(UI.neutralBadge('기계 고유'));
-      if (j === 'right') tags.appendChild(UI.okBadge('담당자: 맞음'));
       if (j === 'edit') tags.appendChild(UI.okBadge('담당자: 고침'));
-      if (j === 'wrong') tags.appendChild(UI.stopBadge('담당자: 틀림 — 문항에서 뺌'));
-      if (mappedOf(raw.id)) tags.appendChild(UI.okBadge('사진 위치 있음'));
       body.appendChild(tags);
       body.appendChild(UI.el('p', 'meta', it.risk));
+      var ref = refImage(raw);
+      if (ref) body.appendChild(ref);
 
       var det = UI.el('details');
-      if (raw.status !== 'ok' && !j) det.open = true;
       det.appendChild(UI.el('summary', null, raw.status === 'ok' ? '출처 보기' : '왜 확인이 필요한가'));
-      if (raw.reasons && raw.reasons.length) det.appendChild(UI.el('p', 'meta', '이유: ' + raw.reasons.join(' · ')));
+      if (raw.status !== 'ok' && raw.reasons && raw.reasons.length) det.appendChild(UI.el('p', 'meta', '이유: ' + raw.reasons.join(' · ')));
       if (raw.conflict) det.appendChild(UI.el('p', 'meta', '자료끼리 다른 말: ' + raw.conflict));
       var srcs = UI.el('ul');
       (raw.sources || []).forEach(function (s) { srcs.appendChild(sourceLine(s)); });
@@ -403,7 +425,6 @@
         mv.setAttribute('data-move', raw.id);
         mv.addEventListener('click', function () { state.moving = state.moving === raw.id ? '' : raw.id; renderAll(); });
         body.appendChild(mv);
-        if (state.moves[raw.id]) body.appendChild(UI.el('p', 'meta', '담당자가 위치를 고쳤습니다.'));
       }
       if (j === 'edit') body.appendChild(editForm(raw));
       li.appendChild(body);
@@ -411,9 +432,30 @@
     });
 
     if (state.itemTab === 'ok') state.added.forEach(function (a) {
-      var li = UI.itemRow('pencil', a.part + ' (담당자 추가)', hazardLabel(a.hazard) + ' · ' + a.risk + ' · 출처 없음 — 사진 위치가 없어 사진 문항은 만들지 않습니다 (맞는 검수 문구가 있으면 고르기 문항은 됩니다)');
+      var li = UI.itemRow('pencil', a.part + ' (담당자 추가)', hazardLabel(a.hazard) + ' · ' + a.risk);
       list.appendChild(li);
     });
+  }
+
+  /** 참고 사진 — 서버가 항목의 확인된 출처 페이지에서 받아 온 그림 (api/_images.mjs).
+   *  data URL(jpeg·png·webp)만 쓴다 — 브라우저는 제3자 주소를 부르지 않는다. 결과 파일은 사람이 고칠 수 있어 다시 본다.
+   *  ★ 담당자 검토용이다. 남의 사진이라 교육(courses)에는 넣지 않는다 */
+  function refImage(raw) {
+    var im = raw.image;
+    if (!im || typeof im.data !== 'string' || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(im.data)) return null;
+    var fig = UI.el('figure', 'ag-ref');
+    var img = UI.el('img');
+    img.src = im.data;
+    img.alt = raw.part + ' 참고 사진';
+    fig.appendChild(img);
+    var cap = UI.el('figcaption');
+    var a = UI.el('a', null, '사진 출처 · ' + String(im.host || ''));
+    if (/^https?:\/\//i.test(String(im.page))) a.href = im.page;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    cap.appendChild(a);
+    fig.appendChild(cap);
+    return fig;
   }
 
   function addItem() {
@@ -672,13 +714,11 @@
       sel.value = c ? c.phrase.id : '';
       sel.addEventListener('change', function () { state.choicePick[it.id] = sel.value; renderApprove(); });
       li.appendChild(sel);
-      if (c) li.appendChild(UI.el('p', 'meta', '틀린 답을 고르면 들려줄 말: ' + it.risk));
       parent.appendChild(li);
     }
     choiceCandidates().forEach(function (it) {
       if (madeIds.indexOf(it.id) !== -1) row(it, box); else rest.push(it);
     });
-    if (!phrases.length) box.appendChild(UI.el('li', 'field-hint', '위에서 검수 완료 문구를 고르면 그 문구를 정답으로 고르기 문항을 만듭니다.'));
     if (rest.length) {
       var det = UI.el('details');
       det.appendChild(UI.el('summary', null, '다른 항목 ' + rest.length + '개에도 정답 문구 고르기'));
@@ -751,13 +791,11 @@
     var langs = (setup().languages || []).filter(function (c) { return c !== 'ko'; });
     /* 정답 원이 겹치면 노동자가 어느 문항의 답인지 헷갈린다 (FR-AD-07-21) — 자동으로 합치고 무엇을 합쳤는지 알린다 */
     var plan = draftPlan();
-    $('ag-lang-note').textContent = (langs.length
-      ? '문항 문장은 아직 한국어로만 나갑니다 — 노동자 화면은 한국어 문장을 읽어 줍니다. 번역은 교육 콘텐츠 생성 화면에서 더할 수 있습니다. '
-      : '')
+    $('ag-lang-note').textContent = (langs.length ? '문항 문장은 아직 한국어로만 나갑니다. ' : '')
       + (plan.merged.length ? '같은 자리를 가리키는 ' + plan.merged.length + '개 항목은 문항 하나로 합쳤습니다 ('
-        + plan.merged.map(function (m) { return m.part + ' → ' + m.into; }).join(', ') + '). 따로 묻고 싶으면 [위치 고치기]로 자리를 옮기세요. ' : '')
+        + plan.merged.map(function (m) { return m.part + ' → ' + m.into; }).join(', ') + '). ' : '')
       + (plan.cut.length ? '사진 문항은 ' + MAX_PHOTO_QUESTIONS + '개까지라 ' + plan.cut.length + '개 항목은 문항에서 뺐습니다 ('
-        + plan.cut.map(function (m) { return m.part; }).join(', ') + '). 안전 문구로는 그대로 가르칠 수 있습니다.' : '');
+        + plan.cut.map(function (m) { return m.part; }).join(', ') + ').' : '');
     $('btn-approve').disabled = !all.every(function (s) { return s.done; });
   }
 

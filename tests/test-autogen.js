@@ -36,6 +36,9 @@ const GUIDED = { mapped: [
   { id: 'r3', part: '페달', hazard: 'unknown', box: { x0: 60, y0: 80, x1: 80, y1: 100 }, answer: { x: 70, y: 90, r: 10 } },
 ], missing: [] };
 const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[data-id="' + id + '"] button[data-judge="' + kind + '"]');
+/* 2026-11-10 — 맞음/틀림 버튼 대신 「교육에 넣기」 체크박스 (체크 = 맞음, 해제 = 빼기) */
+const incBox = (t, id) => t.win.document.querySelector('#ag-items li[data-id="' + id + '"] input.ag-include');
+const setInc = (t, id, on) => { const b = incBox(t, id); b.checked = on; b.dispatchEvent(new t.win.Event('change', { bubbles: true })); };
 
 (async () => {
   const t = boot('admin/autogen.html', {
@@ -77,10 +80,15 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   has('★ 막힌 지점(limits)을 보인다 (접어 둔 「자세히 보기」 안)', $('ag-limits').textContent, '인증서 오류');
   has('막힌 지점은 개수만 먼저', $('ag-limits').querySelector('summary').textContent, '자세히 보기');
   const dets = $('ag-items').querySelectorAll('details');
-  ok('★★ 확인 필요는 펼쳐 둔다', dets[0].open === true);
+  ok('★ 확인 필요 이유·출처도 접어 둔다 (2026-11-10 회색 설명 줄이기)', dets[0].open === false);
   has('충돌 내용을 보인다', $('ag-items').textContent, '설명서와 웹 글이 다름');
   ok('출처 링크는 새 창 + noopener', okLink.rel.indexOf('noopener') !== -1);
-  ok('★ 판정 버튼 셋이 항목마다 있다', !!judgeBtn(t, 'r2', 'right') && !!judgeBtn(t, 'r2', 'wrong') && !!judgeBtn(t, 'r2', 'edit'));
+  ok('★ 항목마다 넣기 체크 + [고치기]', !!incBox(t, 'r2') && !!judgeBtn(t, 'r2', 'edit') && !judgeBtn(t, 'r2', 'right'));
+  ok('★★ 아직 안 본 확인 필요 항목은 반쯤 찬 표시 (뺌과 구별)', incBox(t, 'r2').indeterminate === true && incBox(t, 'r2').checked === false);
+  ok('★ 전체 선택 칸이 보인다', $('ag-all').hidden === false && $('ag-all-box').checked === false);
+  has('전체 선택에 개수', $('ag-all-text').textContent, '(0/2)');
+  ok('★★ 「AI 여기까지」 안내를 지웠다 (2026-11-10)', !win.document.querySelector('.ai-note'));
+  ok('★ 「사진 위치 있음」 표시를 지웠다', !/사진 위치 있음/.test($('ag-items').textContent));
 
   /* 사진 결과를 끼워 넣는다 (canvas 없음) */
   const st = win.__autogen.state();
@@ -97,7 +105,15 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
   eq('★★ 아직 courses 에 아무것도 안 썼다', JSON.stringify(S.courses.load()), before);
 
   /* 판정: r2 틀림, r3 고치기(위험유형 끼임 · 부위 이름 고침) */
-  click(win, judgeBtn(t, 'r2', 'wrong'));
+  /* 전체 선택 → 둘 다 맞음, 다시 해제 → 둘 다 뺌 */
+  const all = $('ag-all-box');
+  all.checked = true; all.dispatchEvent(new win.Event('change', { bubbles: true }));
+  eq('★★ 전체 선택 — 이 탭 항목이 모두 맞음', win.__autogen.state().judge.r2 + ',' + win.__autogen.state().judge.r3, 'right,right');
+  ok('전체 선택 후 칸도 체크', $('ag-all-box').checked === true && incBox(t, 'r2').checked === true);
+  all.checked = false; all.dispatchEvent(new win.Event('change', { bubbles: true }));
+  eq('★★ 전체 해제 — 모두 뺌', win.__autogen.state().judge.r2 + ',' + win.__autogen.state().judge.r3, 'wrong,wrong');
+  setInc(t, 'r3', true);
+  ok('하나만 체크하면 전체 선택은 반쯤', $('ag-all-box').indeterminate === true);
   click(win, judgeBtn(t, 'r3', 'edit'));
   const editBox = win.document.querySelector('#ag-items li[data-id="r3"] .ag-edit');
   ok('고치기를 누르면 고칠 칸이 열린다', !!editBox);
@@ -196,6 +212,17 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     t5.win.document.querySelector('#ag-tabs [data-tab="check"]').dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
     has('★ 기계 고유 표시', t5.$('ag-items').textContent, '기계 고유');
     has('★ 판매·중계 출처 표시', t5.$('ag-items').textContent, '판매·중계');
+    /* 2026-11-10 항목 참고 사진 — 서버가 출처 페이지에서 받은 data URL 만 보인다 */
+    const imgRes = JSON.parse(JSON.stringify(RESEARCH));
+    imgRes.items[0].image = { data: 'data:image/jpeg;base64,/9j/AAAA', page: 'https://maker.example.com/p', host: 'maker.example.com', alt: '램' };
+    imgRes.items[1].image = { data: 'https://evil.example.com/x.jpg', page: 'javascript:alert(1)', host: 'evil' };
+    imgRes.items[2].image = { data: 'data:image/svg+xml;base64,PHN2Zz4=', page: 'https://x.example.com', host: 'x' };
+    A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: 'x' }, research: imgRes }));
+    const ref = t5.win.document.querySelector('#ag-items .ag-ref img');
+    ok('★★ 항목 참고 사진이 보인다', !!ref && ref.getAttribute('src').indexOf('data:image/jpeg;base64,') === 0);
+    has('★ 사진 출처를 링크로', t5.$('ag-items').querySelector('.ag-ref a').href, 'maker.example.com/p');
+    t5.win.document.querySelector('#ag-tabs [data-tab="check"]').dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
+    ok('★★ 바깥 주소·svg 사진은 보이지 않는다 (제3자 요청 0건)', !t5.win.document.querySelector('#ag-items .ag-ref'));
     A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: 'x' }, research: { ...JSON.parse(JSON.stringify(RESEARCH)), noOfficial: true } }));
     has('★★ 공식 문서가 없으면 크게 알린다', t5.$('ag-limits').textContent, '공식 기준 문서를 찾지 못했습니다');
 
@@ -222,8 +249,9 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     has('★ 뺀 항목을 알린다', t5.$('ag-lang-note').textContent, '사진 문항은 6개까지라 2개 항목은');
     eq('문항 번호가 이어진다', A.draftQuiz().map((q) => q.id).join(), 'q1,q2,q3,q4,q5,q6');
     /* 판정 버튼 하나를 누르면 화면 전체(사진 포함)를 다시 그린다 */
-    t5.win.document.querySelector('#ag-items button[data-judge="right"]')
-      .dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
+    const box5 = t5.win.document.querySelector('#ag-items input.ag-include');
+    box5.checked = true;
+    box5.dispatchEvent(new t5.win.Event('change', { bubbles: true }));
     const boxes = Array.from(t5.win.document.querySelectorAll('#ag-figure .ag-box'));
     eq('★ 사진 위 박스: 문항이 된 것 6 · 아닌 것 2 (흐리게)', boxes.filter((b) => b.getAttribute('data-q') === 'yes').length + '|' + boxes.filter((b) => b.getAttribute('data-q') === 'no').length, '6|2');
     has('★ 문항 박스에 번호', boxes[0].textContent, '문항 1 · ');
@@ -243,7 +271,7 @@ const judgeBtn = (t, id, kind) => t.win.document.querySelector('#ag-items li[dat
     eq('★ 틀린 답을 고르면 위험 설명을 들려준다', ch[0].results[(ch[0].answer + 1) % 3], '전원을 차단하지 않고 수리 작업을 하면 갑자기 움직여 끼인다');
     eq('사진 문항 뒤에 번호가 이어진다', ch[0].id, 'q7');
     has('문항 모양 — 수강 화면이 받는 choice', ch[0].type + typeof ch[0].answer + Array.isArray(ch[0].options), 'choicenumbertrue');
-    has('★ 승인 화면에 「자동으로 짝지음」과 들려줄 말이 보인다', t5.$('ag-choices').textContent, '틀린 답을 고르면 들려줄 말');
+    has('★ 승인 화면에 「자동으로 짝지음」이 보인다', t5.$('ag-choices').textContent, '자동으로 짝지음');
     ok('★★ AI 위험 설명이 선택지(안전 지시)로 쓰이지 않는다', ch[0].options.indexOf(st5.added[0].risk) === -1);
 
     const selC = doc5.querySelector('#ag-choices li[data-id="m1"] select');

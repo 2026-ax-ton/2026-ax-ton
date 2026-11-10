@@ -883,3 +883,19 @@ table.data .chips .badge { font-size: .68em; }
 .ag-tab[aria-selected="true"] { border-bottom-color: var(--ink, #222); background: var(--surface-2, #f1f1f4); }
 .ag-tab[data-left="yes"]::before { content: "! "; color: var(--danger, #c62828); }
 .ag-add { margin-top: 12px; }
+/* 2026-11-10 사용자 요청 — AI로 교육 만들기는 웹에서 한 줄로 쌓는다. 두 칸으로 나누면 2단계(주의사항)가 반쪽으로 좁아져 읽기 어렵다 */
+@media (min-width: 1024px) {
+  body.has-tabbar .page.page-single { max-width: 980px; grid-template-columns: minmax(0, 1fr); }
+  body.has-tabbar .page.page-single > .card { grid-column: 1 / -1; }
+}
+.page-single .item { align-items: flex-start; }
+.page-single .item .body .meta { font-size: .9em; color: var(--ink-2); }
+/* 넣기 체크 · 전체 선택 — 관리자 보조 조작이라 40px 기준 */
+.ag-include { flex: 0 0 auto; width: 24px; height: 24px; margin: 8px 4px; accent-color: var(--ink, #222); }
+.ag-all { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: 0 0 6px 13px; font-weight: 700; cursor: pointer; }
+.ag-all[hidden] { display: none; }
+.ag-all input { width: 24px; height: 24px; accent-color: var(--ink, #222); }
+/* 항목 참고 사진 — 출처 페이지에서 받은 것 (검토용) */
+.ag-ref { margin: 8px 0 0; max-width: 320px; }
+.ag-ref img { display: block; width: 100%; height: auto; max-height: 240px; object-fit: contain; border: 1px solid var(--line, #ccc); border-radius: 8px; background: #fff; }
+.ag-ref figcaption { font-size: .8em; margin-top: 4px; }
