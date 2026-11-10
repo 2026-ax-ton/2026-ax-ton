@@ -26,6 +26,7 @@ import { parseModelJson } from './_hazards.mjs';
 import {
   systemText, specificSystemText, userText, cleanField, cleanResult, mergeRaw, mergeGrounding, withOfficial,
 } from './_research.mjs';
+import { EQUIPMENT_KINDS } from './_official.mjs';
 
 export const config = { maxDuration: 60 };
 
@@ -54,7 +55,10 @@ export function readEquipment(body) {
   const name = cleanField(e.name, 60);
   if (!name) return null;
   const year = Number.isInteger(e.year) && e.year >= 1950 && e.year <= 2100 ? e.year : null;
-  return { name, maker: cleanField(e.maker, 60), model: cleanField(e.model, 60), year };
+  /* 🆕 2026-11-11 설비 id·종류 — 응답에 그대로 돌려줘 화면이 「고른 설비의 결과인가」를 맞춰 본다 */
+  const id = typeof e.id === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(e.id) ? e.id : '';
+  const kind = EQUIPMENT_KINDS.indexOf(e.kind) !== -1 ? e.kind : '';
+  return { id, kind, name, maker: cleanField(e.maker, 60), model: cleanField(e.model, 60), year };
 }
 
 async function run(request) {
@@ -117,7 +121,7 @@ async function run(request) {
     n: out.items.length, ok: out.items.filter((i) => i.status === 'ok').length, src: out.sourceCount,
     off: out.items.filter((i) => i.official).length, spec: out.items.filter((i) => i.specific).length, second: !!raw2, img: out.images || 0,
   });
-  return json(200, { ...out, model: cfg.model }, cors);
+  return json(200, { ...out, equipment: { id: eq.id, kind: eq.kind }, model: cfg.model }, cors);
 }
 
 export const handle = withDb('research', run);

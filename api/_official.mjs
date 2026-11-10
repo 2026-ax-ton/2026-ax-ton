@@ -18,6 +18,7 @@ const OPS_INJ_URL = 'https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20
 
 export const OFFICIAL_DOCS = [
   {
+    kind: 'press',
     match: /프레스/,
     code: 'M-30-2002',
     title: 'KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침',
@@ -31,6 +32,7 @@ export const OFFICIAL_DOCS = [
     ],
   },
   {
+    kind: 'injection',
     match: /사출/,
     code: '2023-교육혁신실-859',
     title: 'OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)',
@@ -51,8 +53,13 @@ export const OFFICIAL_DOCS = [
   },
 ];
 
-/** 설비 이름에 맞는 공식 문서 — 이름 낱말로만 맞춘다 (제조사·모델명은 보지 않는다) */
+/* 설비 종류 id — src/assets/store.js 의 EQUIPMENT_KINDS 와 같다 (tests/test-api-research.mjs 가 맞춰 본다) */
+export const EQUIPMENT_KINDS = ['press', 'paint', 'injection', 'electric', 'other'];
+
+/** 설비에 맞는 공식 문서 — 🆕 2026-11-11 설비 종류(kind)가 있으면 그것으로만 맞춘다(이름 글자로 잇지 않는다).
+ *  kind 가 없는 옛 요청만 이름 낱말로 맞춘다 (제조사·모델명은 보지 않는다) */
 export function officialFor(eq, docs = OFFICIAL_DOCS) {
+  if (eq && EQUIPMENT_KINDS.indexOf(eq.kind) !== -1) return docs.filter((d) => d.kind === eq.kind);
   const name = String((eq && eq.name) || '');
   return docs.filter((d) => d.match.test(name));
 }

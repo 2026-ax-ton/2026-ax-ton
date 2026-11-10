@@ -367,5 +367,21 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   has('★ 실패를 limits 로 알린다', f.data.limits.join(), '고유 위험 추가 조사가 실패');
 }
 
+/* 🆕 2026-11-11 설비 id·종류 */
+{
+  const O = await import('../api/_official.mjs');
+  fakeModel(GOOD);
+  const r = await call({ equipment: { ...EQ.equipment, id: 'e-press3', kind: 'press', name: '배전 겸용 3호기' } });
+  eq('★★ 고른 설비 id·종류를 그대로 돌려준다', r.data.equipment.id + '|' + r.data.equipment.kind, 'e-press3|press');
+  eq('★★ 종류(press)로 공식 문서를 맞춘다 — 이름에 「프레스」가 없어도', r.data.items[0].official && r.data.items[0].official.code, 'M-30-2002');
+  eq('★ 종류가 도장이면 프레스 공식 문서를 붙이지 않는다 (이름에 프레스가 있어도)', O.officialFor({ kind: 'paint', name: '프레스 옆 도장 부스' }).length, 0);
+  eq('종류가 없는 옛 요청은 이름으로', O.officialFor({ name: '사출기 2' })[0].kind, 'injection');
+  eq('모르는 종류·이상한 id 는 비운다', JSON.stringify(research.readEquipment({ equipment: { name: 'x', id: '<b>', kind: 'rocket' } })), JSON.stringify({ id: '', kind: '', name: 'x', maker: '', model: '', year: null }));
+  const fs = await import('fs');
+  const storeSrc = fs.readFileSync(new URL('../src/assets/store.js', import.meta.url), 'utf8');
+  const ids = Array.from(storeSrc.match(/var EQUIPMENT_KINDS = \[([\s\S]*?)\];/)[1].matchAll(/id: '(\w+)'/g)).map((m) => m[1]);
+  eq('★ 서버와 화면의 설비 종류 목록이 같다', ids.join(), O.EQUIPMENT_KINDS.join());
+}
+
 console.log = realLog;
 report('설비 리서치 — /api/research (PRD-AD-08 S2)');

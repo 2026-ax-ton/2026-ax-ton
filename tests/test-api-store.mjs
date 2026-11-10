@@ -245,12 +245,13 @@ console.log = () => {};
    6. 사업장 분리 (STC-E25-004 의 일부)
    =================================================================== */
 {
-  await put('courses', { data: [{ id: 'c-press', title: '프레스' }], baseVersion: 0 }, ADMIN);
+  const first = await put('courses', { data: [{ id: 'c-press', title: '프레스', equipmentId: 'e-press3' }], baseVersion: 0 }, ADMIN);
+  eq('교육 저장 200', first.status, 200);
   const other = await get('courses', OTHER);
   eq('★ 다른 사업장 담당자에게는 우리 교육이 안 보인다', other.data.courses.data.length, 0);
 
   /* 본문에 남의 사업장을 적어 보내도 자기 사업장에만 들어간다 */
-  await put('courses', { data: [{ id: 'c-x', title: '남의것' }], baseVersion: 0, workplaceId: WP_A }, OTHER);
+  await put('courses', { data: [{ id: 'c-x', title: '남의것', equipmentId: 'e-z' }], baseVersion: 0, workplaceId: WP_A }, OTHER);
   const mine = await get('courses', ADMIN);
   ok('★ 본문에 적은 사업장 값은 보지 않는다',
     !mine.data.courses.data.some((c) => c.id === 'c-x'));
@@ -357,6 +358,32 @@ console.log = () => {};
 
   ok('같은 판이면 덮어쓸 수 있다', merge.canReplaceDoc(3, 3));
   ok('오래된 판이면 못 덮어쓴다', !merge.canReplaceDoc(3, 2));
+}
+
+/* ===================================================================
+   9. 🆕 2026-11-11 교육 ↔ 설비·위험요소 — 서버가 다시 본다 (_courses.mjs)
+   =================================================================== */
+{
+  const C = await import('../api/_courses.mjs');
+  await put('setup', { data: { site: { name: 'A' }, equipments: [{ id: 'e-press3' }, { id: 'e-booth1' }] }, baseVersion: 0 }, ADMIN);
+  const cur = (await get('courses', ADMIN)).data.courses.data;
+  const hz = [{ id: 'o1', equipmentId: 'e-press3' }, { id: 'r1', equipmentId: 'e-press3' }];
+  const good = { id: 'c-ai', title: 'AI 프레스', equipmentId: 'e-press3', hazards: hz, quiz: [{ id: 'q1', hazardId: 'o1' }, { id: 'q2' }] };
+  eq('★ 맞게 이어진 AI 교육은 저장된다', (await put('courses', { data: cur.concat(good) }, ADMIN)).status, 200);
+
+  const r1 = await put('courses', { data: cur.concat({ ...good, id: 'c-bad1', equipmentId: 'e-없음' }) }, ADMIN);
+  eq('★★ 사업장에 없는 설비 → 400 equipment_mismatch', r1.status + '|' + r1.data.error, '400|equipment_mismatch');
+  const r2 = await put('courses', { data: cur.concat({ ...good, id: 'c-bad2', hazards: [hz[0], { id: 'p1', equipmentId: 'e-booth1' }] }) }, ADMIN);
+  eq('★★ 다른 설비(도장)의 위험요소가 섞이면 400', r2.status, 400);
+  const r3 = await put('courses', { data: cur.concat({ ...good, id: 'c-bad3', quiz: [{ id: 'q1', hazardId: 'x9' }] }) }, ADMIN);
+  eq('★★ 문항이 없는 위험요소를 가리키면 400', r3.status, 400);
+  const r4 = await put('courses', { data: cur.concat({ ...good, id: 'c-bad4', hazards: undefined }) }, ADMIN);
+  eq('★ 위험 연결 문항인데 위험 목록이 없으면 400', r4.status, 400);
+  ok('거절된 교육은 저장되지 않았다', !(await get('courses', ADMIN)).data.courses.data.some((c) => /c-bad/.test(c.id)));
+
+  /* 이미 저장된 옛 교육은 다시 보지 않는다 — 설비를 나중에 지워도 교육 저장이 통째로 막히지 않는다 */
+  eq('★ 바뀌지 않은 옛 교육은 검사하지 않는다', C.firstCourseProblem([{ id: 'old', equipmentId: 'gone' }], [{ id: 'old', equipmentId: 'gone' }], ['e1']), null);
+  eq('옛 수동 교육(위험 연결 없음)은 통과', C.courseProblem({ id: 'm', equipmentId: 'e1', quiz: [{ id: 'q1', type: 'choice' }] }, ['e1']), '');
 }
 
 db.setSqlForTest(null);

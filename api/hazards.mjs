@@ -106,6 +106,9 @@ async function run(request) {
   /* 🆕 안내형 (PRD-AD-08 S3) — 리서치 항목(`items`)을 같이 주면 「항목마다 어디인가」를 묻는다.
      주지 않으면 지금까지처럼 자유 탐색(AD-07)이다 */
   const guided = body.items === undefined ? null : cleanGuidedItems(body.items);
+  /* 🆕 2026-11-11 고른 설비 id 를 그대로 돌려준다 — 화면이 다른 설비 결과를 섞지 않게 맞춰 본다 */
+  const e = body.equipment && typeof body.equipment === 'object' ? body.equipment : {};
+  const equipment = { id: typeof e.id === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(e.id) ? e.id : '' };
   if (guided && !guided.length || body.items !== undefined && !guided) {
     return fail(400, 'bad_request', '확인할 부위 목록을 읽을 수 없습니다.', cors);
   }
@@ -146,7 +149,7 @@ async function run(request) {
   if (out.person === true) {
     log({ route: 'hazards', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', person: true });
     if (guided) {
-      return json(200, { mode: 'guided', person: true, mapped: [], missing: [], dropped: {}, overlaps: 0, model: cfg.model }, cors);
+      return json(200, { mode: 'guided', person: true, mapped: [], missing: [], dropped: {}, overlaps: 0, equipment, model: cfg.model }, cors);
     }
     return json(200, { person: true, points: [], dropped: noDrops(), overlaps: 0, model: cfg.model }, cors);
   }
@@ -156,7 +159,7 @@ async function run(request) {
     log({ route: 'hazards', mode: 'guided', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', n: m.mapped.length, miss: m.missing.length });
     return json(200, {
       mode: 'guided', person: false, mapped: m.mapped, missing: m.missing, dropped: m.dropped,
-      overlaps: overlapCount(m.mapped.map((x) => x.answer)), model: cfg.model,
+      overlaps: overlapCount(m.mapped.map((x) => x.answer)), equipment, model: cfg.model,
     }, cors);
   }
 

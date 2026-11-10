@@ -20,6 +20,7 @@
 import { json, fail, log, guardBasic, parseJson } from './_shared.mjs';
 import { getSql, authed, withDb } from './_db.mjs';
 import { mergeList, canReplaceDoc, LIST_KEYS, DOC_KEYS } from './_merge.mjs';
+import { firstCourseProblem } from './_courses.mjs';
 
 export const config = { maxDuration: 30 };
 
@@ -134,6 +135,18 @@ async function push(sql, account, key, body, cors) {
     }
     merged = (incoming && typeof incoming === 'object') ? incoming : base;
   } else if (LIST_KEYS.indexOf(key) !== -1) {
+    /* 🆕 2026-11-11 교육 ↔ 설비·위험요소 — 화면이 막아도 서버가 다시 본다 (_courses.mjs) */
+    if (key === 'courses') {
+      const st = await sql`
+        select data, version from docs
+         where workplace_id = ${account.workplace_id} and key = ${'setup'}`;
+      const setupDoc = st && st[0] && st[0].data;
+      const ids = setupDoc && Array.isArray(setupDoc.equipments) ? setupDoc.equipments.map((e) => e && e.id) : null;
+      const bad = firstCourseProblem(incoming, base, ids);
+      if (bad) {
+        return fail(400, 'equipment_mismatch', '「' + bad.title + '」 — ' + bad.why + '. 설비를 다시 고르고 만들어 주세요.', cors);
+      }
+    }
     /* ★ 노동자는 자기 행만. 남의 행은 조용히 버린다 (A02 §14.4) */
     const allow = (key === 'progress' && account.role === 'worker')
       ? (row) => row && row.workerId === account.user_id
