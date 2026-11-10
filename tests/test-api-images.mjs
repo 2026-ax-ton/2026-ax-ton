@@ -70,6 +70,9 @@ eq('matchPart — 짧은 부위도 맞춘다', I.matchPart('페달', '발 페달
 eq('★★ 영문 글자 조각으로 맞추지 않는다 (실측: 백게이지 ↔ Springback)', I.matchPart('백게이지(backgauge)·피더', 'Addressing Material Springback'), 0);
 eq('★★ 설비 이름 낱말만 같으면 안 된다 (실측: C-프레임 ↔ 기계 프레스)', I.matchPart('C-프레임 개방 측면', '기계 프레스', 'C형 유압프레스'), 0);
 eq('띄어쓰기가 달라도 낱말이 같으면 맞춘다', I.matchPart('금형교체·정비', '프레스 금형 교체 작업중 협착', '프레스') > 0, true);
+eq('★ 영어 부위 이름으로 영어 그림 설명과 맞춘다', I.matchPart('백게이지 back gauge', 'Back gauge of a press brake') > 0, true);
+eq('★ 영어 설비 이름 낱말만 같으면 안 된다', I.matchPart('램 ram and press', 'Hydraulic press overview'), 0);
+eq('★ 괄호 안 덧붙임은 맞추는 데 안 쓴다', I.matchPart(I.mainName('제어반·배전반(아크플래시·감전 위험)'), '감전/화상 사고'), 0);
 eq('matchPart — 관계없는 설명은 0', I.matchPart('램과 금형 사이', '회사 로고'), 0);
 
 report('항목 참고 사진 — api/_images.mjs');

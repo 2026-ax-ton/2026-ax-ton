@@ -88,7 +88,12 @@ export function imgCandidates(html, pageUrl) {
 }
 
 /* 어디에나 붙는 말 — 이것만 같아서는 그 부위 그림이 아니다 */
-const STOP = ['위험', '부위', '작업', '포함', '사이', '주변', '상태', '부분', '장치', '기계', '설비', '단계', '영역', '경우', '사용', '관련'];
+const STOP = ['위험', '부위', '작업', '포함', '사이', '주변', '상태', '부분', '장치', '기계', '설비', '단계', '영역', '경우', '사용', '관련',
+  'area', 'zone', 'point', 'part', 'parts', 'side', 'unit', 'system', 'machine', 'machinery', 'equipment', 'with', 'from', 'during',
+  /* 설비 이름은 한글로 오니 영어 설비 이름 낱말은 여기서 뺀다. ponytail: 새 설비 종류가 생기면 그 영어 이름을 더한다 */
+  'press', 'presses', 'hydraulic', 'injection', 'molding', 'moulding', 'mold', 'mould',
+  /* 어디에나 붙는 꾸밈말 — 2026-11-10 실측: 「plastic」이 lockout 사진에, 「electrical」이 interlock 사진에 붙었다 */
+  'plastic', 'plastics', 'electrical', 'electric', 'safety', 'power', 'control', 'mechanical'];
 
 /** 부위 이름의 낱말(한글 2자+, 영문 4자+)이 그림 설명에 통째로 몇 개 있나.
  *  2026-11-10 실측 — 두 글자 묶음으로 맞추자 「백게이지(backgauge)」가 「Springback」에, 「C-프레임」이 「기계 프레스」에 붙었다.
@@ -98,6 +103,12 @@ export function matchPart(part, text, eqName) {
   const skip = new Set(STOP.concat(words(eqName)));
   const hay = String(text || '').toLowerCase().replace(/\s+/g, '');
   return Array.from(new Set(words(part))).filter((w) => !skip.has(w) && hay.indexOf(w) !== -1).length;
+}
+
+/** 괄호 안 덧붙임은 뺀다 — 2026-11-10 실측: 「제어반(아크플래시·감전 위험)」의 「감전」, 「분출(금형·노즐 이외)」의 「금형」이
+ *  다른 사고 그림에 붙었다. 부위 이름 본체로만 맞춘다 */
+export function mainName(t) {
+  return String(t || '').replace(/\([^)]*\)/g, ' ');
 }
 
 /** 받은 바이트가 정말 그림인가 — 머리로 정한다 (서버가 보낸 content-type 은 믿지 않는다) */
@@ -147,7 +158,7 @@ export async function attachImages(result, { fetchFn = globalThis.fetch, budgetM
     const cands = [];
     for (const s of srcs) {
       const list = (await pages.get(s.url)) || [];
-      list.forEach((c) => { const sc = matchPart(it.part, c.text, eqName); if (sc) cands.push({ ...c, sc, page: s.url, host: s.host }); });
+      list.forEach((c) => { const sc = matchPart(mainName(it.part + ' ' + (it.partEn || '')), c.text, eqName); if (sc) cands.push({ ...c, sc, page: s.url, host: s.host }); });
     }
     cands.sort((a, b) => b.sc - a.sc);
     for (const c of cands.slice(0, 2)) {

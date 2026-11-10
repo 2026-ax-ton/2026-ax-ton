@@ -118,9 +118,10 @@ function rulesText(hazardCodes, max) {
     + '8) sources 에는 실제로 본 자료의 제목(title)·주소(url)·종류(kind)만 쓴다. 주소를 지어내지 않는다. kind 는 manual(제조사), official(공공·법령), journal(업계 전문지·기사), experience(현장 경험 글), web(그 밖) 중 하나. experience 는 글쓴이가 직접 겪거나 작업한 내용일 때만 쓴다.\n'
     + '9) 자료끼리 말이 다르면 하나를 고르지 말고 conflict 에 양쪽 내용을 짧게 쓴다.\n'
     + '10) 사진으로 확인해야 할 부위면 needsPhoto 에 찍을 부위와 각도를 짧게 쓴다(예: 램과 금형 사이를 정면에서).\n'
+    + '10-1) partEn 에 그 부위의 영어 이름을 짧게 쓴다(예: ram and die, back gauge). 영어 자료의 그림 설명과 맞춰 참고 사진을 찾는 데 쓴다.\n'
     + '11) 열리지 않은 자료, 내용을 못 본 자료, 찾지 못한 것은 limits 에 「무엇을, 어디까지 확인했고 어디서 막혔는지」로 구체적으로 적는다. 「참고용」처럼 뭉뚱그리지 않는다.\n'
     + '12) 설명 없이 아래 모양의 JSON 하나만 출력한다.\n'
-    + '{"overview": "...", "general": false, "items": [{"part": "...", "hazard": "'
+    + '{"overview": "...", "general": false, "items": [{"part": "...", "partEn": "...", "hazard": "'
     + hazardCodes[0] + '", "risk": "...", "sources": [{"title": "...", "url": "https://...", "kind": "experience"}],'
     + ' "conflict": "", "needsPhoto": ""}], "limits": ["..."]}';
 }
@@ -293,6 +294,7 @@ export function cleanResult(raw, grounding, eq, hazardCodes = HAZARD_CODES) {
     const item = {
       id: 'r' + (items.length + 1),
       part: clip(p.part, LIMITS.part),
+      partEn: clip(p.partEn, LIMITS.part).replace(/[^A-Za-z0-9 ,/()-]/g, ''),   // 참고 사진 찾기용 (영어 그림 설명과 맞춘다)
       hazard,
       risk: clip(p.risk, LIMITS.risk),
       sources: v.sources,
