@@ -48,7 +48,7 @@ function fakeQuestions(body) {
     if (s.type === 'location') return { ...base, type: 'hotspot', prompt: '사진에서 「' + h.part + '」을(를) 누르세요', answer: h.answer, figure: 'photo', answerFrom: 'photo', aiWritten: false };
     return { ...base, type: 'choice', prompt: (body.avoid ? '새 ' : '') + h.part + ' — 어떻게 합니까?', options: ['맞는 행동', '틀린 행동 하나', '틀린 행동 둘'], answer: 0, results: ['ok', 'x', 'x'], answerFrom: 'ai', aiWritten: true };
   });
-  return { equipment: body.equipment, plan: { count: slots.length, slots, reasons: ['위험요소 ' + body.hazards.length + '개 → 문항 ' + slots.length + '개'], rulesVersion: '2026-11-11' }, quiz, excluded: [{ slot: 1, prompt: '모두 정답', why: ['금지어 「모두 정답」'] }], missing: [], rulesVersion: '2026-11-11' };
+  return { equipment: body.equipment, plan: { count: slots.length, slots, reasons: ['위험요소 ' + body.hazards.length + '개 → 문항 ' + slots.length + '개'], rulesVersion: '2026-11-11' }, quiz, excluded: [{ slot: 1, prompt: '모두 정답', why: ['금지어 「모두 정답」'] }], missing: [], issuable: { ok: true, why: [] }, rulesVersion: '2026-11-11' };
 }
 
 (async () => {
@@ -244,6 +244,11 @@ function fakeQuestions(body) {
     setInc(t5, 'r3', false);
     has('★★ 판정이 바뀌면 「다시 만들어야」 표시', t5.$('ag-plan').textContent, '위험요소 판정이 바뀌었습니다');
     ok('★★ 옛 문항으로는 발급되지 않는다', A.steps().find((s) => s.what === 'AI 평가문항').done === false);
+    /* 서버 규칙(§9.4)이 발급 불가라고 하면 막는다 */
+    A.state().quizFor = A.signature();
+    A.state().quiz.issuable = { ok: false, why: ['필수 주제가 빠졌습니다: emergency'] };
+    const st = A.steps().find((s) => s.what === 'AI 평가문항');
+    eq('★★ 규칙 §9.4 발급 막기 이유를 보이고 막는다', st.done + '|' + st.note, 'false|필수 주제가 빠졌습니다: emergency');
 
     const bad = A.readRun({ kind: 'safety-ai-run', equipment: { name: '도장 부스', kind: 'paint' }, research: JSON.parse(JSON.stringify(RESEARCH)) });
     eq('★★ 다른 종류 설비(도장)의 결과 파일은 받지 않는다', A.loadRun(bad), false);

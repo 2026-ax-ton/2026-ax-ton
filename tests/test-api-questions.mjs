@@ -64,12 +64,23 @@ ok('난이도가 모두 정해진다', plan.slots.every((s) => ['easy', 'medium'
 ok('계획 이유를 남긴다', plan.reasons.length > 0 && /문항/.test(plan.reasons[0]));
 eq('규칙 판을 남긴다', plan.rulesVersion, Q.RULES.version);
 
-const many = Q.cleanHazards(Array.from({ length: 20 }, (_, i) => ({ id: 'x' + i, part: '부위' + i, hazard: i % 2 ? 'pinch' : 'unknown', risk: 'r', sources: [] }))
+const many = Q.cleanHazards(Array.from({ length: 20 }, (_, i) => ({ id: 'x' + i, part: ['램','금형','페달','호퍼','노즐','히터','벨트','기어','체인','롤러','클램프','실린더','펌프','밸브','레버','스위치','배선','덮개','손잡이','받침대'][i], hazard: i % 2 ? 'pinch' : 'unknown', risk: 'r', sources: [] }))
   .concat([{ id: 'o9', part: '공식', hazard: 'unknown', risk: 'r', official: { code: 'C', section: 's' }, sources: [] }]), HAZARD_CODES);
 const p2 = Q.planQuiz(many);
 eq('★ 위험이 많아도 최대 문항 수까지', p2.count, Q.RULES.count.max);
 ok('★★ 점수가 낮아도 공식 문서 위험은 빠지지 않는다', p2.slots.some((s) => s.hazardId === 'o9'));
-ok('★ 점수 낮은 위험(unknown)이 먼저 빠진다', p2.slots.filter((s) => /^x/.test(s.hazardId)).every((s) => many.find((h) => h.id === s.hazardId).hazard === 'pinch' || p2.slots.filter((t) => many.find((h) => h.id === t.hazardId).hazard === 'pinch').length === 10));
+ok('★ 점수 낮은 위험(unknown)이 먼저 빠진다', p2.slots.filter((s) => /^x/.test(s.hazardId)).every((s) => many.find((h) => h.id === s.hazardId).hazard === 'pinch'));
+
+/* ── 규칙 문서 §6·§7 ⑤⑥·§9.4 ── */
+const topics = new Set(plan.slots.map((s) => s.topic));
+ok('★★ 필수 주제 hazard·prevention·emergency 를 모두 덮는다 (§6)', ['hazard', 'prevention', 'emergency'].every((t) => topics.has(t)));
+ok('★ 난이도는 유형에서 (위치·OX 쉬움 · 행동 보통 · 상황 어려움, §4.3)', plan.slots.every((s) => s.difficulty === Q.LEVEL_OF[s.type]));
+const noPhoto = Q.planQuiz(Q.cleanHazards(HAZ.map((h) => ({ ...h, answer: null })), HAZARD_CODES));
+eq('★ 좌표가 하나도 없으면 hazard 주제는 OX 로 (§7 ⑤)', noPhoto.slots.filter((s) => s.type === 'location').length + '|' + noPhoto.slots.some((s) => s.type === 'ox'), '0|true');
+const one = Q.planQuiz(Q.cleanHazards([HAZ[1]], HAZARD_CODES));
+eq('★ 위험 1개 → 2문항, 같은 위험의 두 칸은 유형이 다르다', one.count + '|' + (one.slots[0].type !== one.slots[1].type), '2|true');
+const mergedPlan = Q.planQuiz(Q.cleanHazards([HAZ[1], { ...HAZ[1], id: 'r9', part: '램과 금형 사이 공간', answer: null, official: { code: 'C', section: 's' } }], HAZARD_CODES));
+eq('★ 부위가 겹치는 같은 유형 위험은 하나로 (공식 쪽을 남기고 좌표는 옮긴다, §7 ①)', mergedPlan.hazards.length + '|' + mergedPlan.hazards[0].id + '|' + !!mergedPlan.hazards[0].answer, '1|r9|true');
 const p3 = Q.planQuiz(hz.slice(0, 2));
 eq('★ 위험이 적으면 위험당 최대 문항까지 (2위험 → ' + Math.min(Q.RULES.count.min, 2 * Q.RULES.count.perHazardMax) + ')', p3.count, Math.min(Q.RULES.count.min, 2 * Q.RULES.count.perHazardMax));
 eq('위험이 없으면 문항 0', Q.planQuiz([]).count, 0);
@@ -102,15 +113,20 @@ ok('★★ AI 가 쓴 문항은 aiWritten 표시', sel.quiz.filter((q) => q.type
 ok('★★ 금지어 후보는 빼고 이유를 남긴다', sel.excluded.some((x) => x.why.some((w) => /금지어/.test(w))));
 ok('★ 출처는 그 위험요소의 출처만 (지어낸 주소는 버림)', sel.quiz.every((q) => !q.sources.some((s) => /evil\.com/.test(s.url))));
 const choices = sel.quiz.filter((q) => q.type === 'choice' && q.options.length >= 3);
-ok('★ 정답 자리가 한쪽에 몰리지 않는다 (칸마다 돌린다)', choices.length < 2 || new Set(choices.map((q) => q.answer)).size > 1);
+ok('★ 정답 자리 = (칸 번호 − 1) mod 선택지 수 (§7 ⑨)', choices.every((q) => q.answer === (q.slot - 1) % q.options.length));
+ok('★★ 발급 가능 판정 (§9.4)', sel.issuable.ok === true, sel.issuable.why.join());
+const lacking = Q.selectQuiz(plan, hz, { questions: [] }, PHRASES);
+ok('★★ 필수 주제·최소 문항이 빠지면 발급 불가 이유를 낸다', lacking.issuable.ok === false && lacking.issuable.why.some((w) => /필수 주제/.test(w)));
 ok('★ 오답을 고르면 위험 설명을 들려준다', choices.every((q) => q.results[(q.answer + 1) % q.options.length] === hz.find((h) => h.id === q.hazardId).risk));
 
 const bad = (o) => Q.normalizeCandidate({ hazardId: 'r1', prompt: '문항', options: ['짧다', '이것은 아주 아주 아주 아주 길게 쓴 정답 선택지', '짧음'], answer: 1, why: 'w', ...o }, { slot: 1, hazardId: 'r1', type: 'action' }, hz[1], PHRASES).reasons.join();
-has('★ 선택지 길이 쏠림을 잡는다', bad({}), '길이');
+has('★ 선택지 길이 쏠림을 잡는다 (이유 이름 §9.1)', bad({}), '길이 쏠림');
+has('★ 두 문장 발문은 뺀다 (상황판단만 두 문장)', bad({ prompt: '손이 끼었습니다. 먼저 무엇을 합니까?', options: ['가나', '다라', '마바'], answer: 0 }), '발문 문장');
+has('★ 「아닌 것은」 부정 발문 금지', bad({ prompt: '옳지 않은 것은?', options: ['가나', '다라', '마바'], answer: 0 }), '금지어');
 has('★ 정답 번호가 틀리면 뺀다', bad({ options: ['가나', '다라', '마바'], answer: 5 }), '정답 번호');
 has('★ 같은 선택지 둘', bad({ options: ['가나', '가나', '마바'], answer: 0 }), '같은 선택지');
 has('★ 다른 위험요소를 가리키면 뺀다', bad({ hazardId: 'r2', options: ['가나', '다라', '마바'], answer: 0 }), '다른 위험요소');
-has('★ 「면책」 금지', bad({ options: ['가나', '다라', '마바'], answer: 0, why: '면책됩니다' }), '면책');
+has('★ 「면책」 금지 (이유 이름 「면책」)', bad({ options: ['가나', '다라', '마바'], answer: 0, why: '면책됩니다' }), '면책 (');
 const dup = Q.selectQuiz({ slots: [{ slot: 1, hazardId: 'r3', type: 'action', difficulty: 'easy' }, { slot: 2, hazardId: 'r4', type: 'action', difficulty: 'easy' }] }, hz,
   { questions: [{ slot: 1, hazardId: 'r3', prompt: '바닥에 기름이 있으면 어떻게 합니까', options: ['닦는다', '지나간다', '뛴다'], answer: 0, why: 'w' },
     { slot: 2, hazardId: 'r4', prompt: '바닥에 기름이 있으면 어떻게 합니까', options: ['닦는다', '지나간다', '뛴다'], answer: 0, why: 'w' }] }, []);

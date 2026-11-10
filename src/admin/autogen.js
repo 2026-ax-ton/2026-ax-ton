@@ -763,6 +763,7 @@
       } else {
         li.appendChild(UI.el('p', 'meta', '정답 위치: 사진의 #' + number(q.hazardId) + ' 박스 (반지름 ' + (q.answer && q.answer.r) + '%)'));
       }
+      (q.warnings || []).forEach(function (w) { li.appendChild(UI.itemRow('alert', '검토할 점: ' + w, '규칙상 버리지는 않았지만 담당자가 확인할 부분입니다.')); });
       if (q.why) li.appendChild(UI.el('p', 'meta', '해설: ' + q.why));
       if (q.prevention) li.appendChild(UI.el('p', 'meta', '안전수칙·예방조치: ' + q.prevention));
       if (q.evidence) li.appendChild(UI.el('p', 'meta', '탐지 근거: ' + q.evidence));
@@ -802,12 +803,15 @@
     var missingReq = state.quiz ? (state.quiz.missing || []).filter(function (n) { var s = Store.findBy(slots, 'slot', n); return s && s.required; }).length : 0;
     var aiN = aiWrittenCount();
     var ps = usablePhrases().length;
+    /* 규칙 §9.4 발급 막기 — 서버가 판정한 이유 (필수 주제 빠짐·최소 문항 미달 등) */
+    var blocked = state.quiz && state.quiz.issuable && !state.quiz.issuable.ok ? (state.quiz.issuable.why || []) : [];
     return [
       { what: '설비', done: !!state.equipment, note: state.equipment ? state.equipment.name : '미선택' },
       { what: 'AI 위험요소 분석', done: !!state.research, note: state.research ? aiItems().length + '개' : '안 함' },
       { what: '「확인 필요」 판정', done: !!state.research && left === 0, note: left ? left + '개 남음' : '다 봄' },
       { what: '교육자료 (검수 문구)', done: ps > 0, note: ps + '개' },
-      { what: 'AI 평가문항', done: qs.length > 0 && !quizStale() && !missingReq, note: quizStale() ? '다시 만들어야 함' : (missingReq ? '필수 칸 ' + missingReq + '개 비어 있음' : qs.length + '문항') },
+      { what: 'AI 평가문항', done: qs.length > 0 && !quizStale() && !missingReq && !blocked.length,
+        note: quizStale() ? '다시 만들어야 함' : (missingReq ? '필수 칸 ' + missingReq + '개 비어 있음' : (blocked.length ? blocked.join(' · ') : qs.length + '문항')) },
       { what: 'AI 작성 문항 검토', done: !aiN || $('ag-reviewed').checked, note: aiN ? (aiN + '개 · ' + ($('ag-reviewed').checked ? '검토함' : '검토 표시 필요')) : '없음' },
       { what: '발급 보류 아님', done: !state.hold, note: state.hold ? '보류 중' : '진행' },
       { what: '교육 제목', done: !!$('ag-title').value.trim(), note: $('ag-title').value.trim() || '없음' }
