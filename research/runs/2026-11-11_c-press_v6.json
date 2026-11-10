@@ -790,98 +790,426 @@
   "groundingCount": 67,
   "questions": {
     "plan": {
-      "count": 12,
+      "count": 8,
       "slots": [
         {
           "slot": 1,
           "hazardId": "o1",
           "type": "location",
           "difficulty": "easy",
-          "required": true
+          "required": true,
+          "topic": "hazard"
         },
         {
           "slot": 2,
           "hazardId": "o2",
-          "type": "location",
-          "difficulty": "easy",
-          "required": true
+          "type": "action",
+          "difficulty": "medium",
+          "required": true,
+          "topic": "prevention"
         },
         {
           "slot": 3,
           "hazardId": "r10",
-          "type": "location",
-          "difficulty": "easy",
-          "required": false
+          "type": "situation",
+          "difficulty": "hard",
+          "required": false,
+          "topic": "emergency"
         },
         {
           "slot": 4,
           "hazardId": "r12",
           "type": "location",
           "difficulty": "easy",
-          "required": false
+          "required": false,
+          "topic": "hazard"
         },
         {
           "slot": 5,
           "hazardId": "r13",
           "type": "location",
-          "difficulty": "medium",
-          "required": false
+          "difficulty": "easy",
+          "required": false,
+          "topic": "hazard"
         },
         {
           "slot": 6,
           "hazardId": "r14",
-          "type": "ox",
+          "type": "action",
           "difficulty": "medium",
-          "required": false
+          "required": false,
+          "topic": "prevention"
         },
         {
           "slot": 7,
           "hazardId": "r1",
-          "type": "action",
-          "difficulty": "medium",
-          "required": false
+          "type": "situation",
+          "difficulty": "hard",
+          "required": false,
+          "topic": "emergency"
         },
         {
           "slot": 8,
           "hazardId": "r2",
-          "type": "situation",
-          "difficulty": "hard",
-          "required": false
-        },
-        {
-          "slot": 9,
-          "hazardId": "r4",
           "type": "ox",
-          "difficulty": "medium",
-          "required": false
-        },
-        {
-          "slot": 10,
-          "hazardId": "r5",
-          "type": "action",
-          "difficulty": "medium",
-          "required": false
-        },
-        {
-          "slot": 11,
-          "hazardId": "r7",
-          "type": "situation",
-          "difficulty": "hard",
-          "required": false
-        },
-        {
-          "slot": 12,
-          "hazardId": "r8",
-          "type": "action",
-          "difficulty": "medium",
-          "required": false
+          "difficulty": "easy",
+          "required": false,
+          "topic": "hazard"
         }
       ],
       "reasons": [
-        "위험요소 14개 → 문항 12개 (규칙: 최소 5 · 최대 12 · 위험당 최대 2)",
-        "점수가 낮은 위험 2개는 문항에서 뺐습니다 (교육 자료로는 남습니다)"
+        "위험 14개 → 8문항 (규칙: 최소 3 · 최대 8 · 위험당 최대 2)",
+        "점수가 낮은 위험 6개는 문항에서 뺐습니다 (교육 자료로는 남습니다)"
       ],
-      "rulesVersion": "2026-11-11"
+      "rulesVersion": "2026-11-11",
+      "hazards": [
+        {
+          "id": "o1",
+          "part": "가드 측방·상방·하방",
+          "hazard": "pinch",
+          "risk": "가드 옆·위·아래로 손을 넣으면 금형 사이에 끼인다",
+          "official": {
+            "code": "M-30-2002",
+            "section": "§5.1·§6.5"
+          },
+          "specific": false,
+          "sources": [
+            {
+              "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침 §5.1·§6.5",
+              "url": "https://www.moel.go.kr/local/busanbukbu/common/downloadFile.do?file_seq=21171050364&bbs_seq=62551&bbs_id=LOCAL5",
+              "host": "moel.go.kr"
+            }
+          ],
+          "answer": {
+            "x": 48.5,
+            "y": 38.5,
+            "r": 15
+          }
+        },
+        {
+          "id": "o2",
+          "part": "가드 재전환",
+          "hazard": "pinch",
+          "risk": "가드를 열고 임시 조작한 뒤 제자리로 돌리지 않고 작업을 다시 시작하면 끼인다",
+          "official": {
+            "code": "M-30-2002",
+            "section": "§7.2"
+          },
+          "specific": false,
+          "sources": [
+            {
+              "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침 §7.2",
+              "url": "https://www.moel.go.kr/local/busanbukbu/common/downloadFile.do?file_seq=21171050364&bbs_seq=62551&bbs_id=LOCAL5",
+              "host": "moel.go.kr"
+            }
+          ],
+          "answer": {
+            "x": 45,
+            "y": 38,
+            "r": 14
+          }
+        },
+        {
+          "id": "r1",
+          "part": "램(Ram)·금형 사이(포인트오브오퍼레이션)",
+          "hazard": "pinch",
+          "risk": "램이 하강할 때 손·팔 등이 금형 사이에 들어가면 절단·압착·정지 불능 손상으로 이어질 위험이 크다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Guidelines on Safe Use of Press Machines (DOSH) – Press work area (Point of Operation)",
+              "url": "https://intranet.dosh.gov.my/ms/competent-person-form/occupational-health/perundangan-1/garis-panduan/keselamatan-industri/2401-01-guidelines-on-safe-use-of-press-machines-2015-1/file#page=1",
+              "host": "intranet.dosh.gov.my"
+            },
+            {
+              "title": "Hydraulic Press and Stored Pressure Safety (SafetyTalkLibrary)",
+              "url": "https://www.safetytalklibrary.com/talks/hydraulic-press-stored-pressure-safety/",
+              "host": "safetytalklibrary.com"
+            }
+          ],
+          "answer": {
+            "x": 49,
+            "y": 39,
+            "r": 13
+          }
+        },
+        {
+          "id": "r2",
+          "part": "램 정지·서스펜션(상승된 램이 유지된 상태)",
+          "hazard": "pinch",
+          "risk": "유압 잔압·실린더 밀봉·밸브 동작 등으로 램이 예기치 않게 하강하면, 유지하던 작업자나 점검자가 압착되거나 갇힐 위험이 있다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Hydraulic Press and Stored Pressure Safety (SafetyTalkLibrary)",
+              "url": "https://www.safetytalklibrary.com/talks/hydraulic-press-stored-pressure-safety/",
+              "host": "safetytalklibrary.com"
+            },
+            {
+              "title": "CINCINNATI Hydraulic Press Brake – Maintenance / Lockout/Tagout (manual excerpt)",
+              "url": "https://wwwassets.e-ci.com/PDF/Manuals/em_558_n_0714_osmm_90_175bx.pdf",
+              "host": "wwwassets.e-ci.com"
+            }
+          ],
+          "answer": {
+            "x": 49,
+            "y": 23.5,
+            "r": 13
+          }
+        },
+        {
+          "id": "r4",
+          "part": "다이(금형) 교체·셋업 시 램 지지·다이블록 사용부위",
+          "hazard": "pinch",
+          "risk": "다이 교체·셋업 중 램을 기계력(유압)만으로 신뢰하지 않고 작업하면 램 하강 또는 돌출로 작업자가 압착되거나 장비가 손상될 수 있다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Guide: OSHA & ANSI Compliance for using Die Blocks on Power Presses (PowerSafe)",
+              "url": "https://powersafeautomation.com/resources/knowledge-hub/guides/guide-osha-and-ansi-compliance-for-using-die-blocks-on-power-presses",
+              "host": "powersafeautomation.com"
+            },
+            {
+              "title": "SECTION 9 – 'Continuously support ram using die blocks' (Cincinnati manual)",
+              "url": "https://wwwassets.e-ci.com/PDF/Manuals/em_558_n_0714_osmm_90_175bx.pdf",
+              "host": "wwwassets.e-ci.com"
+            }
+          ],
+          "answer": {
+            "x": 47,
+            "y": 43,
+            "r": 9
+          }
+        },
+        {
+          "id": "r5",
+          "part": "전기제어반·배선(전원 차단·비상정지 회로 포함)",
+          "hazard": "shock",
+          "risk": "제어반·전원선의 부적절한 유지보수나 절연 손상으로 전기 감전 위험 및 제어 불능(비상정지 미작동)이 발생할 수 있다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Guidelines on Safe Use of Press Machines – Electrical Control Systems (DOSH)",
+              "url": "https://intranet.dosh.gov.my/ms/competent-person-form/occupational-health/perundangan-1/garis-panduan/keselamatan-industri/2401-01-guidelines-on-safe-use-of-press-machines-2015-1/file#page=1",
+              "host": "intranet.dosh.gov.my"
+            },
+            {
+              "title": "CINCINNATI Hydraulic Press Brake Manual – Electrical enclosure / LOTO (manual)",
+              "url": "https://wwwassets.e-ci.com/PDF/Manuals/em_558_n_0714_osmm_90_175bx.pdf",
+              "host": "wwwassets.e-ci.com"
+            }
+          ],
+          "answer": {
+            "x": 68.5,
+            "y": 64,
+            "r": 13.5
+          }
+        },
+        {
+          "id": "r6",
+          "part": "고압 유압 누유·파단 지점(호스·피팅·씰)",
+          "hazard": "fire",
+          "risk": "유압유 누출은 고온 부품에 닿으면 화재원인이 되거나, 고압 미세 분사로 인체 주입(hydrostatic injection)·화상·미끄럼 사고를 유발할 수 있다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Hydraulic Press and Stored Pressure Safety (SafetyTalkLibrary)",
+              "url": "https://www.safetytalklibrary.com/talks/hydraulic-press-stored-pressure-safety/",
+              "host": "safetytalklibrary.com"
+            },
+            {
+              "title": "Hydraulic System Troubleshooting (Milnor) – 'hydraulic piping may leak'",
+              "url": "https://www.milnor.com/tkb/HFW5.x/FLS/Milnor/SSPress%20Hydraulic%20System%20Troubleshooting.pdf",
+              "host": "milnor.com"
+            }
+          ],
+          "answer": {
+            "x": 78,
+            "y": 74,
+            "r": 14
+          }
+        },
+        {
+          "id": "r7",
+          "part": "백게이지(backgauge)·피더·배출영역(후면)",
+          "hazard": "pinch",
+          "risk": "백게이지·피더·배출부에 작업자 손이나 옷자락이 끼이거나, 자동작동 중 접근하면 절단·끼임 사고가 발생할 수 있다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Press Brake Quality Control Guide – point of operation, backgauge hazards (ADH)",
+              "url": "https://www.adhmt.com/how-to-use-press-brake/",
+              "host": "adhmt.com"
+            },
+            {
+              "title": "Hydraulic Press Brake – Safety recommendations, 'make sure no one is in backgage area' (safety sign/manual)",
+              "url": "https://wwwassets.e-ci.com/PDF/Manuals/EM-506.pdf",
+              "host": "wwwassets.e-ci.com"
+            }
+          ],
+          "answer": {
+            "x": 66,
+            "y": 86,
+            "r": 15
+          }
+        },
+        {
+          "id": "r8",
+          "part": "조작부(컨트롤 페널)의 인터록·가드·투 핸드/감지장치 상태",
+          "hazard": "pinch",
+          "risk": "가드 인터록 불량·투핸드식 안전장치 결함·광전감지기(라이트커튼) 비설치나 오동작 시 손이 금형 영역으로 들어가 사고가 발생한다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Press Brake Safety: Guarding, LOTO and Safe Use (KECMT)",
+              "url": "https://www.kecmt.com/guides/press-brake-safety/",
+              "host": "kecmt.com"
+            },
+            {
+              "title": "CINCINNATI Hydraulic Press Brake Manual – presence sensing device interface, laser safeguard (manual)",
+              "url": "https://wwwassets.e-ci.com/PDF/Manuals/Cincinnati-Xform-90xf-Series.html",
+              "host": "wwwassets.e-ci.com"
+            }
+          ],
+          "answer": {
+            "x": 55,
+            "y": 53,
+            "r": 9
+          }
+        },
+        {
+          "id": "r9",
+          "part": "기계 상부(모터·펌프·탱크) 접근·점검 시 낙하물·미끄럼 위험",
+          "hazard": "fall",
+          "risk": "상부 점검 시 이동통로·덮개 미비로 작업자가 미끄러지거나 도구·부품이 낙하해 아래 인원에게 피해를 줄 수 있다.",
+          "official": null,
+          "specific": false,
+          "sources": [
+            {
+              "title": "Hydraulic System Troubleshooting (Milnor) – 'working area is tight and may be slippery'",
+              "url": "https://www.milnor.com/tkb/HFW5.x/FLS/Milnor/SSPress%20Hydraulic%20System%20Troubleshooting.pdf",
+              "host": "milnor.com"
+            },
+            {
+              "title": "SECTION 9 Maintenance – 'Use safe equipment for getting on and off the machine' (Cincinnati manual)",
+              "url": "https://wwwassets.e-ci.com/PDF/Manuals/em_558_n_0714_osmm_90_175bx.pdf",
+              "host": "wwwassets.e-ci.com"
+            }
+          ],
+          "answer": {
+            "x": 16,
+            "y": 51,
+            "r": 15
+          }
+        },
+        {
+          "id": "r10",
+          "part": "C-프레임 개방 측면(프레스 전면·측면)",
+          "hazard": "pinch",
+          "risk": "C형 구조는 전·측면이 개방되어 있어 작업자가 금형 앞뒤·측면에서 쉽게 접근할 수 있고, 프레스 불균형·슬라이드 편향으로 금형이 비정상 접촉시 예측하지 못한 끼임이 발생할 위험이 크다.",
+          "official": null,
+          "specific": true,
+          "sources": [
+            {
+              "title": "유해 · 위험 기계 · 기구 종합정보시스템 - 프레스",
+              "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_press",
+              "host": "miis.kosha.or.kr"
+            },
+            {
+              "title": "Machine press (Wikipedia) — C-frame description",
+              "url": "https://en.wikipedia.org/wiki/Machine_press",
+              "host": "en.wikipedia.org"
+            }
+          ],
+          "answer": {
+            "x": 53,
+            "y": 38,
+            "r": 15
+          }
+        },
+        {
+          "id": "r12",
+          "part": "프레스 베이스·취출부(컨베이어·취출롤러·배출구)",
+          "hazard": "pinch",
+          "risk": "자동송급·취출 컨베이어 및 배출부분에서 소재 걸림·취출불량을 작업자가 손으로 제거하려다 프레스가 재가동되거나 동료가 발페달을 작동해 협착·끼임 사고가 발생한다.",
+          "official": null,
+          "specific": true,
+          "sources": [
+            {
+              "title": "유해 · 위험 기계 · 기구 종합정보시스템 - 프레스 (사례 포함)",
+              "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_press",
+              "host": "miis.kosha.or.kr"
+            },
+            {
+              "title": "프레스 자동송급장치 점검작업 중 협착 사례(안전보건공단 자료 안내)",
+              "url": "https://portal.kosha.or.kr/archive/disaster-case/accident-case/acccase-industry/manufac-industry?bbsId=B2025022104002&pstNo=20260413152319XKB88K",
+              "host": "portal.kosha.or.kr"
+            }
+          ],
+          "answer": {
+            "x": 84,
+            "y": 27,
+            "r": 15
+          }
+        },
+        {
+          "id": "r13",
+          "part": "제어·스위치·인터록(조작반·풋스위치·양수조작 등)",
+          "hazard": "shock",
+          "risk": "전기·전기제어 부품의 노후·비방수·잘못된 배선·인터록 우회(임시 고정) 등으로 오동작이나 전기적 누전·감전, 또는 안전시스템 무력화 후 슬라이드의 비의도적 동작이 발생한다.",
+          "official": null,
+          "specific": true,
+          "sources": [
+            {
+              "title": "1910.217 - Mechanical power presses (OSHA)",
+              "url": "https://osha.prod.pace.dol.gov/laws-regs/regulations/standardnumber/1910/1910.217",
+              "host": "osha.prod.pace.dol.gov"
+            },
+            {
+              "title": "프레스 안전점검표(대한산업안전협회 교육자료)",
+              "url": "https://www.safety.or.kr/safety/cmmn/file/fileDown.do?atchFileId=MFILE_000000000020047&fileSn=20036",
+              "host": "safety.or.kr"
+            }
+          ],
+          "answer": {
+            "x": 54,
+            "y": 51,
+            "r": 8
+          }
+        },
+        {
+          "id": "r14",
+          "part": "금형교체·정비·청소 단계(블로킹·슬라이드 지지·잠금 절차 등)",
+          "hazard": "pinch",
+          "risk": "금형 장착·조정·정비 중 슬라이드의 비의도적 하강(저장된 유압·역압·슬라이드 중력)이나 블록·딜(교체구)을 깜박하고 재가동하면 심각한 협착·절단이 발생할 위험이 크다.",
+          "official": null,
+          "specific": true,
+          "sources": [
+            {
+              "title": "KOSHA GUIDE M-138-2012 프레스 금형작업의 안전에 관한 기술지침 (참조 목록 링크 포함)",
+              "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_press",
+              "host": "miis.kosha.or.kr"
+            },
+            {
+              "title": "프레스 금형작업 관련 법령·안전점검(고용노동부·KOSHA 안내 요약)",
+              "url": "https://www.kosha.or.kr/safetymsn/images/362993_201601.pdf",
+              "host": "kosha.or.kr"
+            }
+          ],
+          "answer": {
+            "x": 50,
+            "y": 42,
+            "r": 14
+          }
+        }
+      ]
     },
     "quiz": [
       {
@@ -889,6 +1217,7 @@
         "slot": 1,
         "type": "hotspot",
         "subtype": "location",
+        "topic": "hazard",
         "hazard": "pinch",
         "hazardId": "o1",
         "difficulty": "easy",
@@ -904,6 +1233,7 @@
         "evidence": "공식 문서 M-30-2002 §5.1·§6.5 · 출처 1곳 (moel.go.kr) · 설비 사진에서 위치 확인",
         "answerFrom": "photo",
         "aiWritten": false,
+        "warnings": [],
         "i18n": {},
         "answer": {
           "x": 48.5,
@@ -915,14 +1245,15 @@
       {
         "id": "q2",
         "slot": 2,
-        "type": "hotspot",
-        "subtype": "location",
+        "type": "choice",
+        "subtype": "action",
+        "topic": "prevention",
         "hazard": "pinch",
         "hazardId": "o2",
-        "difficulty": "easy",
-        "prompt": "사진에서 「가드 재전환」을(를) 누르세요",
-        "why": "가드를 열고 임시 조작한 뒤 제자리로 돌리지 않고 작업을 다시 시작하면 끼인다",
-        "prevention": "",
+        "difficulty": "medium",
+        "prompt": "가드를 열고 임시 조작한 뒤 제자리로 돌리지 않고 작업을 다시 시작할 때 어떻게 합니까?",
+        "why": "가드를 제자리로 돌려 고정하지 않으면 보호장치가 없어 손이 끼일 위험이 큽니다.",
+        "prevention": "가드를 사용 후 제자리로 반드시 돌려 고정하고 잠김을 확인합니다.",
         "sources": [
           {
             "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침 §7.2",
@@ -930,27 +1261,34 @@
           }
         ],
         "evidence": "공식 문서 M-30-2002 §7.2 · 출처 1곳 (moel.go.kr) · 설비 사진에서 위치 확인",
-        "answerFrom": "photo",
-        "aiWritten": false,
+        "answerFrom": "ai",
+        "aiWritten": true,
+        "warnings": [],
         "i18n": {},
-        "answer": {
-          "x": 45,
-          "y": 38,
-          "r": 14
-        },
-        "figure": "photo"
+        "options": [
+          "가드를 열어 둔 채로 손만 빼고 바로 작업을 재개한다",
+          "가드를 원래 위치로 돌려 고정한 뒤 작업을 시작한다",
+          "가드를 테이프로 표시만 하고 작업을 시작한다"
+        ],
+        "answer": 1,
+        "results": [
+          "가드를 열고 임시 조작한 뒤 제자리로 돌리지 않고 작업을 다시 시작하면 끼인다",
+          "가드를 제자리로 돌려 고정하지 않으면 보호장치가 없어 손이 끼일 위험이 큽니다.",
+          "가드를 열고 임시 조작한 뒤 제자리로 돌리지 않고 작업을 다시 시작하면 끼인다"
+        ]
       },
       {
         "id": "q3",
         "slot": 3,
-        "type": "hotspot",
-        "subtype": "location",
+        "type": "choice",
+        "subtype": "situation",
+        "topic": "emergency",
         "hazard": "pinch",
         "hazardId": "r10",
-        "difficulty": "easy",
-        "prompt": "사진에서 「C-프레임 개방 측면(프레스 전면·측면)」을(를) 누르세요",
-        "why": "C형 구조는 전·측면이 개방되어 있어 작업자가 금형 앞뒤·측면에서 쉽게 접근할 수 있고, 프레스 불균형·슬라이드 편향으로 금형이 비정상 접촉시 예측하지 못한 끼임이 발생할 위험이 크다.",
-        "prevention": "",
+        "difficulty": "hard",
+        "prompt": "C형 프레스에서 금형의 앞쪽에서 작업 중 프레스가 갑자기 비틀려 금형이 밀립니다. 먼저 무엇을 합니까?",
+        "why": "기계 불균형이나 편향으로 예측 못한 접촉이 생기면 먼저 즉시 정지시켜 더 큰 위험을 막아야 합니다.",
+        "prevention": "C형 프레스 작업 시 비정상한 소리나 움직임이 보이면 즉시 정지하고 점검합니다.",
         "sources": [
           {
             "title": "유해 · 위험 기계 · 기구 종합정보시스템 - 프레스",
@@ -962,21 +1300,28 @@
           }
         ],
         "evidence": "출처 2곳 (miis.kosha.or.kr, en.wikipedia.org) · 설비 사진에서 위치 확인",
-        "answerFrom": "photo",
-        "aiWritten": false,
+        "answerFrom": "ai",
+        "aiWritten": true,
+        "warnings": [],
         "i18n": {},
-        "answer": {
-          "x": 53,
-          "y": 38,
-          "r": 15
-        },
-        "figure": "photo"
+        "options": [
+          "금형을 손으로 밀어 제자리를 잡는다",
+          "기계가 멈출 때까지 손을 넣어 위치를 확인한다",
+          "작업을 멈추고 프레스를 정지시킨다"
+        ],
+        "answer": 2,
+        "results": [
+          "C형 구조는 전·측면이 개방되어 있어 작업자가 금형 앞뒤·측면에서 쉽게 접근할 수 있고, 프레스 불균형·슬라이드 편향으로 금형이 비정상 접촉시 예측하지 못한 끼임이 발생할 위험이 크다.",
+          "C형 구조는 전·측면이 개방되어 있어 작업자가 금형 앞뒤·측면에서 쉽게 접근할 수 있고, 프레스 불균형·슬라이드 편향으로 금형이 비정상 접촉시 예측하지 못한 끼임이 발생할 위험이 크다.",
+          "기계 불균형이나 편향으로 예측 못한 접촉이 생기면 먼저 즉시 정지시켜 더 큰 위험을 막아야 합니다."
+        ]
       },
       {
         "id": "q4",
         "slot": 4,
         "type": "hotspot",
         "subtype": "location",
+        "topic": "hazard",
         "hazard": "pinch",
         "hazardId": "r12",
         "difficulty": "easy",
@@ -996,6 +1341,7 @@
         "evidence": "출처 2곳 (miis.kosha.or.kr, portal.kosha.or.kr) · 설비 사진에서 위치 확인",
         "answerFrom": "photo",
         "aiWritten": false,
+        "warnings": [],
         "i18n": {},
         "answer": {
           "x": 84,
@@ -1009,9 +1355,10 @@
         "slot": 5,
         "type": "hotspot",
         "subtype": "location",
+        "topic": "hazard",
         "hazard": "shock",
         "hazardId": "r13",
-        "difficulty": "medium",
+        "difficulty": "easy",
         "prompt": "사진에서 「제어·스위치·인터록(조작반·풋스위치·양수조작 등)」을(를) 누르세요",
         "why": "전기·전기제어 부품의 노후·비방수·잘못된 배선·인터록 우회(임시 고정) 등으로 오동작이나 전기적 누전·감전, 또는 안전시스템 무력화 후 슬라이드의 비의도적 동작이 발생한다.",
         "prevention": "",
@@ -1028,6 +1375,7 @@
         "evidence": "출처 2곳 (osha.prod.pace.dol.gov, safety.or.kr) · 설비 사진에서 위치 확인",
         "answerFrom": "photo",
         "aiWritten": false,
+        "warnings": [],
         "i18n": {},
         "answer": {
           "x": 54,
@@ -1040,13 +1388,14 @@
         "id": "q6",
         "slot": 6,
         "type": "choice",
-        "subtype": "ox",
+        "subtype": "action",
+        "topic": "prevention",
         "hazard": "pinch",
         "hazardId": "r14",
         "difficulty": "medium",
-        "prompt": "금형을 교체할 때 블로킹(슬라이드 지지) 절차를 생략해도 안전하다.",
-        "why": "슬라이드의 비의도적 하강이나 저장된 유압으로 심각한 협착·절단 위험이 있으므로 블로킹 등 잠금 절차가 필요합니다.",
-        "prevention": "금형 교체·정비 전 반드시 블로킹과 슬라이드 고정 절차를 실시하세요.",
+        "prompt": "금형을 교체·정비할 때 블로킹·슬라이드 지지·잠금 절차 중 어떻게 합니까?",
+        "why": "블로킹과 잠금 절차를 건너뛰면 슬라이드가 갑자기 내려와 심각한 협착 사고가 발생할 수 있습니다.",
+        "prevention": "금형교체 전 슬라이드 지지와 잠금 상태를 확인하고 전원 차단 후 작업합니다.",
         "sources": [
           {
             "title": "KOSHA GUIDE M-138-2012 프레스 금형작업의 안전에 관한 기술지침 (참조 목록 링크 포함)",
@@ -1060,28 +1409,34 @@
         "evidence": "출처 2곳 (miis.kosha.or.kr, kosha.or.kr) · 설비 사진에서 위치 확인",
         "answerFrom": "ai",
         "aiWritten": true,
+        "warnings": [
+          "정답만 가장 김"
+        ],
         "i18n": {},
         "options": [
-          "O (맞다)",
-          "X (틀리다)"
+          "슬라이드를 손으로 지지한 채 전원을 끄지 않고 작업을 진행한다",
+          "블록을 대충 올려놓고 빠르게 교체를 마친다",
+          "슬라이드를 블록으로 지지하고 잠금장치를 확실히 한 뒤 작업한다"
         ],
-        "answer": 1,
+        "answer": 2,
         "results": [
           "금형 장착·조정·정비 중 슬라이드의 비의도적 하강(저장된 유압·역압·슬라이드 중력)이나 블록·딜(교체구)을 깜박하고 재가동하면 심각한 협착·절단이 발생할 위험이 크다.",
-          "슬라이드의 비의도적 하강이나 저장된 유압으로 심각한 협착·절단 위험이 있으므로 블로킹 등 잠금 절차가 필요합니다."
+          "금형 장착·조정·정비 중 슬라이드의 비의도적 하강(저장된 유압·역압·슬라이드 중력)이나 블록·딜(교체구)을 깜박하고 재가동하면 심각한 협착·절단이 발생할 위험이 크다.",
+          "블로킹과 잠금 절차를 건너뛰면 슬라이드가 갑자기 내려와 심각한 협착 사고가 발생할 수 있습니다."
         ]
       },
       {
         "id": "q7",
         "slot": 7,
         "type": "choice",
-        "subtype": "action",
+        "subtype": "situation",
+        "topic": "emergency",
         "hazard": "pinch",
         "hazardId": "r1",
-        "difficulty": "medium",
-        "prompt": "작업 중 램과 금형 사이에 손이 들어갈 위험이 보입니다. 어떻게 해야 합니까?",
-        "why": "램이 순간적으로 하강하면 절단·압착 사고가 발생하므로 멈췄어도 손을 넣어서는 안 됩니다.",
-        "prevention": "작업 중에는 전용 픽업 도구를 사용하고 손을 금형 근처에 두지 마세요.",
+        "difficulty": "hard",
+        "prompt": "램이 하강할 때 손이 금형 사이로 들어가 끼였습니다. 먼저 무엇을 합니까?",
+        "why": "램 하강 중 끼임이 발생하면 우선 기계를 멈춰 추가 손상을 막아야 합니다.",
+        "prevention": "포인트 오브 오퍼레이션 근처에서는 손을 넣지 말고 안전장치와 거리를 유지합니다.",
         "sources": [
           {
             "title": "Guidelines on Safe Use of Press Machines (DOSH) – Press work area (Point of Operation)",
@@ -1093,18 +1448,19 @@
           }
         ],
         "evidence": "출처 2곳 (intranet.dosh.gov.my, safetytalklibrary.com) · 설비 사진에서 위치 확인",
-        "answerFrom": "phrase:ph-1",
+        "answerFrom": "ai",
         "aiWritten": true,
+        "warnings": [],
         "i18n": {},
         "options": [
-          "빠르게 손을 집어넣어 재빨리 재배치한다",
-          "프레스가 멈춰도 손을 넣지 마십시오",
-          "장갑을 끼고 손으로 밀어넣어 위치를 맞춘다"
+          "비상정지 버튼을 눌러 기계를 즉시 멈춘다",
+          "손을 억지로 빼내고 작업을 계속한다",
+          "다른 작업자에게 빨리 움직이라고만 외친다"
         ],
-        "answer": 1,
+        "answer": 0,
         "results": [
+          "램 하강 중 끼임이 발생하면 우선 기계를 멈춰 추가 손상을 막아야 합니다.",
           "램이 하강할 때 손·팔 등이 금형 사이에 들어가면 절단·압착·정지 불능 손상으로 이어질 위험이 크다.",
-          "램이 순간적으로 하강하면 절단·압착 사고가 발생하므로 멈췄어도 손을 넣어서는 안 됩니다.",
           "램이 하강할 때 손·팔 등이 금형 사이에 들어가면 절단·압착·정지 불능 손상으로 이어질 위험이 크다."
         ]
       },
@@ -1112,13 +1468,14 @@
         "id": "q8",
         "slot": 8,
         "type": "choice",
-        "subtype": "situation",
+        "subtype": "ox",
+        "topic": "hazard",
         "hazard": "pinch",
         "hazardId": "r2",
-        "difficulty": "hard",
-        "prompt": "램이 상승된 상태로 유지되어 점검을 하려 합니다. 유압계는 정지 상태지만 램 아래에 손을 넣고 조정 중입니다. 올바른 판단은?",
-        "why": "유압 잔압이나 밸브 동작으로 램이 예기치 않게 하강할 수 있으니 전원 차단과 기계적 블로킹이 필요합니다.",
-        "prevention": "상승된 램 아래 작업은 금하고 전기·유압 차단 후 블록으로 고정하세요.",
+        "difficulty": "easy",
+        "prompt": "상승된 램이 유지된 상태에서는 유압 잔압으로 램이 예기치 않게 하강할 수 있다.",
+        "why": "유압 잔압이나 실린더 밀봉 불량, 밸브 동작으로 인해 램이 갑자기 내려올 수 있습니다.",
+        "prevention": "서스펜션 상태에서는 블로킹·잠금 등을 사용해 물리적으로 지지한 뒤 점검합니다.",
         "sources": [
           {
             "title": "Hydraulic Press and Stored Pressure Safety (SafetyTalkLibrary)",
@@ -1132,168 +1489,25 @@
         "evidence": "출처 2곳 (safetytalklibrary.com, wwwassets.e-ci.com) · 설비 사진에서 위치 확인",
         "answerFrom": "ai",
         "aiWritten": true,
-        "i18n": {},
-        "options": [
-          "램이 유지돼 있으니 아래에서 바로 조정해도 된다",
-          "유압 밸브를 잠깐 열어 램을 조금 내려 안전을 확인한 후 작업한다",
-          "램 아래에서 작업하지 말고 전원 차단 후 기계적 블로킹을 하고 작업한다"
-        ],
-        "answer": 2,
-        "results": [
-          "유압 잔압·실린더 밀봉·밸브 동작 등으로 램이 예기치 않게 하강하면, 유지하던 작업자나 점검자가 압착되거나 갇힐 위험이 있다.",
-          "유압 잔압·실린더 밀봉·밸브 동작 등으로 램이 예기치 않게 하강하면, 유지하던 작업자나 점검자가 압착되거나 갇힐 위험이 있다.",
-          "유압 잔압이나 밸브 동작으로 램이 예기치 않게 하강할 수 있으니 전원 차단과 기계적 블로킹이 필요합니다."
-        ]
-      },
-      {
-        "id": "q9",
-        "slot": 9,
-        "type": "choice",
-        "subtype": "ox",
-        "hazard": "pinch",
-        "hazardId": "r4",
-        "difficulty": "medium",
-        "prompt": "다이 셋업 때 램을 유압만으로 지지해도 안전하므로 별도 다이블록은 필요 없다.",
-        "why": "기계력만으로 램을 신뢰하면 하강이나 돌출로 인해 압착이나 장비 손상이 발생할 수 있어 다이블록 등 기계적 지지가 필요합니다.",
-        "prevention": "다이 교체·셋업 시에는 램을 기계적으로 지지(다이블록)하고 잠금 절차를 따르세요.",
-        "sources": [
-          {
-            "title": "Guide: OSHA & ANSI Compliance for using Die Blocks on Power Presses (PowerSafe)",
-            "url": "https://powersafeautomation.com/resources/knowledge-hub/guides/guide-osha-and-ansi-compliance-for-using-die-blocks-on-power-presses"
-          },
-          {
-            "title": "SECTION 9 – 'Continuously support ram using die blocks' (Cincinnati manual)",
-            "url": "https://wwwassets.e-ci.com/PDF/Manuals/em_558_n_0714_osmm_90_175bx.pdf"
-          }
-        ],
-        "evidence": "출처 2곳 (powersafeautomation.com, wwwassets.e-ci.com) · 설비 사진에서 위치 확인",
-        "answerFrom": "ai",
-        "aiWritten": true,
+        "warnings": [],
         "i18n": {},
         "options": [
           "O (맞다)",
           "X (틀리다)"
         ],
-        "answer": 1,
-        "results": [
-          "다이 교체·셋업 중 램을 기계력(유압)만으로 신뢰하지 않고 작업하면 램 하강 또는 돌출로 작업자가 압착되거나 장비가 손상될 수 있다.",
-          "기계력만으로 램을 신뢰하면 하강이나 돌출로 인해 압착이나 장비 손상이 발생할 수 있어 다이블록 등 기계적 지지가 필요합니다."
-        ]
-      },
-      {
-        "id": "q10",
-        "slot": 10,
-        "type": "choice",
-        "subtype": "action",
-        "hazard": "shock",
-        "hazardId": "r5",
-        "difficulty": "medium",
-        "prompt": "전기제어반에서 절연이 벗겨진 전선이 보입니다. 먼저 무엇을 해야 합니까?",
-        "why": "노출된 전선은 감전과 제어불능 위험이 있어 먼저 전원 차단으로 위험원을 제거해야 합니다.",
-        "prevention": "제어반 점검 시 전원 차단·잠금·표시(LOTO)를 시행하고 전기 결함은 즉시 수리하세요.",
-        "sources": [
-          {
-            "title": "Guidelines on Safe Use of Press Machines – Electrical Control Systems (DOSH)",
-            "url": "https://intranet.dosh.gov.my/ms/competent-person-form/occupational-health/perundangan-1/garis-panduan/keselamatan-industri/2401-01-guidelines-on-safe-use-of-press-machines-2015-1/file#page=1"
-          },
-          {
-            "title": "CINCINNATI Hydraulic Press Brake Manual – Electrical enclosure / LOTO (manual)",
-            "url": "https://wwwassets.e-ci.com/PDF/Manuals/em_558_n_0714_osmm_90_175bx.pdf"
-          }
-        ],
-        "evidence": "출처 2곳 (intranet.dosh.gov.my, wwwassets.e-ci.com) · 설비 사진에서 위치 확인",
-        "answerFrom": "phrase:ph-2",
-        "aiWritten": true,
-        "i18n": {},
-        "options": [
-          "전선을 테이프로 감싸고 계속 작업한다",
-          "작업 전 전원을 차단하십시오",
-          "전기 기술자에게 말하지 않고 일단 기계만 작동시킨다"
-        ],
-        "answer": 1,
-        "results": [
-          "제어반·전원선의 부적절한 유지보수나 절연 손상으로 전기 감전 위험 및 제어 불능(비상정지 미작동)이 발생할 수 있다.",
-          "노출된 전선은 감전과 제어불능 위험이 있어 먼저 전원 차단으로 위험원을 제거해야 합니다.",
-          "제어반·전원선의 부적절한 유지보수나 절연 손상으로 전기 감전 위험 및 제어 불능(비상정지 미작동)이 발생할 수 있다."
-        ]
-      },
-      {
-        "id": "q11",
-        "slot": 11,
-        "type": "choice",
-        "subtype": "situation",
-        "hazard": "pinch",
-        "hazardId": "r7",
-        "difficulty": "hard",
-        "prompt": "백게이지 근처에서 자동으로 피더가 작동하고 있습니다. 작업자가 피더 뒤쪽에 손을 넣어 재료를 정리하려 합니다. 올바른 판단은?",
-        "why": "백게이지·피더는 자동 작동 중 끼임 위험이 커서 반드시 기계를 멈추고 차단 후 접근해야 합니다.",
-        "prevention": "피더·배출구 작업 시 기계 정지와 고정 보호장치 확인 후 작업하세요.",
-        "sources": [
-          {
-            "title": "Press Brake Quality Control Guide – point of operation, backgauge hazards (ADH)",
-            "url": "https://www.adhmt.com/how-to-use-press-brake/"
-          },
-          {
-            "title": "Hydraulic Press Brake – Safety recommendations, 'make sure no one is in backgage area' (safety sign/manual)",
-            "url": "https://wwwassets.e-ci.com/PDF/Manuals/EM-506.pdf"
-          }
-        ],
-        "evidence": "출처 2곳 (adhmt.com, wwwassets.e-ci.com) · 설비 사진에서 위치 확인",
-        "answerFrom": "ai",
-        "aiWritten": true,
-        "i18n": {},
-        "options": [
-          "빠르게 손만 넣어 재료를 빼고 다시 빼낸다",
-          "작동 중이니 손을 넣어 자리를 고정한다",
-          "작동을 멈추고 전원 차단 후 접근하여 정리한다"
-        ],
-        "answer": 2,
-        "results": [
-          "백게이지·피더·배출부에 작업자 손이나 옷자락이 끼이거나, 자동작동 중 접근하면 절단·끼임 사고가 발생할 수 있다.",
-          "백게이지·피더·배출부에 작업자 손이나 옷자락이 끼이거나, 자동작동 중 접근하면 절단·끼임 사고가 발생할 수 있다.",
-          "백게이지·피더는 자동 작동 중 끼임 위험이 커서 반드시 기계를 멈추고 차단 후 접근해야 합니다."
-        ]
-      },
-      {
-        "id": "q12",
-        "slot": 12,
-        "type": "choice",
-        "subtype": "action",
-        "hazard": "pinch",
-        "hazardId": "r8",
-        "difficulty": "medium",
-        "prompt": "조작부 인터록이나 광전감지기가 불량입니다. 어떻게 해야 합니까?",
-        "why": "인터록·감지장치 고장은 금형 접근 시 사고를 유발하므로 수리 전에는 운영을 중단해야 합니다.",
-        "prevention": "가드와 인터록은 정기 점검하고 이상 시 즉시 봉인·수리하세요.",
-        "sources": [
-          {
-            "title": "Press Brake Safety: Guarding, LOTO and Safe Use (KECMT)",
-            "url": "https://www.kecmt.com/guides/press-brake-safety/"
-          },
-          {
-            "title": "CINCINNATI Hydraulic Press Brake Manual – presence sensing device interface, laser safeguard (manual)",
-            "url": "https://wwwassets.e-ci.com/PDF/Manuals/Cincinnati-Xform-90xf-Series.html"
-          }
-        ],
-        "evidence": "출처 2곳 (kecmt.com, wwwassets.e-ci.com) · 설비 사진에서 위치 확인",
-        "answerFrom": "ai",
-        "aiWritten": true,
-        "i18n": {},
-        "options": [
-          "장비를 사용하지 말고 수리될 때까지 운영을 중단·보고한다",
-          "인터록을 우선 테이프로 고정하고 조심히 사용한다",
-          "감지기를 가리고 손으로 빠르게 작동시킨다"
-        ],
         "answer": 0,
         "results": [
-          "인터록·감지장치 고장은 금형 접근 시 사고를 유발하므로 수리 전에는 운영을 중단해야 합니다.",
-          "가드 인터록 불량·투핸드식 안전장치 결함·광전감지기(라이트커튼) 비설치나 오동작 시 손이 금형 영역으로 들어가 사고가 발생한다.",
-          "가드 인터록 불량·투핸드식 안전장치 결함·광전감지기(라이트커튼) 비설치나 오동작 시 손이 금형 영역으로 들어가 사고가 발생한다."
+          "유압 잔압이나 실린더 밀봉 불량, 밸브 동작으로 인해 램이 갑자기 내려올 수 있습니다.",
+          "유압 잔압·실린더 밀봉·밸브 동작 등으로 램이 예기치 않게 하강하면, 유지하던 작업자나 점검자가 압착되거나 갇힐 위험이 있다."
         ]
       }
     ],
     "excluded": [],
     "missing": [],
+    "issuable": {
+      "ok": true,
+      "why": []
+    },
     "rulesVersion": "2026-11-11",
     "phrases": [
       "ph-1",
@@ -1301,6 +1515,6 @@
       "ph-3",
       "ph-6"
     ],
-    "at": "2026-11-10T16:05:55.525Z"
+    "at": "2026-11-10T16:26:04.402Z"
   }
 }
