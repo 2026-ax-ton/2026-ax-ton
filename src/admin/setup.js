@@ -69,6 +69,9 @@
       }));
     });
 
+    UI.fillSelect($('equip-kind'), Store.EQUIPMENT_KINDS,
+      function (k) { return k.id; }, function (k) { return k.label; });
+
     [['pick-proc-icon', 'proc-icon'], ['pick-equip-icon', 'equip-icon']].forEach(function (pair) {
       var box = $(pair[0]);
       Store.ICONS.forEach(function (icon, idx) {
@@ -174,8 +177,15 @@
       var spec = [eq.maker, eq.model, eq.year].filter(function (v) { return v; }).join(' · ');
       var li = UI.itemRow(eq.icon, eq.name,
         processName(state, eq.processId) + (spec ? ' · ' + spec : ''));
+      li.setAttribute('data-id', eq.id);
 
       var tags = UI.el('div', 'tags');
+      /* 종류 — 없던 옛 설비는 이름으로 짐작한 값을 「확인 필요」로 보인다 */
+      var kind = Store.kindOf(eq);
+      var kLabel = (Store.equipmentKind(kind.id) || {}).label;
+      tags.appendChild(kind.guessed
+        ? UI.stopBadge('종류 확인 필요' + (kLabel ? ' (' + kLabel + '?)' : ''))
+        : UI.okBadge('종류 · ' + kLabel));
       var hazards = Array.isArray(eq.hazards) ? eq.hazards : [];
       if (!hazards.length) {
         tags.appendChild(UI.el('span', 'badge badge-neutral', '위험유형 없음'));
@@ -187,9 +197,97 @@
       }
       li.querySelector('.body').appendChild(tags);
 
+      /* 설비 탭이 원천 — 사진과 AI 위험요소 분석 결과를 여기서 보인다 */
+      if (eq.photo && /^data:image\//.test(eq.photo)) {
+        var im = UI.el('img', 'equip-photo');
+        im.src = eq.photo;
+        im.alt = eq.name + ' 사진';
+        li.querySelector('.body').appendChild(im);
+      }
+      li.querySelector('.body').appendChild(UI.el('p', 'meta', analysisLine(eq)));
+      var go = UI.el('a', 'btn-sm', eq.analysis ? '분석 결과 보기 · 교육 만들기' : 'AI 분석 · 교육 만들기');
+      go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
+      li.querySelector('.body').appendChild(go);
+
+      var ed = UI.el('button', 'btn-sm', '수정');
+      ed.type = 'button';
+      ed.setAttribute('aria-label', eq.name + ' 설비 수정');
+      ed.addEventListener('click', function () { startEdit(eq); });
+      li.appendChild(ed);
       li.appendChild(deleteButton(eq.name + ' 설비 삭제', function () { removeEquipment(eq); }));
       list.appendChild(li);
     });
+  }
+
+  /** 「AI 분석: 위험 16 · 사진 위치 9 · 위치 확인 필요 7 · 11월 11일」 */
+  function analysisLine(eq) {
+    var a = eq.analysis;
+    if (!a || !a.research || !Array.isArray(a.research.items)) return 'AI 분석 없음' + (eq.photo ? '' : ' · 사진 없음');
+    var n = a.research.items.length;
+    var m = a.guided && Array.isArray(a.guided.mapped) ? a.guided.mapped.length : 0;
+    return 'AI 분석: 위험 ' + n + ' · 사진 위치 ' + m + ' · 위치 확인 필요 ' + (n - m) + (a.at ? ' · ' + UI.formatDate(a.at) : '');
+  }
+
+  /* ── 설비 사진 · 수정 ─────────────────────────────────────────── */
+
+  var PHOTO_MAX = 640;      // 긴 변 — 동기화 상한(512KB)에 설비 여러 대가 들어가게
+  var PHOTO_QUALITY = 0.7;
+  var pendingPhoto = null;  // null = 그대로 · '' = 지움 · data URL = 새 사진
+
+  function shrinkPhoto(file, done) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      var out = '';
+      try {
+        var scale = Math.min(1, PHOTO_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * scale);
+        c.height = Math.round(img.naturalHeight * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        out = c.toDataURL('image/jpeg', PHOTO_QUALITY);
+      } catch (e) { out = ''; }
+      URL.revokeObjectURL(url);
+      done(out);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); done(''); };
+    img.src = url;
+  }
+
+  function showPreview(data) {
+    var p = $('equip-photo-preview');
+    p.hidden = !data;
+    if (data) p.src = data; else p.removeAttribute('src');
+  }
+
+  function startEdit(eq) {
+    $('equip-edit-id').value = eq.id;
+    $('equip-name').value = eq.name || '';
+    $('equip-proc').value = eq.processId || '';
+    $('equip-kind').value = Store.kindOf(eq).id || 'other';
+    $('equip-maker').value = eq.maker || '';
+    $('equip-model').value = eq.model || '';
+    $('equip-year').value = eq.year || '';
+    UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = (eq.hazards || []).indexOf(n.value) !== -1; });
+    pendingPhoto = null;
+    showPreview(eq.photo || '');
+    $('btn-equip-save').lastChild.textContent = ' 수정 저장';
+    $('btn-equip-cancel').hidden = false;
+    $('equip-name').focus();
+  }
+
+  function resetEquipForm() {
+    $('equip-edit-id').value = '';
+    $('equip-name').value = '';
+    $('equip-maker').value = '';
+    $('equip-model').value = '';
+    $('equip-year').value = '';
+    // 위험유형은 초기화한다. 다음 설비에 앞 설비의 위험이 딸려 들어가면 안 된다.
+    UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = false; });
+    pendingPhoto = null;
+    showPreview('');
+    $('btn-equip-save').lastChild.textContent = ' 설비 추가';
+    $('btn-equip-cancel').hidden = true;
   }
 
   function renderWorkers(state) {
@@ -332,6 +430,8 @@
 
       var hazards = UI.checkedValues('hazard');
       var icon = UI.pickedValue('equip-icon') || Store.ICONS[0];
+      var kind = Store.equipmentKind($('equip-kind').value) ? $('equip-kind').value : 'other';
+      var editId = $('equip-edit-id').value;
 
       /* 제조사·모델명·연식 — AI 리서치(PRD-AD-08 S1)용. 선택이라 비어도 된다.
          연식은 숫자로만 받고, 범위 밖이면 버린다 (잘못된 값으로 리서치하지 않게) */
@@ -340,22 +440,50 @@
       var yearNum = Number($('equip-year').value);
       var year = Number.isInteger(yearNum) && yearNum >= 1950 && yearNum <= 2100 ? yearNum : null;
 
+      var photo = pendingPhoto;
+      var message = '설비를 추가했습니다.';
       commit(function (s) {
-        s.equipments.push({
-          id: Store.uid(), processId: processId, name: name,
-          icon: icon, hazards: hazards, note: '',
-          maker: maker, model: model, year: year
-        });
-      }, '설비를 추가했습니다.');
+        if (!editId) {
+          s.equipments.push({
+            id: Store.uid(), processId: processId, name: name, kind: kind,
+            icon: icon, hazards: hazards, note: '',
+            maker: maker, model: model, year: year,
+            photo: photo || '', analysis: null
+          });
+          return;
+        }
+        var eq = Store.findBy(s.equipments, 'id', editId);
+        if (!eq) return;
+        /* ★ 종류·제조사·모델·사진이 바뀌면 예전 AI 분석은 이 설비의 것이 아니다 — 지운다 (다시 분석) */
+        var changed = eq.kind !== kind || (eq.maker || '') !== maker || (eq.model || '') !== model || (photo !== null && photo !== eq.photo);
+        eq.processId = processId; eq.name = name; eq.kind = kind; eq.icon = icon; eq.hazards = hazards;
+        eq.maker = maker; eq.model = model; eq.year = year;
+        if (photo !== null) eq.photo = photo;
+        if (changed && eq.analysis) { eq.analysis = null; message = '수정했습니다. 종류·모델·사진이 바뀌어 AI 분석 결과를 지웠습니다 — 다시 분석해 주세요.'; }
+        else message = '수정했습니다.';
+      }, editId ? null : message);
+      if (editId) UI.toast(message);
 
-      $('equip-name').value = '';
-      $('equip-maker').value = '';
-      $('equip-model').value = '';
-      $('equip-year').value = '';
-      // 위험유형은 초기화한다. 다음 설비에 앞 설비의 위험이 딸려 들어가면 안 된다.
-      UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = false; });
-      $('equip-name').focus();
+      resetEquipForm();
+      if (new URLSearchParams(location.search).get('return') === 'content') {
+        $('return-note').hidden = false;
+        $('return-link').focus();
+      } else {
+        $('equip-name').focus();
+      }
     });
+
+    $('equip-photo').addEventListener('change', function (ev) {
+      var f = ev.target.files && ev.target.files[0];
+      ev.target.value = '';
+      if (!f) return;
+      shrinkPhoto(f, function (data) {
+        if (!data) { UI.toast('사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'); return; }
+        pendingPhoto = data;
+        showPreview(data);
+      });
+    });
+    $('btn-equip-cancel').addEventListener('click', resetEquipForm);
 
     /* 5. 노동자 */
     $('form-worker').addEventListener('submit', function (e) {
@@ -414,4 +542,6 @@
   buildStaticControls();
   bindEvents();
   render();
+  /* 콘텐츠에서 「설비 등록하러 가기」로 왔다 — 돌아가는 길을 처음부터 보인다 */
+  if (new URLSearchParams(location.search).get('return') === 'content') $('return-note').hidden = false;
 })();

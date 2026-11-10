@@ -253,6 +253,12 @@ var UI = (function () {
     }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
+    /* 🆕 2026-11-11 서버가 거절한 변경을 알린다 — 전에는 이 브라우저에만 남고 아무도 몰랐다 (store.js onReject) */
+    if (Store.sync && Store.sync.onReject) Store.sync.onReject(function (why) {
+      toast(why.status === 413
+        ? '저장 용량을 넘어 서버에 올라가지 않았습니다 (' + why.key + '). 사진·교육 수를 줄여 주세요.'
+        : '서버가 이 변경을 받지 않았습니다 (' + why.key + (why.message ? ' — ' + why.message : '') + ').');
+    });
   }
 
   /* 노동자 화면 상단 머리띠.

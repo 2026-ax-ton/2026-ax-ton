@@ -167,6 +167,20 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
   }
 
   /* =================================================================
+     4-1. 🆕 2026-11-11 서버가 거절(413 용량 초과)하면 버리기 전에 알린다
+     ================================================================= */
+  {
+    const t = open([{ status: 413, body: { error: 'too_large', message: '너무 큽니다' } }]);
+    t.calls.length = 0;
+    const got = [];
+    t.win.Store.sync.onReject((why) => got.push(why));
+    t.win.Store.courses.save([{ id: 'big' }]);
+    await tick();
+    eq('★★ 거절을 화면에 알린다 (key · status)', got.length && got[0].key + '|' + got[0].status + '|' + got[0].code, 'courses|413|too_large');
+    eq('거절된 것은 대기열에서 뺀다 (영영 막히지 않게)', t.win.Store.sync.pending().length, 0);
+  }
+
+  /* =================================================================
      5. 당겨오기 — 바뀐 것이 있을 때만 다시 그린다
      ================================================================= */
   {

@@ -895,6 +895,9 @@ table.data .chips .badge { font-size: .68em; }
 .ag-all { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: 0 0 6px 13px; font-weight: 700; cursor: pointer; }
 .ag-all[hidden] { display: none; }
 .ag-all input { width: 24px; height: 24px; accent-color: var(--ink, #222); }
+/* 설비 사진 (설비 탭) */
+.equip-photo { display: block; max-width: 200px; max-height: 150px; margin-top: 6px; border-radius: 8px; border: 1px solid var(--line, #ccc); }
+.equip-photo[hidden] { display: none; }
 /* 항목 참고 사진 — 출처 페이지에서 받은 것 (검토용) */
 .ag-ref { margin: 8px 0 0; max-width: 320px; }
 .ag-ref img { display: block; width: 100%; height: auto; max-height: 240px; object-fit: contain; border: 1px solid var(--line, #ccc); border-radius: 8px; background: #fff; }

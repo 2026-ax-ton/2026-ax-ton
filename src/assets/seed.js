@@ -59,11 +59,12 @@ var Seed = (function () {
       { id: 'p-assembly', name: '조립',   icon: '🔧' }
     ],
     equipments: [
-      { id: 'e-press3', processId: 'p-press', name: '프레스 3호기',
+      /* kind — 설비 종류 id (Store.EQUIPMENT_KINDS). 문구·공식 문서·AI 조사가 이 값으로 이어진다 (2026-11-11) */
+      { id: 'e-press3', processId: 'p-press', name: '프레스 3호기', kind: 'press',
         icon: '⚙', hazards: ['pinch', 'shock'], note: '' },
-      { id: 'e-booth1', processId: 'p-paint', name: '도장 부스 1',
+      { id: 'e-booth1', processId: 'p-paint', name: '도장 부스 1', kind: 'paint',
         icon: '🔥', hazards: ['fire', 'chemical', 'choke'], note: '' },
-      { id: 'e-panel',  processId: 'p-press', name: '배전반 A',
+      { id: 'e-panel',  processId: 'p-press', name: '배전반 A', kind: 'electric',
         icon: '⚡', hazards: ['shock'], note: '' }
     ],
     workers: [
@@ -254,8 +255,9 @@ var Seed = (function () {
           pairs: [['프레스 작업', '안전장갑'], ['배전반 점검', '절연장갑']],
           why: '작업마다 맞는 보호구가 다릅니다. 배전반 점검에 일반 안전장갑을 끼면 감전을 막지 못합니다.' }
       ] },
+    /* 2026-11-11 — 프레스 문구 ph-3 이 도장 교육에 섞여 있었다. 설비 종류가 다른 문구는 넣지 않는다 */
     { id: 'c-paint', title: '도장 부스 1 안전교육', equipmentId: 'e-booth1',
-      languages: ['id'], phraseIds: ['ph-3', 'ph-4', 'ph-6'],
+      languages: ['id'], phraseIds: ['ph-4', 'ph-6'],
       approved: true, createdAt: '2026-08-03T01:00:00.000Z',
       quiz: [
         { id: 'q1', type: 'choice', hazard: 'fire',
