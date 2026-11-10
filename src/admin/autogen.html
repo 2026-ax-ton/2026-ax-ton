@@ -40,26 +40,37 @@
     여기서는 아래 <b>[결과 파일 불러오기]</b>로 실측 결과를 검토하거나, <a href="content.html">교육 콘텐츠 생성</a>에서 손으로 만들 수 있습니다.
   </p>
 
-  <!-- S1 -->
+  <!-- ① 설비 — 설비 탭(setup)이 원천. 여기서는 고르고 불러오기만 한다 (2026-11-11) -->
   <section class="card" aria-labelledby="t-s1">
-    <h2 id="t-s1"><span class="step-no">1</span>설비 고르기</h2>
+    <h2 id="t-s1"><span class="step-no">1</span>교육 대상 설비</h2>
     <div class="field">
       <label for="ag-equip">설비</label>
       <select id="ag-equip"></select>
       <p class="field-hint" id="ag-equip-spec"></p>
     </div>
-    <button class="btn btn-primary" type="button" id="btn-research">AI 자료 조사 시작</button>
-    <!-- 서버 없이: 실측 도구(scripts/measure-pipeline.mjs --out)가 남긴 결과 파일로 같은 검토를 한다.
-         파일은 이 브라우저에서만 읽는다 — 어디로도 보내지 않는다 -->
+    <p class="lockmsg" id="ag-no-equip" hidden>
+      등록된 설비가 없습니다. <a class="btn" href="setup.html?return=content">설비 등록하러 가기</a>
+    </p>
+    <img id="ag-equip-photo" class="equip-photo" alt="설비 사진" hidden>
+    <button class="btn btn-primary" type="button" id="btn-research">AI 위험요소 분석 시작</button>
+    <!-- 서버 없이: 실측 도구가 남긴 결과 파일로 같은 검토를 한다. 파일은 이 브라우저에서만 읽는다 -->
     <label class="btn" for="ag-runfile">결과 파일 불러오기</label>
     <input id="ag-runfile" type="file" accept=".json,application/json" hidden>
     <p class="field-hint" id="ag-research-status" role="status" aria-live="polite"></p>
   </section>
 
-  <!-- S2 · S4 -->
+  <!-- ② 위험요소 분석 — 목록 번호 = 사진 박스 번호 -->
   <section class="card" aria-labelledby="t-s2" id="sec-items" hidden>
-    <h2 id="t-s2"><span class="step-no">2</span>주의사항 (AI 조사) — 담당자 판정</h2>
+    <h2 id="t-s2"><span class="step-no">2</span>AI 위험요소 분석 — 담당자 판정</h2>
+    <p class="ag-counts" id="ag-counts" role="status"></p>
     <ul class="item-list" id="ag-limits"></ul>
+    <div class="ag-photo-row">
+      <label class="btn" for="ag-photo">설비 사진 찍기 · 바꾸기</label>
+      <input id="ag-photo" type="file" accept="image/*" capture="environment" hidden>
+      <p class="field-hint"><b>사람 얼굴·이름표가 나오지 않게 설비만 찍어 주세요.</b></p>
+      <p class="field-hint" id="ag-photo-status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="ag-figure" id="ag-figure" hidden></div>
     <div class="ag-tabs" id="ag-tabs" role="tablist" aria-label="항목 나눠 보기"></div>
     <label class="ag-all" id="ag-all" hidden><input type="checkbox" id="ag-all-box"> <span id="ag-all-text">전체 선택</span></label>
     <ul class="item-list" id="ag-items"></ul>
@@ -72,32 +83,32 @@
     </details>
   </section>
 
-  <!-- S3 -->
-  <section class="card" aria-labelledby="t-s3" id="sec-photo" hidden>
-    <h2 id="t-s3"><span class="step-no">3</span>설비 사진</h2>
-    <p class="field-hint"><b>사람 얼굴·이름표가 나오지 않게 설비만 찍어 주세요.</b> 사람이 찍히면 사진을 버리고 다시 찍게 합니다.</p>
-    <label class="btn" for="ag-photo">사진 찍기 · 고르기</label>
-    <input id="ag-photo" type="file" accept="image/*" capture="environment" hidden>
-    <p class="field-hint" id="ag-photo-status" role="status" aria-live="polite"></p>
-    <div class="ag-figure" id="ag-figure" hidden></div>
-    <ul class="item-list" id="ag-missing"></ul>
+  <!-- ③ 교육자료 — 이 설비 종류의 검수 문구를 자동으로 넣는다. 다른 설비 문구는 고를 수 없다 -->
+  <section class="card" aria-labelledby="t-s3" id="sec-material" hidden>
+    <h2 id="t-s3"><span class="step-no">3</span>교육자료 (자동)</h2>
+    <ul class="item-list" id="ag-phrases"></ul>
   </section>
 
-  <!-- 승인 -->
-  <section class="card" aria-labelledby="t-s4" id="sec-approve" hidden>
-    <h2 id="t-s4"><span class="step-no">4</span>검토하고 발급</h2>
+  <!-- ④ AI 평가문항 — 규칙으로 수·유형·난이도를 정하고 자동 선정. 담당자는 고르지 않는다 -->
+  <section class="card" aria-labelledby="t-s4" id="sec-quiz" hidden>
+    <h2 id="t-s4"><span class="step-no">4</span>AI 평가문항 (자동 생성·선정)</h2>
+    <p class="field-hint" id="ag-quiz-status" role="status" aria-live="polite"></p>
+    <ul class="item-list" id="ag-plan"></ul>
+    <ol class="ag-quiz" id="ag-quiz"></ol>
+    <div class="ag-judge">
+      <button class="btn" type="button" id="btn-regen-all">전체 다시 만들기</button>
+      <button class="btn" type="button" id="btn-hold">발급 보류</button>
+    </div>
+  </section>
+
+  <!-- ⑤ 검토 후 발급 -->
+  <section class="card" aria-labelledby="t-s5" id="sec-approve" hidden>
+    <h2 id="t-s5"><span class="step-no">5</span>검토 후 발급</h2>
     <div class="field">
       <label for="ag-title">교육 제목</label>
       <input id="ag-title" type="text" maxlength="60">
     </div>
-    <div class="field">
-      <label id="l-ag-phrase">안전 문구 (검수 완료만)</label>
-      <div class="picker" id="ag-phrases" role="group" aria-labelledby="l-ag-phrase"></div>
-    </div>
-    <div class="field">
-      <label id="l-ag-choice">고르기 문항 (사진으로 묻기 어려운 항목)</label>
-      <ul class="ag-choices" id="ag-choices" aria-labelledby="l-ag-choice"></ul>
-    </div>
+    <label class="ag-all" id="ag-reviewed-row"><input type="checkbox" id="ag-reviewed"> <span id="ag-reviewed-text">AI 작성 문항을 검토했습니다</span></label>
     <ul class="checklist" id="ag-check"></ul>
     <p class="field-hint" id="ag-lang-note"></p>
     <button class="btn btn-primary" type="button" id="btn-approve" disabled>승인·발급</button>

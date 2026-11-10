@@ -45,16 +45,23 @@ const checkAll = (win, root, name, values) => {
      어느 언어에서 빠지는지는 아래 "그 언어에서 나가지 않는 조합" 경고가 적는다.
      ph-5 는 검수 대기라 어느 언어로도 못 쓴다 — 선택지에 없다. */
   const phrases = t.$('pick-phrase').querySelectorAll('input[name="phrase"]');
-  eq('★ 쓸 수 있는 문구 5개가 선택지에 오른다', phrases.length, 5);
+  /* 🆕 2026-11-11 — 첫 설비(프레스 3호기, 종류 프레스)의 문구 + 공통만. 도장 문구 ph-4 는 아예 안 나온다 */
+  eq('★ 쓸 수 있는 문구 4개가 선택지에 오른다 (프레스 + 공통)', phrases.length, 4);
   const pids = [...phrases].map((i) => i.value).sort();
-  eq('ph-5(대기) 는 없다', pids.join(','), 'ph-1,ph-2,ph-3,ph-4,ph-6');
-  has('몇 개가 빠졌는지 밝힌다', text(t.$('phrase-note')), '10개는 고를 수 없습니다');
+  eq('★★ ph-5(대기)·ph-4(도장) 는 없다', pids.join(','), 'ph-1,ph-2,ph-3,ph-6');
+
+  /* 교육 대상 설비 카드 — 설비 탭 것을 그대로, 누르면 AI 흐름 */
+  eq('★★ 설비 카드 = 설비 탭의 설비', t.$('eq-cards').querySelectorAll('li[data-id]').length, 3);
+  ok('★ 카드는 그 설비 id 로 AI 흐름에 간다', !!t.$('eq-cards').querySelector('a[href="autogen.html#eq=e-booth1"]'));
+  has('★ 카드에 종류·분석 상태', t.$('eq-cards').querySelector('li[data-id="e-booth1"]').textContent, '도장 · AI 분석 전');
+  ok('★ 손으로 만들기는 예외로 접어 둔다', t.$('manual-builder').tagName === 'DETAILS' && !t.$('manual-builder').open);
 
   // 설비를 고르면 제목이 채워진다
   eq('설비가 3대', t.$('draft-equip').querySelectorAll('option').length, 3);
   t.$('draft-equip').value = 'e-panel';
   change(t.win, t.$('draft-equip'));
   eq('제목이 자동으로 채워진다', t.$('draft-title').value, '배전반 A 안전교육');
+  eq('★★ 배전반(전기설비)을 고르면 공통 문구만 — 프레스 문구가 섞이지 않는다', [...t.$('pick-phrase').querySelectorAll('input[name="phrase"]')].map((i) => i.value).join(','), 'ph-6');
 
   eq('아직 발급할 수 없다', t.$('btn-approve').disabled, true);
 }
@@ -74,8 +81,8 @@ const checkAll = (win, root, name, values) => {
   has('1단계 배지가 채워진다', text(t.$('b-step1')), '2개 언어');
 
   // 2단계 — 문구 (ph-2 작업 전 전원 차단, ph-6 비상정지 버튼)
-  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-2', 'ph-6']);
-  has('2단계 배지', text(t.$('b-step2')), '2개 문구');
+  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-6']);
+  has('2단계 배지', text(t.$('b-step2')), '1개 문구');
 
   // 3단계 — hotspot 문항. 배전반이라 panel 도해가 붙는다
   const zones = t.$('q-hot-figure').querySelectorAll('.zone');
@@ -126,7 +133,7 @@ const checkAll = (win, root, name, values) => {
   eq('제목', made.title, '배전반 A 감전 예방 교육');
   eq('설비', made.equipmentId, 'e-panel');
   eq('언어 2개', made.languages.join(','), 'km,vi');
-  eq('문구 2개', made.phraseIds.join(','), 'ph-2,ph-6');
+  eq('문구 (공통)', made.phraseIds.join(','), 'ph-6');
   eq('문항 2개', made.quiz.length, 2);
   eq('발급됨', made.approved, true);
 
@@ -423,7 +430,7 @@ const checkAll = (win, root, name, values) => {
   change(t.win, t.$('draft-equip'));
   input(t.win, t.$('draft-title'), '번역 발급 검사');
   checkAll(t.win, t.$('pick-lang'), 'lang', ['km']);
-  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-1']);
+  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-6']);
 
   const typeRadios = t.$('pick-qtype').querySelectorAll('input[name="qtype"]');
   [...typeRadios].find((r) => r.value === 'choice').checked = true;
@@ -519,7 +526,7 @@ const checkAll = (win, root, name, values) => {
   change(t.win, t.$('draft-equip'));
   input(t.win, t.$('draft-title'), '기한 검사용 교육');
   checkAll(t.win, t.$('pick-lang'), 'lang', ['km']);
-  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-2']);
+  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-6']);
 
   const typeRadios = t.$('pick-qtype').querySelectorAll('input[name="qtype"]');
   [...typeRadios].find((r) => r.value === 'choice').checked = true;
@@ -555,7 +562,7 @@ const checkAll = (win, root, name, values) => {
   change(t.win, t.$('draft-equip'));
   input(t.win, t.$('draft-title'), '기한 없는 교육');
   checkAll(t.win, t.$('pick-lang'), 'lang', ['km']);
-  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-2']);
+  checkAll(t.win, t.$('pick-phrase'), 'phrase', ['ph-6']);
 
   const typeRadios = t.$('pick-qtype').querySelectorAll('input[name="qtype"]');
   [...typeRadios].find((r) => r.value === 'choice').checked = true;

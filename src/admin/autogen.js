@@ -1,27 +1,22 @@
 /* ===================================================================
-   autogen.js — AI로 교육 만들기 (담당자) · PRD-AD-08 S1~S4·S6 + 담당자 판정 + 1클릭 승인
+   autogen.js — AI로 교육 만들기 (담당자) · PRD-AD-08 + 2026-11-11 개선 요청
 
    읽는 키: setup, library, courses
-   쓰는 키: courses (승인·발급 때만 — 그 전에는 아무것도 저장하지 않는다)
+   쓰는 키: setup (설비의 AI 분석 결과·사진 — 설비 탭이 원천), courses (승인·발급 때만)
 
-   흐름: 설비 고르기 → /api/research(주의사항) → 사진 → /api/hazards 안내형(위치)
-         → 담당자 판정 → 문항 초안 → [승인·발급] 한 번
-   🆕 2026-11-09 서버 없이: [결과 파일 불러오기] — 실측 도구(scripts/measure-pipeline.mjs --out)
-         가 남긴 파일로 같은 검토를 한다. 파일은 이 브라우저에서만 읽는다.
+   흐름 ① 설비 고르기(설비 탭에서 불러옴) → ② AI 위험요소 분석(조사·사진 위치·참고 사진) + 담당자 판정
+        → ③ 교육자료(그 설비 종류의 검수 문구 자동) → ④ AI 평가문항 자동 생성·선정(/api/questions, 규칙 문서)
+        → ⑤ 검토 후 발급
 
    이 파일이 코드로 지키는 것 —
-
-   · 승인 전에는 courses 에 쓰지 않는다 (AC-AD-08-05). 초안은 메모리에만 있다.
-   · 🆕 「확인 필요」 항목은 담당자가 하나씩 판정해야 승인이 켜진다 — [맞음] [틀림·빼기] [고치기].
-     ok 항목은 판정하지 않아도 들어간다(1클릭은 「확인 필요 0개」일 때). [틀림]은 문항에서 빠진다.
-   · 🆕 담당자가 고친 부위·위험유형이 문항에 쓰인다. AI 가 빠뜨린 위험은 담당자가 더한다.
-   · 안전 문구는 status === 'reviewed' 만 고를 수 있다 (P-1). AI 는 문구를 쓰지 않는다.
-   · AI 가 준 글(설명·이유·출처 제목·막힌 지점)은 textContent 로만 보인다 (FR-AD-08-25).
-   · 서버는 net.js 로만 부른다. 결과 파일 모드에서는 서버를 아예 부르지 않는다.
-   · 사진 원본은 저장하지 않는다. 문항에 쓰는 것은 긴 변 640px 로 줄인 사본 하나다.
-
-   ponytail: 문항 사진을 courses 안에 data URL 로 둔다 — 파일 저장소(PRD-AD-08 §11 Q4)가 생기면 사진 id 로.
-   ponytail: 문항 문장은 한국어 틀 하나다. 문항 번역을 AD-03 흐름에 태우면 풀린다.
+   · 설비는 id 로 잇는다. 설비를 바꾸면 앞 설비의 분석·문항을 버린다. 서버 응답·결과 파일의 설비가 고른 설비와
+     다르면 쓰지 않는다 (요청 3).
+   · 문구는 Store.phrasesFor(설비 종류) 만 — 다른 설비 문구는 고를 수 없다.
+   · 문항 수·유형·난이도는 서버 규칙이 정한다. 담당자는 문항을 고르지 않는다 — [수정 요청]·[전체 다시 만들기]·[발급 보류]만.
+   · AI 가 쓴 문항은 「AI 작성」으로 보이고, 담당자가 검토 표시를 해야 발급된다. 정답이 검수 문구면 「검수 문구」.
+   · 사진 위 박스 번호 = 목록 번호. 좌표가 없는 항목은 「위치 확인 필요」 — 좌표를 지어내지 않는다.
+   · 외부 참고 사진·영상 썸네일은 실제 설비 사진(탐지)과 구분해 보이고, 저장·발급하지 않는다(남의 사진).
+   · 승인 전에는 courses 에 쓰지 않는다. AI 가 준 글은 textContent 로만 보인다. 서버는 net.js 로만 부른다.
    =================================================================== */
 
 (function () {
@@ -37,89 +32,110 @@
   /* ── 결정에 걸린 값 ─────────────────────────────────────────────── */
   var SEND_MAX = 1024;        // 서버로 보내는 사진 긴 변 (/api/hazards 상한 1.5MB 안)
   var SEND_QUALITY = 0.85;
-  var KEEP_MAX = 640;         // 문항에 남기는 사진 긴 변
+  var KEEP_MAX = 640;         // 설비에 저장하는 사진 긴 변 (설비 탭과 같다)
   var KEEP_QUALITY = 0.7;
-  var TIMEOUT_MS = 60000;     // 리서치는 검색을 몇 번 해서 오래 걸린다
-  var MAX_RUN_BYTES = 12 * 1024 * 1024;  // 결과 파일 상한 (설비 사진 + 항목 참고 사진 data URL 포함)
+  var TIMEOUT_MS = 60000;
+  var MAX_RUN_BYTES = 12 * 1024 * 1024;
   var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계'];
   var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
-  /* 2026-11-09 v3 실측 — 항목이 16~22개로 늘자 사진 정답 원이 59쌍 겹쳤다. 노동자가 한 점을 짚을 때
-     두 문항의 답이 되는 자리는 하나로 합치고(FR-AD-07-21), 사진 문항 수에 상한을 둔다.
-     앞 순서(공식 문서 → 기본 조사 → 기계 고유)가 먼저 문항이 된다 */
-  var MAX_PHOTO_QUESTIONS = 6;
-  /* 고르기(choice) 문항 — 「가드 재전환」처럼 장소가 아니라 **행동**인 항목은 사진으로 묻지 못한다.
-     ★ 정답 선택지는 위에서 고른 **검수 완료 문구**(Store.library)로만 만든다 — AI 가 쓴 문장을 안전 지시로
-       쓰지 않는다 (CLAUDE.md 「검수 완료가 아닌 문구는 안전 지시로 쓰지 않습니다」 · PRD-AD-08 P-1).
-     오답은 어느 설비에서나 틀린 행동 두 개(아래 상수, 사람이 쓴 것)다 */
-  var MAX_CHOICE_QUESTIONS = 3;
-  var MATCH_MIN = 3;          // 항목(부위+위험)과 문구가 두 글자 묶음을 이만큼 같이 가져야 자동으로 짝짓는다
-  var WRONG_OPTIONS = ['하던 대로 그대로 작업을 계속한다', '급하면 혼자 판단해서 빨리 처리한다'];
-  var RIGHT_RESULT = '맞습니다. 이렇게 하면 이 위험을 막을 수 있습니다.';
+  var SUBTYPE = { location: '위치 짚기', action: '행동 고르기', ox: 'OX', situation: '상황 판단' };
+  var LEVEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
 
-  /* 초안 — 메모리에만. 새로고침하면 사라진다 (반쯤 만든 교육이 노동자에게 가지 않게) */
   function emptyState(eq) {
     return {
       equipment: eq || null, research: null, guided: null, keepPhoto: '', source: '',
-      judge: {},   // id → 'right' | 'wrong' | 'edit'
-      edits: {},   // id → { part, hazard, risk, memo }
-      moves: {},   // id → { x, y } 담당자가 사진에서 다시 짚은 위치 (퍼센트)
-      moving: '',  // 지금 위치를 고치는 항목 id
-      added: [],   // 담당자가 더한 위험 [{ id, part, hazard, risk }]
-      choicePick: {}, // 항목 id → 고르기 문항 정답 문구 id ('' = 만들지 않음, 없으면 자동)
-      itemTab: 'ok',  // 항목 목록 탭 — 'ok' 출처 확인 · 'check' 확인 필요 (2026-11-09 사용자 요청: 한 목록에 섞지 않기)
-      runName: ''     // 결과 파일 모드 — 파일이 조사한 설비 이름
+      judge: {}, edits: {}, moves: {}, moving: '', added: [],
+      itemTab: 'ok', runName: '', active: '',
+      images: {},        // 항목 id → 참고 사진 (메모리만 — 저장하지 않는다)
+      quiz: null,        // /api/questions 결과 { plan, quiz, excluded, missing, rulesVersion }
+      quizFor: '',       // 문항을 만든 때의 위험요소 판정 — 바뀌면 다시 만들어야 한다
+      hold: false
     };
   }
   var state = emptyState(null);
 
   function setup() { return Store.setup.load(); }
   function equipments() { return setup().equipments || []; }
-  function hazardLabel(code) {
-    var h = Store.hazard(code);
-    return h ? h.label : '위험유형 확인 필요';
-  }
-
+  function hazardLabel(code) { var h = Store.hazard(code); return h ? h.label : '위험유형 확인 필요'; }
+  function kindId() { return Store.kindOf(state.equipment).id; }
   function serverReady() { return Net.onHttps() && Net.available() && !!Auth.token(); }
-
-  function call(path, body) {
-    return Net.post(path, body, { token: Auth.token(), timeoutMs: TIMEOUT_MS });
-  }
-
+  function call(path, body) { return Net.post(path, body, { token: Auth.token(), timeoutMs: TIMEOUT_MS }); }
   function failText(r) {
     if (r.failed) return r.failed === 'timeout' ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.';
     return (r.data && r.data.message) || ('AI 가 답하지 못했습니다 (' + r.status + ').');
   }
+  /** 서버가 돌려준 설비 id 가 고른 설비와 같은가 — 다르면 쓰지 않는다 */
+  function sameEquipment(data) {
+    var got = data && data.equipment && data.equipment.id;
+    return !got || (!!state.equipment && got === state.equipment.id);
+  }
 
-  /* ── 항목 — AI 것 + 담당자 판정을 합친 「지금 보이는 값」 ───────── */
+  /* ── 항목 — AI 것 + 담당자 판정 ─────────────────────────────────── */
 
   function aiItems() { return (state.research && state.research.items) || []; }
-
-  /** 담당자가 고쳤으면 고친 값을 쓴다 */
   function effective(it) {
     var e = state.edits[it.id];
     return e ? { id: it.id, part: e.part || it.part, hazard: e.hazard || it.hazard, risk: e.risk || it.risk } : it;
   }
-
-  /** 문항에 들어가나 — [틀림]은 빠지고, 확인 필요는 판정이 있어야, ok 는 판정 없이도 */
   function included(it) {
     var j = state.judge[it.id];
     if (j === 'wrong') return false;
     if (j === 'right' || j === 'edit') return true;
     return it.status === 'ok';
   }
-
-  function undecided() {
-    return aiItems().filter(function (it) { return it.status !== 'ok' && !state.judge[it.id]; });
+  function undecided() { return aiItems().filter(function (it) { return it.status !== 'ok' && !state.judge[it.id]; }); }
+  function number(id) {
+    var n = -1;
+    aiItems().forEach(function (it, i) { if (it.id === id) n = i + 1; });
+    return n;
+  }
+  function mappedOf(id) { return state.guided ? Store.findBy(state.guided.mapped || [], 'id', id) : null; }
+  function placed(m) {
+    var mv = state.moves[m.id];
+    if (!mv) return m;
+    var w = m.box.x1 - m.box.x0, h = m.box.y1 - m.box.y0;
+    var x0 = Math.max(0, Math.min(100 - w, mv.x - w / 2)), y0 = Math.max(0, Math.min(100 - h, mv.y - h / 2));
+    return { id: m.id, part: m.part, hazard: m.hazard, box: { x0: x0, y0: y0, x1: x0 + w, y1: y0 + h }, answer: { x: mv.x, y: mv.y, r: m.answer.r } };
   }
 
-  /* ── S1 설비 ───────────────────────────────────────────────────── */
+  /** 문항을 만들 위험요소 — 들어가는 AI 항목(담당자가 고친 값) + 담당자가 더한 것. 사진 좌표는 사진이 있을 때만 */
+  function includedHazards() {
+    var photo = !!(state.guided && state.keepPhoto);
+    return aiItems().filter(included).map(function (raw) {
+      var it = effective(raw);
+      var m = photo ? mappedOf(raw.id) : null;
+      return {
+        id: raw.id, part: it.part, hazard: it.hazard, risk: it.risk, partEn: raw.partEn || '',
+        official: raw.official ? { code: raw.official.code, section: raw.official.section } : null,
+        specific: !!raw.specific, status: raw.status,
+        sources: (raw.sources || []).map(function (s) { return { title: s.title, url: s.url, host: s.host }; }),
+        answer: m ? placed(m).answer : null,
+        box: m ? placed(m).box : null
+      };
+    }).concat(state.added.map(function (a) {
+      return { id: a.id, part: a.part, hazard: a.hazard, risk: a.risk, partEn: '', official: null, specific: false, status: 'manager', sources: [], answer: null, box: null };
+    }));
+  }
+  function signature() {
+    return JSON.stringify(includedHazards().map(function (h) { return [h.id, h.part, h.hazard, h.risk, h.answer && [h.answer.x, h.answer.y]]; }));
+  }
+  function quizStale() { return !!state.quiz && state.quizFor !== signature(); }
+  function quizItems() { return (state.quiz && state.quiz.quiz) || []; }
+
+  /* ── ① 설비 ─────────────────────────────────────────────────────── */
+
+  function hashEquip() {
+    var m = /(?:^|[#&])eq=([^&]+)/.exec(location.hash || '');
+    return m ? decodeURIComponent(m[1]) : '';
+  }
 
   function renderEquipments() {
     var sel = $('ag-equip');
     sel.textContent = '';
     var list = equipments();
+    $('ag-no-equip').hidden = list.length > 0;
     if (!list.length) {
-      var o = UI.el('option', null, '등록된 설비가 없습니다 — 설비 화면에서 먼저 등록하세요');
+      var o = UI.el('option', null, '등록된 설비가 없습니다');
       o.value = '';
       sel.appendChild(o);
       $('btn-research').disabled = true;
@@ -130,74 +146,107 @@
       opt.value = e.id;
       sel.appendChild(opt);
     });
+    var want = hashEquip();
+    if (want && Store.findBy(list, 'id', want)) sel.value = want;
     showSpec();
   }
 
+  /** 설비를 고르면 — ★ 앞 설비의 분석·문항·판정을 모두 버리고(재검증), 이 설비에 저장된 분석을 불러온다 */
   function showSpec() {
-    var e = Store.findBy(equipments(), 'id', $('ag-equip').value);
-    state.equipment = e || null;
-    refreshTarget();
-    /* 회색 설명은 꼭 알아야 할 것만 (2026-11-10 사용자 요청) — 모델명이 없으면 조사 품질이 달라진다 */
-    $('ag-equip-spec').textContent = e && !e.model ? '모델명이 없어 같은 종류 설비의 일반 자료로 조사합니다.' : '';
-  }
-
-  /** 발급 대상 설비가 바뀌면 그 설비에 맞게 — 제목(담당자가 직접 고치지 않았으면)·안전 문구 짝·안내 줄.
-   *  2026-11-09 사용자 신고: 프레스로 한 번 발급한 뒤 다른 설비를 골라도 제목·문구가 프레스 것으로 남았다 */
-  function refreshTarget() {
-    var e = state.equipment;
+    var e = Store.findBy(equipments(), 'id', $('ag-equip').value) || null;
+    state = emptyState(e);
+    ['sec-items', 'sec-material', 'sec-quiz', 'sec-approve'].forEach(function (id) { $(id).hidden = true; });
+    $('ag-figure').hidden = true;
+    $('ag-photo-status').textContent = '';
+    $('ag-research-status').textContent = '';
     if ($('ag-title').getAttribute('data-auto') !== 'no') $('ag-title').value = e ? e.name + ' 안전교육' : '';
-    $('ag-phrases').textContent = '';   // 다음 renderApprove 가 이 설비 분류로 다시 고른다
-    if (state.source === 'file') $('ag-research-status').textContent = fileStatus();
-    if (state.research) renderApprove();
+    $('ag-reviewed').checked = false;
+    if (!e) return;
+    try { history.replaceState(null, '', '#eq=' + encodeURIComponent(e.id)); } catch (x) { /* file:// */ }
+
+    var k = Store.kindOf(e);
+    var kl = (Store.equipmentKind(k.id) || {}).label || '종류 모름';
+    $('ag-equip-spec').textContent = '종류: ' + kl + (k.guessed ? ' (설비 탭에서 종류를 확인해 주세요)' : '')
+      + (e.model ? '' : ' · 모델명이 없어 같은 종류 설비의 일반 자료로 조사합니다');
+    var ph = $('ag-equip-photo');
+    ph.hidden = !(e.photo && /^data:image\//.test(e.photo));
+    if (!ph.hidden) ph.src = e.photo;
+    state.keepPhoto = ph.hidden ? '' : e.photo;
+
+    /* 설비 탭에 저장된 분석 — 다시 조사하지 않고 불러온다 */
+    var a = e.analysis;
+    if (a && a.research && Array.isArray(a.research.items)) {
+      state.research = a.research;
+      state.guided = state.keepPhoto && a.guided && Array.isArray(a.guided.mapped) ? a.guided : null;
+      state.source = a.source || 'saved';
+      $('ag-research-status').textContent = '설비에 저장된 AI 분석을 불러왔습니다 (' + (a.at ? UI.formatDate(a.at) : '') + '). 새로 하려면 [AI 위험요소 분석 시작].';
+      renderAll();
+    }
   }
 
-  function fileStatus() {
+  /** 분석 결과를 설비에 저장한다 — 설비 탭이 원천. 참고 사진(외부 그림)은 넣지 않는다 (동기화 512KB) */
+  function saveAnalysis() {
     var e = state.equipment;
-    return '결과 파일을 불러왔습니다 — 조사한 설비: ' + state.runName
-      + '. 발급 대상 설비는 위 목록에서 고른 「' + (e ? e.name : '없음') + '」입니다.';
+    if (!e || !state.research) return;
+    var research = JSON.parse(JSON.stringify(state.research));
+    (research.items || []).forEach(function (it) { delete it.image; });
+    var photo = state.keepPhoto;
+    var src = state.source;
+    var kind = kindId();
+    var guided = state.guided;
+    var r = Store.setup.update(function (s) {
+      var eq = Store.findBy(s.equipments, 'id', e.id);
+      if (!eq) return;
+      if (photo) eq.photo = photo;
+      eq.analysis = { at: new Date().toISOString(), model: research.model || '', source: src, kind: kind, research: research, guided: guided };
+    });
+    if (!r.ok) UI.toast('분석 결과를 설비에 저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.');
+    state.equipment = Store.findBy(equipments(), 'id', e.id) || e;
   }
 
-  /* ── S2 리서치 (서버) ──────────────────────────────────────────── */
+  /* ── ② 분석 (서버) ──────────────────────────────────────────────── */
 
   function startResearch() {
     var e = state.equipment;
     if (!e) return;
     if (!serverReady()) {
-      /* 눌러도 아무 일이 없으면 고장으로 보인다 — 왜 안 되는지와 대신 할 일을 바로 적는다 */
       $('offline-note').hidden = false;
-      $('ag-research-status').textContent = '여기서는 AI 서버를 부를 수 없습니다 (배포 주소에서 로그인했을 때만 됩니다). 아래 [결과 파일 불러오기]로 실측 결과를 열어 주세요.';
+      $('ag-research-status').textContent = '여기서는 AI 서버를 부를 수 없습니다 (배포 주소에서 로그인했을 때만 됩니다). [결과 파일 불러오기]로 실측 결과를 열어 주세요.';
       return;
     }
-
+    var keep = state.keepPhoto;
     state = emptyState(e);
+    state.keepPhoto = keep;
     state.source = 'server';
     $('btn-research').disabled = true;
     $('ag-research-status').textContent = 'AI 가 공개 자료를 찾는 중입니다… (30초쯤 걸립니다)';
-
-    call('/api/research', { equipment: { name: e.name, maker: e.maker || '', model: e.model || '', year: e.year || null } })
+    call('/api/research', { equipment: { id: e.id, kind: kindId(), name: e.name, maker: e.maker || '', model: e.model || '', year: e.year || null } })
       .then(function (r) {
         $('btn-research').disabled = false;
-        if (!r.ok) {
-          $('ag-research-status').textContent = failText(r) + ' 교육 콘텐츠 생성 화면에서 손으로 만들 수 있습니다.';
-          return;
-        }
+        if (!r.ok) { $('ag-research-status').textContent = failText(r) + ' 교육 콘텐츠 화면에서 직접 만들 수 있습니다.'; return; }
+        if (!sameEquipment(r.data)) { $('ag-research-status').textContent = '다른 설비의 결과가 왔습니다. 다시 조사해 주세요.'; return; }
         state.research = r.data;
-        $('ag-research-status').textContent = '조사를 마쳤습니다.';
+        $('ag-research-status').textContent = '조사를 마쳤습니다.' + (keep ? ' 설비 사진에서 위치를 찾습니다…' : ' 설비 사진을 넣으면 위치도 찾습니다.');
+        saveAnalysis();
         renderAll();
-        $('sec-photo').hidden = false;
+        if (keep) locate(keep, keep); else afterAnalysis();
       });
   }
 
-  /* ── 🆕 결과 파일 모드 ─────────────────────────────────────────── */
+  /** 분석이 끝난 뒤 — 참고 사진 찾기, 판정할 것이 없으면 문항 만들기 */
+  function afterAnalysis() {
+    findPhotos();
+    if (!undecided().length) makeQuiz();
+  }
 
-  /** 결과 파일 모양 확인 — 모양이 틀리면 null. 여기서 읽은 글도 AI 출력이라 textContent 로만 쓴다 */
+  /* ── 결과 파일 모드 ───────────────────────────────────────────── */
+
   function readRun(obj) {
     if (!obj || obj.kind !== 'safety-ai-run' || !obj.research || !Array.isArray(obj.research.items)) return null;
-    var photo = obj.photo && typeof obj.photo.data === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(obj.photo.data)
-      ? obj.photo.data : '';
-    var guided = obj.guided && Array.isArray(obj.guided.mapped) && Array.isArray(obj.guided.missing) && !obj.guided.person
-      ? obj.guided : null;
-    return { research: obj.research, guided: photo ? guided : null, photo: photo, equipment: obj.equipment || {}, model: obj.model || '', provider: obj.provider || '' };
+    var photo = obj.photo && typeof obj.photo.data === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(obj.photo.data) ? obj.photo.data : '';
+    var guided = obj.guided && Array.isArray(obj.guided.mapped) && Array.isArray(obj.guided.missing) && !obj.guided.person ? obj.guided : null;
+    var questions = obj.questions && Array.isArray(obj.questions.quiz) ? obj.questions : null;
+    return { research: obj.research, guided: photo ? guided : null, photo: photo, equipment: obj.equipment || {}, model: obj.model || '', provider: obj.provider || '', questions: questions };
   }
 
   function onRunFile(file) {
@@ -213,29 +262,38 @@
     reader.readAsText(file);
   }
 
+  /** ★ 다른 종류 설비의 결과 파일은 받지 않는다 (프레스를 골랐는데 도장 결과가 섞이지 않게) */
   function loadRun(run) {
     var e = state.equipment;
+    if (!e) return false;
+    var fileKind = Store.equipmentKind(run.equipment.kind) ? run.equipment.kind : Store.kindOf({ name: run.equipment.name }).id;
+    var mine = kindId();
+    if (fileKind && mine && fileKind !== mine) {
+      $('ag-research-status').textContent = '이 결과 파일은 다른 종류 설비(' + (Store.equipmentKind(fileKind) || {}).label + ')의 것입니다. 「'
+        + e.name + '」(' + (Store.equipmentKind(mine) || {}).label + ')에는 쓸 수 없습니다.';
+      return false;
+    }
     state = emptyState(e);
     state.source = 'file';
     state.research = run.research;
     state.research.model = state.research.model || run.model;
-    state.guided = run.guided;
+    state.guided = run.photo ? run.guided : null;
+    state.keepPhoto = run.photo || (e.photo || '');
     state.runName = (run.equipment.name || '') + (run.provider ? ' · ' + run.provider + ' ' + run.model : '');
-    $('ag-research-status').textContent = fileStatus();
-    if (run.photo) {
-      var img = new Image();
-      img.onload = function () {
-        state.keepPhoto = shrink(img, KEEP_MAX, KEEP_QUALITY) || run.photo;
-        afterPhoto();
-      };
-      img.onerror = function () { state.guided = null; afterPhoto(); };
-      img.src = run.photo;
+    aiItems().forEach(function (it) { if (it.image) state.images[it.id] = it.image; });
+    if (run.questions) {
+      /* 파일의 문항은 출처 확인 항목으로 만든 것 — 지금 판정과 같을 때만 그대로 쓴다 (다르면 서버에서 다시 만든다) */
+      state.quiz = run.questions;
+      state.quizFor = signature();
     }
-    $('sec-photo').hidden = false;
+    $('ag-research-status').textContent = '결과 파일을 불러왔습니다 — 조사한 설비: ' + state.runName + '. 발급 대상: 「' + e.name + '」. 분석을 이 설비에 저장했습니다.';
+    saveAnalysis();
+    if (run.photo) { var ph = $('ag-equip-photo'); ph.src = run.photo; ph.hidden = false; }
     renderAll();
+    return true;
   }
 
-  /* ── S2 화면 — 담당자 판정 ─────────────────────────────────────── */
+  /* ── ② 화면 ───────────────────────────────────────────────────── */
 
   function sourceLine(s) {
     var li = UI.el('li');
@@ -246,10 +304,6 @@
     li.appendChild(a);
     li.appendChild(UI.el('span', 'meta', ' · ' + (KIND[s.kind] || TIER[s.tier] || '')));
     return li;
-  }
-
-  function mappedOf(id) {
-    return state.guided ? Store.findBy(state.guided.mapped || [], 'id', id) : null;
   }
 
   function hazardSelect(value) {
@@ -263,8 +317,6 @@
     return sel;
   }
 
-  /** 넣기 체크 — 체크 = 맞음(고친 항목은 고침 그대로), 해제 = 틀림·빼기 (2026-11-10 사용자 요청: 버튼 셋 → 체크박스).
-   *  「확인 필요」에서 아직 안 본 항목은 반쯤 찬 표시(indeterminate)라 「뺌」과 구별된다 */
   function setIncluded(it, on) {
     if (on) { if (state.judge[it.id] !== 'edit') state.judge[it.id] = 'right'; }
     else { state.judge[it.id] = 'wrong'; delete state.edits[it.id]; }
@@ -277,28 +329,14 @@
     box.checked = included(it);
     box.indeterminate = it.status !== 'ok' && !state.judge[it.id];
     box.setAttribute('aria-label', it.part + ' — 교육에 넣기');
-    box.addEventListener('change', function () { setIncluded(it, box.checked); renderAll(); });
+    box.addEventListener('change', function () { setIncluded(it, box.checked); judged(); });
     return box;
   }
 
-  function judgeButtons(it) {
-    var row = UI.el('div', 'ag-judge');
-    [['edit', '고치기']].forEach(function (p) {
-      var b = UI.el('button', 'btn-sm', p[1]);
-      b.type = 'button';
-      b.setAttribute('data-judge', p[0]);
-      b.setAttribute('aria-pressed', state.judge[it.id] === p[0] ? 'true' : 'false');
-      b.addEventListener('click', function () {
-        state.judge[it.id] = p[0];
-        if (p[0] === 'edit' && !state.edits[it.id]) {
-          state.edits[it.id] = { part: it.part, hazard: it.hazard === 'unknown' ? Store.HAZARDS[0].code : it.hazard, risk: it.risk, memo: '' };
-        }
-        if (p[0] !== 'edit') delete state.edits[it.id];
-        renderAll();
-      });
-      row.appendChild(b);
-    });
-    return row;
+  /** 판정이 바뀌면 — 다 봤고 서버가 되면 문항을 자동으로 만든다 */
+  function judged() {
+    renderAll();
+    if (state.source !== 'file' && serverReady() && !undecided().length && (!state.quiz || quizStale())) makeQuiz();
   }
 
   function editForm(it) {
@@ -306,10 +344,9 @@
     var box = UI.el('div', 'ag-edit');
     function field(label, input, key) {
       var f = UI.el('div', 'field');
-      var l = UI.el('label', null, label);
-      f.appendChild(l);
+      f.appendChild(UI.el('label', null, label));
       input.value = e[key] || '';
-      input.addEventListener('change', function () { e[key] = String(input.value).trim().slice(0, key === 'risk' ? 160 : 60); renderApprove(); });
+      input.addEventListener('change', function () { e[key] = String(input.value).trim().slice(0, key === 'risk' ? 160 : 60); renderAll(); });
       f.appendChild(input);
       box.appendChild(f);
     }
@@ -323,24 +360,59 @@
     return box;
   }
 
+  /** 참고 사진 — 실제 설비 사진(탐지)과 구분한다. data URL(jpeg·png·webp)만 (제3자 요청 0건) */
+  function refImage(raw) {
+    var im = state.images[raw.id] || raw.image;
+    if (!im || typeof im.data !== 'string' || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(im.data)) return null;
+    var fig = UI.el('figure', 'ag-ref');
+    fig.setAttribute('data-kind', im.kind === 'video' ? 'video' : 'page');
+    var img = UI.el('img');
+    img.src = im.data;
+    img.alt = raw.part + (im.kind === 'video' ? ' 영상 썸네일' : ' 외부 참고 사진');
+    fig.appendChild(img);
+    var cap = UI.el('figcaption');
+    cap.appendChild(UI.el('b', null, im.kind === 'video' ? '영상 썸네일 (참고)' : '외부 참고 사진'));
+    cap.appendChild(document.createTextNode(' · 실제 설비 사진 아님 · 이용 조건: ' + String(im.license || '확인 필요') + ' · '));
+    var a = UI.el('a', null, '출처 ' + String(im.host || ''));
+    if (/^https?:\/\//i.test(String(im.page))) a.href = im.page;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    cap.appendChild(a);
+    fig.appendChild(cap);
+    return fig;
+  }
+
+  function focusItem(id) {
+    state.active = id;
+    var raw = Store.findBy(aiItems(), 'id', id);
+    if (raw) state.itemTab = raw.status === 'ok' ? 'ok' : 'check';
+    renderItems();
+    renderFigure();
+    var li = document.querySelector('#ag-items li[data-id="' + id + '"]');
+    if (li && li.scrollIntoView) li.scrollIntoView({ block: 'center' });
+  }
+
+  function renderCounts() {
+    var items = aiItems();
+    var photo = !!(state.guided && state.keepPhoto);
+    var m = photo ? items.filter(function (it) { return mappedOf(it.id); }).length : 0;
+    $('ag-counts').textContent = '위험요소 ' + items.length + '개' + (state.added.length ? ' (+ 담당자 추가 ' + state.added.length + ')' : '')
+      + ' · 설비 사진 ' + (state.keepPhoto ? '1장' : '없음') + ' · 사진 위치 ' + m + '곳 · 위치 확인 필요 ' + (items.length - m) + '개'
+      + ' · 문항 ' + quizItems().length + '개';
+  }
+
   function renderItems() {
     var data = state.research;
     $('sec-items').hidden = false;
     var items = aiItems();
+    renderCounts();
 
     var lim = $('ag-limits');
     lim.textContent = '';
     var gaps = data.limits || [];
-    /* 2026-11-09 사용자 결정 — 공적인 문서가 1차. 확인된 공식 문서는 맨 앞 항목으로 고정되고, 없으면 크게 알린다 */
-    (data.officialDocs || []).forEach(function (d) {
-      lim.appendChild(UI.itemRow('check', '공식 문서 · ' + d.code, d.title));
-    });
+    (data.officialDocs || []).forEach(function (d) { lim.appendChild(UI.itemRow('check', '공식 문서 · ' + d.code, d.title)); });
     if (data.thin) lim.appendChild(UI.itemRow('alert', '자료가 모자랍니다', '모든 항목이 「확인 필요」입니다.'));
-    if (data.noOfficial) {
-      lim.appendChild(UI.itemRow('alert', '공식 기준 문서를 찾지 못했습니다', 'KOSHA GUIDE·산업안전보건기준에 관한 규칙에서 이 설비 기준을 확인해 주세요. 그 전까지 모든 항목이 「확인 필요」입니다.'));
-    }
-    /* AI 가 적은 조사 한계·문서번호는 길다 — 접어 두고 개수만 보인다.
-       문서번호는 검색 요약에서 틀리게 오는 일이 있어 원문 표지로 확인할 대상이다 */
+    if (data.noOfficial) lim.appendChild(UI.itemRow('alert', '공식 기준 문서를 찾지 못했습니다', 'KOSHA GUIDE·산업안전보건기준에 관한 규칙에서 이 설비 기준을 확인해 주세요. 그 전까지 모든 항목이 「확인 필요」입니다.'));
     var nums = data.docNumbers || [];
     if (gaps.length || nums.length) {
       var gli = UI.el('li');
@@ -354,7 +426,6 @@
       lim.appendChild(gli);
     }
 
-    /* 출처 확인 / 확인 필요를 탭으로 나눈다 — 한 목록에 섞으면 길어서 무엇을 봐야 할지 묻힌다 */
     var okItems = items.filter(function (i) { return i.status === 'ok'; });
     var chkItems = items.filter(function (i) { return i.status !== 'ok'; });
     var left = undecided().length;
@@ -375,36 +446,43 @@
     var list = $('ag-items');
     list.textContent = '';
     var shown = state.itemTab === 'check' ? chkItems : okItems;
-
-    /* 전체 선택 — 지금 탭에 보이는 항목 전부를 넣거나 뺀다 (2026-11-10 사용자 요청) */
     var allBox = $('ag-all-box');
     var on = shown.filter(included).length;
     $('ag-all').hidden = !shown.length;
     allBox.checked = !!shown.length && on === shown.length;
     allBox.indeterminate = on > 0 && on < shown.length;
     $('ag-all-text').textContent = '전체 선택 (' + on + '/' + shown.length + ')';
-    allBox.onchange = function () {
-      shown.forEach(function (it) { setIncluded(it, allBox.checked); });
-      renderAll();
-    };
+    allBox.onchange = function () { shown.forEach(function (it) { setIncluded(it, allBox.checked); }); judged(); };
+
     if (!shown.length) list.appendChild(UI.el('li', 'field-hint', state.itemTab === 'check' ? '확인이 필요한 항목이 없습니다.' : '출처가 확인된 항목이 없습니다 — 「확인 필요」 탭을 보세요.'));
+    var photo = !!(state.guided && state.keepPhoto);
     shown.forEach(function (raw) {
       var it = effective(raw);
       var j = state.judge[raw.id];
       var li = UI.el('li', 'item');
       li.setAttribute('data-id', raw.id);
+      if (state.active === raw.id) li.setAttribute('data-active', 'yes');
       if (j) li.setAttribute('data-judge', j);
       li.appendChild(includeBox(raw));
       var body = UI.el('div', 'body');
-      body.appendChild(UI.el('strong', null, it.part));
+      var head = UI.el('button', 'ag-item-head', '#' + number(raw.id) + ' ' + it.part);
+      head.type = 'button';
+      head.setAttribute('aria-label', '#' + number(raw.id) + ' ' + it.part + ' — 사진에서 보기');
+      head.addEventListener('click', function () { focusItem(raw.id); var f = $('ag-figure'); if (!f.hidden && f.scrollIntoView) f.scrollIntoView({ block: 'center' }); });
+      body.appendChild(head);
       var tags = UI.el('div', 'tags');
       tags.appendChild(UI.badge('badge-wait', (Store.hazard(it.hazard) || {}).icon || '', hazardLabel(it.hazard)));
       if (raw.official) tags.appendChild(UI.okBadge('공식 문서 · ' + raw.official.code + ' ' + raw.official.section));
       else tags.appendChild(raw.status === 'ok' ? UI.okBadge('출처 확인') : UI.stopBadge('확인 필요'));
       if (raw.specific) tags.appendChild(UI.neutralBadge('기계 고유'));
       if (j === 'edit') tags.appendChild(UI.okBadge('담당자: 고침'));
+      /* 좌표가 없으면 지어내지 않는다 */
+      if (photo && !mappedOf(raw.id)) tags.appendChild(UI.neutralBadge('위치 확인 필요'));
+      var linked = quizItems().filter(function (q) { return q.hazardId === raw.id; }).map(function (q) { return q.id; });
+      if (linked.length) tags.appendChild(UI.okBadge('연결 문항 ' + linked.join(', ')));
       body.appendChild(tags);
       body.appendChild(UI.el('p', 'meta', it.risk));
+      if (photo && !mappedOf(raw.id) && raw.needsPhoto) body.appendChild(UI.el('p', 'meta', '필요한 사진: ' + raw.needsPhoto));
       var ref = refImage(raw);
       if (ref) body.appendChild(ref);
 
@@ -418,44 +496,33 @@
       det.appendChild(srcs);
       body.appendChild(det);
 
-      body.appendChild(judgeButtons(raw));
-      if (mappedOf(raw.id) && state.judge[raw.id] !== 'wrong') {
+      var row = UI.el('div', 'ag-judge');
+      var ed = UI.el('button', 'btn-sm', '고치기');
+      ed.type = 'button';
+      ed.setAttribute('data-judge', 'edit');
+      ed.setAttribute('aria-pressed', j === 'edit' ? 'true' : 'false');
+      ed.addEventListener('click', function () {
+        state.judge[raw.id] = 'edit';
+        if (!state.edits[raw.id]) state.edits[raw.id] = { part: raw.part, hazard: raw.hazard === 'unknown' ? Store.HAZARDS[0].code : raw.hazard, risk: raw.risk, memo: '' };
+        judged();
+      });
+      row.appendChild(ed);
+      if (mappedOf(raw.id) && j !== 'wrong' && photo) {
         var mv = UI.el('button', 'btn-sm', state.moving === raw.id ? '사진에서 맞는 자리를 누르세요…' : '위치 고치기');
         mv.type = 'button';
         mv.setAttribute('data-move', raw.id);
         mv.addEventListener('click', function () { state.moving = state.moving === raw.id ? '' : raw.id; renderAll(); });
-        body.appendChild(mv);
+        row.appendChild(mv);
       }
+      body.appendChild(row);
       if (j === 'edit') body.appendChild(editForm(raw));
       li.appendChild(body);
       list.appendChild(li);
     });
 
     if (state.itemTab === 'ok') state.added.forEach(function (a) {
-      var li = UI.itemRow('pencil', a.part + ' (담당자 추가)', hazardLabel(a.hazard) + ' · ' + a.risk);
-      list.appendChild(li);
+      list.appendChild(UI.itemRow('pencil', a.part + ' (담당자 추가)', hazardLabel(a.hazard) + ' · ' + a.risk));
     });
-  }
-
-  /** 참고 사진 — 서버가 항목의 확인된 출처 페이지에서 받아 온 그림 (api/_images.mjs).
-   *  data URL(jpeg·png·webp)만 쓴다 — 브라우저는 제3자 주소를 부르지 않는다. 결과 파일은 사람이 고칠 수 있어 다시 본다.
-   *  ★ 담당자 검토용이다. 남의 사진이라 교육(courses)에는 넣지 않는다 */
-  function refImage(raw) {
-    var im = raw.image;
-    if (!im || typeof im.data !== 'string' || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(im.data)) return null;
-    var fig = UI.el('figure', 'ag-ref');
-    var img = UI.el('img');
-    img.src = im.data;
-    img.alt = raw.part + ' 참고 사진';
-    fig.appendChild(img);
-    var cap = UI.el('figcaption');
-    var a = UI.el('a', null, '사진 출처 · ' + String(im.host || ''));
-    if (/^https?:\/\//i.test(String(im.page))) a.href = im.page;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    cap.appendChild(a);
-    fig.appendChild(cap);
-    return fig;
   }
 
   function addItem() {
@@ -468,9 +535,8 @@
     renderAll();
   }
 
-  /* ── S3 사진 ───────────────────────────────────────────────────── */
+  /* ── 사진 — 실제 설비 사진에서 위치 찾기 ───────────────────────── */
 
-  /** 긴 변을 max 로 줄인 JPEG data URL (canvas 를 못 쓰면 '') */
   function shrink(img, max, quality) {
     try {
       var scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
@@ -493,21 +559,17 @@
       URL.revokeObjectURL(url);
       locate(send, keep);
     };
-    img.onerror = function () {
-      URL.revokeObjectURL(url);
-      $('ag-photo-status').textContent = '사진을 읽지 못했습니다. 다른 사진으로 해 주세요.';
-    };
+    img.onerror = function () { URL.revokeObjectURL(url); $('ag-photo-status').textContent = '사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'; };
     img.src = url;
   }
 
   function locate(send, keep) {
-    var items = aiItems().map(function (it) { var e = effective(it); return { id: it.id, part: e.part, hazard: e.hazard }; });
+    var e = state.equipment;
+    var items = aiItems().map(function (it) { var x = effective(it); return { id: it.id, part: x.part, hazard: x.hazard }; });
     $('ag-photo-status').textContent = 'AI 가 사진에서 위치를 찾는 중입니다…';
-    call('/api/hazards', { image: send, items: items }).then(function (r) {
-      if (!r.ok) {
-        $('ag-photo-status').textContent = failText(r) + ' 교육 콘텐츠 생성 화면의 그림에서 직접 고를 수 있습니다.';
-        return;
-      }
+    call('/api/hazards', { image: send, items: items, equipment: { id: e.id } }).then(function (r) {
+      if (!r.ok) { $('ag-photo-status').textContent = failText(r); afterAnalysis(); return; }
+      if (!sameEquipment(r.data)) { $('ag-photo-status').textContent = '다른 설비의 결과가 왔습니다. 다시 찍어 주세요.'; return; }
       if (r.data.person) {
         state.guided = null;
         state.keepPhoto = '';
@@ -518,249 +580,236 @@
       }
       state.guided = r.data;
       state.keepPhoto = keep;
-      afterPhoto();
+      $('ag-photo-status').textContent = '위치 ' + r.data.mapped.length + '곳을 찾았습니다 · 위치 확인 필요 ' + (aiItems().length - r.data.mapped.length) + '개.';
+      saveAnalysis();
+      renderAll();
+      afterAnalysis();
     });
   }
 
-  function afterPhoto() {
-    if (!state.guided || !state.keepPhoto) { renderAll(); return; }
-    $('ag-photo-status').textContent = '위치 ' + state.guided.mapped.length + '곳을 찾았습니다'
-      + (state.guided.missing.length ? ' · 사진이 더 필요한 곳 ' + state.guided.missing.length + '곳' : '') + '.';
-    renderFigure();
-    renderMissing();
-    renderAll();
-  }
-
-  /** 담당자가 고친 위치가 있으면 그 자리로 옮긴 박스·정답 원 */
-  function placed(m) {
-    var mv = state.moves[m.id];
-    if (!mv) return m;
-    var w = m.box.x1 - m.box.x0, h = m.box.y1 - m.box.y0;
-    var x0 = Math.max(0, Math.min(100 - w, mv.x - w / 2)), y0 = Math.max(0, Math.min(100 - h, mv.y - h / 2));
-    return { id: m.id, part: m.part, hazard: m.hazard, box: { x0: x0, y0: y0, x1: x0 + w, y1: y0 + h },
-      answer: { x: mv.x, y: mv.y, r: m.answer.r } };
-  }
-
+  /** 사진 위 박스 — 번호 = 목록 번호. 좌표는 %라 사진 크기가 바뀌어도 그 자리다 */
   function renderFigure() {
     var fig = $('ag-figure');
     fig.textContent = '';
+    if (!(state.guided && state.keepPhoto)) { fig.hidden = true; return; }
     fig.hidden = false;
     var img = UI.el('img');
     img.src = state.keepPhoto;
-    img.alt = '설비 사진';
+    img.alt = '실제 설비 사진 (AI 위치 탐지)';
     fig.appendChild(img);
-    var qs = draftPlan().quiz;
-    state.guided.mapped.map(placed).forEach(function (m) {
+    fig.appendChild(UI.el('span', 'ag-fig-tag', '실제 설비 사진 · AI 탐지'));
+    (state.guided.mapped || []).map(placed).forEach(function (m) {
       var raw = Store.findBy(aiItems(), 'id', m.id);
-      var shown = raw ? effective(raw) : m;
-      var b = UI.el('div', 'ag-box');
-      if (state.judge[m.id] === 'wrong') b.setAttribute('data-judge', 'wrong');
-      var qi = -1;
-      qs.forEach(function (q, i) { if (q.itemId === m.id) qi = i; });
-      b.setAttribute('data-q', qi === -1 ? 'no' : 'yes');
+      if (!raw) return;
+      var shown = effective(raw);
+      var b = UI.el('button', 'ag-box');
+      b.type = 'button';
+      b.setAttribute('data-id', m.id);
+      if (!included(raw)) b.setAttribute('data-judge', 'wrong');
+      if (state.active === m.id) b.setAttribute('data-active', 'yes');
+      b.setAttribute('aria-label', '#' + number(m.id) + ' ' + shown.part + ' — 목록에서 보기');
       b.style.left = m.box.x0 + '%';
       b.style.top = m.box.y0 + '%';
       b.style.width = (m.box.x1 - m.box.x0) + '%';
       b.style.height = (m.box.y1 - m.box.y0) + '%';
-      b.appendChild(UI.el('span', 'ag-box-label', (qi === -1 ? '' : '문항 ' + (qi + 1) + ' · ') + shown.part + ' · ' + hazardLabel(shown.hazard)));
+      b.appendChild(UI.el('span', 'ag-box-label', '#' + number(m.id) + ' ' + shown.part + ' · ' + hazardLabel(shown.hazard)));
+      b.addEventListener('click', function (ev) { if (state.moving) return; ev.stopPropagation(); focusItem(m.id); });
       fig.appendChild(b);
     });
   }
 
-  function renderMissing() {
-    var list = $('ag-missing');
-    list.textContent = '';
-    state.guided.missing.forEach(function (m) {
-      list.appendChild(UI.itemRow('camera', m.part, '필요한 사진: ' + m.needsPhoto));
-    });
-  }
+  /* ── 참고 사진 (서버 /api/photos) — 메모리만, 저장하지 않는다 ───── */
 
-  /* ── S6 문항 초안 + 승인 ───────────────────────────────────────── */
-
-  /** 두 정답 원이 겹치면 한 번 짚은 자리가 두 문항의 답이 된다 */
-  function touches(a, b) {
-    return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) < a.r + b.r;
-  }
-
-  /** 들어가는 항목 중 사진 위치가 있는 것 → hotspot 문항 (담당자가 고친 값으로).
-   *  이미 문항이 된 자리와 겹치면 합치고(merged), 상한을 넘으면 뺀다(cut) */
-  function draftPlan() {
-    var plan = { quiz: [], merged: [], cut: [] };
-    if (!state.guided || !state.keepPhoto) return plan;
-    var out = plan.quiz;
-    aiItems().forEach(function (raw) {
-      if (!included(raw)) return;
-      var m = mappedOf(raw.id);
-      if (!m) return;
-      var it = effective(raw);
-      var ans = placed(m).answer;
-      var hit = out.filter(function (q) { return touches(q.answer, ans); })[0];
-      if (hit) { plan.merged.push({ id: raw.id, part: it.part, into: hit.part }); return; }
-      if (out.length >= MAX_PHOTO_QUESTIONS) { plan.cut.push({ id: raw.id, part: it.part }); return; }
-      out.push({
-        itemId: raw.id,
-        part: it.part,
-        id: 'q' + (out.length + 1),
-        type: 'hotspot',
-        hazard: it.hazard === 'unknown' ? '' : it.hazard,
-        prompt: '사진에서 「' + it.part + '」을(를) 누르세요',
-        answer: placed(m).answer,
-        figure: 'photo',
-        i18n: {}
-      });
-    });
-    return plan;
-  }
-
-  /** 저장되는 문항 — 사진 문항(hotspot) 뒤에 고르기 문항(choice). 합치기용 칸은 떼고 courses 문항 모양 그대로 */
-  function draftQuiz() {
-    var hot = draftPlan().quiz.map(function (q) {
-      return { id: q.id, type: q.type, hazard: q.hazard, prompt: q.prompt, answer: q.answer, figure: q.figure, i18n: q.i18n };
-    });
-    return hot.concat(draftChoices().map(function (c, i) { return choiceQuestion(c, i, 'q' + (hot.length + i + 1)); }));
-  }
-
-  /* ── 고르기 문항 ─────────────────────────────────────────────── */
-
-  function grams(t) {
-    var str = String(t || '').replace(/[^가-힣A-Za-z0-9]/g, '');
-    var g = {};
-    for (var i = 0; i < str.length - 1; i += 1) g[str.substr(i, 2)] = true;
-    return g;
-  }
-
-  /** 두 문장이 같이 가진 두 글자 묶음 수 — 「가드를 열고 임시 조작…」과 「덮개를 열고 임시로 조작했다면…」을 잇는다.
-   *  ponytail: 낱말 뜻은 모른다(가드 ↔ 덮개). 틀리게 짝지으면 담당자가 고른다 */
-  function matchScore(a, b) {
-    var ga = grams(a), gb = grams(b), n = 0;
-    Object.keys(ga).forEach(function (k) { if (gb[k]) n += 1; });
-    return n;
-  }
-
-  function checkedPhrases() {
-    var ids = UI.checkedValues('ag-phrase');
-    return Store.library.load().filter(function (p) { return ids.indexOf(p.id) !== -1 && Store.phraseOk(p, 'ko'); });
-  }
-
-  /** 사진으로 묻지 못한 항목 — 위치 없음 · 같은 자리라 합침 · 상한으로 뺌 · 담당자가 더함 */
-  function choiceCandidates() {
-    var hot = {};
-    draftPlan().quiz.forEach(function (q) { hot[q.itemId] = true; });
-    return aiItems().filter(function (raw) { return included(raw) && !hot[raw.id]; }).map(effective).concat(state.added);
-  }
-
-  function bestPhrase(it, phrases) {
-    var best = null, top = MATCH_MIN - 1;
-    phrases.forEach(function (p) {
-      var sc = matchScore(it.part + ' ' + it.risk, p.ko);
-      if (sc > top) { top = sc; best = p; }
-    });
-    return best;
-  }
-
-  /** 담당자가 고른 문구가 있으면 그것, 없으면 자동 짝. 같은 문구로 두 문항을 만들지 않는다 */
-  function draftChoices() {
-    if (!state.research) return [];
-    var phrases = checkedPhrases();
-    var out = [];
-    choiceCandidates().forEach(function (it) {
-      var pick = state.choicePick[it.id];
-      var p = pick === '' ? null : (pick ? Store.findBy(phrases, 'id', pick) : bestPhrase(it, phrases));
-      if (!p || out.length >= MAX_CHOICE_QUESTIONS) return;
-      if (out.some(function (c) { return c.phrase.id === p.id; })) return;
-      out.push({ item: it, phrase: p, auto: pick === undefined });
-    });
-    return out;
-  }
-
-  /** 정답 자리를 문항마다 돌린다(늘 1번이면 외워서 푼다). 오답을 고르면 「지금 이대로 하면 생기는 일」(위험 설명)을 들려준다 */
-  function choiceQuestion(c, i, id) {
-    var at = i % (WRONG_OPTIONS.length + 1);
-    var options = WRONG_OPTIONS.slice();
-    options.splice(at, 0, c.phrase.ko);
-    var results = WRONG_OPTIONS.map(function () { return c.item.risk; });
-    results.splice(at, 0, RIGHT_RESULT);
-    return {
-      id: id,
-      type: 'choice',
-      hazard: c.item.hazard === 'unknown' ? '' : c.item.hazard,
-      prompt: '「' + c.item.part + '」 — 어떻게 해야 합니까?',
-      options: options,
-      answer: at,
-      results: results,
-      i18n: {}
-    };
-  }
-
-  function renderChoices() {
-    var box = $('ag-choices');
-    box.textContent = '';
-    var phrases = checkedPhrases();
-    var made = draftChoices();
-    var madeIds = made.map(function (c) { return c.item.id; });
-    var rest = [];
-    function row(it, parent) {
-      var li = UI.el('li', 'ag-choice');
-      li.setAttribute('data-id', it.id);
-      var c = made.filter(function (m) { return m.item.id === it.id; })[0];
-      li.appendChild(UI.el('strong', null, it.part));
-      if (c) li.appendChild(UI.okBadge(c.auto ? '고르기 문항 · 자동으로 짝지음' : '고르기 문항'));
-      var sel = document.createElement('select');
-      sel.setAttribute('aria-label', it.part + ' 정답 문구');
-      var none = UI.el('option', null, '만들지 않음');
-      none.value = '';
-      sel.appendChild(none);
-      phrases.forEach(function (p) { var o = UI.el('option', null, p.ko); o.value = p.id; sel.appendChild(o); });
-      sel.value = c ? c.phrase.id : '';
-      sel.addEventListener('change', function () { state.choicePick[it.id] = sel.value; renderApprove(); });
-      li.appendChild(sel);
-      parent.appendChild(li);
-    }
-    choiceCandidates().forEach(function (it) {
-      if (madeIds.indexOf(it.id) !== -1) row(it, box); else rest.push(it);
-    });
-    if (rest.length) {
-      var det = UI.el('details');
-      det.appendChild(UI.el('summary', null, '다른 항목 ' + rest.length + '개에도 정답 문구 고르기'));
-      var ul = UI.el('ul', 'ag-choices');
-      rest.forEach(function (it) { row(it, ul); });
-      det.appendChild(ul);
-      var li = UI.el('li');
-      li.appendChild(det);
-      box.appendChild(li);
-    }
-  }
-
-  function renderPhrases() {
-    var box = $('ag-phrases');
-    box.textContent = '';
-    var langs = setup().languages || [];
+  function findPhotos() {
+    if (!serverReady() || !state.research) return;
     var e = state.equipment;
-    var usable = Store.library.load().filter(function (p) {
-      return langs.some(function (code) { return Store.phraseOk(p, code); }) || Store.phraseOk(p, 'ko');
+    var items = aiItems().map(function (it) {
+      return { id: it.id, part: it.part, partEn: it.partEn || '', sources: (it.sources || []).map(function (s) { return { url: s.url, host: s.host, tier: s.tier }; }) };
     });
-    if (!usable.length) {
-      box.appendChild(UI.el('p', 'field-hint', '검수를 마친 문구가 없습니다. 문구 화면에서 먼저 검수해 주세요.'));
+    call('/api/photos', { equipment: { id: e.id, kind: kindId(), name: e.name, maker: e.maker || '', model: e.model || '' }, items: items }).then(function (r) {
+      if (!r.ok || !sameEquipment(r.data) || !r.data.images) return;
+      state.images = r.data.images;
+      renderItems();
+    });
+  }
+
+  /* ── ③ 교육자료 — 이 설비 종류의 검수 문구 (자동) ───────────────── */
+
+  function usablePhrases() {
+    var langs = setup().languages || [];
+    return Store.phrasesFor(kindId()).filter(function (p) {
+      return Store.phraseOk(p, 'ko') && (!langs.length || langs.some(function (code) { return Store.phraseOk(p, code); }));
+    });
+  }
+
+  function renderMaterial() {
+    $('sec-material').hidden = false;
+    var list = $('ag-phrases');
+    list.textContent = '';
+    var ps = usablePhrases();
+    if (!ps.length) {
+      list.appendChild(UI.itemRow('alert', '이 설비 종류의 검수 문구가 없습니다', '문구 화면에서 「' + ((Store.equipmentKind(kindId()) || {}).label || '종류') + '」 문구를 검수해 주세요. 다른 설비 문구는 쓰지 않습니다.'));
       return;
     }
-    usable.forEach(function (p) {
-      var match = !!(e && p.category && (e.name.indexOf(p.category) !== -1 || p.category === '공통'));
-      var c = UI.chip({ type: 'checkbox', name: 'ag-phrase', value: p.id, label: p.ko, sub: p.category || '', checked: match });
-      c.querySelector('input').addEventListener('change', renderApprove);
-      box.appendChild(c);
+    ps.forEach(function (p) {
+      var li = UI.itemRow('check', p.ko, '검수 완료 · ' + p.category);
+      li.setAttribute('data-phrase', p.id);
+      list.appendChild(li);
     });
   }
 
+  /* ── ④ AI 평가문항 ─────────────────────────────────────────────── */
+
+  function quizBody(slots, avoid) {
+    var e = state.equipment;
+    var b = { equipment: { id: e.id, kind: kindId(), name: e.name }, hazards: includedHazards(), phrases: usablePhrases().map(function (p) { return { id: p.id, ko: p.ko }; }) };
+    if (slots) b.slots = slots;
+    if (avoid) b.avoid = avoid;
+    return b;
+  }
+
+  function makeQuiz() {
+    if (!state.research || !serverReady()) return;
+    if (!includedHazards().length) { $('ag-quiz-status').textContent = '문항을 만들 위험요소가 없습니다.'; return; }
+    var sig = signature();
+    $('sec-quiz').hidden = false;
+    $('ag-quiz-status').textContent = 'AI 가 규칙에 따라 문항을 만들고 고르는 중입니다… (30초쯤)';
+    $('btn-regen-all').disabled = true;
+    call('/api/questions', quizBody()).then(function (r) {
+      $('btn-regen-all').disabled = false;
+      if (!r.ok) { $('ag-quiz-status').textContent = failText(r); return; }
+      if (!sameEquipment(r.data)) { $('ag-quiz-status').textContent = '다른 설비의 문항이 왔습니다. 다시 만들어 주세요.'; return; }
+      state.quiz = r.data;
+      state.quizFor = sig;
+      $('ag-reviewed').checked = false;
+      $('ag-quiz-status').textContent = '';
+      renderAll();
+    });
+  }
+
+  /** [수정 요청] — 그 칸만 같은 위험·유형·난이도로 다시 (계획은 그대로) */
+  function regenOne(q) {
+    if (!serverReady() || state.source === 'file') return;
+    var slot = Store.findBy((state.quiz.plan && state.quiz.plan.slots) || [], 'slot', q.slot);
+    if (!slot) return;
+    $('ag-quiz-status').textContent = q.id + ' 을 다시 만드는 중입니다…';
+    call('/api/questions', quizBody([slot], [q.prompt])).then(function (r) {
+      if (!r.ok || !sameEquipment(r.data) || !r.data.quiz || !r.data.quiz.length) { $('ag-quiz-status').textContent = r.ok ? '다시 만들지 못했습니다.' : failText(r); return; }
+      var fresh = r.data.quiz[0];
+      fresh.id = q.id;
+      state.quiz.quiz = quizItems().map(function (x) { return x.slot === q.slot ? fresh : x; });
+      $('ag-reviewed').checked = false;
+      $('ag-quiz-status').textContent = q.id + ' 을 다시 만들었습니다.';
+      renderAll();
+    });
+  }
+
+  function renderQuiz() {
+    $('sec-quiz').hidden = false;
+    var server = serverReady() && state.source !== 'file';
+    $('btn-regen-all').textContent = state.quiz ? '전체 다시 만들기' : 'AI 문항 만들기';
+    $('btn-regen-all').disabled = !server;
+    $('btn-hold').textContent = state.hold ? '보류 풀기' : '발급 보류';
+    var plan = $('ag-plan');
+    plan.textContent = '';
+    var ol = $('ag-quiz');
+    ol.textContent = '';
+    if (!state.quiz) {
+      $('ag-quiz-status').textContent = undecided().length
+        ? '「확인 필요」 판정이 끝나면 AI 가 문항을 만듭니다.'
+        : (server ? '' : '서버 없이는 문항을 만들 수 없습니다 — 문항이 든 결과 파일을 불러오세요.');
+      return;
+    }
+    if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
+    var p = state.quiz.plan || {};
+    plan.appendChild(UI.itemRow('list', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
+    if ((state.quiz.missing || []).length) plan.appendChild(UI.itemRow('alert', '못 채운 칸 ' + state.quiz.missing.length + '개', '규칙을 통과한 후보가 없었습니다. [전체 다시 만들기]를 눌러 주세요.'));
+    if ((state.quiz.excluded || []).length) {
+      var li0 = UI.el('li');
+      var det = UI.el('details');
+      det.appendChild(UI.el('summary', null, '규칙에 걸려 뺀 후보 ' + state.quiz.excluded.length + '개 — 자세히 보기'));
+      var ul = UI.el('ul', 'item-list');
+      state.quiz.excluded.forEach(function (x) { ul.appendChild(UI.itemRow('alert-circle', '칸 ' + x.slot + ' · ' + (x.prompt || '(글 없음)'), (x.why || []).join(', '))); });
+      det.appendChild(ul);
+      li0.appendChild(det);
+      plan.appendChild(li0);
+    }
+
+    quizItems().forEach(function (q) {
+      var li = UI.el('li', 'ag-q');
+      li.setAttribute('data-q', q.id);
+      var head = UI.el('div', 'tags');
+      head.appendChild(UI.el('strong', null, q.id));
+      head.appendChild(UI.neutralBadge(SUBTYPE[q.subtype] || q.type));
+      if (LEVEL[q.difficulty]) head.appendChild(UI.neutralBadge(LEVEL[q.difficulty]));
+      if (q.answerFrom && q.answerFrom.indexOf('phrase:') === 0) head.appendChild(UI.okBadge('정답: 검수 문구'));
+      else if (q.answerFrom === 'photo') head.appendChild(UI.okBadge('사진 위치 (AI 탐지 좌표)'));
+      else head.appendChild(UI.waitBadge('AI 작성 — 검토 필요'));
+      li.appendChild(head);
+      var hz = Store.findBy(aiItems(), 'id', q.hazardId) || Store.findBy(state.added, 'id', q.hazardId);
+      var link = UI.el('button', 'ag-item-head', '위험요소 #' + (number(q.hazardId) > 0 ? number(q.hazardId) : q.hazardId) + ' ' + (hz ? effective(hz).part : '(빠진 위험)'));
+      link.type = 'button';
+      link.addEventListener('click', function () { if (number(q.hazardId) > 0) focusItem(q.hazardId); });
+      li.appendChild(link);
+      li.appendChild(UI.el('p', 'ag-q-prompt', q.prompt));
+      if (q.options) {
+        var opts = UI.el('ul', 'ag-q-options');
+        q.options.forEach(function (o, i) {
+          var row = UI.el('li', null, (i === q.answer ? '● 정답 — ' : '○ ') + o);
+          if (i === q.answer) row.setAttribute('data-right', 'yes');
+          opts.appendChild(row);
+        });
+        li.appendChild(opts);
+      } else {
+        li.appendChild(UI.el('p', 'meta', '정답 위치: 사진의 #' + number(q.hazardId) + ' 박스 (반지름 ' + (q.answer && q.answer.r) + '%)'));
+      }
+      if (q.why) li.appendChild(UI.el('p', 'meta', '해설: ' + q.why));
+      if (q.prevention) li.appendChild(UI.el('p', 'meta', '안전수칙·예방조치: ' + q.prevention));
+      if (q.evidence) li.appendChild(UI.el('p', 'meta', '탐지 근거: ' + q.evidence));
+      if ((q.sources || []).length) {
+        var srcs = UI.el('ul', 'meta');
+        q.sources.forEach(function (s) {
+          var sl = UI.el('li');
+          var a = UI.el('a', null, s.title || s.url);
+          if (/^https?:\/\//i.test(String(s.url))) a.href = s.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          sl.appendChild(a);
+          srcs.appendChild(sl);
+        });
+        li.appendChild(srcs);
+      }
+      if (server && q.type !== 'hotspot') {
+        var re = UI.el('button', 'btn-sm', '수정 요청 (이 문항 다시 만들기)');
+        re.type = 'button';
+        re.setAttribute('data-regen', q.id);
+        re.addEventListener('click', function () { regenOne(q); });
+        li.appendChild(re);
+      }
+      ol.appendChild(li);
+    });
+    if (!server) $('ag-quiz-status').textContent = '결과 파일의 문항입니다. 수정 요청·다시 만들기는 배포 주소(서버)에서 됩니다.';
+  }
+
+  /* ── ⑤ 검토 후 발급 ──────────────────────────────────────────── */
+
+  function aiWrittenCount() { return quizItems().filter(function (q) { return q.aiWritten; }).length; }
+
   function steps() {
-    var quiz = draftQuiz();
     var left = undecided().length;
+    var qs = quizItems();
+    var slots = (state.quiz && state.quiz.plan && state.quiz.plan.slots) || [];
+    var missingReq = state.quiz ? (state.quiz.missing || []).filter(function (n) { var s = Store.findBy(slots, 'slot', n); return s && s.required; }).length : 0;
+    var aiN = aiWrittenCount();
+    var ps = usablePhrases().length;
     return [
       { what: '설비', done: !!state.equipment, note: state.equipment ? state.equipment.name : '미선택' },
-      { what: '주의사항 조사', done: !!state.research, note: state.research ? aiItems().length + '개' : '안 함' },
+      { what: 'AI 위험요소 분석', done: !!state.research, note: state.research ? aiItems().length + '개' : '안 함' },
       { what: '「확인 필요」 판정', done: !!state.research && left === 0, note: left ? left + '개 남음' : '다 봄' },
-      { what: '사진 위치', done: !!(state.guided && state.keepPhoto), note: state.guided ? state.guided.mapped.length + '곳' : '사진 없음' },
-      { what: '문항 초안', done: quiz.length > 0, note: quiz.length + '문항' },
-      { what: '안전 문구 (검수 완료)', done: UI.checkedValues('ag-phrase').length > 0, note: UI.checkedValues('ag-phrase').length + '개' },
+      { what: '교육자료 (검수 문구)', done: ps > 0, note: ps + '개' },
+      { what: 'AI 평가문항', done: qs.length > 0 && !quizStale() && !missingReq, note: quizStale() ? '다시 만들어야 함' : (missingReq ? '필수 칸 ' + missingReq + '개 비어 있음' : qs.length + '문항') },
+      { what: 'AI 작성 문항 검토', done: !aiN || $('ag-reviewed').checked, note: aiN ? (aiN + '개 · ' + ($('ag-reviewed').checked ? '검토함' : '검토 표시 필요')) : '없음' },
+      { what: '발급 보류 아님', done: !state.hold, note: state.hold ? '보류 중' : '진행' },
       { what: '교육 제목', done: !!$('ag-title').value.trim(), note: $('ag-title').value.trim() || '없음' }
     ];
   }
@@ -768,10 +817,9 @@
   function renderApprove() {
     if (!state.research) return;
     $('sec-approve').hidden = false;
-    if (!$('ag-title').value && state.equipment) $('ag-title').value = state.equipment.name + ' 안전교육';
-    if (!$('ag-phrases').children.length) renderPhrases();
-
-    renderChoices();
+    var aiN = aiWrittenCount();
+    $('ag-reviewed-row').hidden = !aiN;
+    $('ag-reviewed-text').textContent = 'AI 작성 문항 ' + aiN + '개의 문장·정답·해설을 검토했습니다';
     var list = $('ag-check');
     list.textContent = '';
     var all = steps();
@@ -789,20 +837,16 @@
       list.appendChild(li);
     });
     var langs = (setup().languages || []).filter(function (c) { return c !== 'ko'; });
-    /* 정답 원이 겹치면 노동자가 어느 문항의 답인지 헷갈린다 (FR-AD-07-21) — 자동으로 합치고 무엇을 합쳤는지 알린다 */
-    var plan = draftPlan();
-    $('ag-lang-note').textContent = (langs.length ? '문항 문장은 아직 한국어로만 나갑니다. ' : '')
-      + (plan.merged.length ? '같은 자리를 가리키는 ' + plan.merged.length + '개 항목은 문항 하나로 합쳤습니다 ('
-        + plan.merged.map(function (m) { return m.part + ' → ' + m.into; }).join(', ') + '). ' : '')
-      + (plan.cut.length ? '사진 문항은 ' + MAX_PHOTO_QUESTIONS + '개까지라 ' + plan.cut.length + '개 항목은 문항에서 뺐습니다 ('
-        + plan.cut.map(function (m) { return m.part; }).join(', ') + ').' : '');
+    $('ag-lang-note').textContent = langs.length ? '문항 문장은 아직 한국어로만 나갑니다 (음성으로 읽어 줍니다).' : '';
     $('btn-approve').disabled = !all.every(function (s) { return s.done; });
   }
 
   function renderAll() {
     if (!state.research) return;
     renderItems();
-    if (state.guided && state.keepPhoto) renderFigure();
+    renderFigure();
+    renderMaterial();
+    renderQuiz();
     renderApprove();
   }
 
@@ -810,39 +854,38 @@
     var count = { right: 0, wrong: 0, edit: 0 };
     Object.keys(state.judge).forEach(function (id) { count[state.judge[id]] += 1; });
     return {
-      right: count.right, wrong: count.wrong, edited: count.edit, added: state.added.length,
-      moved: Object.keys(state.moves).length,
+      right: count.right, wrong: count.wrong, edited: count.edit, added: state.added.length, moved: Object.keys(state.moves).length,
       wrongParts: aiItems().filter(function (it) { return state.judge[it.id] === 'wrong'; }).map(function (it) { return it.part; }),
       addedParts: state.added.map(function (a) { return a.part; })
     };
   }
 
   function approve() {
-    var all = steps();
-    if (!all.every(function (s) { return s.done; })) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
+    if (!steps().every(function (s) { return s.done; })) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
     var e = state.equipment;
+    var quiz = quizItems().map(function (q) { var c = JSON.parse(JSON.stringify(q)); delete c.slot; return c; });
+    var usesPhoto = quiz.some(function (q) { return q.type === 'hotspot'; });
     var course = {
       id: Store.uid(),
       title: $('ag-title').value.trim().slice(0, 60),
       equipmentId: e.id,
       languages: (setup().languages || []).slice(),
-      phraseIds: UI.checkedValues('ag-phrase'),
-      quiz: draftQuiz(),
+      phraseIds: usablePhrases().map(function (p) { return p.id; }),
+      quiz: quiz,
       dueAt: '',
       approved: true,
       createdAt: new Date().toISOString(),
-      photo: state.keepPhoto,
-      /* 기록일 뿐 판정이 아니다 — AI 가 무엇을 제안했고 담당자가 어떻게 봤나 (성공 지표) */
+      photo: usesPhoto ? state.keepPhoto : '',
+      /* 문항 ↔ 위험요소 추적 — 서버(api/_courses.mjs)가 equipmentId·hazardId 를 맞춰 본다 */
+      hazards: includedHazards().map(function (h) {
+        return { id: h.id, equipmentId: e.id, part: h.part, hazard: h.hazard, risk: h.risk, status: h.status, official: h.official, specific: h.specific, box: h.box, sources: h.sources };
+      }),
+      rulesVersion: (state.quiz && (state.quiz.rulesVersion || (state.quiz.plan && state.quiz.plan.rulesVersion))) || '',
       aiDraft: {
-        model: state.research.model || '',
-        at: new Date().toISOString(),
-        source: state.source,
-        items: aiItems().length,
-        checks: aiItems().filter(function (i) { return i.status !== 'ok'; }).length,
-        mapped: state.guided.mapped.length,
-        merged: draftPlan().merged.length,   // 같은 자리라 합친 항목 수
-        cut: draftPlan().cut.length,         // 문항 상한으로 뺀 항목 수
-        choice: draftChoices().length,       // 검수 문구로 만든 고르기 문항 수
+        model: state.research.model || '', at: new Date().toISOString(), source: state.source,
+        items: aiItems().length, checks: aiItems().filter(function (i) { return i.status !== 'ok'; }).length,
+        mapped: state.guided ? state.guided.mapped.length : 0,
+        questions: quiz.length, aiWritten: aiWrittenCount(), excluded: (state.quiz.excluded || []).length,
         review: reviewRecord()
       }
     };
@@ -850,14 +893,13 @@
     if (!result.ok) { UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
     UI.toast('발급했습니다. 「' + course.title + '」이 노동자 수강 화면에 나타납니다.');
     state = emptyState(e);
-    ['sec-items', 'sec-photo', 'sec-approve'].forEach(function (id) { $(id).hidden = true; });
+    ['sec-items', 'sec-material', 'sec-quiz', 'sec-approve'].forEach(function (id) { $(id).hidden = true; });
     $('ag-figure').hidden = true;
     $('btn-approve').disabled = true;
     $('ag-title').value = '';
     $('ag-title').removeAttribute('data-auto');
-    $('ag-phrases').textContent = '';
-    $('ag-choices').textContent = '';
-    $('ag-research-status').textContent = '「' + course.title + '」을 발급했습니다. 다른 설비를 고르고 다시 조사하거나 결과 파일을 불러오세요.';
+    $('ag-reviewed').checked = false;
+    $('ag-research-status').textContent = '「' + course.title + '」을 발급했습니다. 다른 설비를 고르거나 다시 분석하세요.';
     $('ag-photo-status').textContent = '';
   }
 
@@ -873,12 +915,19 @@
   $('ag-runfile').addEventListener('change', function (ev) { onRunFile(ev.target.files && ev.target.files[0]); ev.target.value = ''; });
   $('ag-photo').addEventListener('change', function (ev) { onPhoto(ev.target.files && ev.target.files[0]); ev.target.value = ''; });
   $('btn-add-item').addEventListener('click', addItem);
+  $('btn-regen-all').addEventListener('click', makeQuiz);
+  $('btn-hold').addEventListener('click', function () {
+    state.hold = !state.hold;
+    UI.toast(state.hold ? '발급을 보류했습니다. 문항·위험요소를 고친 뒤 보류를 풀어 주세요.' : '보류를 풀었습니다.');
+    renderAll();
+  });
+  $('ag-reviewed').addEventListener('change', renderApprove);
   $('ag-title').addEventListener('input', function (ev) {
-    if (ev.isTrusted) $('ag-title').setAttribute('data-auto', 'no');   // 담당자가 직접 고친 제목은 설비를 바꿔도 둔다
+    if (ev.isTrusted) $('ag-title').setAttribute('data-auto', 'no');
     renderApprove();
   });
   $('btn-approve').addEventListener('click', approve);
-  /* 위치 고치기 — 사진을 한 번 누르면 그 자리가 새 정답 중심이 된다 (FR-AD-07-07 옮기기) */
+  /* 위치 고치기 — 사진을 한 번 누르면 그 자리가 새 정답 중심이 된다 */
   $('ag-figure').addEventListener('click', function (ev) {
     if (!state.moving) return;
     var r = $('ag-figure').getBoundingClientRect();
@@ -895,6 +944,7 @@
 
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
-    state: function () { return state; }, draftQuiz: draftQuiz, draftPlan: draftPlan, draftChoices: draftChoices, loadRun: loadRun, readRun: readRun, steps: steps
+    state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases
   };
 })();
