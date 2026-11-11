@@ -49,6 +49,7 @@
       images: {},        // 항목 id → 참고 사진 (메모리만 — 저장하지 않는다)
       quiz: null,        // /api/questions 결과 { plan, quiz, excluded, missing, rulesVersion }
       quizFor: '',       // 문항을 만든 때의 위험요소 판정 — 바뀌면 다시 만들어야 한다
+      trans: {},         // 언어 → 'pending' | 'ok' | '실패 이유' (문항 번역, 2026-11-11)
       hold: false
     };
   }
@@ -57,6 +58,7 @@
   function setup() { return Store.setup.load(); }
   function equipments() { return setup().equipments || []; }
   function hazardLabel(code) { var h = Store.hazard(code); return h ? h.label : '위험유형 확인 필요'; }
+  function langName(code) { var l = Store.language(code); return l ? l.name : code; }
   function kindId() { return Store.kindOf(state.equipment).id; }
   function serverReady() { return Net.onHttps() && Net.available() && !!Auth.token(); }
   function call(path, body) { return Net.post(path, body, { token: Auth.token(), timeoutMs: TIMEOUT_MS }); }
@@ -683,10 +685,62 @@
       if (!sameEquipment(r.data)) { $('ag-quiz-status').textContent = '다른 설비의 문항이 왔습니다. 다시 만들어 주세요.'; return; }
       state.quiz = r.data;
       state.quizFor = sig;
+      state.trans = {};
       $('ag-reviewed').checked = false;
       $('ag-quiz-status').textContent = '';
       renderAll();
+      translateQuiz();
     });
+  }
+
+  /* ── 문항 번역 — 노동자 화면은 번역이 빠진 문항을 한국어로 띄우지 않고 막는다 (2026-11-11) ── */
+
+  function quizLangs() { return (setup().languages || []).filter(function (l) { return l !== 'ko'; }); }
+
+  /** 이 문항이 그 언어로 온전한가 — 묻는 칸(qhas) + 해설·결과까지 */
+  function translatedFor(q, lang) {
+    if (!Store.qhas(q, lang)) return false;
+    if (q.why && Store.qtext(q, lang, 'why') === q.why) return false;
+    if (Array.isArray(q.results) && JSON.stringify(Store.qtext(q, lang, 'results')) === JSON.stringify(q.results)) return false;
+    return true;
+  }
+  function transMissing() {
+    var qs = quizItems();
+    return quizLangs().filter(function (l) { return qs.some(function (q) { return !translatedFor(q, l); }); });
+  }
+
+  /** 정답이 검수 문구에서 왔으면 그 문구의 검수된 번역을 정답 선택지에 쓴다 (모델 번역보다 앞선다) */
+  function phraseOverride(q, lang) {
+    var m = /^phrase:(.+)$/.exec(q.answerFrom || '');
+    if (!m || !q.i18n || !q.i18n[lang] || !Array.isArray(q.i18n[lang].options)) return;
+    var p = Store.findBy(Store.library.load(), 'id', m[1]);
+    var t = p && p.translations && p.translations[lang];
+    if (p && Store.phraseOk(p, lang) && t && t.text) q.i18n[lang].options[q.answer] = t.text;
+  }
+
+  function translateQuiz(langs) {
+    if (!serverReady() || state.source === 'file' || !quizItems().length) return;
+    var e = state.equipment;
+    (langs || transMissing()).forEach(function (lang) {
+      var items = quizItems().filter(function (q) { return !translatedFor(q, lang); }).map(function (q) {
+        return { id: q.id, prompt: q.prompt, options: q.options, results: q.results, why: q.why, prevention: q.prevention };
+      });
+      if (!items.length) { state.trans[lang] = 'ok'; return; }
+      state.trans[lang] = 'pending';
+      call('/api/translate-quiz', { equipment: { id: e.id, name: e.name }, lang: lang, items: items }).then(function (r) {
+        if (!r.ok || !sameEquipment(r.data) || !r.data.i18n) { state.trans[lang] = r.ok ? '다른 설비 결과' : failText(r); renderAll(); return; }
+        quizItems().forEach(function (q) {
+          var t = r.data.i18n[q.id];
+          if (!t) return;
+          q.i18n = q.i18n || {};
+          q.i18n[lang] = t;
+          phraseOverride(q, lang);
+        });
+        state.trans[lang] = (r.data.failed || []).length ? r.data.failed.length + '문항 번역 실패' : 'ok';
+        renderAll();
+      });
+    });
+    renderAll();
   }
 
   /** [수정 요청] — 그 칸만 같은 위험·유형·난이도로 다시 (계획은 그대로) */
@@ -703,6 +757,7 @@
       $('ag-reviewed').checked = false;
       $('ag-quiz-status').textContent = q.id + ' 을 다시 만들었습니다.';
       renderAll();
+      translateQuiz();
     });
   }
 
@@ -723,6 +778,22 @@
       return;
     }
     if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
+    var langs = quizLangs();
+    if (langs.length) {
+      var miss = transMissing();
+      var tl = UI.itemRow(miss.length ? 'alert' : 'check', '문항 번역 — ' + langs.map(function (l) {
+        var st = state.trans[l];
+        return langName(l) + (miss.indexOf(l) === -1 ? ' ✓' : (st === 'pending' ? ' (번역 중)' : ' ✗' + (st && st !== 'ok' ? ' ' + st : '')));
+      }).join(' · '), miss.length ? '번역이 빠진 언어의 노동자에게는 문항이 열리지 않습니다 (한국어를 섞지 않는다).' : '노동자 화면은 고른 언어로만 나옵니다.');
+      if (miss.length && server && miss.some(function (l) { return state.trans[l] !== 'pending'; })) {
+        var rt = UI.el('button', 'btn-sm', '번역 다시 시도');
+        rt.type = 'button';
+        rt.id = 'btn-retrans';
+        rt.addEventListener('click', function () { translateQuiz(); });
+        tl.appendChild(rt);
+      }
+      plan.appendChild(tl);
+    }
     var p = state.quiz.plan || {};
     plan.appendChild(UI.itemRow('check', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
     if ((state.quiz.missing || []).length) plan.appendChild(UI.itemRow('alert', '못 채운 칸 ' + state.quiz.missing.length + '개', '규칙을 통과한 후보가 없었습니다. [전체 다시 만들기]를 눌러 주세요.'));
@@ -814,6 +885,8 @@
       { what: '교육자료 (검수 문구)', done: ps > 0, note: ps + '개' },
       { what: 'AI 평가문항', done: qs.length > 0 && !quizStale() && !missingReq && !blocked.length,
         note: quizStale() ? '다시 만들어야 함' : (missingReq ? '필수 칸 ' + missingReq + '개 비어 있음' : (blocked.length ? blocked.join(' · ') : qs.length + '문항')) },
+      { what: '문항 번역', done: !quizLangs().length || (qs.length > 0 && !transMissing().length),
+        note: quizLangs().length ? (transMissing().length ? '빠진 언어 ' + transMissing().map(langName).join(', ') : quizLangs().map(langName).join(' · ') + ' 완료') : '한국어만' },
       { what: 'AI 작성 문항 검토', done: !aiN || $('ag-reviewed').checked, note: aiN ? (aiN + '개 · ' + ($('ag-reviewed').checked ? '검토함' : '검토 표시 필요')) : '없음' },
       { what: '발급 보류 아님', done: !state.hold, note: state.hold ? '보류 중' : '진행' },
       { what: '교육 제목', done: !!$('ag-title').value.trim(), note: $('ag-title').value.trim() || '없음' }

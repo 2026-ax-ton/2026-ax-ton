@@ -222,7 +222,7 @@ function open(opts = {}) {
   /* c-press 는 문구 4개(ph-1,2,3,6). 크메르어 노동자에게는 넷 다 쓸 수 있는데,
      ph-1 을 문구 전체 중지했으므로 3개로 줄어야 한다. */
   const card = learn.win.document.querySelector('#course-list .course-card');
-  has('쓸 수 있는 문구가 4개에서 3개로 줄었다', text(card.querySelector('.meta')), '안전 문구 3개');
+  has('쓸 수 있는 문구가 4개에서 3개로 줄었다', text(card.querySelector('.meta')), learn.win.I18N.t('learn.phraseCount', 'km').replace('{n}', '3'));
   has('몇 개가 빠졌는지 밝힌다', text(card.querySelector('.tags')), learn.win.I18N.t('learn.excluded', 'km') + ' 1');
 
   card.querySelector('.course-open').dispatchEvent(new learn.win.MouseEvent('click', { bubbles: true }));
@@ -286,7 +286,8 @@ function open(opts = {}) {
      인도네시아어 번역이 중지된 ph-3 은 인도네시아어 노동자에게만 빠진다. */
   const km = boot('worker/learn.html', { login: 'W-4821-07', page: 'worker/learn.js' });
   const kmCard = km.win.document.querySelector('#course-list .course-card');
-  has('★ 크메르어 노동자는 문구 4개를 다 받는다', text(kmCard.querySelector('.meta')), '안전 문구 4개');
+  const I18N_KM_4 = kmCard.ownerDocument.defaultView.I18N.t('learn.phraseCount', 'km').replace('{n}', '4');
+  has('★ 크메르어 노동자는 문구 4개를 다 받는다', text(kmCard.querySelector('.meta')), I18N_KM_4);
 
   kmCard.querySelector('.course-open')
     .dispatchEvent(new km.win.MouseEvent('click', { bubbles: true }));
@@ -301,12 +302,12 @@ function open(opts = {}) {
     kmTexts.join(' ').includes('ទោះម៉ាស៊ីនឈប់'),
     kmTexts.join(' | ').slice(0, 200));
 
-  /* 인도네시아어 노동자 — 도장 교육에도 ph-3 이 들어 있다 (ph-3,4,6).
-     인도네시아어 번역이 중지됐으니 2개만 남는다. */
+  /* 인도네시아어 노동자 — 도장 교육은 ph-4·ph-6 (2026-11-11 ph-3 은 프레스 문구라 뺐다).
+     ph-6 은 인도네시아어 번역이 없어 한국어로 띄우지 않고 빼므로 1개만 남는다 */
   const id = boot('worker/learn.html', { login: 'W-4821-11', page: 'worker/learn.js' });
   const idCard = id.win.document.querySelector('#course-list .course-card');
   has('★ 인도네시아어 노동자에게는 그 문구가 빠진다',
-    text(idCard.querySelector('.meta')), '안전 문구 2개');
+    text(idCard.querySelector('.meta')), id.win.I18N.t('learn.phraseCount', 'id').replace('{n}', '1'));
 
   idCard.querySelector('.course-open')
     .dispatchEvent(new id.win.MouseEvent('click', { bubbles: true }));

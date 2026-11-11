@@ -155,7 +155,7 @@ const checkAll = (win, root, name, values) => {
 
   const cards = learn.win.document.querySelectorAll('#course-list .course-card');
   eq('★ 노동자 수강 목록에 2개가 보인다', cards.length, 2);
-  has('방금 만든 교육이 있다', text(learn.$('course-list')), '배전반 A 감전 예방 교육');
+  has('방금 만든 교육이 있다 (설비 이름 + 내 언어)', text(learn.$('course-list')), '배전반 A · ' + learn.win.I18N.t('learn.course', 'km'));
 
   /* --- ★ 그리고 이해도 검증까지 이어지는지 --- */
   const newCourse = saved.find((c) => c.title === '배전반 A 감전 예방 교육');
@@ -172,16 +172,33 @@ const checkAll = (win, root, name, values) => {
     },
   });
 
-  eq('★ 검증 화면이 뜬다', quiz.$('view-quiz').hidden, false);
-  has('문항 1 / 2', text(quiz.$('step-count')), '문항 1 / 2');
-  has('담당자가 적은 문항이 그대로 나온다', text(quiz.$('quiz-prompt')), '전기가 흐르는 곳을 누르세요');
+  /* 2026-11-11 — 손으로 만든 이 교육은 크메르어 번역이 없다. 크메르어 노동자에게 한국어를 띄우지 않고 막는다 */
+  eq('★★ 번역 없는 교육은 크메르어 노동자에게 열리지 않는다', quiz.$('view-quiz').hidden, true);
+  has('내 언어로 「준비되지 않았습니다」', text(quiz.$('gate-title')), quiz.win.I18N.t('quiz.notReady', 'km'));
 
-  // 담당자가 고른 구역이 정답인지
-  const qzones = quiz.$('quiz-body').querySelectorAll('.zone');
+  /* 같은 교육을 한국어로 받는 노동자는 그대로 푼다 */
+  const quizKo = boot('worker/quiz.html?course=' + newCourse.id, {
+    login: 'W-4821-07',
+    page: 'worker/quiz.js',
+    before(win) {
+      win.Store.courses.save(saved);
+      win.Store.accounts.update((l) => { l.find((a) => a.userId === 'W-4821-07').lang = 'ko'; });
+      win.Store.progress.update((list) => {
+        list.push({ workerId: 'W-4821-07', courseId: newCourse.id, lang: 'ko', learnedAt: '2026-08-21T00:00:00.000Z', quiz: null });
+      });
+    },
+  });
+  eq('★ 검증 화면이 뜬다 (한국어)', quizKo.$('view-quiz').hidden, false);
+  has('문항 1 / 2', text(quizKo.$('step-count')), '문항 1 / 2');
+  has('담당자가 적은 문항이 그대로 나온다', text(quizKo.$('quiz-prompt')), '전기가 흐르는 곳을 누르세요');
+
+  // 담당자가 고른 구역이 정답인지 — 고르고 제출
+  const qzones = quizKo.$('quiz-body').querySelectorAll('.zone');
   const answer = [...qzones].find((z) => z.getAttribute('aria-label') === '노출된 단자대');
-  click(quiz.win, answer);
+  click(quizKo.win, answer);
+  click(quizKo.win, quizKo.$('btn-hotspot-submit'));
   eq('★ 담당자가 고른 구역이 정답이 된다', answer.getAttribute('data-mark'), 'ok');
-  has('결과 학습 문장도 나온다', text(quiz.$('consequence-text')), '감전됩니다');
+  has('결과 학습 문장도 나온다 (한국어 노동자는 구역 문장)', text(quizKo.$('consequence-text')), '감전됩니다');
 }
 
 /* =================================================================

@@ -206,7 +206,8 @@ var Seed = (function () {
           answer: { x: 52, y: 44, r: 14 },
           i18n: {
             km: { prompt: 'សូមចុចកន្លែងដែលដៃអាចជាប់ក្នុងម៉ាស៊ីននេះ' },
-            id: { prompt: 'Tekan bagian yang dapat menjepit tangan pada mesin ini' }
+            id: { prompt: 'Tekan bagian yang dapat menjepit tangan pada mesin ini' },
+            vi: { prompt: 'Hãy chạm vào chỗ có thể kẹp tay trên máy này' }
           } },
         { id: 'q2', type: 'choice', hazard: 'pinch',
           prompt: '프레스가 멈췄습니다. 어떻게 해야 합니까?',
@@ -243,17 +244,38 @@ var Seed = (function () {
                 'Benar. Matikan daya dan panggil pengawas, ram tidak akan jatuh.',
                 'Jika ram turun saat Anda menekan dengan kaki, kaki terjepit.'
               ]
+            },
+            vi: {
+              prompt: 'Máy dập đã dừng. Bạn phải làm gì?',
+              options: [
+                'Cho tay vào để lấy linh kiện',
+                'Ngắt điện và gọi quản lý',
+                'Thử đạp bằng chân'
+              ],
+              results: [
+                'Dù trông như đã dừng, áp lực còn lại có thể làm đầu dập rơi xuống. Tay sẽ bị kẹp.',
+                'Đúng. Ngắt điện và gọi quản lý thì đầu dập không rơi xuống.',
+                'Nếu đầu dập hạ xuống khi bạn đạp thử, chân sẽ bị kẹp.'
+              ]
             }
           } },
-        /* ★ q3 은 번역을 일부러 넣지 않았다.
-             크메르어 노동자가 이 문항에 오면 "내 언어 번역 준비 중" 배지와 함께
-             한국어가 그대로 보인다. 번역이 없는 것을 조용히 숨기지 않는다는 규칙이
-             화면에서 실제로 보여야 한다. vi 는 세 문항 다 번역이 없다 —
-             교육에 등록된 언어라고 번역이 따라오는 것은 아니다. */
+        /* 2026-11-11 — 예전에는 q3 번역을 일부러 비워 「번역 준비 중」 배지와 한국어를 보였다.
+             이제는 한국어를 섞지 않고 막으므로(quiz.js ready) 시연 교육은 세 언어를 다 채운다 */
         { id: 'q3', type: 'match', hazard: 'shock',
           prompt: '작업에 맞는 보호구를 연결하세요',
           pairs: [['프레스 작업', '안전장갑'], ['배전반 점검', '절연장갑']],
-          why: '작업마다 맞는 보호구가 다릅니다. 배전반 점검에 일반 안전장갑을 끼면 감전을 막지 못합니다.' }
+          why: '작업마다 맞는 보호구가 다릅니다. 배전반 점검에 일반 안전장갑을 끼면 감전을 막지 못합니다.',
+          i18n: {
+            km: { prompt: 'ភ្ជាប់ឧបករណ៍ការពារដែលត្រូវនឹងការងារ',
+              pairs: [['ការងារម៉ាស៊ីនកិន', 'ស្រោមដៃសុវត្ថិភាព'], ['ការត្រួតពិនិត្យតាប្លូអគ្គិសនី', 'ស្រោមដៃអ៊ីសូឡង់']],
+              why: 'ការងារនីមួយៗត្រូវការឧបករណ៍ការពារខុសគ្នា។ ស្រោមដៃសុវត្ថិភាពធម្មតាមិនអាចការពារការឆក់ខ្សែភ្លើងពេលត្រួតពិនិត្យតាប្លូអគ្គិសនីបានទេ។' },
+            id: { prompt: 'Hubungkan alat pelindung yang sesuai dengan pekerjaan',
+              pairs: [['Pekerjaan mesin press', 'Sarung tangan keselamatan'], ['Pemeriksaan panel listrik', 'Sarung tangan isolasi']],
+              why: 'Setiap pekerjaan butuh alat pelindung yang berbeda. Sarung tangan keselamatan biasa tidak mencegah sengatan listrik saat memeriksa panel listrik.' },
+            vi: { prompt: 'Nối đồ bảo hộ phù hợp với công việc',
+              pairs: [['Công việc máy dập', 'Găng tay bảo hộ'], ['Kiểm tra tủ điện', 'Găng tay cách điện']],
+              why: 'Mỗi công việc cần đồ bảo hộ khác nhau. Găng tay bảo hộ thường không ngăn được điện giật khi kiểm tra tủ điện.' }
+          } }
       ] },
     /* 2026-11-11 — 프레스 문구 ph-3 이 도장 교육에 섞여 있었다. 설비 종류가 다른 문구는 넣지 않는다 */
     { id: 'c-paint', title: '도장 부스 1 안전교육', equipmentId: 'e-booth1',

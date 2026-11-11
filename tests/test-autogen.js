@@ -76,6 +76,18 @@ function fakeQuestions(body) {
     if (path === '/api/hazards') return reply(JSON.parse(JSON.stringify(GUIDED)));
     if (path === '/api/photos') return reply({ images: { r1: { data: 'data:image/jpeg;base64,/9j/AAAA', page: 'https://kosha.or.kr/a', host: 'kosha.or.kr', alt: '램', kind: 'page', license: '확인 필요' } } });
     if (path === '/api/questions') return Promise.resolve({ ok: true, status: 200, data: fakeQuestions(body) });
+    if (path === '/api/translate-quiz') {
+      const i18n = {};
+      body.items.forEach((q) => {
+        const tr = (s) => body.lang.toUpperCase() + ':' + q.id + ':' + String(s).length;
+        i18n[q.id] = { prompt: tr(q.prompt) };
+        if (q.options) i18n[q.id].options = q.options.map(tr);
+        if (q.results) i18n[q.id].results = q.results.map(tr);
+        if (q.why) i18n[q.id].why = tr(q.why);
+        if (q.prevention) i18n[q.id].prevention = tr(q.prevention);
+      });
+      return Promise.resolve({ ok: true, status: 200, data: { equipment: body.equipment, lang: body.lang, i18n, failed: [] } });
+    }
     return Promise.resolve({ ok: false, status: 404, data: {} });
   };
 
@@ -149,6 +161,10 @@ function fakeQuestions(body) {
   has('★ 문항마다 위험요소 링크', $('ag-quiz').textContent, '위험요소 #3 발판 페달');
   has('★ 해설·예방조치·근거', $('ag-quiz').textContent, '해설 발판 페달');
   has('예방조치', $('ag-quiz').textContent, '안전수칙·예방조치: 예방 발판 페달');
+  /* 2026-11-11 — 문항을 만들면 사업장 언어(km·id·vi)로 번역까지 한다. 빠지면 발급이 막힌다 */
+  eq('★★ 문항을 만들면 사업장 언어마다 번역을 부른다', [...new Set(calls.filter((c) => c.path === '/api/translate-quiz').map((c) => c.body.lang))].sort().join(), 'id,km,vi');
+  has('번역 상태 줄', $('ag-plan').textContent, '문항 번역 — ');
+  ok('★ 번역이 다 되면 「문항 번역」 단계가 끝난다', win.__autogen.steps().find((s) => s.what === '문항 번역').done === true);
   has('★ 규칙에 걸려 뺀 후보와 이유', $('ag-plan').textContent, '금지어');
   has('계획 이유', $('ag-plan').textContent, '위험요소 2개 → 문항 2개');
   ok('★★ 문항을 고르는 체크박스가 없다', !doc.querySelector('#ag-quiz input'));
@@ -191,6 +207,7 @@ function fakeQuestions(body) {
   eq('규칙 판을 남긴다', c.rulesVersion, '2026-11-11');
   eq('★ 판정 기록 (뺌 1 · 고침 1)', c.aiDraft.review.wrong + '|' + c.aiDraft.review.edited, '1|1');
   eq('AI 작성 문항 수 기록', c.aiDraft.aiWritten, 1);
+  ok('★★ 발급본 문항에 세 언어 번역이 들어 있다', c.quiz.every((q) => ['km', 'id', 'vi'].every((l) => S.qhas(q, l))));
   ok('★ 문항 칸 번호(slot)는 저장하지 않는다', c.quiz.every((q) => !('slot' in q)));
   ok('★★ 참고 사진(외부 그림)은 저장하지 않는다', !JSON.stringify(c).includes('/9j/AAAA') && !JSON.stringify(S.setup.load()).includes('/9j/AAAA'));
   ok('발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);
@@ -307,7 +324,8 @@ function fakeQuestions(body) {
         const eqId = w.Store.findBy(w.Store.courses.load(), 'id', 'c-press').equipmentId;
         w.Store.courses.update((list) => { list.push({
           id: 'c-photo', title: '사진 교육', equipmentId: eqId, languages: ['ko', 'km'], phraseIds: ['ph-1'],
-          quiz: [{ id: 'q1', type: 'hotspot', prompt: '사진에서 「램」을(를) 누르세요', answer: { x: 50, y: 50, r: 20 }, figure: 'photo', i18n: {}, hazardId: 'r1', subtype: 'location' }],
+          quiz: [{ id: 'q1', type: 'hotspot', prompt: '사진에서 「램」을(를) 누르세요', answer: { x: 50, y: 50, r: 20 }, figure: 'photo', why: '램이 내려와 끼인다',
+            i18n: { km: { prompt: 'ចុច «ដុំដែក» នៅលើរូបភាព', why: 'ដុំដែកចុះមកហើយជាប់' } }, hazardId: 'r1', subtype: 'location' }],
           hazards: [{ id: 'r1', equipmentId: eqId }],
           dueAt: '', approved: true, createdAt: new Date().toISOString(), photo: PHOTO,
         }); });
@@ -318,9 +336,28 @@ function fakeQuestions(body) {
     ok('★★ 노동자 화면이 사진 문항을 그린다 (새 칸이 있어도)', fig && fig.classList.contains('photo'), t3.errors.join(' | '));
     const img = fig && fig.querySelector('img');
     eq('사진은 교육 안의 data URL', img && img.getAttribute('src'), PHOTO);
-    fig.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 });
-    fig.dispatchEvent(new t3.win.MouseEvent('click', { bubbles: true, clientX: 52, clientY: 49 }));
-    ok('★★ 정답 원 안을 짚으면 맞다고 표시된다', !!fig.querySelector('.tapmark'));
+    /* 2026-11-11 — 누를 때마다 표시가 옮겨 가고, [선택 취소]로 지우고, [제출] 때의 마지막 한 점만 채점 */
+    const tap = (x, y) => fig.dispatchEvent(new t3.win.MouseEvent('click', { bubbles: true, clientX: x, clientY: y }));
+    const submit = t3.win.document.getElementById('btn-hotspot-submit');
+    const clear = t3.win.document.getElementById('btn-hotspot-clear');
+    fig.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 100 });   // 화면 크기와 상관없이 퍼센트
+    ok('★★ 고르기 전에는 제출할 수 없다', submit.disabled === true);
+    tap(20, 10);                                    // A (10%, 10%) — 오답 자리
+    const marks = () => fig.querySelectorAll('.tapmark');
+    eq('★ 누르면 표시 하나', marks().length, 1);
+    eq('표시는 사진 크기에 대한 퍼센트', marks()[0].style.left + '|' + marks()[0].style.top, '10%|10%');
+    tap(180, 90);                                   // B
+    eq('★★ 다시 누르면 앞 표시는 사라지고 새 자리에 (하나만)', marks().length + '|' + marks()[0].style.left, '1|90%');
+    ok('★★ 제출 전에는 정답 자리가 화면에 없다', !fig.querySelector('.answer-ring') && !fig.querySelector('[data-mark]'));
+    clear.dispatchEvent(new t3.win.MouseEvent('click', { bubbles: true }));
+    eq('★ 선택 취소 — 표시가 지워지고 제출이 막힌다', marks().length + '|' + submit.disabled, '0|true');
+    tap(20, 10);                                    // A
+    tap(104, 49);                                   // C (52%, 49%) — 정답 원 안
+    submit.dispatchEvent(new t3.win.MouseEvent('click', { bubbles: true }));
+    eq('★★ 마지막으로 고른 C 만 채점 — 맞음', marks()[0].getAttribute('data-mark'), 'ok');
+    eq('★ 제출 뒤에는 좌표가 바뀌지 않는다', (tap(20, 10), marks()[0].style.left), '52%');
+    ok('제출 뒤 취소·제출 잠김', submit.disabled && clear.disabled);
+    has('결과는 내 언어 해설', t3.win.document.getElementById('consequence-text').textContent, 'ដុំដែកចុះមក');
     ok('화면 오류 없음', t3.errors.length === 0, t3.errors.join(' | '));
 
     const t4 = boot('worker/quiz.html?course=c-bad', {
@@ -329,7 +366,7 @@ function fakeQuestions(body) {
         const eqId = w.Store.findBy(w.Store.courses.load(), 'id', 'c-press').equipmentId;
         w.Store.courses.update((list) => { list.push({
           id: 'c-bad', title: '나쁜 사진', equipmentId: eqId, languages: ['ko'], phraseIds: ['ph-1'],
-          quiz: [{ id: 'q1', type: 'hotspot', prompt: 'p', answer: { x: 50, y: 50, r: 20 }, figure: 'photo', i18n: {} }],
+          quiz: [{ id: 'q1', type: 'hotspot', prompt: 'p', answer: { x: 50, y: 50, r: 20 }, figure: 'photo', i18n: { km: { prompt: 'ទំព័រ' } } }],
           dueAt: '', approved: true, createdAt: new Date().toISOString(), photo: 'https://evil.example/x.jpg',
         }); });
         w.Store.progress.update((list) => { list.push({ workerId: 'W-4821-07', courseId: 'c-bad', learnedAt: new Date().toISOString(), quiz: null }); });

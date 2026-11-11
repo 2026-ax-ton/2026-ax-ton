@@ -4,40 +4,32 @@
    담당: P1
    기능번호: 기능4
    읽는 키: courses, setup, progress
-   쓰는 키: progress
-   근거: SCREEN 기능4 · PRD §4.2
+   쓰는 키: progress (+ 언어를 바꾸면 accounts[].lang — UI.langSwitch)
+   근거: SCREEN 기능4 · PRD §4.2 · 🆕 2026-11-11 노동자 화면 개선 요청
 
    ★ 이 화면이 제품의 심장이다.
      교육 완료의 기준을 출석부 서명에서 "이해했는가"로 옮기는 곳이다.
      통과하지 못하면 progress 에 passed:false 로 남고 교육 완료로 기록되지 않는다.
 
    문항 세 유형 —
-     hotspot  설비 도해에서 위험 지점을 짚는다   answer { x, y, r } 퍼센트 좌표
-              도해와 위험 구역은 assets/diagrams.js 에 있다 — 기능2 가 같은 것을 본다
+     hotspot  사진·도해에서 위험 지점을 짚는다   answer { x, y, r } 퍼센트 좌표
      choice   올바른 작업을 고른다               options [] · answer 인덱스
      match    작업과 보호구를 연결한다           pairs [[작업, 보호구], ...]
 
    이 파일이 코드로 지키는 것 —
 
-   · 한 문항에 한 번만 답한다. 그 자리에서 다시 풀 수 있으면 점수가 늘 100 이 되고
-     담당자 대시보드의 "최초 통과율"이 뜻을 잃는다. 다시 풀기는 처음부터 한다.
-
+   · 한 문항에 한 번만 답한다. 다시 풀기는 처음부터 한다 (최초 통과율이 뜻을 잃지 않게).
    · 답한 직후 "지금 이대로 하면 무슨 일이 생기는지"를 말한다.
-     맞고 틀림만 알려 주면 다음에 또 같은 선택을 한다.
-
    · 미통과 화면에 "노동자의 실패가 아니라 교육의 실패" 를 적는다.
-     이 문장이 빠지면 이 기능은 노동자를 걸러 내는 시험이 된다.
-
-   · 문항은 음성으로 읽어 준다. 글자를 한 자도 읽지 않고 끝낼 수 있어야 한다.
-
-   · 문항을 노동자의 언어로 읽는다. courses.quiz[].i18n 에 있고 Store.qtext 로
-     읽는다. 문항이 한국어로만 나오면 이 기능은 기존 필기시험이 된다.
-     번역이 없으면 한국어를 띄우고 "내 언어 번역 준비 중" 배지를 남긴다 —
-     조용히 숨기지 않는다.
-
-   · ★ answer 는 options 의 인덱스다. 번역 배열의 길이가 한국어와 다르면
-     정답이 엉뚱한 선택지를 가리킨다. 이 검사는 store.js 의 qtext 한 곳에만 있다.
-     화면에서 q.i18n 을 직접 뒤지지 마세요.
+   · 문항은 음성으로 읽어 준다. 🆕 버튼은 듣기 ↔ 그만 듣기로 바뀌고, 끝난 뒤에도 다시 들을 수 있다.
+     다음 문항으로 가면 앞 문항 음성은 끊긴다.
+   · 🆕 2026-11-11 고른 언어로만 보인다 — 한국어를 섞지 않는다 (사용자 요청).
+     화면 글자는 전부 I18N, 문항은 Store.qtext. 문항 번역이 하나라도 빠졌으면 한국어를 띄우지 않고
+     「아직 내 언어로 준비되지 않았습니다」로 막는다 (담당자 화면이 발급 전에 번역을 채운다).
+     설비 이름(고유명사)만 원문 그대로다.
+   · 🆕 사진 문항은 누를 때마다 표시가 그 자리로 옮겨 가고, [선택 취소]로 지울 수 있고,
+     [제출]을 누를 때의 마지막 한 점만 채점한다. 제출 전에는 정답 자리를 화면 어디에도 두지 않는다.
+   · ★ answer 는 options 의 인덱스다. 번역 배열의 길이 검사는 store.js 의 qtext 한 곳에만 있다.
    =================================================================== */
 
 (function () {
@@ -50,14 +42,13 @@
   UI.markCurrentTab();
   UI.warnIfBlocked();
 
-  /* 통과 기준. 안전 지시는 하나라도 놓치면 안 되므로 전 문항 정답이다.
-     기준을 낮추면 "절반은 몰라도 교육 완료" 가 기록으로 남는다. */
+  /* 통과 기준. 안전 지시는 하나라도 놓치면 안 되므로 전 문항 정답이다. */
   var PASS_SCORE = 100;
 
   var KIND = {
-    hotspot: { ico: '👆', label: '위험 지점 짚기' },
-    choice:  { ico: '☑',  label: '올바른 작업 고르기' },
-    match:   { ico: '🔗', label: '보호구 연결하기' }
+    hotspot: { ico: '👆', key: 'quiz.kindHotspot' },
+    choice:  { ico: '☑',  key: 'quiz.kindChoice' },
+    match:   { ico: '🔗', key: 'quiz.kindMatch' }
   };
 
   /* -----------------------------------------------------------------
@@ -75,6 +66,13 @@
   }
 
   var me = whoAmI();
+
+  /** 화면 글자 — 내 언어로. {n} {t} {r} 는 숫자로 바꾼다 */
+  function T(key, vars) {
+    var s = I18N.t(key, me.lang);
+    Object.keys(vars || {}).forEach(function (k) { s = s.split('{' + k + '}').join(String(vars[k])); });
+    return s;
+  }
 
   function param(name) {
     var m = new RegExp('[?&]' + name + '=([^&]*)').exec(location.search || '');
@@ -98,23 +96,38 @@
     );
   }
 
-  /* 실제로 낼 수 있는 문항만 남긴다. 모르는 유형은 조용히 통과시키지 않고 뺀다 —
-     채점할 수 없는 문항을 정답으로 세면 이해하지 못한 사람이 통과한다. */
+  /** 교육 이름 — 한국어 노동자는 담당자가 쓴 제목, 그 밖의 언어는 「설비 이름 · 안전교육」.
+   *  담당자가 쓴 제목은 한국어라 섞이지 않게 한다. 설비 이름은 고유명사라 원문 그대로 */
+  function courseTitle(course) {
+    if (me.lang === 'ko') return course.title;
+    var eq = Store.findBy(Store.setup.load().equipments, 'id', course.equipmentId);
+    return (eq ? eq.name + ' · ' : '') + T('learn.course');
+  }
+
+  /* 실제로 낼 수 있는 문항만 남긴다. 모르는 유형은 조용히 통과시키지 않고 뺀다 */
   function questionsOf(course) {
     return (Array.isArray(course.quiz) ? course.quiz : []).filter(function (q) {
       if (!q || !KIND[q.type]) return false;
-
-      /* ★ 내린 문항은 앞으로 내지 않는다 (C6).
-           배열에서 빼지 않고 표시만 한 것이라, 이미 그 문항을 푼 사람의
-           기록은 그대로 남는다. 지워 버리면 옛 기록이 가리킬 곳을 잃는다. */
-      if (q.retired) return false;
-
+      if (q.retired) return false;   // ★ 내린 문항은 앞으로 내지 않는다 (C6)
       if (q.type === 'hotspot') return !!(q.answer && typeof q.answer.x === 'number');
-      if (q.type === 'choice') return Array.isArray(q.options) && q.options.length > 1
-        && typeof q.answer === 'number';
+      if (q.type === 'choice') return Array.isArray(q.options) && q.options.length > 1 && typeof q.answer === 'number';
       if (q.type === 'match') return Array.isArray(q.pairs) && q.pairs.length > 0;
       return false;
     });
+  }
+
+  function qt(q, field) { return Store.qtext(q, me.lang, field); }
+
+  /** 이 문항을 내 언어로 낼 수 있는가 — 묻는 칸(문항·선택지·짝)이 다 번역됐는가 (Store.qhas).
+   *  결과·해설은 번역이 없으면 한국어 대신 「맞습니다/틀렸습니다」(내 언어)로 말한다 (tr) */
+  function ready(q) { return me.lang === 'ko' || Store.qhas(q, me.lang); }
+
+  /** 번역된 값만 — 한국어로 되돌아가면 null (한국어를 섞지 않는다) */
+  function tr(q, field) {
+    if (q[field] === undefined || q[field] === null || q[field] === '') return null;
+    var got = qt(q, field);
+    if (me.lang === 'ko') return got;
+    return JSON.stringify(got) === JSON.stringify(q[field]) ? null : got;
   }
 
   /* -----------------------------------------------------------------
@@ -135,9 +148,11 @@
   }
 
   function gate(ico, title, why, actions) {
+    UI.stopSpeak();
     UI.setIcon($('gate-ico'), ico);
     $('gate-title').textContent = title;
     $('gate-why').textContent = why;
+    $('gate-why').hidden = !why;
     var box = $('gate-actions');
     box.textContent = '';
     actions.forEach(function (node) { box.appendChild(node); });
@@ -148,7 +163,8 @@
      문항 진행
      ----------------------------------------------------------------- */
 
-  var run = null;   // { course, equipment, questions, index, answers, locked }
+  var run = null;        // { course, equipment, questions, index, answers, locked, feedback }
+  var lastResult = null;
 
   function start(course) {
     var setup = Store.setup.load();
@@ -158,10 +174,11 @@
       questions: questionsOf(course),
       index: 0,
       answers: [],
-      locked: false
+      locked: false,
+      feedback: null
     };
     show('quiz');
-    renderQuestion();
+    renderQuestion(true);
   }
 
   function renderVoiceNote() {
@@ -171,48 +188,23 @@
     box.hidden = !note;
   }
 
-  /* --- 문항을 내 언어로 읽는다 ---
+  function say(text, koText) { return { text: text, lang: me.lang, ko: koText || text }; }
 
-     ★ q.i18n 을 여기서 직접 뒤지지 않는다. Store.qtext 를 거친다.
-       answer 는 options 의 인덱스라서, 번역 배열의 길이가 한국어와 다르면
-       정답이 엉뚱한 선택지를 가리킨다. 그 검사가 store.js 한 곳에 있다.
-
-     번역이 없으면 한국어가 그대로 나오고, 화면에는 "내 언어 번역 준비 중"
-     배지가 붙는다. 조용히 숨기지 않는다 — 안전 지시가 말없이 사라지는 쪽이
-     더 위험하다는 기능3 의 판단과 같다. */
-
-  function qt(q, field) {
-    return Store.qtext(q, me.lang, field);
-  }
-
-  /* 내 언어로 읽어 주고, 기기에 그 언어 음성이 없으면 한국어로 돌린다.
-     되돌린 사실은 UI.voiceNote() 가 화면에 적는다 (renderVoiceNote). */
-  function say(text, koText) {
-    return { text: text, lang: me.lang, ko: koText || text };
-  }
-
-  /* 문항 진행(n/총)과 "한 번만 답할 수 있어요" 를 먼저 알리고 이어서 문항을 읽는다
-     (H2 · FR-WK-03-12). 한 번의 발화로 합쳐야 한다 — UI.speak 는 새로 부르면
-     앞의 발화를 끊으므로, 두 번 나눠 부르면 안내만 들리고 문항이 끊긴다. */
-  function stepAnnounce(lang) {
-    return I18N.t('quiz.stepLabel', lang) + ' ' + (run.index + 1) + ' / ' + run.questions.length +
-      '. ' + I18N.t('quiz.onceOnly', lang);
-  }
-
+  /* 진행(n/총)과 "한 번만" 을 먼저 알리고 이어서 문항을 읽는다 — 한 번의 발화로 (끊기지 않게) */
   function promptSpeech(q) {
-    var announce = stepAnnounce(me.lang);
-    var announceKo = stepAnnounce('ko');
-    return say(announce + ' ' + qt(q, 'prompt'), announceKo + ' ' + q.prompt);
+    var head = function (l) {
+      return I18N.t('quiz.stepLabel', l) + ' ' + (run.index + 1) + ' / ' + run.questions.length + '. ' + I18N.t('quiz.onceOnly', l);
+    };
+    return say(head(me.lang) + ' ' + qt(q, 'prompt'), head('ko') + ' ' + q.prompt);
   }
 
-  function renderQuestion() {
+  function renderQuestion(autoSpeak) {
     var q = run.questions[run.index];
     var kind = KIND[q.type];
     run.locked = false;
 
-    $('quiz-course').textContent = run.course.title;
-    $('step-count').textContent =
-      '문항 ' + (run.index + 1) + ' / ' + run.questions.length + ' · ' + kind.label;
+    $('quiz-course').textContent = courseTitle(run.course);
+    $('step-count').textContent = T('quiz.stepLabel') + ' ' + (run.index + 1) + ' / ' + run.questions.length + ' · ' + T(kind.key);
 
     var dots = $('step-dots');
     dots.textContent = '';
@@ -222,33 +214,22 @@
       dots.appendChild(dot);
     });
 
-    /* 한 번만 답할 수 있다는 것을 내 언어로, 글자로도 미리 적는다
-       (음성은 promptSpeech 에 합쳐 아래에서 읽는다) */
-    $('step-once').textContent = I18N.t('quiz.onceOnly');
+    /* 「한 번만 답할 수 있어요」는 음성으로 읽어 준다 — 글자 줄은 두지 않는다 (2026-11-11 단순화) */
+    $('step-once').textContent = '';
+    $('step-once').hidden = true;
 
     UI.setIcon($('quiz-kind'), kind.ico);
     $('quiz-prompt').textContent = qt(q, 'prompt');
 
     var audio = $('prompt-audio');
     audio.textContent = '';
-    audio.appendChild(UI.audioButton(function () { return promptSpeech(q); }, I18N.t('quiz.listenAgain')));
-
-    /* 이 문항이 내 언어로 온전히 나오지 않으면 그 사실을 남긴다.
-       배지가 없으면 노동자는 왜 한국어가 보이는지 알 수 없고,
-       담당자도 어느 문항의 번역이 빠졌는지 알 방법이 없다. */
-    var note = $('prompt-note');
-    note.textContent = '';
-    if (!Store.qhas(q, me.lang)) {
-      note.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
-      note.hidden = false;
-    } else {
-      note.hidden = true;
-    }
+    var listen = UI.audioButton(function () { return promptSpeech(q); }, I18N.t('quiz.listenAgain', me.lang));
+    audio.appendChild(listen);
+    $('prompt-note').hidden = true;
 
     $('consequence').hidden = true;
     $('btn-next').hidden = true;
-    $('btn-next').textContent =
-      run.index === run.questions.length - 1 ? '결과 보기 ▶' : '다음 문항 ▶';
+    $('btn-next').textContent = run.index === run.questions.length - 1 ? T('quiz.seeResult') + ' ▶' : T('quiz.nextQuestion') + ' ▶';
 
     var body = $('quiz-body');
     body.textContent = '';
@@ -256,73 +237,73 @@
     else if (q.type === 'choice') renderChoice(body, q);
     else renderMatch(body, q);
 
-    UI.speak(promptSpeech(q));
+    if (autoSpeak) listen.play();
   }
 
-  /* 답이 정해졌다. 결과를 말하고 다음으로 갈 수 있게 한다.
-
-     consequenceKo 는 그 문장의 한국어 원문이다. 기기에 노동자의 언어 음성이
-     없을 때 UI.speak 이 이것을 읽는다. 안 넘기면 번역문을 한국어 음성으로
-     읽으려 해서 아무 말도 안 들린다. */
+  /* 답이 정해졌다. 결과를 말하고 다음으로 갈 수 있게 한다 */
   function answered(correct, consequenceText, consequenceKo) {
     if (run.locked) return;
     run.locked = true;
     run.answers[run.index] = correct ? 1 : 0;
+    run.feedback = { correct: correct };
+    showFeedback(correct, consequenceText, consequenceKo, true);
+  }
 
+  function showFeedback(correct, text, ko, speakIt) {
     var box = $('consequence');
-    if (consequenceText) {
+    if (text) {
       UI.setIcon($('consequence-ico'), correct ? 'check-circle' : 'alert');
-      $('consequence-text').textContent = consequenceText;
+      $('consequence-text').textContent = text;
       box.hidden = false;
-      UI.speak(say(consequenceText, consequenceKo));
+      if (speakIt) UI.speak(say(text, ko));
     } else {
       box.hidden = true;
     }
-
     $('btn-next').hidden = false;
   }
 
-  /* --- hotspot — 설비 도해에서 위험 지점 짚기 --- */
+  /* 결과 문장 — 문항의 해설(내 언어). 없으면 맞음·틀림만 (한국어 문장을 대신 띄우지 않는다) */
+  function feedbackOf(q, correct, okKey, noKey) {
+    var why = tr(q, 'why');
+    var generic = T(correct ? (okKey || 'state.correct') : (noKey || 'state.wrong'));
+    return { text: why || generic, ko: why ? (q.why || '') : I18N.t(correct ? (okKey || 'state.correct') : (noKey || 'state.wrong'), 'ko') };
+  }
+
+  /* --- hotspot — 누를 때마다 표시가 옮겨 가고, [제출] 때의 마지막 한 점만 채점한다 --- */
 
   function renderHotspot(body, q) {
-    /* 🆕 사진 문항 (PRD-AD-08 S6) — AI로 만든 교육은 실제 설비 사진 위에서 짚는다.
-       사진은 교육(courses)에 줄인 사본(data URL)으로 들어 있다 — 네트워크 요청이 없다.
-       사진 좌표는 도해 구역과 맞지 않으므로 아무 곳이나 짚는 방식으로만 간다 */
-    if (q.figure === 'photo' && typeof run.course.photo === 'string'
-        && run.course.photo.indexOf('data:image/') === 0) {
-      var pf = UI.el('div', 'quiz-figure photo');
+    var photo = q.figure === 'photo' && typeof run.course.photo === 'string' && run.course.photo.indexOf('data:image/') === 0;
+    var figure = UI.el('div', 'quiz-figure' + (photo ? ' photo' : ''));
+    var zones = [];
+    if (photo) {
       var img = UI.el('img');
       img.src = run.course.photo;
       img.alt = '';
-      pf.appendChild(img);
-      renderFreeTap(pf, q);
-      body.appendChild(pf);
-      body.appendChild(UI.el('p', 'zonehint', '사진에서 위험한 곳을 한 번 누르세요.'));
-      return;
+      figure.appendChild(img);
+    } else {
+      var name = Diagrams.nameFor(run.equipment);
+      figure.appendChild(Diagrams.svg(name));
+      /* 도해 구역 중 정답 원 안에 드는 것이 있을 때만 구역으로 고르게 한다 */
+      zones = Diagrams.zones(name);
+      if (!zones.some(function (z) { return Diagrams.inAnswer(q.answer, z.x, z.y); })) zones = [];
     }
 
-    var name = Diagrams.nameFor(run.equipment);
+    var sel = null;              // { x, y } 또는 { zone, btn } — 제출 전까지 몇 번이든 바뀐다
+    var marker = null;
+    var submit = UI.el('button', 'btn btn-primary', T('quiz.submit'));
+    submit.type = 'button';
+    submit.id = 'btn-hotspot-submit';
+    var clear = UI.el('button', 'btn btn-quiet', T('quiz.clear'));
+    clear.type = 'button';
+    clear.id = 'btn-hotspot-clear';
 
-    var figure = UI.el('div', 'quiz-figure');
-    figure.appendChild(Diagrams.svg(name));
+    function paintSel() {
+      submit.disabled = !sel;
+      clear.disabled = !sel;
+      submit.setAttribute('aria-disabled', sel ? 'false' : 'true');
+    }
 
-    /* 이 도해의 구역 중 정답 원 안에 들어오는 것이 있는지.
-       없으면 구역을 쓰지 않는다 — 아무 구역도 정답이 아니면 통과할 길이 없다. */
-    var zones = Diagrams.zones(name);
-    var hasCorrect = zones.some(function (z) { return Diagrams.inAnswer(q.answer, z.x, z.y); });
-
-    if (zones.length && hasCorrect) renderZones(figure, q, zones);
-    else renderFreeTap(figure, q);
-
-    body.appendChild(figure);
-    // 힌트는 도해 밖에 둔다. figure 안에 넣으면 퍼센트 좌표계 위에 겹친다.
-    body.appendChild(UI.el('p', 'zonehint', '그림에서 위험한 곳을 한 번 누르세요.'));
-  }
-
-  function renderZones(figure, q, zones) {
-    var buttons = [];
-
-    zones.forEach(function (z) {
+    var zoneBtns = zones.map(function (z) {
       var btn = UI.el('button', 'zone');
       btn.type = 'button';
       btn.setAttribute('aria-label', z.label);
@@ -330,67 +311,91 @@
       btn.style.top = z.y + '%';
       btn.style.width = z.w + '%';
       btn.style.height = z.h + '%';
-      buttons.push({ btn: btn, zone: z, correct: Diagrams.inAnswer(q.answer, z.x, z.y) });
-
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
         if (run.locked) return;
-        var picked = Store.findBy(buttons, 'btn', btn);
-
-        // 고른 곳과 정답을 함께 표시한다. 어디가 정답인지 모르면 배울 것이 없다.
-        buttons.forEach(function (b) {
-          b.btn.disabled = true;
-          if (b === picked) b.btn.setAttribute('data-mark', picked.correct ? 'ok' : 'no');
-          else if (!picked.correct && b.correct) b.btn.setAttribute('data-mark', 'ok');
-        });
-
-        /* 구역별 결과 문장(z.consequence)은 도해에 붙어 있어 한국어만 있다.
-           그 경우 한국어를 그대로 읽는다 — 없는 번역을 있는 척하지 않는다. */
-        if (z.consequence) answered(picked.correct, z.consequence, z.consequence);
-        else answered(picked.correct, qt(q, 'why') || '', q.why || '');
+        zoneBtns.forEach(function (b) { b.removeAttribute('data-selected'); });
+        btn.setAttribute('data-selected', 'yes');
+        sel = { zone: z, btn: btn };
+        paintSel();
       });
-
       figure.appendChild(btn);
+      return btn;
     });
+
+    if (!zones.length) {
+      /* 좌표는 사진 크기에 대한 퍼센트 — 화면 크기·확대가 바뀌어도 같은 자리 */
+      figure.addEventListener('click', function (e) {
+        if (run.locked) return;
+        var box = figure.getBoundingClientRect();
+        if (!box.width || !box.height) return;
+        var x = Math.max(0, Math.min(100, ((e.clientX - box.left) / box.width) * 100));
+        var y = Math.max(0, Math.min(100, ((e.clientY - box.top) / box.height) * 100));
+        sel = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+        if (!marker) { marker = UI.el('div', 'tapmark'); figure.appendChild(marker); }
+        marker.style.left = sel.x + '%';
+        marker.style.top = sel.y + '%';
+        paintSel();
+      });
+    }
+
+    clear.addEventListener('click', function () {
+      if (run.locked) return;
+      sel = null;
+      if (marker) { marker.parentNode.removeChild(marker); marker = null; }
+      zoneBtns.forEach(function (b) { b.removeAttribute('data-selected'); });
+      paintSel();
+    });
+
+    submit.addEventListener('click', function () {
+      if (run.locked) return;
+      if (!sel) { UI.toast(T('quiz.pickFirst')); return; }
+      var correct = sel.zone ? Diagrams.inAnswer(q.answer, sel.zone.x, sel.zone.y) : Diagrams.inAnswer(q.answer, sel.x, sel.y);
+      run.picked = sel.zone ? { x: sel.zone.x, y: sel.zone.y } : { x: sel.x, y: sel.y };
+      submit.disabled = true;
+      clear.disabled = true;
+      revealHotspot(figure, q, zones, zoneBtns, sel, marker, correct);
+      var fb = feedbackOf(q, correct, 'quiz.rightSpot', 'quiz.wrongSpot');
+      if (sel.zone && sel.zone.consequence && me.lang === 'ko') fb = { text: sel.zone.consequence, ko: sel.zone.consequence };
+      answered(correct, fb.text, fb.ko);
+    });
+
+    body.appendChild(figure);
+    body.appendChild(UI.el('p', 'zonehint', T('quiz.tapPhoto')));
+    var row = UI.el('div', 'big-actions hotspot-actions');
+    row.appendChild(clear);
+    row.appendChild(submit);
+    body.appendChild(row);
+    paintSel();
   }
 
-  /* 도해가 없는 설비 — 그림 아무 곳이나 눌러 짚는다.
-     구역 이름을 못 주므로 결과 설명도 일반적인 문장이 된다. */
-  function renderFreeTap(figure, q) {
-    figure.addEventListener('click', function (e) {
-      if (run.locked) return;
-
-      var box = figure.getBoundingClientRect();
-      if (!box.width || !box.height) return;   // 아직 그려지지 않았다
-
-      var x = ((e.clientX - box.left) / box.width) * 100;
-      var y = ((e.clientY - box.top) / box.height) * 100;
-
-      var mark = UI.el('div', 'tapmark');
-      mark.style.left = x + '%';
-      mark.style.top = y + '%';
-      figure.appendChild(mark);
-
-      var correct = Diagrams.inAnswer(q.answer, x, y);
-      var fallback = correct
-        ? '맞습니다. 이곳이 이 설비에서 다치기 쉬운 자리입니다.'
-        : '이곳이 아닙니다. 교육을 다시 듣고 위험한 자리를 확인해 주세요.';
-      answered(correct, qt(q, 'why') || fallback, q.why || fallback);
+  /** 제출 뒤에만 — 내가 고른 곳(맞음·틀림)과 정답 자리를 보인다. 어디가 정답인지 모르면 배울 것이 없다 */
+  function revealHotspot(figure, q, zones, zoneBtns, sel, marker, correct) {
+    zoneBtns.forEach(function (b, i) {
+      b.disabled = true;
+      /* 틀렸으면 정답 구역도 함께 — 어디가 맞는지 모르면 배울 것이 없다 */
+      if (!correct && b !== (sel && sel.btn) && Diagrams.inAnswer(q.answer, zones[i].x, zones[i].y)) b.setAttribute('data-mark', 'ok');
     });
+    if (sel && sel.btn) sel.btn.setAttribute('data-mark', correct ? 'ok' : 'no');
+    if (marker) marker.setAttribute('data-mark', correct ? 'ok' : 'no');
+    if (!correct && !zoneBtns.length) {
+      var ring = UI.el('div', 'answer-ring');
+      ring.style.left = q.answer.x + '%';
+      ring.style.top = q.answer.y + '%';
+      ring.style.width = (2 * (q.answer.r || 12)) + '%';
+      ring.style.height = (2 * (q.answer.r || 12)) + '%';
+      figure.appendChild(ring);
+    }
   }
 
   /* --- choice — 올바른 작업 고르기 --- */
 
   function renderChoice(body, q) {
     var list = UI.el('ul', 'choice-list');
-
-    /* 번역이 온전하지 않으면 qtext 가 한국어 배열을 그대로 돌려준다.
-       그래서 아래 i 는 언제나 q.answer 와 같은 자리를 가리킨다. */
     var options = qt(q, 'options');
 
     options.forEach(function (option, i) {
       var li = UI.el('li', 'choice-row');
-      var optionKo = q.options[i];
-
       var btn = UI.el('button', 'choice-btn');
       btn.type = 'button';
       btn.appendChild(UI.el('span', 'no', String(i + 1)));
@@ -399,36 +404,25 @@
       btn.addEventListener('click', function () {
         if (run.locked) return;
         var correct = i === q.answer;
-
         UI.$$('.choice-btn', list).forEach(function (other, k) {
           other.disabled = true;
           if (k === i) other.setAttribute('data-mark', correct ? 'ok' : 'no');
           else if (!correct && k === q.answer) other.setAttribute('data-mark', 'ok');
         });
-
-        // results 는 선택지마다의 결과 설명. 기능2 가 아직 안 만들었으면 없다.
-        var results = Array.isArray(qt(q, 'results')) ? qt(q, 'results') : [];
-        var resultsKo = Array.isArray(q.results) ? q.results : [];
-        answered(correct,
-          results[i] || qt(q, 'why') || '',
-          resultsKo[i] || q.why || '');
+        var results = tr(q, 'results') || [];
+        var fb = feedbackOf(q, correct);
+        answered(correct, results[i] || fb.text, results[i] ? q.results[i] : fb.ko);
       });
 
       li.appendChild(btn);
-      li.appendChild(UI.audioButton(function () {
-        return say(option, optionKo);
-      }, (i + 1) + '번 선택지 듣기'));
-
+      li.appendChild(UI.audioButton(function () { return say(option, q.options[i]); }, T('quiz.option', { n: i + 1 })));
       list.appendChild(li);
     });
 
     body.appendChild(list);
   }
 
-  /* --- match — 작업과 보호구 연결하기
-
-     드래그를 쓰지 않는다. 장갑 낀 손으로는 왼쪽 하나 누르고
-     오른쪽 하나 누르는 편이 정확하다. --- */
+  /* --- match — 작업과 보호구 연결하기 (드래그 없이 왼쪽 → 오른쪽 누르기) --- */
 
   function shuffled(list) {
     var out = list.slice();
@@ -440,29 +434,22 @@
   }
 
   function renderMatch(body, q) {
-    /* 번역이 온전하지 않으면 한국어 pairs 가 그대로 온다.
-       어느 쪽이든 i 는 원래 줄 번호라서 정답 판정(links[l.i] === l.i)이 그대로 맞다. */
     var pairs = qt(q, 'pairs');
-
     var lefts = pairs.map(function (p, i) { return { i: i, text: p[0] }; });
     var rights = shuffled(pairs.map(function (p, i) { return { i: i, text: p[1] }; }));
-
-    var picked = null;      // 지금 고른 왼쪽 index
-    var links = {};         // 왼쪽 index -> 오른쪽 index
+    var picked = null;
+    var links = {};
 
     var board = UI.el('div', 'match-board');
-
     var head = UI.el('div', 'match-col-head');
-    head.appendChild(UI.el('span', null, '작업'));
-    head.appendChild(UI.el('span', null, '보호구'));
+    head.appendChild(UI.el('span', null, T('quiz.matchTask')));
+    head.appendChild(UI.el('span', null, T('quiz.matchGear')));
     board.appendChild(head);
 
     var leftBtns = [];
     var rightBtns = [];
 
     function pairNumberOf(leftIndex) {
-      // 이어진 순서대로 1, 2, 3… 짝 번호를 준다. 색만으로는 무엇이 무엇과
-      // 이어졌는지 알 수 없어서 글자로도 남긴다.
       var order = Object.keys(links).sort(function (a, b) { return links[a] - links[b]; });
       return order.indexOf(String(leftIndex)) + 1;
     }
@@ -479,7 +466,6 @@
           btn.querySelector('.pairno').textContent = '';
         }
       });
-
       rights.forEach(function (r, row) {
         var btn = rightBtns[row];
         var ownerLeft = null;
@@ -492,7 +478,6 @@
           btn.querySelector('.pairno').textContent = '';
         }
       });
-
       confirmBtn.hidden = Object.keys(links).length !== q.pairs.length;
     }
 
@@ -502,24 +487,19 @@
       btn.appendChild(UI.el('span', 'pairno'));
       btn.appendChild(UI.el('span', 'text', item.text));
       btn.setAttribute('aria-pressed', 'false');
-
       btn.addEventListener('click', function () {
         if (run.locked) return;
-
         if (side === 'left') {
-          // 이미 이어진 것을 다시 누르면 연결을 푼다. 잘못 누르는 일이 잦다.
           if (links[item.i] !== undefined) { delete links[item.i]; picked = null; }
           else picked = (picked === item.i) ? null : item.i;
         } else {
-          if (picked === null) { UI.toast('왼쪽에서 작업을 먼저 골라 주세요.'); return; }
-          // 이 보호구가 다른 작업에 이미 붙어 있으면 떼어 온다
+          if (picked === null) { UI.toast(T('quiz.matchPickLeft')); return; }
           Object.keys(links).forEach(function (k) { if (links[k] === item.i) delete links[k]; });
           links[picked] = item.i;
           picked = null;
         }
         repaint();
       });
-
       return btn;
     }
 
@@ -537,14 +517,12 @@
       board.appendChild(line);
     });
 
-    var confirmBtn = UI.el('button', 'btn btn-primary', '이대로 확인하기 ✓');
+    var confirmBtn = UI.el('button', 'btn btn-primary', T('quiz.matchConfirm') + ' ✓');
     confirmBtn.type = 'button';
     confirmBtn.hidden = true;
     confirmBtn.addEventListener('click', function () {
       if (run.locked) return;
-
       var allRight = lefts.every(function (l) { return links[l.i] === l.i; });
-
       leftBtns.forEach(function (btn, row) {
         var l = lefts[row];
         btn.setAttribute('data-mark', links[l.i] === l.i ? 'ok' : 'no');
@@ -557,31 +535,19 @@
         btn.setAttribute('data-mark', owner === r.i ? 'ok' : 'no');
         btn.disabled = true;
       });
-
-      var fallback = allRight
-        ? '맞습니다. 작업에 맞는 보호구를 골랐습니다.'
-        : '연결이 맞지 않습니다. 보호구가 맞지 않으면 착용해도 사고를 막지 못합니다.';
-      answered(allRight, qt(q, 'why') || fallback, q.why || fallback);
+      var fb = feedbackOf(q, allRight);
+      answered(allRight, fb.text, fb.ko);
     });
 
     var wrap = UI.el('div', 'big-actions');
     wrap.appendChild(confirmBtn);
-
     body.appendChild(board);
     body.appendChild(wrap);
     repaint();
   }
 
   /* -----------------------------------------------------------------
-     채점과 저장
-
-     ★ progress.quiz 의 기존 네 필드(score · passed · answers · at)는 그대로 둔다.
-       기능5·6(P3·P4)이 읽는 모양이다.
-
-     ★ attempt 와 firstPassed 를 더한다.
-       다시 풀면 최신 결과가 앞 결과를 덮으므로, 그것만 남기면 담당자 대시보드의
-       "최초 통과율"(목표 70~85%)을 계산할 근거가 사라진다.
-       없으면 무시하면 되는 필드라 다른 화면은 깨지지 않는다.
+     채점과 저장 — progress.quiz 의 기존 필드는 그대로 (기능5·6 이 읽는다)
      ----------------------------------------------------------------- */
 
   function grade() {
@@ -600,13 +566,9 @@
         row = { workerId: me.id, courseId: courseId, lang: me.lang, learnedAt: null, quiz: null };
         list.push(row);
       }
-
       var prev = row.quiz;
       var attempt = prev ? (prev.attempt || 1) + 1 : 1;
-      var firstPassed = prev
-        ? (prev.firstPassed !== undefined ? prev.firstPassed : !!prev.passed)
-        : passed;
-
+      var firstPassed = prev ? (prev.firstPassed !== undefined ? prev.firstPassed : !!prev.passed) : passed;
       row.lang = me.lang;
       row.quiz = {
         score: score,
@@ -615,41 +577,31 @@
         at: new Date().toISOString(),
         attempt: attempt,
         firstPassed: firstPassed,
-
-        /* ★ 그때 실제로 낸 문항의 id 를 함께 남긴다 (C6).
-             answers 의 자리는 "낸 문항" 의 순서지 course.quiz 의 자리가 아니다.
-             채점할 수 없는 문항이 섞여 있거나(questionsOf 가 걸러 낸다)
-             나중에 담당자가 문항을 내리면 자리가 어긋나고, 그러면
-             대시보드의 취약 항목과 증빙이 **조용히 다른 문항을 가리킨다.**
-             읽는 쪽은 Store.askedQuestion() 하나만 쓴다. */
+        /* ★ 그때 실제로 낸 문항의 id (C6) — 읽는 쪽은 Store.askedQuestion() 하나만 쓴다 */
         asked: run.questions.map(function (q) { return q.id; })
       };
     });
 
-    if (!result.ok) UI.toast('결과를 저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.');
-
+    if (!result.ok) UI.toast(T('common.saveFail'));
     return { score: score, right: right, total: total, passed: passed };
   }
 
-  function renderResult(r) {
+  function renderResult(r, first) {
+    lastResult = r;
     var panel = $('result-panel');
     panel.className = 'result-panel ' + (r.passed ? 'pass' : 'fail');
 
     UI.setIcon($('result-ico'), r.passed ? 'check-circle' : 'repeat');
-    $('result-title').textContent = r.passed ? '이해도 검증을 통과했습니다' : '아직 통과하지 못했습니다';
-    /* ★ 점수(%)가 아니라 문항 수로 보인다 (H2 · FR-WK-03-13, 1회차 시안 결정).
-       "67점"은 100점 만점을 전제해야 뜻이 통하지만, "3문항 중 2문항"은
-       셈을 몰라도 그림처럼 읽힌다. */
-    $('result-score').textContent = r.total ? r.total + '문항 중 ' + r.right + '문항' : '';
-    $('result-note').textContent = r.total ? '통과 기준 — 전 문항 정답' : '';
+    $('result-title').textContent = T(r.passed ? 'quiz.passTitle' : 'quiz.failTitle');
+    /* ★ 점수(%)가 아니라 문항 수로 (H2) — 셈을 몰라도 그림처럼 읽힌다 */
+    $('result-score').textContent = r.total ? T('quiz.score', { t: r.total, r: r.right }) : '';
+    $('result-note').textContent = r.total ? T('quiz.passRule') : '';
 
     var fault = $('result-fault');
-    if (r.passed) {
-      fault.hidden = true;
-    } else {
+    if (r.passed) fault.hidden = true;
+    else {
       // SCREEN 기능4 — 이 문장이 빠지면 이 기능은 노동자를 걸러 내는 시험이 된다
-      fault.textContent = '미통과는 노동자의 실패가 아니라 교육의 실패로 기록됩니다. ' +
-        '틀린 문항은 그 문구를 다시 만들라는 신호로 담당자에게 전달됩니다.';
+      fault.textContent = T('quiz.notYourFault');
       fault.hidden = false;
     }
 
@@ -662,33 +614,26 @@
       li.appendChild(ico);
       var body = UI.el('div', 'body');
       body.appendChild(UI.el('strong', null, qt(q, 'prompt')));
-      body.appendChild(UI.el('p', 'meta', KIND[q.type].label));
       li.appendChild(body);
-      li.appendChild(run.answers[i] === 1 ? UI.okBadge(I18N.t('state.correct')) : UI.stopBadge(I18N.t('state.wrong')));
+      li.appendChild(run.answers[i] === 1 ? UI.okBadge(T('state.correct')) : UI.stopBadge(T('state.wrong')));
       review.appendChild(li);
     });
 
-    /* ★ 공용 폰 대응 (A04 2-5, D04 US-65) — 통과하면 이 사람이 이 기기에서
-       할 일은 끝났다. 다음 사람이 이 세션 그대로 이어받지 않도록 로그아웃한다.
-       화면은 그대로 둔다(이미 그린 결과는 메모리에 남아 있다) — 아래 버튼을
-       누르면 그때 로그인 화면으로 간다(Auth.require 가드).
-       ★ 통과하지 못했을 때는 하지 않는다 — "지금 다시 풀기" 가 같은 세션으로
-       이어져야 하고, 끝내지 못한 사람을 로그아웃으로 내쫓으면 안 된다. */
-    if (r.passed) Auth.endSession();
+    /* ★ 공용 폰 대응 — 통과하면 로그아웃 (다음 사람이 이어받지 않게). 미통과는 다시 풀기가 이어져야 한다 */
+    if (r.passed && first) Auth.endSession();
 
     var actions = $('result-actions');
     actions.textContent = '';
     if (r.passed) {
-      actions.appendChild(linkButton('홈으로', 'home.html', true));
-      actions.appendChild(linkButton('내 수강 기록 보기', 'my.html'));
+      actions.appendChild(linkButton(T('action.home'), 'home.html', true));
+      actions.appendChild(linkButton(T('quiz.myRecord'), 'my.html'));
     } else {
-      actions.appendChild(linkButton('교육을 다시 듣기', 'learn.html', true));
-      var again = UI.el('button', 'btn btn-quiet', '지금 다시 풀기');
+      actions.appendChild(linkButton(T('quiz.relearn'), 'learn.html', true));
+      var again = UI.el('button', 'btn btn-quiet', T('quiz.retry'));
       again.type = 'button';
       again.addEventListener('click', function () { start(run.course); });
       actions.appendChild(again);
     }
-
     show('result');
   }
 
@@ -699,51 +644,52 @@
   function begin() {
     var courses = myCourses();
     var wanted = param('course');
+    var toList = function () { return linkButton(T('quiz.toList'), 'learn.html', true); };
 
-    if (!courses.length) {
-      gate('🎧', '검증할 교육이 없습니다',
-        '담당자가 아직 내 설비의 교육을 만들지 않았습니다. 현장 관리자에게 알려 주세요.',
-        [linkButton('교육 목록 보기', 'learn.html', true)]);
-      return;
-    }
+    if (!courses.length) { gate('🎧', T('quiz.noCourse'), '', [toList()]); return; }
 
     var course = wanted
       ? Store.findBy(courses, 'id', wanted)
-      // 지정이 없으면 교육은 들었고 아직 통과하지 못한 것을 먼저 꺼낸다
       : courses.filter(function (c) {
           var row = progressOf(c.id);
           return row && row.learnedAt && !(row.quiz && row.quiz.passed);
         })[0];
 
-    if (!course) {
-      gate('🎧', '지금 검증할 교육이 없습니다',
-        wanted
-          ? '이 교육은 내 설비의 교육이 아닙니다. 교육 목록에서 다시 골라 주세요.'
-          : '교육을 들으면 이어서 이해도 검증으로 넘어갑니다.',
-        [linkButton('교육 목록 보기', 'learn.html', true)]);
-      return;
-    }
+    if (!course) { gate('🎧', T('quiz.noCourse'), '', [toList()]); return; }
 
     // ★ 순서를 지킨다. 듣지 않고 문항만 풀어 통과하는 길을 만들지 않는다.
     var row = progressOf(course.id);
     if (!row || !row.learnedAt) {
-      gate('🎧', '먼저 교육을 들어야 합니다',
-        '"' + course.title + '" 을(를) 아직 듣지 않았습니다. ' +
-        '교육을 끝까지 들으면 이해도 검증으로 이어집니다.',
-        [linkButton('이 교육 들으러 가기', 'learn.html', true)]);
+      gate('🎧', T('quiz.learnFirst'), courseTitle(course), [linkButton(T('quiz.goLearn'), 'learn.html', true)]);
       return;
     }
 
     var questions = questionsOf(course);
-    if (!questions.length) {
-      gate('📋', '아직 문항이 없습니다',
-        '"' + course.title + '" 에 이해도 검증 문항이 들어 있지 않습니다. ' +
-        '문항이 없으면 이해했는지 확인할 수 없어 교육 완료로 기록하지 않습니다.',
-        [linkButton('교육 목록 보기', 'learn.html', true)]);
-      return;
-    }
+    if (!questions.length) { gate('📋', T('quiz.noCourse'), courseTitle(course), [toList()]); return; }
+
+    /* ★ 문항 하나라도 내 언어가 없으면 한국어를 띄우지 않고 막는다 (2026-11-11 요청 1-6) */
+    if (!questions.every(ready)) { gate('📋', T('quiz.notReady'), courseTitle(course), [toList()]); return; }
 
     start(course);
+  }
+
+  /** 언어를 바꾸면 지금 화면을 그 언어로 다시 그린다 — 답한 문항은 답한 그대로 */
+  function relang() {
+    user = Auth.current();
+    me = whoAmI();
+    renderVoiceNote();
+    if (!run || $('view-gate').hidden === false) { begin(); return; }
+    if ($('view-result').hidden === false && lastResult) { renderResult(lastResult, false); return; }
+    if (!run.questions.every(ready)) { begin(); return; }
+    var done = run.answers[run.index] !== undefined;
+    renderQuestion(false);
+    if (done) {
+      run.locked = true;
+      UI.$$('#quiz-body button').forEach(function (b) { b.disabled = true; });
+      var q = run.questions[run.index];
+      var fb = feedbackOf(q, run.feedback && run.feedback.correct);
+      showFeedback(run.feedback && run.feedback.correct, fb.text, fb.ko, false);
+    }
   }
 
   /* -----------------------------------------------------------------
@@ -751,17 +697,19 @@
      ----------------------------------------------------------------- */
 
   $('btn-next').addEventListener('click', function () {
-    UI.stopSpeak();
+    UI.stopSpeak();      // 앞 문항의 음성은 여기서 끊는다
     if (run.index < run.questions.length - 1) {
       run.index += 1;
-      renderQuestion();
+      run.feedback = null;
+      renderQuestion(true);
     } else {
-      renderResult(grade());
+      renderResult(grade(), true);
     }
   });
 
   window.addEventListener('pagehide', UI.stopSpeak);
   UI.onVoicesReady(renderVoiceNote);
+  UI.langSwitch($('lang-switch'), relang);
 
   renderVoiceNote();
   begin();
