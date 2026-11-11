@@ -100,6 +100,14 @@ eq('대표 그림 ① og:image', I.pageImage('<meta content="/a.jpg" property="o
 eq('대표 그림 ② og 없으면 twitter:image', I.pageImage('<meta name="twitter:image" content="/t.jpg"><link rel="image_src" href="/l.jpg">', 'https://x.com/p'), 'https://x.com/t.jpg');
 eq('대표 그림 ③ 그다음 link rel=image_src', I.pageImage('<link rel="image_src" href="/l.jpg"><img src="/b.jpg" width="640">', 'https://x.com/p'), 'https://x.com/l.jpg');
 eq('대표 그림 ④ 마지막은 width 300 이상인 첫 <img> (작은 것·svg 는 건너뜀)', I.pageImage('<img src="/s.jpg" width="100"><img src="/v.svg" width="500"><img data-src="/d.jpg" src="/b.gif" width=400>', 'https://x.com/'), 'https://x.com/d.jpg');
+eq('★★ 사이트 공통 그림(og_image·로고)은 건너뛴다 (실측: woojinplaimm.com/og_image.jpg)', I.pageImage('<meta property="og:image" content="/og_image.jpg?v=1"><meta name="twitter:image" content="/img/logo.png"><img src="/p/ram.jpg" width="800">', 'https://x.com/'), 'https://x.com/p/ram.jpg');
+eq('★ 「logo」가 낱말이 아니면 제품 사진이다 (실측: …Closedwithlogo_1200x1200.jpg)', I.siteImage('https://atssafety.com/cdn/shop/files/HPGuard-HingedClosedwithlogo_1200x1200.jpg?v=1') + '|' + I.siteImage('https://x.com/site-logo.png') + '|' + I.siteImage('https://x.com/default_share.jpg'), 'false|true|true');
+{
+  const g = { groundingChunks: [{ web: { uri: 'https://commons.wikimedia.org/wiki/Main_Page' } }] };
+  const h = I.readPhotoHints({ items: [{ id: 'r1', pages: ['https://commons.wikimedia.org/wiki/Category:Gloves', 'https://commons.wikimedia.org/wiki/File:Glove.jpg', 'https://commons.wikimedia.org/wiki/Gloves'] }] }, g);
+  eq('★★ 위키미디어 공용은 파일(File:) 페이지만 — 분류·갤러리는 버린다 (실측: 장갑 → 박물관 직물 사진)', h.r1.pages.join(), 'https://commons.wikimedia.org/wiki/File:Glove.jpg');
+}
+has('지시문이 공용 분류 페이지를 막는다', I.photoSystemText(), 'Category:');
 eq('대표 그림이 없으면 빈 값', I.pageImage('<img src="/s.jpg">', 'https://x.com/'), '');
 eq('공용 그림 파일 이름 (thumb 주소)', I.commonsFile('https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Press%20brake.jpg/800px-Press_brake.jpg'), 'Press brake.jpg');
 eq('★ 공용 그림 파일 이름 (thumb.wikimedia.org — 2026-11-11 실측)', I.commonsFile('https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Hydraulic_press.jpg/1280px-Hydraulic_press.jpg?utm_source=x'), 'Hydraulic_press.jpg');

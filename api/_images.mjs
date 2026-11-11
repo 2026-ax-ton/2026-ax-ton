@@ -124,11 +124,20 @@ function eligibleSources(it) {
   return (it.sources || []).filter((s) => s.tier !== 4 && !/\.pdf(\?|#|$)/i.test(s.url) && safeUrl(s.url)).slice(0, PAGES_PER_ITEM);
 }
 
+/** 사이트 공통 그림(로고·공유용 기본 그림)인가 — 파일 이름으로 본다.
+ *  2026-11-11 실측: woojinplaimm.com/og_image.jpg (모든 페이지 같은 그림)가 「잔류 에너지」 사진으로 붙었다 */
+export function siteImage(url) {
+  let name = '';
+  try { name = decodeURIComponent(new URL(url, 'https://x.invalid/').pathname.split('/').pop() || ''); } catch (e) { name = String(url); }
+  /* 「logo」는 낱말일 때만 — atssafety.com 의 제품 사진 이름이 「…Closedwithlogo_1200x1200.jpg」다 */
+  return /(^|[^a-z])(logo|favicon)([^a-z]|$)/i.test(name) || /^(og[_-]?image|default|share|placeholder)([_.-]|$)/i.test(name);
+}
+
 /** 페이지 대표 그림 — 「이 부위 사진이 있는 페이지」로 찾은 곳에서만 쓴다.
  *  차례: og:image → twitter:image → <link rel=image_src> → width 300 이상인 첫 <img> */
 export function pageImage(html, pageUrl) {
   const s = String(html);
-  const usable = (c) => !!c && !/^data:/i.test(c) && !/\.(svg|gif)(\?|$)/i.test(c);
+  const usable = (c) => !!c && !/^data:/i.test(c) && !/\.(svg|gif)(\?|$)/i.test(c) && !siteImage(c);
   const attr = (m, name) => { const c = m && new RegExp('\\s' + name + '\\s*=\\s*["\']([^"\']+)["\']', 'i').exec(m[0]); return c ? c[1] : ''; };
   const meta = (key) => attr(new RegExp('<meta\\b[^>]*(?:property|name)\\s*=\\s*["\']' + key + '["\'][^>]*>', 'i').exec(s), 'content');
   const bigImg = () => {
@@ -187,7 +196,7 @@ export async function licenseOf(imgUrl, pageUrl, fetchFn = globalThis.fetch, ms 
 export function photoSystemText() {
   return '너는 산업안전 교육 자료의 사진을 찾는 조사원이다. 설비의 위험 항목마다 그 부위나 위험 상황이 사진·그림으로 보이는 자료를 웹 검색으로 찾는다.\n'
     + '규칙:\n'
-    + '1) 항목마다 그 부위 사진·그림이 실제로 있는 웹 페이지 주소를 1~2개 pages 에 쓴다. 위키미디어 공용(commons.wikimedia.org) 사진이 있으면 먼저 쓴다(사용 조건이 적혀 있다). 제조사 제품 페이지, 안전보건공단 재해사례·교육자료, 업계 기사, 현장 블로그도 된다. PDF 는 쓰지 않는다.\n'
+    + '1) 항목마다 그 부위 사진·그림이 실제로 있는 웹 페이지 주소를 1~2개 pages 에 쓴다. 위키미디어 공용 사진이 있으면 먼저 쓴다(사용 조건이 적혀 있다) — 사진 한 장의 파일 페이지(https://commons.wikimedia.org/wiki/File:...)만 쓰고, 분류(Category:)·갤러리 페이지는 쓰지 않는다. 제조사 제품 페이지, 안전보건공단 재해사례·교육자료, 업계 기사, 현장 블로그도 된다. PDF 는 쓰지 않는다.\n'
     + '2) 모든 항목에 반드시 유튜브 영상 하나를 video 에 쓴다(https://www.youtube.com/watch?v=...). 그 부위·위험·작업을 보여 주는 영상이 가장 좋고, 없으면 같은 종류 설비의 작업·안전 영상이라도 쓴다. video 를 비우지 않는다.\n'
     + '3) 반드시 검색으로 실제로 연 주소만 쓴다. 주소를 지어내지 않는다. 페이지를 못 찾으면 pages 는 비운다.\n'
     + '4) 설명 없이 아래 모양의 JSON 하나만 출력한다.\n'
@@ -212,7 +221,7 @@ export function readPhotoHints(raw, grounding) {
   (raw && Array.isArray(raw.items) ? raw.items : []).forEach((p) => {
     if (!p || typeof p.id !== 'string') return;
     const pages = (Array.isArray(p.pages) ? p.pages : []).map(String)
-      .filter((u) => safeUrl(u) && !/\.pdf(\?|#|$)/i.test(u) && hosts.has(hostName(u))).slice(0, 2);
+      .filter((u) => safeUrl(u) && !/\.pdf(\?|#|$)/i.test(u) && hosts.has(hostName(u)) && !commonsList(u)).slice(0, 2);
     const v = YT_ID.exec(String(p.video || ''));
     out[p.id.slice(0, 10)] = { pages, video: v ? v[1] : '' };
   });
@@ -221,6 +230,12 @@ export function readPhotoHints(raw, grounding) {
 
 function hostName(u) {
   try { return new URL(String(u)).hostname.toLowerCase().replace(/^www\./, ''); } catch (e) { return ''; }
+}
+
+/** 위키미디어 공용의 파일(File:)이 아닌 페이지인가 — 분류(Category:)·갤러리는 아무 첫 그림이 대표 그림이 된다.
+ *  2026-11-11 실측: 「장갑」에 박물관 직물 사진, 「유압유」에 해상 유정 폭발, 「제어반」에 녹음실이 붙었다 */
+function commonsList(u) {
+  return hostName(u) === 'commons.wikimedia.org' && !commonsFile(u);
 }
 
 /* 2026-11-10 실측 — 항목 20개를 한 질문에 넣자 항목마다 검색하느라 90초를 넘었다. 5개씩 나눠 나란히 보낸다 */
