@@ -1,0 +1,221 @@
+<!doctype html>
+<!-- 안전교육 영상용 3D 재연 장면 — C형 프레스 (로컬 영상 도구 전용, 노동자 화면에 나가지 않는다).
+     node scripts/render-3d.mjs 가 이 파일을 내보내고, 열면 프레임을 하나씩 그려 서버로 보낸다.
+     ?f=40&clip=pinch  → 그 프레임 한 장만 (확인용)
+     ?cap=pinch,safe,drop,blocked → 클립을 차례로 캡처해 mp4 로 (render-3d.mjs 가 ffmpeg 로 묶는다)
+     ?icon=1 → AI·3D 장면 표시용 연필 아이콘 PNG (src/assets/icons.js 의 'pencil' 좌표)
+     ★ 상처·피는 그리지 않는다 — 램은 손에 닿기 직전에 멈추고 붉게 깜빡인다.
+     ★ 화면에 글자를 넣지 않는다 (C06 D-035). 프레임 번호로 그리므로 같은 입력이면 같은 영상이다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>3D 프레스 장면</title>
+<style>
+  html, body { margin: 0; background: #222; }
+  canvas { display: block; width: 100%; height: auto; max-width: 1280px; }
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  var W = 1280, H = 720, FPS = 24;
+  var UP = 4.3, TOUCH = 2.58, STOP = 2.9;           /* 램(상형 아래면) 높이: 올라감 · 소재에 닿음 · 손 바로 위에서 멈춤 */
+  var C = { frame: 0x3f6e5a, steel: 0x9aa3ab, ram: 0xb8c0c8, dark: 0x4a5057, sheet: 0xc98b4a, skin: 0xe0ac80,
+            sleeve: 0x2f5d8a, yellow: 0xf2c200, black: 0x1d1d1d, guard: 0xbfe3ff, green: 0x22a447, red: 0xd92d20 };
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(W, H, false);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xdfe6ec);
+  var camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 200);
+  scene.add(camera);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a9099, 0.75));
+  var sun = new THREE.DirectionalLight(0xffffff, 0.8);
+  sun.position.set(6, 12, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  ['left', 'bottom'].forEach(function (k) { sun.shadow.camera[k] = -9; });
+  ['right', 'top'].forEach(function (k) { sun.shadow.camera[k] = 9; });
+  scene.add(sun);
+
+  function mat(color, extra) { return new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.6, metalness: 0.15 }, extra || {})); }
+  function mesh(geo, color, x, y, z, parent, extra) {
+    var m = new THREE.Mesh(geo, color instanceof THREE.Material ? color : mat(color, extra));
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+    (parent || scene).add(m); return m;
+  }
+  function box(w, h, d, color, x, y, z, parent, extra) { return mesh(new THREE.BoxGeometry(w, h, d), color, x, y, z, parent, extra); }
+  function cyl(r, len, color, x, y, z, parent, extra) { return mesh(new THREE.CylinderGeometry(r, r, len, 20), color, x, y, z, parent, extra); }
+
+  /* ── 바닥 · C형 프레스 ── */
+  var floor = mesh(new THREE.PlaneGeometry(60, 60), 0x9aa0a6, 0, 0, 0);
+  floor.rotation.x = -Math.PI / 2;
+  box(4, 1.6, 3.5, C.frame, 0, 0.8, -0.25);                 /* 베드 */
+  box(3.4, 7, 1, C.frame, 0, 3.5, -1.55);                   /* 뒤 기둥 (C형 — 앞이 열려 있다) */
+  box(4, 1.8, 3.5, C.frame, 0, 7.1, -0.25);                 /* 크라운 */
+  cyl(0.55, 1.4, C.dark, 0.9, 8.7, -0.6);                   /* 위 유압 탱크·모터 */
+  box(1.2, 0.9, 1.4, C.dark, -0.8, 8.45, -0.6);
+  box(3.2, 0.3, 2.4, C.dark, 0, 1.75, 0);                   /* 볼스터 */
+  box(1.8, 0.6, 1.4, C.steel, 0, 2.2, 0, null, { metalness: 0.5 });   /* 하형 */
+  var sheet = box(1.4, 0.06, 1.0, C.sheet, 0, 2.53, 0, null, { metalness: 0.4 });
+  box(1.0, 2.6, 1.0, 0x5d6b78, 2.7, 1.3, -0.6);             /* 옆 제어함 */
+
+  var ram = new THREE.Group(); scene.add(ram);              /* ram.position.y = 상형 아래면 높이 */
+  box(1.8, 0.5, 1.4, C.steel, 0, 0.25, 0, ram, { metalness: 0.5 });  /* 상형 */
+  box(2.8, 1.35, 1.9, C.ram, 0, 1.175, 0, ram, { metalness: 0.45 }); /* 램(슬라이드) */
+  for (var i = 0; i < 7; i++) {                              /* 램 앞 노랑·검정 띠 */
+    var s = box(0.4, 0.22, 0.02, i % 2 ? C.black : C.yellow, -1.2 + i * 0.4, 0.62, 0.96, ram);
+    s.castShadow = false;
+  }
+  cyl(0.38, 3.2, C.ram, 0, 3.4, 0, ram, { metalness: 0.7, roughness: 0.3 }); /* 유압 실린더 로드 */
+
+  /* ── 가드 (투명판 + 노란 틀) ── */
+  var guard = new THREE.Group(); scene.add(guard);
+  var pane = box(3.0, 2.6, 0.04, mat(C.guard, { transparent: true, opacity: 0.35, roughness: 0.1 }), 0, 3.4, 1.2, guard);
+  pane.castShadow = false;
+  [[0, 4.7, 3.1, 0.12], [0, 2.1, 3.1, 0.12]].forEach(function (b) { box(b[2], b[3], 0.1, C.yellow, b[0], b[1], 1.2, guard); });
+  [-1.5, 1.5].forEach(function (x) { box(0.12, 2.7, 0.1, C.yellow, x, 3.4, 1.2, guard); });
+
+  /* ── 양수 조작반 (앞, 노동자 쪽) ── */
+  var station = new THREE.Group(); scene.add(station);
+  box(0.3, 3.0, 0.3, C.dark, 0, 1.5, 3.3, station);
+  box(2.4, 0.35, 0.8, 0xe8e8e8, 0, 3.15, 3.3, station);
+  var buttons = [-0.8, 0.8].map(function (x) { return cyl(0.22, 0.16, mat(C.green), x, 3.4, 3.3, station); });
+  cyl(0.2, 0.18, C.red, 0, 3.41, 3.3, station);             /* 비상정지 */
+
+  /* ── 안전블록 (금형 교체 때 램을 받치는 기둥) ── */
+  var blocks = [-1, 1].map(function (side) {
+    var g = new THREE.Group(); scene.add(g);
+    var hgt = UP + 0.5 - 1.9;                               /* 볼스터 위 → 램 아래면 */
+    box(0.32, hgt, 0.32, C.yellow, 0, 1.9 + hgt / 2, 0, g);
+    for (var k = 0; k < 4; k++) box(0.34, 0.14, 0.34, C.black, 0, 2.3 + k * 0.7, 0, g);
+    g.userData.side = side; return g;
+  });
+
+  /* ── 손 (손바닥 아래로, 손가락이 -z 쪽 = 프레스 안쪽) ── */
+  function makeHand() {
+    var g = new THREE.Group(); scene.add(g);
+    var skin = mat(C.skin, { roughness: 0.8, metalness: 0 });
+    box(0.9, 0.22, 0.9, skin, 0, 0, 0, g);
+    [[-0.33, 0.55], [-0.11, 0.65], [0.11, 0.62], [0.33, 0.5]].forEach(function (f) {
+      var c = cyl(0.085, f[1], skin, f[0], 0, -0.45 - f[1] / 2, g); c.rotation.x = Math.PI / 2;
+      mesh(new THREE.SphereGeometry(0.085, 16, 12), skin, f[0], 0, -0.45 - f[1], g);
+    });
+    var th = cyl(0.095, 0.5, skin, -0.55, -0.02, -0.2, g); th.rotation.set(Math.PI / 2, 0, 0); th.rotation.y = 0;
+    th.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0.6);
+    var sl = cyl(0.36, 2, mat(C.sleeve, { roughness: 0.9, metalness: 0 }), 0, 0.02, 1.45, g); sl.rotation.x = Math.PI / 2;
+    g.userData.skin = skin;
+    return g;
+  }
+  var hand = makeHand(), handL = makeHand(), handR = makeHand();
+  var wrench = box(0.12, 0.08, 1.1, mat(0x7a828a, { metalness: 0.8, roughness: 0.3 }), 0.2, -0.16, -0.5, hand);
+
+  /* ── 경고 깜빡임 (카메라 앞 붉은 막, 그림이 아니라 빛) ── */
+  var flash = new THREE.Mesh(new THREE.PlaneGeometry(4, 3), new THREE.MeshBasicMaterial({ color: C.red, transparent: true, opacity: 0, depthTest: false }));
+  flash.position.z = -1; flash.renderOrder = 999; camera.add(flash);
+
+  function clamp(t) { return Math.max(0, Math.min(1, t)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { t = clamp(t); return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function easeIn(t) { t = clamp(t); return t * t * t; }
+  function orbit(ang, r, h, look) {
+    camera.position.set(look[0] + Math.sin(ang) * r, h, look[2] + Math.cos(ang) * r);
+    camera.lookAt(look[0], look[1], look[2]);
+  }
+  function setFlash(t0, t) {
+    var a = t > t0 ? Math.max(0, Math.sin((t - t0) * Math.PI * 2 * 1.4)) : 0;
+    flash.material.opacity = 0.3 * a;
+    hand.userData.skin.emissive.setHex(C.red); hand.userData.skin.emissiveIntensity = 0.5 * a;
+  }
+  function reset() {
+    guard.visible = station.visible = handL.visible = handR.visible = false;
+    hand.visible = sheet.visible = true; wrench.visible = false;
+    blocks.forEach(function (b) { b.visible = false; });
+    sheet.scale.y = 1; flash.material.opacity = 0;
+    hand.userData.skin.emissiveIntensity = 0;
+    buttons.forEach(function (b) { b.position.y = 3.4; b.material.emissive.setHex(0); });
+    hand.rotation.set(0, 0, 0);
+  }
+
+  /* 클립: 초 단위 길이와, 시간 t 에 장면을 맞추는 함수 */
+  var CLIPS = {
+    /* 끼임 재연 — 손이 금형 사이로 → 램이 내려와 → 닿기 직전 멈춤 · 붉게 깜빡 */
+    pinch: { sec: 6, at: function (t) {
+      var k = ease(t / 2); hand.rotation.y = 0.55; hand.position.set(lerp(2.6, 0.25, k), 2.72, lerp(4.2, 0.3, k));
+      ram.position.y = t < 1.8 ? UP : lerp(UP, STOP, easeIn((t - 1.8) / 2.2));
+      setFlash(4.0, t);
+      orbit(lerp(-0.25, -0.45, t / 6), lerp(12, 6.5, ease(t / 5)), lerp(6.4, 4.6, ease(t / 5)), [0.3, 2.85, 0.5]);
+    } },
+    /* 바른 행동 — 가드 닫힘, 두 손은 바깥 양수 버튼, 정상 가공 */
+    safe: { sec: 5, at: function (t) {
+      hand.visible = false; guard.visible = station.visible = handL.visible = handR.visible = true;
+      var lift = lerp(0.7, 0, ease(t / 0.8)), press = t > 0.8 && t < 3.8 ? 0.06 : 0;
+      [handL, handR].forEach(function (h, k) { h.position.set(k ? 0.8 : -0.8, 3.61 + lift - press, 3.4); });
+      buttons.forEach(function (b) { b.position.y = 3.4 - press; b.material.emissive.setHex(press ? C.green : 0); b.material.emissiveIntensity = 0.6; });
+      ram.position.y = t < 1.2 ? UP : t < 2.2 ? lerp(UP, TOUCH, ease((t - 1.2) / 1.0)) : t < 2.4 ? TOUCH : lerp(TOUCH, UP, ease((t - 2.4) / 1.2));
+      if (t > 2.1) sheet.scale.y = 0.6;
+      orbit(lerp(-0.3, -0.5, t / 5), 11, 7.2, [0, 3.0, 1.6]);
+    } },
+    /* 금형 교체 중 갑자기 내려오는 램 — 잔압·밸브 고장. 닿기 직전 멈춤 */
+    drop: { sec: 5.5, at: function (t) {
+      sheet.visible = false; wrench.visible = true;
+      hand.rotation.y = 0.55; hand.position.set(0.25 + 0.05 * Math.sin(t * 5), 2.72, 0.3);
+      ram.position.y = t < 1.5 ? UP : t < 2.6 ? lerp(UP, UP - 0.3, (t - 1.5) / 1.1) : lerp(UP - 0.3, STOP, easeIn((t - 2.6) / 1.1));
+      setFlash(3.7, t);
+      orbit(lerp(-0.15, -0.4, t / 5.5), lerp(11, 7, ease(t / 4)), lerp(7.5, 5.5, ease(t / 4)), [0.3, 2.85, 0.5]);
+    } },
+    /* 바른 행동 — 안전블록으로 램을 받친 뒤에 금형을 만진다 */
+    blocked: { sec: 5, at: function (t) {
+      sheet.visible = false; wrench.visible = true;
+      blocks.forEach(function (b) { b.visible = true; b.position.set(b.userData.side * lerp(3.2, 1.25, ease(t / 1.2)), 0, 0); });
+      var k = ease((t - 1.4) / 1.4); hand.rotation.y = 0.55; hand.position.set(lerp(2.6, 0.25, k) + (t > 2.8 ? 0.05 * Math.sin(t * 5) : 0), 2.72, lerp(4.2, 0.3, k));
+      ram.position.y = UP;
+      orbit(lerp(-0.5, -0.85, t / 5), 11, 5.4, [0, 3.0, 0.3]);
+    } }
+  };
+
+  function renderFrame(name, f) {
+    reset();
+    CLIPS[name].at(f / FPS);
+    renderer.render(scene, camera);
+  }
+  window.renderFrame = renderFrame;
+
+  function pencilIcon() {                                   /* icons.js 'pencil' 과 같은 좌표 (24 칸) */
+    var c = document.createElement('canvas'); c.width = c.height = 112;
+    var g = c.getContext('2d');
+    g.fillStyle = 'rgba(29, 78, 216, 0.92)';
+    g.beginPath(); g.moveTo(20, 0); g.arcTo(112, 0, 112, 112, 20); g.arcTo(112, 112, 0, 112, 20); g.arcTo(0, 112, 0, 0, 20); g.arcTo(0, 0, 112, 0, 20); g.fill();
+    g.translate(14, 14); g.scale(3.5, 3.5);
+    g.strokeStyle = '#fff'; g.lineWidth = 2; g.lineJoin = g.lineCap = 'round';
+    g.stroke(new Path2D('M16.4 3.4l4.2 4.2L9.4 18.8 4.9 20l1.2-4.5z')); g.stroke(new Path2D('M14.4 5.4l4.2 4.2'));
+    return c.toDataURL('image/png');
+  }
+
+  var q = new URLSearchParams(location.search);
+  async function post(url, body) { var r = await fetch(url, { method: 'POST', body: body }); if (!r.ok) throw new Error(url + ' ' + r.status); }
+  (async function () {
+    if (q.get('icon')) { await post('/icon', pencilIcon()); document.title = 'done'; return; }
+    if (q.get('cap')) {
+      for (var name of q.get('cap').split(',')) {
+        var n = Math.round(CLIPS[name].sec * FPS);
+        for (var f = 0; f < n; f++) { renderFrame(name, f); await post('/frame?clip=' + name + '&f=' + f, renderer.domElement.toDataURL('image/png')); }
+        await post('/done?clip=' + name + '&fps=' + FPS, '');
+      }
+      document.title = 'done'; return;
+    }
+    var clip = q.get('clip') || 'pinch';
+    if (q.get('f')) { renderFrame(clip, Number(q.get('f'))); return; }
+    var start = performance.now();                           /* 미리보기: 실시간 반복 */
+    (function loop() { var f = Math.floor((performance.now() - start) / 1000 * FPS) % Math.round(CLIPS[clip].sec * FPS); renderFrame(clip, f); requestAnimationFrame(loop); })();
+  })().catch(function (e) { document.title = 'error: ' + e.message; });
+})();
+</script>
+</body>
+</html>

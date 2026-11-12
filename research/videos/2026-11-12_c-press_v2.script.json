@@ -1,0 +1,179 @@
+{
+  "equipment": "C형 유압프레스",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1-mini",
+  "at": "2026-11-12T11:30:08.469Z",
+  "seconds": 79,
+  "calls": {
+    "script": 1,
+    "images": 0,
+    "textChecks": 0
+  },
+  "intro": "C형 유압프레스에서 주의해야 할 주요 위험 요소들입니다.",
+  "outro": "위험을 알면 사고를 줄일 수 있다.",
+  "outroPhraseId": "ph-6",
+  "hazards": [
+    {
+      "hazardId": "o1",
+      "part": "가드 측방·상방·하방",
+      "accident": "끼임",
+      "narration": "가드 옆·위·아래로 손을 넣으면 금형 사이에 손이 끼일 위험이 있다.",
+      "fixed": false,
+      "phraseId": "ph-1",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 31,
+            "y0": 25,
+            "x1": 66,
+            "y1": 52
+          }
+        },
+        {
+          "role": "happen",
+          "source": "3d",
+          "clip": "press_pinch"
+        },
+        {
+          "role": "safe",
+          "source": "3d",
+          "clip": "press_safe"
+        }
+      ]
+    },
+    {
+      "hazardId": "r14",
+      "part": "금형교체·정비·청소 단계(블로킹·슬라이드 지지·잠금 절차 등)",
+      "accident": "낙하압착",
+      "narration": "금형교체·정비 중 슬라이드가 예기치 않게 하강하면 사람을 압착할 위험이 있다.",
+      "fixed": false,
+      "phraseId": "ph-2",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 36,
+            "y0": 30,
+            "x1": 64,
+            "y1": 54
+          }
+        },
+        {
+          "role": "happen",
+          "source": "3d",
+          "clip": "press_drop"
+        },
+        {
+          "role": "safe",
+          "source": "3d",
+          "clip": "press_blocked"
+        }
+      ]
+    },
+    {
+      "hazardId": "r5",
+      "part": "전기제어반·배선(전원 차단·비상정지 회로 포함)",
+      "accident": "감전",
+      "narration": "제어반·배선의 절연 손상이나 유지보수 부주의로 전기 감전 위험이 있다.",
+      "fixed": false,
+      "phraseId": "",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 55,
+            "y0": 52,
+            "x1": 82,
+            "y1": 76
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-image",
+          "prompt": "A worker reaches toward an open electrical control box with exposed wiring; sparks are visible but no contact yet.",
+          "file": "r5_happen.png",
+          "textCheck": "cached"
+        },
+        {
+          "role": "safe",
+          "source": "ai-image",
+          "prompt": "The same worker stands back, using insulated tools and wearing gloves while the control box cover is closed and secured, with power clearly isolated.",
+          "file": "r5_safe.png",
+          "textCheck": "cached"
+        }
+      ]
+    },
+    {
+      "hazardId": "r6",
+      "part": "고압 유압 누유·파단 지점(호스·피팅·씰)",
+      "accident": "화재누유",
+      "narration": "고압 유압유 누유가 뜨거운 부품에 닿으면 화재나 화상, 주입사고가 발생할 위험이 있다.",
+      "fixed": false,
+      "phraseId": "",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 64,
+            "y0": 60,
+            "x1": 92,
+            "y1": 88
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-image",
+          "prompt": "Hydraulic oil sprays from a ruptured hose onto hot components near the pump; smoke begins to form but no flames yet.",
+          "file": "r6_happen.png",
+          "textCheck": "cached"
+        },
+        {
+          "role": "safe",
+          "source": "ai-image",
+          "prompt": "A technician has isolated the hydraulic source, and absorbent pads contain the leak while a fire extinguisher is staged nearby, with hot surfaces shielded.",
+          "file": "r6_safe.png",
+          "textCheck": "cached"
+        }
+      ]
+    },
+    {
+      "hazardId": "r9",
+      "part": "기계 상부(모터·펌프·탱크) 접근·점검 시 낙하물·미끄럼 위험",
+      "accident": "넘어짐추락",
+      "narration": "기계 상부 접근 시 이동통로·덮개 미비로 미끄러지거나 낙하물이 발생할 위험이 있다.",
+      "fixed": false,
+      "phraseId": "",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 6,
+            "y0": 8,
+            "x1": 26,
+            "y1": 94
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-image",
+          "prompt": "A worker walks on a narrow, uncovered top panel carrying a tool; a loose part lies near the edge, creating a trip hazard but no fall yet.",
+          "file": "r9_happen.png",
+          "textCheck": "cached"
+        },
+        {
+          "role": "safe",
+          "source": "ai-image",
+          "prompt": "The worker uses a stable platform with guardrails and clears loose parts before moving, keeping both hands free and secure footing.",
+          "file": "r9_safe.png",
+          "textCheck": "cached"
+        }
+      ]
+    }
+  ]
+}
