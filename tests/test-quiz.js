@@ -335,6 +335,32 @@ function openQuiz(opts) {
 }
 
 /* =================================================================
+   8-1. 그림 보기 (2026-11-12) — 영상의 3D 장면·AI 그림을 보기로 고른다 (scripts/make-video-quiz.mjs)
+   ================================================================= */
+{
+  const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+  const t = openQuiz({
+    login: 'W-4821-07',
+    query: '?course=c-press',
+    before(win) {
+      win.Store.courses.update((list) => {
+        const c = list.find((x) => x.id === 'c-press');
+        const q = c.quiz.splice(1, 1)[0];          // 고르기 문항을 맨 앞으로
+        q.pics = [PNG, 'https://example.com/x.png', PNG];
+        c.quiz.unshift(q);
+      });
+    },
+  });
+  const btns = [...t.$('quiz-body').querySelectorAll('.choice-btn')];
+  const pics = t.$('quiz-body').querySelectorAll('img.pic');
+  eq('그림 보기 2장이 보인다', pics.length, 2);
+  ok('★★ data:image 가 아닌 그림 주소는 싣지 않는다 (제3자 요청 0건)', [...pics].every((p) => p.getAttribute('src').indexOf('data:image/') === 0));
+  ok('그림 없는 보기는 글자로 남는다', !btns[1].querySelector('img') && !!btns[1].querySelector('.text'));
+  ok('그림에 내 언어 설명(alt)이 붙는다', !!pics[0].getAttribute('alt') && !/[가-힣]/.test(pics[0].getAttribute('alt')));
+  ok('보기마다 들려주기 버튼이 그대로다', t.$('quiz-body').querySelectorAll('.choice-row .btn-audio').length === btns.length);
+}
+
+/* =================================================================
    9. 규칙 검사
    ================================================================= */
 {

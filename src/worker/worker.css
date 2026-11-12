@@ -446,6 +446,10 @@
 
 .choice-btn .text { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 
+/* 그림 보기 — 번호 옆에 그림을 크게 (글자 없이 고른다) */
+.choice-btn.has-pic { align-items: flex-start; padding: 8px; }
+.choice-btn .pic { flex: 1 1 auto; min-width: 0; width: 100%; max-width: 420px; height: auto; display: block; border-radius: calc(var(--radius) - 4px); }
+
 .choice-btn:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
 
 .choice-btn[data-mark="ok"] { border-color: var(--ok); background: var(--ok-soft); }

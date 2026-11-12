@@ -399,7 +399,17 @@
       var btn = UI.el('button', 'choice-btn');
       btn.type = 'button';
       btn.appendChild(UI.el('span', 'no', String(i + 1)));
-      btn.appendChild(UI.el('span', 'text', option));
+      /* 그림 보기 — 영상의 3D 장면·AI 그림 (scripts/make-video-quiz.mjs). data:image 만 (제3자 요청 0건) */
+      var pic = q.pics && typeof q.pics[i] === 'string' && q.pics[i].indexOf('data:image/') === 0 ? q.pics[i] : '';
+      if (pic) {
+        btn.className = 'choice-btn has-pic';
+        var img = UI.el('img', 'pic');
+        img.src = pic;
+        img.alt = option;
+        btn.appendChild(img);
+      } else {
+        btn.appendChild(UI.el('span', 'text', option));
+      }
 
       btn.addEventListener('click', function () {
         if (run.locked) return;

@@ -38,7 +38,7 @@
   var MAX_RUN_BYTES = 12 * 1024 * 1024;
   var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계'];
   var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
-  var SUBTYPE = { location: '위치 짚기', action: '행동 고르기', ox: 'OX', situation: '상황 판단' };
+  var SUBTYPE = { location: '위치 짚기', action: '행동 고르기', ox: 'OX', situation: '상황 판단', picture: '그림 고르기' };
   var LEVEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
 
   function emptyState(eq) {
@@ -830,6 +830,13 @@
         q.options.forEach(function (o, i) {
           var row = UI.el('li', null, (i === q.answer ? '● 정답 — ' : '○ ') + o);
           if (i === q.answer) row.setAttribute('data-right', 'yes');
+          /* 그림 보기 — 담당자가 그림이 맞는지 직접 본다 (AI 그림이라 검토 필요) */
+          if (q.pics && typeof q.pics[i] === 'string' && q.pics[i].indexOf('data:image/') === 0) {
+            var im = UI.el('img', 'ag-q-pic');
+            im.src = q.pics[i];
+            im.alt = o;
+            row.appendChild(im);
+          }
           opts.appendChild(row);
         });
         li.appendChild(opts);
