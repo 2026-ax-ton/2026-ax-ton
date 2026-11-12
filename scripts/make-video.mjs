@@ -85,9 +85,19 @@ const system = '너는 이주노동자 안전교육 영상의 대본 작가다. 
 const user = '설비: ' + eqName + '\n위험요소:\n' + hazards.map((h) => '- ' + h.id + ' | ' + h.part + ' | ' + h.risk + (h.official ? ' | 공식 문서' : '')).join('\n')
   + '\n검수 문구:\n' + phrases.map((p) => '- ' + p.id + ': ' + p.ko).join('\n');
 const t0 = Date.now();
-const r = await callModel(cfg, system, user, { maxOutputTokens: 8000, maxText: 16000 });
-if (r.error) { console.error('대본 실패: ' + r.error); process.exit(1); }
-const raw = parseModelJson(r.text) || {};
+/* --reuse: 지난 대본(.script.json)을 그대로 쓴다 — 그림 한 장만 고칠 때 위험 구성이 바뀌지 않게 (GPT 0회) */
+const scriptFile = to.replace(/\.mp4$/, '.script.json');
+let raw;
+if (process.argv.includes('--reuse') && fs.existsSync(scriptFile)) {
+  const prev = JSON.parse(fs.readFileSync(scriptFile, 'utf8'));
+  const vis = (shot) => shot.source === '3d' ? Object.keys(CLIPS3D).find((k) => CLIPS3D[k].includes(shot.clip)) : 'ai';
+  raw = { intro: prev.intro, outro: prev.outro, outroPhraseId: prev.outroPhraseId,
+    hazards: prev.hazards.map((h) => ({ hazardId: h.hazardId, accident: h.accident, visual: vis(h.shots[1]), happen: h.shots[1].prompt, safe: h.shots[2].prompt, narration: h.narration, phraseId: h.phraseId })) };
+} else {
+  const r = await callModel(cfg, system, user, { maxOutputTokens: 8000, maxText: 16000 });
+  if (r.error) { console.error('대본 실패: ' + r.error); process.exit(1); }
+  raw = parseModelJson(r.text) || {};
+}
 
 /* ── ② 대본 거르기 ── */
 const byId = new Map(hazards.map((h) => [h.id, h]));
@@ -130,7 +140,9 @@ if (picked.length < HAZARDS[0]) console.log('  ※ 위험이 ' + HAZARDS[0] + '�
 /* ── ③ AI 그림 — 캐시가 있으면 다시 만들지 않는다 ── */
 let images = 0, checks = 0;
 async function genImage(prompt, file) {
-  if (fs.existsSync(file)) return { file, cached: true };
+  /* 캐시는 프롬프트가 같을 때만 — 옆에 둔 .txt 와 비교한다 (위험 id 만 보면 다른 장면 그림이 붙는다, 2026-11-12 겪음) */
+  const side = file.replace(/\.png$/, '.txt');
+  if (fs.existsSync(file) && fs.existsSync(side) && fs.readFileSync(side, 'utf8') === prompt) return { file, cached: true };
   for (let attempt = 0; attempt < 2; attempt++) {
     const res = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY.trim(), 'content-type': 'application/json' },
@@ -141,6 +153,7 @@ async function genImage(prompt, file) {
     images++;
     const b64 = j.data && j.data[0] && j.data[0].b64_json;
     fs.writeFileSync(file, Buffer.from(b64, 'base64'));
+    fs.writeFileSync(side, prompt);
     /* 글자 검사 (GPT 1회) — 있으면 한 번만 다시 */
     checks++;
     const c = await callModel(cfg, 'Answer only YES or NO.', [{ text: 'Does this image contain any readable text, letters, numbers or logos?' },
