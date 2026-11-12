@@ -87,3 +87,6 @@ logs/
 *.tmp
 *.temp
 .cache/
+
+# 로컬 시험 영상 (용량 큼) — 대본(.script.json)·문항(.md)만 올린다
+research/videos/*.mp4
