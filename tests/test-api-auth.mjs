@@ -21,10 +21,10 @@ const { ok, eq, has, report } = require('./harness');
 
 const db = await import('../api/_db.mjs');
 const authLib = await import('../api/_auth.mjs');
-const login = await import('../api/auth/login.mjs');
-const logout = await import('../api/auth/logout.mjs');
-const signup = await import('../api/auth/signup.mjs');
-const signupWp = await import('../api/auth/signup-workplace.mjs');
+const login = await import('../api/auth/_login.mjs');
+const logout = await import('../api/auth/_logout.mjs');
+const signup = await import('../api/auth/_signup.mjs');
+const signupWp = await import('../api/auth/_signup-workplace.mjs');
 
 const ORIGIN = 'https://2026-ax-ton.vercel.app';
 
@@ -550,6 +550,19 @@ let workerToken = '';
   ok('틀린 비밀번호는 거절', !authLib.verifyPassword('12345', v.hash, v.salt));
   ok('해시가 깨져 있어도 터지지 않는다', !authLib.verifyPassword('1234', 'zz', v.salt));
   ok('값이 문자열이 아니어도 터지지 않는다', !authLib.verifyPassword(null, v.hash, v.salt));
+}
+
+/* 함수 하나로 묶은 길잡이 (api/auth/[op].mjs, 2026-11-14 Vercel Hobby 함수 12개 제한) — 주소 끝으로 본문을 고른다 */
+{
+  const router = await import('../api/auth/[op].mjs');
+  const r404 = await router.POST(new Request('https://x/api/auth/nope', { method: 'POST' }));
+  eq('모르는 주소는 404', r404.status, 404);
+  const proto = await router.POST(new Request('https://x/api/auth/__proto__', { method: 'POST' }));
+  eq('★ __proto__ 같은 이름으로 엉뚱한 것을 부르지 않는다', proto.status, 404);
+  for (const [op, mod] of [['login', login], ['logout', logout], ['signup', signup], ['signup-workplace', signupWp]]) {
+    const req = () => new Request('https://x/api/auth/' + op, { method: 'OPTIONS', headers: { origin: 'https://evil.example' } });
+    eq('/api/auth/' + op + ' 는 그 본문으로 간다', (await router.OPTIONS(req())).status, (await mod.handle(req())).status);
+  }
 }
 
 db.setSqlForTest(null);
