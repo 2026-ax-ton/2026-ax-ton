@@ -325,4 +325,55 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     start();
   });
   $('btn-scan-stop').addEventListener('click', stop);
+
+  /* ── 서버에 올리기 (/api/scans → Vercel Blob 비공개) — https 배포에서만 (net.js 가 막는다) ── */
+
+  function toDataUrl(b) {
+    return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { ok(String(r.result)); }; r.onerror = function () { ok(''); }; r.readAsDataURL(b); });
+  }
+
+  function call(body) { return Net.post('/api/scans', body, { token: Auth.token(), timeoutMs: 30000 }); }
+
+  function upload() {
+    if (!eq) { UI.toast('설비 목록에서 설비를 골라 들어와야 올릴 수 있습니다.'); return; }
+    var scanId = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+    var jobs = [];
+    passes.forEach(function (segs, p) { segs.forEach(function (list, s) { list.forEach(function (shot, i) { jobs.push({ shot: shot, name: p + '-' + s + '-' + i }); }); }); });
+    var done = 0, failed = 0, btn = $('btn-scan-upload');
+    btn.disabled = true;
+    function next(k) {
+      if (k >= jobs.length) {
+        btn.disabled = false;
+        $('scan-upload-status').textContent = failed ? ('올림 ' + done + '장 · 실패 ' + failed + '장 — [서버에 올리기]를 다시 누르면 전부 다시 올립니다.') : ('올림 ' + done + '장 — 설비 촬영 묶음 ' + scanId);
+        loadScans();
+        return;
+      }
+      $('scan-upload-status').textContent = '올리는 중 ' + (k + 1) + ' / ' + jobs.length;
+      toDataUrl(jobs[k].shot.blob).then(function (data) {
+        return call({ op: 'put', equipmentId: eq.id, scanId: scanId, name: jobs[k].name, data: data });
+      }).then(function (r) {
+        if (r.ok) done += 1; else failed += 1;
+        if (!r.ok && (r.failed || r.status === 401)) { failed += jobs.length - k - 1; next(jobs.length); return; }   // 끊김·로그인 만료면 멈춘다
+        next(k + 1);
+      });
+    }
+    next(0);
+  }
+
+  /** 이 설비에 올린 촬영 — PC 에서 보면 폰에서 올린 것이 여기 나온다 */
+  function loadScans() {
+    var box = $('scan-list');
+    if (!eq || !Net.onHttps()) { $('sec-uploaded').hidden = true; return; }
+    call({ op: 'list', equipmentId: eq.id }).then(function (r) {
+      box.textContent = '';
+      var list = (r.ok && r.data && r.data.scans) || [];
+      if (!r.ok) box.appendChild(UI.el('li', 'meta', (r.data && r.data.message) || '목록을 불러오지 못했습니다.'));
+      else if (!list.length) box.appendChild(UI.el('li', 'meta', '아직 올린 촬영이 없습니다.'));
+      list.forEach(function (s) { box.appendChild(UI.itemRow('camera', UI.formatDate(s.at), '사진 ' + s.count + '장 · 묶음 ' + s.scanId)); });
+      $('sec-uploaded').hidden = false;
+    });
+  }
+
+  $('btn-scan-upload').addEventListener('click', upload);
+  loadScans();
 })();

@@ -33,7 +33,7 @@
 - **할 일 목록은 `docs/07-next-tasks.md` 의 T 절**(T1~T16)입니다. 태스크 정답은 `docs/documentations/40_캡스톤산출물/D05_스프린트백로그.md` (2차 TK-2-01~13, 3차 TK-3-01~11)
 - **기술 근거는 `docs/documentations/20_기술명세/`** 한 폴더입니다 — 지도 `README.md`, 시스템 명세 `A02_기술-개발-명세서.md`(§5·§6 AI, §14 DB), `SPEC-FE.md`·`SPEC-BE.md`. 기능 요구는 `docs/documentations/30_제품정의/prd/`
 - **서버 코드는 저장소 루트 `api/`** 에만 두고 서버 의존성은 루트 `package.json` 에만 둡니다. **`src/`(브라우저)는 계속 의존성 0**, ES 모듈 금지, `file://` 동작·상대 경로 유지 (현장 시연은 제출 HTML 더블클릭, C08 §7)
-- **바뀐 규칙** (✅ 2026-10-31 T10 에서 이 파일의 「코드 규칙」·C05·테스트까지 고쳤습니다): 노동자 화면 「외부 요청 0건」 → 「**제3자** 요청 0건, 같은 출처 `/api` 만」 (C05 T-1′) · 「`src/` 의존성 0」 → 「`src/` 의존성 0, 서버 `api/` 만 드라이버 1개」 (C05 T-5′, `tests/test-db.mjs` 가 지킵니다)
+- **바뀐 규칙** (✅ 2026-10-31 T10 에서 이 파일의 「코드 규칙」·C05·테스트까지 고쳤습니다): 노동자 화면 「외부 요청 0건」 → 「**제3자** 요청 0건, 같은 출처 `/api` 만」 (C05 T-1′) · 「`src/` 의존성 0」 → 「`src/` 의존성 0, 서버 `api/` 만 라이브러리 2개」 (C05 T-5′, `tests/test-db.mjs` 가 지킵니다)
 - **AI 결과는 항상 `waiting`**, 승인은 사람만. AI·서버가 실패하면 손 입력·캐시로 계속 동작합니다
 - **데이터 모양(저장 키·필드)을 바꾸는 항목은 시작 전에 사용자에게 한 줄로 확인**합니다 (T6·T12 에 ⚠️ 표시)
 - **계정·설정 작업은 사용자에게 요청**합니다 — Vercel 설정 변경, Neon 설치, 환경변수·키 (T4, `docs/documentations/20_기술명세/A04_운영준비-체크리스트.md`). 키 값을 코드·문서·로그에 쓰지 않습니다
@@ -271,7 +271,7 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 | 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
 | 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 11개 화면 전부가 싣습니다 (D-032) |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
-| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + 루트 `package.json` (드라이버 1개) |
+| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + `api/scans.mjs`(설비 촬영 사진) + 루트 `package.json` (Neon 드라이버 + Blob 2개). 로그인 4개는 `api/auth/[op].mjs` 하나로 묶임 (Vercel Hobby 함수 12개 제한) |
 | DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
 | 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
@@ -360,11 +360,11 @@ Store.progress.update(function (list) {        // 읽기 → 고치기 → 저�
     "그 밖의 주소는 0건" 과 "`net.js` 가 쓰는 주소는 우리 배포 주소뿐" 을 지킵니다.
     **공급사(Gemini)를 브라우저에서 직접 부르지 않습니다 — 키가 새면 끝입니다.**
     **예외를 넷으로 늘리지 마세요** — 새로 서버를 불러야 하면 `net.js` 에 더하세요
-- **`src/` 는 의존성 0, 서버 `api/` 만 드라이버 1개** (2026-10-31 개정, C06 D-023 · C05 T-5′).
+- **`src/` 는 의존성 0, 서버 `api/` 만 라이브러리 2개** (2026-10-31 개정, C06 D-023 · C05 T-5′ · 🆕 2026-11-14 이 사본에서 `@vercel/blob` 추가 — 설비 촬영 사진 비공개 저장소).
   브라우저에 가는 `src/` 에는 **npm 패키지를 하나도 넣지 않습니다** — `src/` 아래에
   `package.json` 도 `node_modules` 도 없습니다. 서버 함수(`api/`)가 쓰는 것만
-  **저장소 루트 `package.json`** 에 두고, 지금 들어 있는 것은 **`@neondatabase/serverless` 하나**입니다.
-  **둘로 늘리기 전에 사용자에게 왜 필요한지 말하세요.**
+  **저장소 루트 `package.json`** 에 두고, 지금 들어 있는 것은 **`@neondatabase/serverless` · `@vercel/blob` 둘**입니다 (둘 다 버전 고정, 실제로 부를 때만 불러온다).
+  **셋으로 늘리기 전에 사용자에게 왜 필요한지 말하세요.**
   검사(`jsdom`)는 여전히 **저장소 밖**(`~/jsdom-box`)에 깔고 `NODE_PATH` 로 가리킵니다
   - **루트 `package.json` 에 `"type": "module"` 을 넣지 마세요.** 넣으면 `tests/*.js`(CommonJS)가
     전부 깨집니다. 서버 함수는 `.mjs` 확장자로 이미 구분돼 있습니다

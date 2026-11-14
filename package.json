@@ -13,6 +13,7 @@
     "measure:ai": "node scripts/measure-ai.mjs"
   },
   "dependencies": {
-    "@neondatabase/serverless": "1.2.0"
+    "@neondatabase/serverless": "1.2.0",
+    "@vercel/blob": "2.8.2"
   }
 }

@@ -118,8 +118,11 @@ ok('인덱스도 if not exists 로 만든다',
 
 {
   const deps = Object.keys(pkg.dependencies || {});
-  eq('★ 서버 의존성은 1개뿐이다', deps.length, 1);
-  eq('그 1개는 Neon 드라이버다', deps[0], '@neondatabase/serverless');
+  /* 2026-11-14 (yesol 사본) — 설비 촬영 사진 비공개 저장소로 @vercel/blob 이 더해졌다 (C05 T-5′) */
+  eq('★ 서버 의존성은 Neon 드라이버 · Blob 2개뿐이다', deps.slice().sort().join(','), '@neondatabase/serverless,@vercel/blob');
+  ok('Blob 도 버전을 고정한다', /^\d+\.\d+\.\d+$/.test(pkg.dependencies['@vercel/blob']), pkg.dependencies['@vercel/blob']);
+  ok('★ Blob 라이브러리는 부를 때만 불러온다 (검사는 npm install 없이 돈다)',
+    !/^import .*@vercel\/blob/m.test(fs.readFileSync(path.join(ROOT, 'api/scans.mjs'), 'utf8')));
   eq('개발용 의존성은 두지 않는다 (jsdom 은 저장소 밖)',
     Object.keys(pkg.devDependencies || {}).length, 0);
 
@@ -162,7 +165,7 @@ ok('인덱스도 if not exists 로 만든다',
 {
   const claude = fs.readFileSync(path.join(ROOT, 'CLAUDE.md'), 'utf8');
   has('CLAUDE.md 코드 규칙에 T-5′ 가 적혀 있다', claude,
-    '`src/` 는 의존성 0, 서버 `api/` 만 드라이버 1개');
+    '`src/` 는 의존성 0, 서버 `api/` 만 라이브러리 2개');
   const c05 = fs.readFileSync(
     path.join(ROOT, 'docs/documentations/00_개발컨벤션/C05_개발규칙.md'), 'utf8');
   has('C05 에 T-1′ 가 있다', c05, 'T-1′');

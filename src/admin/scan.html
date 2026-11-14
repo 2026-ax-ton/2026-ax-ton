@@ -63,7 +63,17 @@
     <h2 id="t-result">찍은 사진</h2>
     <p class="meta" id="scan-summary"></p>
     <div class="scan-thumbs" id="scan-thumbs"></div>
-    <p class="why">시제품이라 사진은 이 휴대폰 화면에만 있습니다. 서버로 올리기는 배포 뒤 사진 저장소를 정한 다음에 붙입니다.</p>
+    <p class="why">사진은 아직 이 휴대폰에만 있습니다. [서버에 올리기]를 누르면 사업장 전용 비공개 저장소에 올라갑니다 (밖에서 주소로 열 수 없습니다).</p>
+    <div class="big-actions">
+      <button class="btn btn-primary" type="button" id="btn-scan-upload">서버에 올리기</button>
+    </div>
+    <p class="meta" id="scan-upload-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" id="sec-uploaded" aria-labelledby="t-uploaded" hidden>
+    <h2 id="t-uploaded">올린 촬영</h2>
+    <p class="why">이 설비에 올린 촬영 묶음입니다. 휴대폰에서 올리면 PC 의 이 화면에도 나옵니다 (새로고침).</p>
+    <ul class="item-list" id="scan-list"></ul>
   </section>
 
   <p><a class="btn-sm" href="setup.html">설비 목록으로</a></p>
@@ -75,6 +85,7 @@
 <script src="../assets/icons.js"></script>
 <script src="../assets/ui.js"></script>
 <script src="../assets/qr.js"></script>
+<script src="../assets/net.js"></script>
 <script src="scan.js"></script>
 </body>
 </html>
