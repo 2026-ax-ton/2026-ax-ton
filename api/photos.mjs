@@ -93,7 +93,7 @@ async function run(request) {
   /* 묶음마다 하루 한도를 하나씩. 하나도 못 받으면 429 */
   const batches = Math.ceil(items.length / PHOTO_BATCH);
   let calls = 0;
-  while (calls < batches && takeDailyCall(cfg.dailyLimit)) calls += 1;
+  while (calls < batches && (await takeDailyCall(cfg.dailyLimit))) calls += 1;
   if (!calls) {
     log({ route: 'photos', ms: Date.now() - started, status: 429, err: 'limit' });
     return fail(429, 'limit', MESSAGES.limit, cors);

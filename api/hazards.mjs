@@ -121,7 +121,7 @@ async function run(request) {
   }
   cfg = { ...cfg, timeoutMs: Number(process.env.AI_HAZARD_TIMEOUT_MS) || DEFAULT_HAZARD_TIMEOUT_MS };
 
-  if (!takeDailyCall(cfg.dailyLimit)) {
+  if (!(await takeDailyCall(cfg.dailyLimit))) {
     log({ route: 'hazards', ms: Date.now() - started, status: 429, err: 'limit' });
     return fail(429, 'limit', MESSAGES.limit, cors);
   }

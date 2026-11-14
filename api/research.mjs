@@ -84,7 +84,7 @@ async function run(request) {
   }
   cfg = { ...cfg, timeoutMs: Number(process.env.AI_RESEARCH_TIMEOUT_MS) || DEFAULT_RESEARCH_TIMEOUT_MS };
 
-  if (!takeDailyCall(cfg.dailyLimit)) {
+  if (!(await takeDailyCall(cfg.dailyLimit))) {
     log({ route: 'research', ms: Date.now() - started, status: 429, err: 'limit' });
     return fail(429, 'limit', MESSAGES.limit, cors);
   }
@@ -92,7 +92,7 @@ async function run(request) {
   /* 두 질문을 나란히 — ① 기본 조사 ② 이 기계에만 있는 위험 (같은 모델, 차례로 하면 60초를 넘는다).
      ②는 하루 한도를 하나 더 쓴다. 한도에 걸리거나 실패하면 ①만 쓴다 */
   const opts = { maxOutputTokens: MAX_OUTPUT_TOKENS, maxText: MAX_TEXT, tools: TOOLS };
-  const second = takeDailyCall(cfg.dailyLimit);
+  const second = await takeDailyCall(cfg.dailyLimit);
   const [r, r2] = await Promise.all([
     callModel(cfg, systemText(), userText(eq), opts),
     second ? callModel(cfg, specificSystemText(), userText(eq), opts) : Promise.resolve(null),

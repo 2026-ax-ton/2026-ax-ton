@@ -56,13 +56,18 @@ export function fail(status, code, message, cors) {
 }
 
 /* ── 일일 상한 (A02 §5.6 3층) ───────────────────────────────────────
-   함수는 상태가 없다. 인스턴스 메모리 계산이라 근사치다 — 정확히 세려면
-   KV 저장소가 필요하다(후보). 최악의 비용은 4층(공급사 예산)이 막는다. */
+   ★ DB(`ai_usage`, 날짜 한 줄)에서 센다. AI 함수 7개가 한 숫자를 함께 더한다.
+     인스턴스 메모리로 세면 함수마다·인스턴스마다 0부터 다시 세서 상한이 안 됐다 (2026-11-15).
+   ★ 더하기와 상한 검사를 한 문장으로 한다 → 동시에 와도 넘지 않는다.
+   ★ DB가 없으면(로컬·`DATABASE_URL` 없음) 메모리로 센다.
+   ★ DB 질의가 실패하면 **막는다** — 돈이 나가는 쪽으로 열지 않는다.
+   최악의 비용은 4층(공급사 예산·자동 충전 끄기)이 막는다. */
 
 let countDay = '';
 let countUsed = 0;
+let memoryOnly = false;
 
-export function takeDailyCall(limit) {
+function takeMemory(limit) {
   const today = new Date().toISOString().slice(0, 10);
   if (today !== countDay) {
     countDay = today;
@@ -73,10 +78,31 @@ export function takeDailyCall(limit) {
   return true;
 }
 
-/** 검사에서만 쓴다. 상한 계산이 묶음 사이로 새지 않게 한다. */
-export function resetDailyCall() {
+export async function takeDailyCall(limit) {
+  if (memoryOnly) return takeMemory(limit);
+  /* 동적 import — _db.mjs 가 이 파일을 불러서, 맨 위에서 서로 부르면 순환이 된다 */
+  const { getSql } = await import('./_db.mjs');
+  const sql = await getSql();
+  if (!sql) return takeMemory(limit);
+  try {
+    const rows = await sql`
+      insert into ai_usage (day, used) values (current_date, 1)
+      on conflict (day) do update set used = ai_usage.used + 1
+       where ai_usage.used < ${limit}
+      returning used`;
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (e) {
+    log({ route: 'daily-limit', err: 'db', why: String(e && e.message || '').slice(0, 120) });
+    return false;
+  }
+}
+
+/** 검사에서만 쓴다. 숫자를 0으로 돌리고 메모리로 센다 (가짜 sql 을 건드리지 않게).
+ *  `{ db: true }` 면 DB 경로를 검사한다. */
+export function resetDailyCall(opts) {
   countDay = '';
   countUsed = 0;
+  memoryOnly = !(opts && opts.db);
 }
 
 /* ── 같은 출처로 볼 주소 (A02 §5.2) ─────────────────────────────────

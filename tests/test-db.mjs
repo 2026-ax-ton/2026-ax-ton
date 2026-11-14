@@ -35,16 +35,16 @@ function tableBody(name) {
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   1. 테이블 7개 (A02 §14.2)
+   1. 테이블 8개 (A02 §14.2 + AI 하루 횟수)
    ─────────────────────────────────────────────────────────────────── */
 
-const TABLES = ['workplaces', 'accounts', 'sessions', 'docs', 'library', 'reports', 'audit'];
+const TABLES = ['workplaces', 'accounts', 'sessions', 'docs', 'library', 'reports', 'audit', 'ai_usage'];
 
 TABLES.forEach((t) => {
   ok('테이블 ' + t + ' 를 만든다', new RegExp('create table if not exists ' + t + '\\b').test(sqlText));
 });
 
-eq('테이블은 정확히 7개다 (A02 §14.2)',
+eq('테이블은 정확히 8개다',
   (sqlText.match(/create table if not exists/g) || []).length, TABLES.length);
 
 ok('여러 번 돌려도 같다 — create table 은 전부 if not exists',
@@ -202,9 +202,9 @@ ok('인덱스도 if not exists 로 만든다',
 {
   const statements = seedMod.splitStatements(sqlText);
   eq('마이그레이션을 문장 단위로 나눈다 (HTTP 드라이버는 한 번에 한 문장)',
-    statements.length, 12);
-  eq('그중 테이블 만들기가 7개다',
-    statements.filter((s) => /^create table/.test(s)).length, 7);
+    statements.length, 13);
+  eq('그중 테이블 만들기가 8개다',
+    statements.filter((s) => /^create table/.test(s)).length, 8);
   ok('주석만 남은 빈 문장이 없다', statements.every((s) => s.length > 10));
 }
 

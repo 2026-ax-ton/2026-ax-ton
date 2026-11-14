@@ -44,7 +44,7 @@ async function run(request) {
   for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
   if (!cfg) return fail(500, 'config', '서버 설정 오류입니다.', cors);
   cfg = { ...cfg, timeoutMs: 45000 };
-  if (!takeDailyCall(cfg.dailyLimit)) return fail(429, 'limit', MESSAGES.limit, cors);
+  if (!(await takeDailyCall(cfg.dailyLimit))) return fail(429, 'limit', MESSAGES.limit, cors);
 
   const r = await callModel(cfg, systemText(LANG_NAMES[lang]), userText(items), { maxOutputTokens: 12000, maxText: 40000 });
   if (r.error) {

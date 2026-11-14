@@ -82,7 +82,7 @@ async function run(request) {
     if (!cfg) return fail(500, 'config', '서버 설정 오류입니다.', cors);
     cfg = { ...cfg, timeoutMs: Number(process.env.AI_QUESTIONS_TIMEOUT_MS) || DEFAULT_QUESTIONS_TIMEOUT_MS };
     model = cfg.model;
-    if (!takeDailyCall(cfg.dailyLimit)) return fail(429, 'limit', MESSAGES.limit, cors);
+    if (!(await takeDailyCall(cfg.dailyLimit))) return fail(429, 'limit', MESSAGES.limit, cors);
     const avoid = (Array.isArray(body.avoid) ? body.avoid : []).slice(0, 20).map((a) => String(a).slice(0, 160));
     const user = userText(equipment, merged, slots.filter((s) => s.type !== 'location'), phrases)
       + (avoid.length ? '\n\n아래 문항과 다르게 만든다:\n' + avoid.map((a) => '- ' + a).join('\n') : '');
@@ -101,7 +101,7 @@ async function run(request) {
   if (needAgain.length && model && Date.now() - started < 25000) {
     let cfg = null;
     for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
-    if (cfg && takeDailyCall(cfg.dailyLimit)) {
+    if (cfg && (await takeDailyCall(cfg.dailyLimit))) {
       const avoid2 = out.excluded.filter((x) => needAgain.some((s) => s.slot === x.slot) && x.prompt).map((x) => '- ' + x.prompt);
       const r2 = await callModel({ ...cfg, timeoutMs: 25000 }, systemText(),
         userText(equipment, merged, needAgain, phrases) + (avoid2.length ? '\n\n아래 문항과 다르게 만든다:\n' + avoid2.join('\n') : ''),
