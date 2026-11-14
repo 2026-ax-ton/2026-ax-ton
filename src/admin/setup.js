@@ -208,6 +208,10 @@
       var go = UI.el('a', 'btn-sm', eq.analysis ? '분석 결과 보기 · 교육 만들기' : 'AI 분석 · 교육 만들기');
       go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
       li.querySelector('.body').appendChild(go);
+      /* 휴대폰으로 설비 둘레 찍기 — 3D·여러 각도 재료 (시제품) */
+      var cam = UI.el('a', 'btn-sm', '설비 촬영');
+      cam.href = 'scan.html?equipment=' + encodeURIComponent(eq.id);
+      li.querySelector('.body').appendChild(cam);
 
       var ed = UI.el('button', 'btn-sm', '수정');
       ed.type = 'button';

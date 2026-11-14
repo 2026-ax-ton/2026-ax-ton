@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>설비 촬영 — 안전교육 이해도 검증 플랫폼</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/style-admin.css">
+<link rel="stylesheet" href="../assets/app.css">
+<link rel="stylesheet" href="admin.css">
+<script src="../assets/store.js"></script>
+<script src="../assets/auth.js"></script>
+<script>Auth.require(['admin', 'operator']);</script>
+</head>
+<body>
+
+<header class="adminbar apphead">
+  <div class="who">
+    <strong id="head-site">사업장 미등록</strong>
+    <span id="head-sub"></span>
+  </div>
+  <span class="role-chip admin" id="role-chip"></span>
+  <button class="btn-sm" type="button" id="btn-logout">로그아웃</button>
+</header>
+
+<main class="page">
+
+  <div class="pagehead">
+    <h1>설비 촬영 <span class="badge badge-neutral">시제품</span></h1>
+    <p class="lead"><b id="scan-equip">설비</b> 둘레를 휴대폰으로 천천히 두 바퀴 찍습니다. 화면 안내와 음성을 따라 하면 됩니다.</p>
+  </div>
+
+  <p class="blocked" id="blocked" hidden>
+    이 브라우저에서는 저장소를 쓸 수 없습니다. 입력해도 새로고침하면 사라집니다.
+  </p>
+
+  <!-- PC 에서 열었으면 폰으로 넘기는 QR -->
+  <section class="card" id="sec-phone" aria-labelledby="t-phone">
+    <h2 id="t-phone">휴대폰으로 열기</h2>
+    <p class="why">휴대폰 카메라로 이 QR 을 찍으면 이 화면이 휴대폰에서 열립니다 (같은 계정으로 로그인).</p>
+    <div class="qr-box" id="scan-qr"></div>
+    <p class="meta" id="scan-url"></p>
+  </section>
+
+  <section class="card" aria-labelledby="t-cam">
+    <h2 id="t-cam">촬영</h2>
+    <p class="meta" id="scan-status">[촬영 시작]을 누르면 카메라와 방향 센서를 켭니다.</p>
+    <div class="scan-stage" id="scan-stage" hidden>
+      <video id="scan-video" playsinline muted autoplay></video>
+      <canvas id="scan-overlay" aria-hidden="true"></canvas>
+      <div class="scan-warn" id="scan-warn" role="status" aria-live="polite" hidden>
+        <span class="ico" id="scan-warn-ico" aria-hidden="true"></span><span id="scan-warn-text"></span>
+      </div>
+    </div>
+    <p class="meta" id="scan-meter"></p>
+    <div class="big-actions">
+      <button class="btn btn-primary" type="button" id="btn-scan-start">촬영 시작</button>
+      <button class="btn btn-quiet" type="button" id="btn-scan-stop" hidden>멈추기</button>
+    </div>
+  </section>
+
+  <section class="card" id="sec-result" aria-labelledby="t-result" hidden>
+    <h2 id="t-result">찍은 사진</h2>
+    <p class="meta" id="scan-summary"></p>
+    <div class="scan-thumbs" id="scan-thumbs"></div>
+    <p class="why">시제품이라 사진은 이 휴대폰 화면에만 있습니다. 서버로 올리기는 배포 뒤 사진 저장소를 정한 다음에 붙입니다.</p>
+  </section>
+
+  <p><a class="btn-sm" href="setup.html">설비 목록으로</a></p>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="../assets/icons.js"></script>
+<script src="../assets/ui.js"></script>
+<script src="../assets/qr.js"></script>
+<script src="scan.js"></script>
+</body>
+</html>
