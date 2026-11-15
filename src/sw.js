@@ -63,7 +63,7 @@ var PRECACHE = [
   'worker/worker.css',
   'admin/admin.css',
 
-  /* 공용 JS 12 */
+  /* 공용 JS 14 */
   'assets/store.js',
   'assets/auth.js',
   'assets/ui.js',
@@ -77,6 +77,7 @@ var PRECACHE = [
   'assets/review.js',
   'assets/net.js',
   'assets/agent.js',
+  'assets/curriculum.js',
 
   /* 화면 JS 13 */
   'worker/home.js',
