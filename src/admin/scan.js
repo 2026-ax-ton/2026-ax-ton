@@ -4,7 +4,8 @@
    담당자가 휴대폰으로 설비 둘레를 두 바퀴 찍는다 — 낮게 한 바퀴, 높게 한 바퀴.
    찍은 사진은 나중에 3D 장면(영상 「어디」 컷·퀴즈 여러 각도)의 재료가 된다.
 
-   ★ 카메라 화면 위에 안내를 겹쳐 그린다 — 틀 · 수평선 · 한 바퀴 진행 링 · 경고(아이콘 + 글 + 음성)
+   ★ 카메라 화면 위에 안내를 겹쳐 그린다 — 모서리 틀 · 수평선 · 한 바퀴 진행 링 · 안내/경고 한 줄(아이콘 + 글 + 음성)
+   ★ 촬영 중에는 카메라가 휴대폰 화면 전체를 덮는다 (2026-11-15 사용자 요청 — 문서 스캔 앱처럼 화면 위에 가이드)
    ★ 동영상이 아니라 0.5초마다 「선명한 사진만」 남긴다 — 흔들림·어두움·역광·너무 빠름은 찍는 자리에서 거른다
    ★ 방향은 휴대폰 방향 센서(alpha). 센서가 없으면(PC 웹캠) 찍은 장수로 링을 채운다
      큰 철제 기계 옆에서는 나침반이 틀어질 수 있다 — alpha 는 상대 방향이라 한 바퀴를 세는 데만 쓴다
@@ -105,8 +106,8 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
   var SAY_GAP_MS = 4000;          // 같은 경고를 다시 말하기까지
   var MAX_EDGE = 1600;            // 남길 사진의 긴 변
   var PASSES = [
-    { name: '낮게', say: '허리 높이에서 기계를 화면 틀 안에 두고, 천천히 한 바퀴 도세요.' },
-    { name: '높게', say: '이번에는 팔을 들어 위에서 내려다보며, 한 바퀴 더 도세요.' }
+    { name: '낮게', say: '허리 높이에서 기계를 화면 틀 안에 두고, 천천히 한 바퀴 도세요.', tip: '1바퀴 · 허리 높이 — 기계를 틀 안에 두고 천천히 도세요' },
+    { name: '높게', say: '이번에는 팔을 들어 위에서 내려다보며, 한 바퀴 더 도세요.', tip: '2바퀴 · 팔을 들고 — 위에서 내려다보며 천천히 도세요' }
   ];
   var WARN = {
     dark: ['alert', '어두워요 — 밝은 쪽으로 가거나 조명을 켜세요'],
@@ -146,12 +147,15 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
 
   function say(text) { UI.speak({ text: text, lang: 'ko', ko: text }); }
 
+  /** 카메라 위 한 줄 — 경고가 없으면 이번 바퀴 안내를 띄워 둔다 (멈추면 숨긴다) */
   function warn(key) {
     var box = $('scan-warn');
-    if (!key) { box.hidden = true; return; }
-    UI.setIcon($('scan-warn-ico'), WARN[key][0]);
-    $('scan-warn-text').textContent = WARN[key][1];
+    if (!timer) { box.hidden = true; return; }
+    box.classList.toggle('is-warn', !!key);
+    UI.setIcon($('scan-warn-ico'), key ? WARN[key][0] : 'camera');
+    $('scan-warn-text').textContent = key ? WARN[key][1] : PASSES[pass].tip;
     box.hidden = false;
+    if (!key) return;
     var now = Date.now();
     if (lastSay.key !== key || now - lastSay.at > SAY_GAP_MS) { say(WARN[key][1]); lastSay = { key: key, at: now }; }
   }
@@ -171,12 +175,14 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     var w = overlay.width = video.clientWidth, h = overlay.height = video.clientHeight;
     var g = overlay.getContext('2d');
     g.clearRect(0, 0, w, h);
-    /* 틀 — 기계를 여기 넣는다 */
-    g.strokeStyle = 'rgba(255,255,255,.85)';
-    g.lineWidth = 3;
-    g.setLineDash([12, 8]);
-    g.strokeRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8);
-    g.setLineDash([]);
+    /* 모서리 틀 — 기계를 여기 넣는다 (문서 스캔 앱처럼 네 모서리만) */
+    var fx = w * 0.1, fy = h * 0.16, fw = w * 0.8, fh = h * 0.6, L = Math.min(fw, fh) * 0.14;
+    g.strokeStyle = 'rgba(255,255,255,.9)';
+    g.lineWidth = 4;
+    g.lineCap = 'round';
+    [[fx, fy, 1, 1], [fx + fw, fy, -1, 1], [fx, fy + fh, 1, -1], [fx + fw, fy + fh, -1, -1]].forEach(function (c) {
+      g.beginPath(); g.moveTo(c[0] + c[2] * L, c[1]); g.lineTo(c[0], c[1]); g.lineTo(c[0], c[1] + c[3] * L); g.stroke();
+    });
     /* 수평선 — 기울면 주황, 바르면 초록 */
     var tilt = sensor.seen ? sensor.gamma : 0;
     g.save();
@@ -273,11 +279,14 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       stream = s;
       video.srcObject = s;
       $('scan-stage').hidden = false;
+      $('scan-stage').classList.add('full');                 // 카메라가 화면 전체를 덮는다
+      document.documentElement.classList.add('scan-on');     // 뒤 페이지가 스크롤되지 않게
       $('btn-scan-start').hidden = true;
       $('btn-scan-stop').hidden = false;
       $('scan-status').textContent = '1번째 바퀴 (' + PASSES[0].name + ') — ' + PASSES[0].say;
       say(PASSES[0].say);
       timer = setInterval(tick, SHOT_MS);
+      warn('');
     }).catch(function (e) {
       $('scan-status').textContent = '카메라를 켜지 못했습니다 (' + (e && e.name || '오류') + '). 브라우저의 카메라 허용을 확인하세요.';
     });
@@ -292,6 +301,8 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     stream = null;
     warn('');
     $('scan-stage').hidden = true;
+    $('scan-stage').classList.remove('full');
+    document.documentElement.classList.remove('scan-on');
     $('btn-scan-stop').hidden = true;
     $('btn-scan-start').hidden = false;
     $('btn-scan-start').textContent = '처음부터 다시 찍기';
@@ -314,6 +325,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       });
     });
     $('sec-result').hidden = !shots;
+    if (shots && $('sec-result').scrollIntoView) $('sec-result').scrollIntoView({ block: 'start' });
   }
 
   $('btn-scan-start').addEventListener('click', function () {

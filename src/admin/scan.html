@@ -48,14 +48,15 @@
     <div class="scan-stage" id="scan-stage" hidden>
       <video id="scan-video" playsinline muted autoplay></video>
       <canvas id="scan-overlay" aria-hidden="true"></canvas>
+      <!-- 촬영 중에는 이 칸이 화면 전체를 덮는다 — 안내·숫자·멈추기가 카메라 위에 있어야 한다 -->
+      <p class="scan-meter" id="scan-meter"></p>
       <div class="scan-warn" id="scan-warn" role="status" aria-live="polite" hidden>
         <span class="ico" id="scan-warn-ico" aria-hidden="true"></span><span id="scan-warn-text"></span>
       </div>
+      <button class="btn scan-stop" type="button" id="btn-scan-stop" hidden>멈추기</button>
     </div>
-    <p class="meta" id="scan-meter"></p>
     <div class="big-actions">
       <button class="btn btn-primary" type="button" id="btn-scan-start">촬영 시작</button>
-      <button class="btn btn-quiet" type="button" id="btn-scan-stop" hidden>멈추기</button>
     </div>
   </section>
 
