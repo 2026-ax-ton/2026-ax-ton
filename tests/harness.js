@@ -62,6 +62,10 @@ function boot(pageRelPath, opts = {}) {
   run('assets/i18n.js');   // 노동자 화면 <head> 에 실린다 (UI-1)
   run('assets/seed.js');
   run('assets/icons.js');  // ui.js 보다 먼저 실려야 한다 (선 아이콘)
+  /* 사진·그림 줄이기와 교육 크기 상한 — 바깥을 부르지 않는 순수 파일이라 순서가 자유롭다.
+     **opts.before 보다 먼저** 싣는다. 검사가 가짜 Photo 로 바꿔 끼우기 때문이다 */
+  run('assets/photo.js');
+  run('assets/limits.js');
 
   if (opts.seed !== false) win.Seed.fill();
   if (opts.login) {

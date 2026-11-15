@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v24';   // 2026-11-15 — 교육 종류·업종 0단계 칸과 법정 안내 (C06 D-039 범위 ⓑ)
+var VERSION = 'v25';   // 2026-11-15 — 교육 1건 크기 상한 100KB · 그림 줄이기 (C06 D-048)
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.
@@ -63,7 +63,7 @@ var PRECACHE = [
   'worker/worker.css',
   'admin/admin.css',
 
-  /* 공용 JS 16 */
+  /* 공용 JS 17 */
   'assets/store.js',
   'assets/auth.js',
   'assets/ui.js',
@@ -78,6 +78,7 @@ var PRECACHE = [
   'assets/net.js',
   'assets/agent.js',
   'assets/photo.js',
+  'assets/limits.js',
   'assets/curriculum.js',
   'assets/edukind.js',
 
