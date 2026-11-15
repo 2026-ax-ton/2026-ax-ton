@@ -27,7 +27,8 @@
 > | ⚠️ 남은 것 — DB | **`ai_usage` 표를 팀 배포 DB 에 적용해야 한다** (`db/migrations/001_init.sql`). 적용 전에는 AI 함수가 하루 한도를 못 세고 **막는 쪽으로** 동작한다 (D-045 「DB 질의 실패면 막는다」) |
 > | ⚠️ 남은 것 — Blob | 팀 Vercel 에서 **Storage → Blob(Private) 하나를 만들어 프로젝트에 연결**해야 `api/scans.mjs` 가 돈다 (`BLOB_STORE_ID`). 설비 촬영은 yesol 이 폰으로 올린다 (확인요청 24번) |
 > | ⚠️ 남은 것 — 쓰임새별 한도 | 사진 통은 지금 **인스턴스 메모리 보조 울타리**다 — `ai_usage` 에 bucket 열이 없다. DB 로 옮기는 것은 표 변경이라 **기능 동결 뒤**로 미뤘다 (D-045) |
-> | **다음 한 걸음** | ① 사용자 확인 뒤 **push** (`feat/agent-autogen` → PR → `develop`) ② 배포 DB 에 `ai_usage` 적용 · Blob 연결 ③ 검수 문구에 **법정 사항 태그** 달기 (D-046 남은 일 · 문구를 아는 사람 필요) ④ 노동자 화면 기획서(PRD-WK-02·WK-03) 갱신 — 사진 위에서 짚는 흐름(D-041) ⑤ 두 기기 실물 시험 · 녹화 |
+> | **다음 한 걸음** | ✅ ① **push·PR 완료** — `feat/agent-autogen` → **PR #10** (base `develop`, 2026-11-15) · ✅ ④ 노동자 기획서 메움 (PRD-WK-02 v1.1 · PRD-WK-03 v1.2) · ② **배포 DB 에 `ai_usage` 적용 · 팀 Vercel 에 Blob(Private) 연결** (사람 몫) · ③ 검수 문구에 **법정 사항 태그** (문구를 아는 사람 필요 — 수빈님 PR #9 의 태그 체계와 함께) · ⑤ 두 기기 실물 시험 · 녹화 |
+> | ⚠️ PR 순서 | `C06` **D-039 줄**이 수빈님 **PR #9**(`feature/Subin-prd-3`, 11/14)와 겹친다. **#9 를 먼저 머지**하고 PR #10 에서 develop 을 받아 **수빈님 최신 문장 + 「개발 확인 완료」** 로 합치는 순서를 제안했다 |
 > | ⚠️ 사용자 | **push 승인** · 팀 Vercel 에서 Blob 만들기·DB 적용 (yesol 과 함께) · `research/photos` 는 Wikimedia CC BY-SA/CC0 이고 출처 표기가 `CREDITS.md` 에 있다 — 발표·제출본에 쓸 때 작가·라이선스를 같이 적는다 |
 
 > ## ▶ 2026-11-15 — **yesol 작업(11/6~11/15)을 한 번 정리했다 · 팀 공유본 `team-share`**
