@@ -391,6 +391,28 @@
     return wrap;
   }
 
+  /* 🆕 실제 걸린 시간 (C06 D-039 · PRD-AD-04 FR-17 계열)
+     교육을 연 시각(learnedAt) ~ 검증을 마친 시각(quizAt) 을 **그대로** 센다.
+     ★ 고치거나 법정 시간으로 환산하지 않는다 — 짧게 나오면 짧게 적는다.
+       증빙은 우리가 보이고 싶은 숫자가 아니라 실제로 일어난 일을 적는 문서다. */
+  function minutesSpent(r) {
+    if (!r || !r.learnedAt || !r.quizAt) return null;
+    var ms = new Date(r.quizAt) - new Date(r.learnedAt);
+    if (!(ms > 0)) return null;
+    return Math.round(ms / 60000);
+  }
+
+  /** 대상자들의 실제 시간을 한 줄로 — 「가장 짧게 n분 ~ 가장 길게 m분 (기록 k명)」 */
+  function spentText(results) {
+    var mins = results.map(minutesSpent).filter(function (n) { return n !== null; });
+    if (!mins.length) return '기록 없음';
+    mins.sort(function (x, y) { return x - y; });
+    var lo = mins[0];
+    var hi = mins[mins.length - 1];
+    var one = function (n) { return EduKind.minutesText(n); };
+    return (lo === hi ? one(lo) : one(lo) + ' ~ ' + one(hi)) + ' (기록 ' + mins.length + '명)';
+  }
+
   /* 교육 하나가 문서에서 차지하는 덩어리.
      ★ 교육 하나짜리 증빙도 이 함수를 쓴다 — 코드가 두 벌이 되면
        한쪽만 고쳐지는 날이 온다. */
@@ -412,8 +434,19 @@
     tb.appendChild(metaRow('대상 공정 · 설비',
       [proc ? proc.name : '-', eq ? eq.name : '삭제된 설비'].join(' · ')));
     tb.appendChild(metaRow('교육 언어', (course.languages || []).map(langName).join(' · ') || '-'));
+    /* 🆕 교육 종류 — 칸이 없던 옛 교육은 「미지정」 (PRD-AD-04 FR-21) */
+    tb.appendChild(metaRow('교육 종류', EduKind.label(course)));
     tb.appendChild(metaRow('교육 방식',
       '설비별 다국어 음성 · 픽토그램 자율 학습 후 이해도 검증'));
+    /* 🆕 실제 시간과 법정 최소 시간을 **나란히** 적는다 (C06 D-039).
+       환산하지 않는다 — 둘을 같은 칸에 두면 보는 사람이 직접 견준다 */
+    var legal = EduKind.minText(course.eduKind);
+    tb.appendChild(metaRow('실제 교육 시간',
+      spentText(results) + (legal ? ' · 법정 최소 ' + legal : ' · 법정 최소 시간은 교육 종류를 고른 교육에만 적습니다')));
+    if (legal) {
+      tb.appendChild(metaRow('법정 시간 인정 조건',
+        '담당자(관리감독자 등)가 현장이나 교육장에서 함께 진행하고 기록을 보관해야 법정 교육시간으로 인정됩니다.'));
+    }
     tb.appendChild(metaRow('발급일', course.createdAt ? UI.formatDate(course.createdAt) : '기록 없음'));
     tb.appendChild(metaRow('실시 기간', doneAt.length
       ? UI.formatDate(doneAt[0]) + ' ~ ' + UI.formatDate(doneAt[doneAt.length - 1])

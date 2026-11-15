@@ -42,6 +42,19 @@
       검수를 지나지 않은 문구는 아래 선택지에 아예 나오지 않습니다.</span>
   </p>
 
+  <!-- 🆕 0단계 — 어떤 교육, 어떤 업종 (C06 D-039 범위 ⓑ · PRD-AD-04 FR-15~17·19·22)
+       손으로 만들기와 AI 로 만들기 둘 다 이 선택을 쓴다. 칸은 공용(assets/edukind.js) -->
+  <section class="card feature" aria-labelledby="t-step0" id="step0">
+    <div class="sec-head">
+      <div>
+        <h2 id="t-step0">0. 어떤 교육, 어떤 업종</h2>
+        <p class="why">법정 교육 4종 중 무엇을 하는지 고르면, 법정 최소 시간과 꼭 다뤄야 하는 교육 사항을 보여 줍니다.</p>
+      </div>
+      <span class="badge badge-neutral" id="b-step0">미설정</span>
+    </div>
+    <div id="edu-kind-box"></div>
+  </section>
+
   <!-- 🆕 2026-11-11 기본 흐름 — 설비 탭에 등록한 설비를 고르면 AI 가 위험요소를 분석하고 문항을 만든다.
        설비 정보는 여기서 다시 입력하지 않는다 (설비 탭이 원천) -->
   <section class="card feature" aria-labelledby="t-eq-pick" id="eq-pick">
@@ -300,7 +313,7 @@
 <nav class="tabbar fixed" aria-label="담당자 메뉴">
   <a href="dashboard.html"><span class="ico" aria-hidden="true">📊</span>대시보드</a>
   <a href="setup.html"><span class="ico" aria-hidden="true">🏭</span>설비</a>
-  <a href="content.html"><span class="ico" aria-hidden="true">📝</span>콘텐츠</a>
+  <a href="content.html"><span class="ico" aria-hidden="true">📝</span>교육 콘텐츠</a>
   <a href="proof.html"><span class="ico" aria-hidden="true">📄</span>증빙</a>
   <a href="library.html"><span class="ico" aria-hidden="true">🔍</span>문구</a>
 </nav>
@@ -314,6 +327,8 @@
 <script src="../assets/review.js"></script>
 <script src="../assets/diagrams.js"></script>
 <script src="../assets/qr.js"></script>
+<script src="../assets/curriculum.js"></script>
+<script src="../assets/edukind.js"></script>
 <script src="content.js"></script>
 </body>
 </html>

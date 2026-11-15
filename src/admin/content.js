@@ -54,6 +54,8 @@
   /* 초안. 승인을 누를 때까지 저장하지 않는다 —
      반쯤 만든 교육이 courses 에 들어가면 노동자 화면에 그대로 나온다. */
   var draft = newDraft();
+  /* 🆕 0단계 — 어떤 교육, 어떤 업종 (C06 D-039 범위 ⓑ). 칸은 공용 assets/edukind.js */
+  var eduKind = EduKind.empty();
 
   /* -----------------------------------------------------------------
      발급한 교육의 문항 고치기 (C6)
@@ -158,7 +160,7 @@
 
 
   function newDraft() {
-    return { title: '', equipmentId: '', languages: [], phraseIds: [], quiz: [], dueAt: '' };
+    return { title: '', equipmentId: '', languages: [], phraseIds: [], quiz: [], dueAt: '' };   // 교육 종류는 eduKind (0단계)
   }
 
   /* -----------------------------------------------------------------
@@ -1186,6 +1188,9 @@
   function draftSteps() {
     var eq = equipmentOf(draft.equipmentId);
     return [
+      /* 0단계는 **막지 않는다** — 고르지 않으면 「미지정」 으로 발급된다 (FR-AD-04-21).
+         대신 무엇으로 발급되는지 이 목록에 적는다 */
+      { what: '0. 교육 종류', done: true, note: EduKind.label(EduKind.fields(eduKind)) },
       { what: '1. 설비와 제목', done: !!(draft.equipmentId && draft.title),
         note: eq ? eq.name : '설비 미선택' },
       { what: '1. 언어', done: draft.languages.length > 0,
@@ -1226,6 +1231,11 @@
       phraseIds: draft.phraseIds.slice(),
       quiz: draft.quiz.slice(),
       dueAt: draft.dueAt || '',      // 비어 있어도 넣는다. 기능6 이 "미정" 으로 읽는다
+      /* 🆕 교육 종류·업종·특별교육 대상 작업 (PRD-AD-04 FR-15·16 · C06 D-039).
+         고르지 않았으면 빈 값이고, 증빙·목록에 「미지정」 으로 보인다 (FR-21) */
+      eduKind: EduKind.fields(eduKind).eduKind,
+      industry: EduKind.fields(eduKind).industry,
+      specialJob: EduKind.fields(eduKind).specialJob,
       approved: true,
       createdAt: new Date().toISOString()
     };
@@ -1240,6 +1250,7 @@
     UI.toast('발급했습니다. 노동자 ' + count + '명의 수강 화면에 나타납니다.');
 
     draft = newDraft();
+    /* ★ 교육 종류·업종은 그대로 둔다 — 같은 교육을 설비마다 연달아 만드는 일이 흔하다 */
     resetForms();
     render();
   }
@@ -1483,6 +1494,7 @@
 
   function render() {
     var state = setup();
+    renderEduKind();
     renderEquipCards(state);
     var ready = state.equipments.length > 0 && state.languages.length > 0;
     $('setup-lock').hidden = ready;
@@ -1543,6 +1555,42 @@
     }
   }
 
+  /* 🆕 0단계 — 교육 종류·업종 칸과 안내 상자 (PRD-AD-04 FR-15~17·19·22).
+     ★ 다시 그릴 때마다 새로 만들지 않는다 — 고르던 중 포커스가 튄다.
+       edukind.js 가 고를 때만 다시 그린다. */
+  var eduKindDrawn = false;
+
+  function renderEduKind() {
+    var host = $('edu-kind-box');
+    if (!host) return;
+    if (!eduKindDrawn) {
+      EduKind.render(host, eduKind, function () {
+        applyEduKindTitle();
+        badgeEduKind();
+        renderCheck();
+      });
+      eduKindDrawn = true;
+    }
+    badgeEduKind();
+  }
+
+  function badgeEduKind() {
+    var b = $('b-step0');
+    if (!b) return;
+    badge(b, EduKind.ready(eduKind), EduKind.label(EduKind.fields(eduKind)), '미지정');
+  }
+
+  /* 제목 앞에 교육 종류를 붙인다 (FR-AD-04-20).
+     ★ 담당자가 손으로 쓴 제목은 건드리지 않는다 — 자동으로 채운 제목만 다시 만든다 */
+  function applyEduKindTitle() {
+    var input = $('draft-title');
+    if (!input || input.getAttribute('data-hand') === 'yes') return;
+    var eq = equipmentOf(draft.equipmentId);
+    if (!eq) return;
+    input.value = EduKind.titlePrefix(eduKind) + eq.name + ' 안전교육';
+    draft.title = input.value.trim();
+  }
+
   function resetForms() {
     $('draft-title').value = '';
     $('draft-due').value = '';
@@ -1569,7 +1617,7 @@
     // 제목을 아직 손대지 않았으면 설비 이름으로 채워 준다
     var eq = equipmentOf(draft.equipmentId);
     if (eq && !$('draft-title').value.trim()) {
-      $('draft-title').value = eq.name + ' 안전교육';
+      $('draft-title').value = EduKind.titlePrefix(eduKind) + eq.name + ' 안전교육';
       draft.title = $('draft-title').value;
     }
     if (currentType() === 'hotspot') renderHotspotFigure();
@@ -1578,6 +1626,8 @@
 
   $('draft-title').addEventListener('input', function () {
     draft.title = $('draft-title').value.trim();
+    /* 담당자가 직접 쓴 제목은 교육 종류를 바꿔도 덮지 않는다 */
+    $('draft-title').setAttribute('data-hand', draft.title ? 'yes' : 'no');
     renderCheck();
   });
 

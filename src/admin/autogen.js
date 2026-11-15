@@ -41,6 +41,9 @@
   var SUBTYPE = { location: '위치 짚기', action: '행동 고르기', ox: 'OX', situation: '상황 판단', picture: '그림 고르기' };
   var LEVEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
 
+  /* 🆕 0단계 — 어떤 교육, 어떤 업종 (C06 D-039). 설비를 바꿔도 유지한다 */
+  var eduKind = EduKind.empty();
+
   function emptyState(eq) {
     return {
       equipment: eq || null, research: null, guided: null, keepPhoto: '', source: '',
@@ -161,7 +164,7 @@
     $('ag-figure').hidden = true;
     $('ag-photo-status').textContent = '';
     $('ag-research-status').textContent = '';
-    if ($('ag-title').getAttribute('data-auto') !== 'no') $('ag-title').value = e ? e.name + ' 안전교육' : '';
+    if ($('ag-title').getAttribute('data-auto') !== 'no') $('ag-title').value = e ? EduKind.titlePrefix(eduKind) + e.name + ' 안전교육' : '';
     $('ag-reviewed').checked = false;
     if (!e) return;
     try { history.replaceState(null, '', '#eq=' + encodeURIComponent(e.id)); } catch (x) { /* file:// */ }
@@ -886,6 +889,8 @@
     /* 규칙 §9.4 발급 막기 — 서버가 판정한 이유 (필수 주제 빠짐·최소 문항 미달 등) */
     var blocked = state.quiz && state.quiz.issuable && !state.quiz.issuable.ok ? (state.quiz.issuable.why || []) : [];
     return [
+      /* 0단계는 막지 않는다 — 고르지 않으면 「미지정」 으로 발급된다 (FR-AD-04-21) */
+      { what: '교육 종류', done: true, note: EduKind.label(EduKind.fields(eduKind)) },
       { what: '설비', done: !!state.equipment, note: state.equipment ? state.equipment.name : '미선택' },
       { what: 'AI 위험요소 분석', done: !!state.research, note: state.research ? aiItems().length + '개' : '안 함' },
       { what: '「확인 필요」 판정', done: !!state.research && left === 0, note: left ? left + '개 남음' : '다 봄' },
@@ -959,6 +964,10 @@
       phraseIds: usablePhrases().map(function (p) { return p.id; }),
       quiz: quiz,
       dueAt: '',
+      /* 🆕 교육 종류·업종·특별교육 대상 작업 (PRD-AD-04 FR-15·16). 안 골랐으면 「미지정」 */
+      eduKind: EduKind.fields(eduKind).eduKind,
+      industry: EduKind.fields(eduKind).industry,
+      specialJob: EduKind.fields(eduKind).specialJob,
       approved: true,
       createdAt: new Date().toISOString(),
       photo: usesPhoto ? state.keepPhoto : '',
@@ -988,6 +997,21 @@
     $('ag-research-status').textContent = '「' + course.title + '」을 발급했습니다. 다른 설비를 고르거나 다시 분석하세요.';
     $('ag-photo-status').textContent = '';
   }
+
+  /* ── 🆕 0단계 — 어떤 교육, 어떤 업종 ─────────────────────────────── */
+
+  (function drawEduKind() {
+    var host = $('edu-kind-box');
+    if (!host) return;
+    EduKind.render(host, eduKind, function () {
+      var e = state.equipment;
+      /* 담당자가 제목을 직접 쓴 뒤에는 덮지 않는다 (data-auto='no') */
+      if (e && $('ag-title').getAttribute('data-auto') !== 'no') {
+        $('ag-title').value = EduKind.titlePrefix(eduKind) + e.name + ' 안전교육';
+      }
+      if (state.research) renderApprove();
+    });
+  })();
 
   /* ── 연결 ──────────────────────────────────────────────────────── */
 
