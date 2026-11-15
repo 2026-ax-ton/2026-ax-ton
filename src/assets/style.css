@@ -20,11 +20,12 @@
   --radius-lg: 22px;
   --radius-sm: 11px;
 
-  --ink: #14181d;
-  --ink-2: #4a545f;
-  --ink-3: #78838f;
-  --line: #e2e5eb;
-  --bg: #f5f6f9;
+  /* 🆕 2026-11-15 Figma 「본선 · 00 방향 보드」 — 글자·선·바탕은 두 트랙이 같다 */
+  --ink: #191f28;
+  --ink-2: #4e5968;         /* 글자 보조 */
+  --ink-3: #6b7684;         /* 글자 약 */
+  --line: #e5e8eb;
+  --bg: #f2f4f6;
   --surface: #ffffff;
   --track: #edeff3;         /* 막대 바탕 — 아직 안 찬 부분 */
 
@@ -47,17 +48,28 @@
        글자가 얹히지 않는 장식에만 쓴다.
      ----------------------------------------------------------------- */
 
-  --brand: #5a45c2;         /* 주 색 — 흰 글자 위/아래 모두 5.9:1 */
+  --brand: #795cf2;         /* 주 색 (Figma 관리자 보라) — 흰 글자와 4.5:1 */
   --brand-ink: #ffffff;
-  --brand-strong: #43308f;  /* 눌린 상태 · 머리띠 그러데이션 끝 */
-  --brand-deep: #3e2d87;    /* 옅은 바탕 위 글자 */
-  --brand-soft: #f1eefe;    /* 옅은 바탕 */
-  --brand-line: #d7cefa;    /* 옅은 바탕의 테두리 */
-  --brand-vivid: #8b7cf6;   /* 장식용 밝은 색 — 글자를 얹지 않는다 */
-  --brand-vivid-2: #a99bfa; /* 그러데이션 끝 */
-  --brand-focus: #8b7cf6;   /* 초점 테두리 */
-  --brand-glow: rgba(90, 69, 194, .30);   /* 버튼 그림자 */
+  --brand-strong: #5f40d6;  /* 눌린 상태 · 머리띠 그러데이션 끝 (Figma 「배너 끝(짙게)」) */
+  --brand-deep: #4b32b8;    /* 옅은 바탕 위 글자 */
+  --brand-soft: #f0ecfe;    /* 옅은 바탕 (Figma 「주색 연함」) */
+  --brand-line: #dcd3fc;    /* 옅은 바탕의 테두리 */
+  --brand-vivid: #9c86f6;   /* 장식용 밝은 색 — 글자를 얹지 않는다 */
+  --brand-vivid-2: #b5a6f8; /* 그러데이션 끝 */
+  --brand-focus: #795cf2;   /* 초점 테두리 */
+  --brand-glow: rgba(121, 92, 242, .28);  /* 그림자 */
   --brand-tint: #faf9ff;    /* 표 hover 처럼 아주 옅게 */
+
+  /* 🆕 머리띠(배너) — Figma: 주색은 배너에만 크게. 노동자 트랙은 worker.css 가 산호로 덮는다 */
+  --banner: #795cf2;
+  --banner-end: #5f40d6;
+  --banner-ink: #ffffff;    /* 보라 배너 위 흰 글자 (4.5:1) */
+  --banner-ink-2: rgba(255, 255, 255, .82);
+
+  /* 🆕 주 버튼은 먹색 — Figma: 「주 버튼(먹색) #191F28」. 주색을 많이 쓰면 위험 표시가 묻힌다 */
+  --btn-main: #191f28;
+  --btn-main-strong: #000000;
+  --btn-main-ink: #ffffff;
 
   --ok: #1c6b3a;
   --ok-soft: #e4f2e9;
@@ -76,8 +88,8 @@
   /* 노동자 화면 안에서 "지금 담당자로 들어와 있다" 를 알리는 색.
      worker.css 가 --brand 를 빨강으로 덮어써도 이 값은 그대로 보라로 남는다.
      그래야 노동자 화면 위에 뜬 담당자용 안내가 담당자 색으로 보인다. */
-  --admin-accent: #5a45c2;
-  --admin-accent-soft: #f1eefe;
+  --admin-accent: #795cf2;
+  --admin-accent-soft: #f0ecfe;
 
   /* 깊이 — 테두리 하나로만 구분하면 화면이 납작해 보인다.
      ★ 저사양 안드로이드를 생각해 blur 를 얕게 쓴다 (PRD §9.1). */
@@ -145,8 +157,9 @@ html, body {
 body {
   background: #e9ecef;
   color: var(--ink);
-  font-family: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo",
-               "Noto Sans KR", system-ui, sans-serif;
+  /* Figma 글꼴은 Noto Sans KR — 웹폰트를 내려받지 않는다(제3자 요청 0건). 기기에 있으면 그것을 쓴다 */
+  font-family: "Noto Sans KR", "Noto Sans CJK KR", "Apple SD Gothic Neo",
+               "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -302,11 +315,11 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-strong) 100%);
-  color: var(--brand-ink);
-  box-shadow: 0 2px 8px var(--brand-glow);
+  background: var(--btn-main);
+  color: var(--btn-main-ink);
+  box-shadow: 0 2px 6px rgba(25, 31, 40, .18);
 }
-.btn-primary:hover { background: var(--brand-strong); }
+.btn-primary:hover { background: var(--btn-main-strong); }
 .btn-primary:active { box-shadow: none; transform: translateY(1px); }
 
 .btn-ghost {
