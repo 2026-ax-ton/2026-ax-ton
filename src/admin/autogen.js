@@ -46,7 +46,7 @@
 
   function emptyState(eq) {
     return {
-      equipment: eq || null, research: null, guided: null, keepPhoto: '', source: '',
+      equipment: eq || null, research: null, guided: null, keepPhoto: '', coursePhoto: '', source: '',
       judge: {}, edits: {}, moves: {}, moving: '', added: [],
       itemTab: 'ok', runName: '', active: '',
       images: {},        // 항목 id → 참고 사진 (메모리만 — 저장하지 않는다)
@@ -187,6 +187,43 @@
       $('ag-research-status').textContent = '설비에 저장된 AI 분석을 불러왔습니다 (' + (a.at ? UI.formatDate(a.at) : '') + '). 새로 하려면 [AI 위험요소 분석 시작].';
       renderAll();
     }
+    prepareCourseImages(renderAll);
+  }
+
+  /** 교육에 들어갈 그림을 **상한에 맞게 줄여 둔다** (`assets/limits.js` · C06 D-048).
+   *
+   *  왜 여기서 미리 하나 — 발급은 누르는 즉시 끝나야 하고(사람이 기다리는 자리),
+   *  검토 단계의 「교육 크기」 칸이 **발급 전에** 실제 크기를 보여 주어야 한다.
+   *
+   *  ★ 설비 사진은 **사본을 줄인다** (`state.coursePhoto`). 원본 `keepPhoto` 는
+   *    설비 탭이 원천이라 건드리지 않는다 — 설비 사진을 교육이 깎으면 안 된다.
+   *  ★ 보기 그림은 교육에만 있으므로 제자리에서 줄인다.
+   *  ★ 여러 번 불러도 괜찮다 — 이미 상한 아래인 그림은 다시 뽑지 않는다.
+   *  ★ 못 줄여도 멈추지 않는다. 그대로 두고 「교육 크기」 칸이 막는다. */
+  function prepareCourseImages(after) {
+    var done = typeof after === 'function' ? after : function () {};
+    var jobs = [];
+
+    if (state.keepPhoto && state.coursePhoto !== state.keepPhoto) {
+      state.coursePhoto = state.keepPhoto;
+      jobs.push(Photo.shrinkDataUrl(state.keepPhoto, { maxEdge: Limits.PHOTO_MAX_EDGE, targetBytes: Limits.PHOTO_MAX_BYTES })
+        .then(function (r) { if (r && r.image) state.coursePhoto = r.image; }));
+    } else if (!state.keepPhoto) {
+      state.coursePhoto = '';
+    }
+
+    var quiz = state.quiz && Array.isArray(state.quiz.quiz) ? state.quiz.quiz : [];
+    quiz.forEach(function (q) {
+      if (!q || !Array.isArray(q.pics)) return;
+      q.pics.forEach(function (pic, i) {
+        if (typeof pic !== 'string' || pic.indexOf('data:image/') !== 0) return;
+        jobs.push(Photo.shrinkDataUrl(pic, { maxEdge: Limits.PIC_MAX_EDGE, targetBytes: Limits.PIC_MAX_BYTES })
+          .then(function (r) { if (r && r.image) q.pics[i] = r.image; }));
+      });
+    });
+
+    if (!jobs.length) { done(); return; }
+    Promise.all(jobs).then(done, done);
   }
 
   /** 분석 결과를 설비에 저장한다 — 설비 탭이 원천. 참고 사진(외부 그림)은 넣지 않는다 (동기화 512KB) */
@@ -295,6 +332,9 @@
     saveAnalysis();
     if (run.photo) { var ph = $('ag-equip-photo'); ph.src = run.photo; ph.hidden = false; }
     renderAll();
+    /* 실측 도구가 만든 결과 파일은 그림이 크다 (11/12 파일: 설비 사진 332KB · 보기 그림 12장 175KB).
+       교육에 들어갈 사본만 상한에 맞게 줄인다 (C06 D-048) */
+    prepareCourseImages(renderAll);
     return true;
   }
 
@@ -692,6 +732,7 @@
       $('ag-reviewed').checked = false;
       $('ag-quiz-status').textContent = '';
       renderAll();
+      prepareCourseImages(renderAll);   /* 보기 그림을 상한에 맞게 줄인다 (C06 D-048) */
       translateQuiz();
     });
   }
@@ -879,6 +920,15 @@
 
   function aiWrittenCount() { return quizItems().filter(function (q) { return q.aiWritten; }).length; }
 
+  /** 「교육 크기」 칸 — 동기화 한 덩어리 512KB 안에 교육이 여러 건 들어가야 한다.
+   *  문항이 아직 없으면 잴 것이 없으므로 막지 않는다 (앞 칸들이 먼저 막는다). */
+  function sizeStep() {
+    var course = buildCourse();
+    if (!course) return { what: '교육 크기', done: true, note: '문항을 만든 뒤 잽니다' };
+    var why = Limits.courseSizeProblem(course);
+    return { what: '교육 크기', done: !why, note: why || Limits.kb(Limits.courseBytes(course)) + ' / ' + Limits.kb(Limits.MAX_COURSE_BYTES) };
+  }
+
   function steps() {
     var left = undecided().length;
     var qs = quizItems();
@@ -900,6 +950,8 @@
       { what: '문항 번역', done: !quizLangs().length || (qs.length > 0 && !transMissing().length),
         note: quizLangs().length ? (transMissing().length ? '빠진 언어 ' + transMissing().map(langName).join(', ') : quizLangs().map(langName).join(' · ') + ' 완료') : '한국어만' },
       { what: 'AI 작성 문항 검토', done: !aiN || $('ag-reviewed').checked, note: aiN ? (aiN + '개 · ' + ($('ag-reviewed').checked ? '검토함' : '검토 표시 필요')) : '없음' },
+      /* 교육 1건 크기 — 넘으면 발급을 막는다 (C06 D-048). 그림은 불러올 때 이미 줄여 뒀다 */
+      sizeStep(),
       { what: '발급 보류 아님', done: !state.hold, note: state.hold ? '보류 중' : '진행' },
       { what: '교육 제목', done: !!$('ag-title').value.trim(), note: $('ag-title').value.trim() || '없음' }
     ];
@@ -951,9 +1003,11 @@
     };
   }
 
-  function approve() {
-    if (!steps().every(function (s) { return s.done; })) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
+  /** 발급될 교육 한 건 — **검토 단계의 크기 계산과 발급이 같은 것을 본다.**
+   *  두 벌로 만들면 「교육 크기」 칸이 통과한 뒤 저장이 막히는 일이 생긴다. */
+  function buildCourse() {
     var e = state.equipment;
+    if (!e || !state.research || !state.quiz) return null;
     var quiz = quizItems().map(function (q) { var c = JSON.parse(JSON.stringify(q)); delete c.slot; return c; });
     var usesPhoto = quiz.some(function (q) { return q.type === 'hotspot'; });
     var course = {
@@ -970,7 +1024,8 @@
       specialJob: EduKind.fields(eduKind).specialJob,
       approved: true,
       createdAt: new Date().toISOString(),
-      photo: usesPhoto ? state.keepPhoto : '',
+      /* 줄인 사본을 넣는다 — 설비 탭의 원본은 그대로 둔다 (C06 D-048) */
+      photo: usesPhoto ? (state.coursePhoto || state.keepPhoto) : '',
       /* 문항 ↔ 위험요소 추적 — 서버(api/_courses.mjs)가 equipmentId·hazardId 를 맞춰 본다 */
       hazards: includedHazards().map(function (h) {
         return { id: h.id, equipmentId: e.id, part: h.part, hazard: h.hazard, risk: h.risk, status: h.status, official: h.official, specific: h.specific, box: h.box, sources: h.sources };
@@ -984,6 +1039,17 @@
         review: reviewRecord()
       }
     };
+    return course;
+  }
+
+  function approve() {
+    if (!steps().every(function (s) { return s.done; })) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
+    var e = state.equipment;
+    var course = buildCourse();
+    if (!course) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
+    /* 상한은 서버도 본다 — 여기서 막아야 담당자가 발급 뒤에 실패를 보지 않는다 (C06 D-048) */
+    var tooBig = Limits.courseSizeProblem(course);
+    if (tooBig) { UI.toast(tooBig + '.'); renderApprove(); return; }
     var result = Store.courses.update(function (list) { list.push(course); });
     if (!result.ok) { UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
     UI.toast('발급했습니다. 「' + course.title + '」이 노동자 수강 화면에 나타납니다.');

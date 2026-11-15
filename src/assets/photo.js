@@ -165,8 +165,69 @@ var Photo = (function () {
     });
   }
 
+  /** 이미 `data:` 그림인 것을 **다시 뽑아 줄인다** (교육 1건 크기 상한 — `limits.js`).
+   *
+   *  `shrink()` 와 다른 점
+   *    · 들어오는 것이 File 이 아니라 **data URL** 이다 (AI 가 만든 보기 그림·설비 사진)
+   *    · 돌려주는 것도 **머리가 붙은 data URL** 이다 — 그대로 교육에 들어가고
+   *      `<img src>` 로 그려진다 (`shrink()` 는 서버로 보낼 몸통만 돌려준다)
+   *    · **이미 작으면 다시 뽑지 않는다** — 다시 뽑을 때마다 조금씩 뭉개진다
+   *
+   *  돌려주는 값
+   *    { image, bytes, width, height, kept }   kept=true 면 원본 그대로다
+   *    { failed, message }                     못 줄였다 — 부르는 쪽이 원본을 그대로 둔다
+   */
+  function shrinkDataUrl(dataUrl, opts) {
+    var o = opts || {};
+    var maxEdge = o.maxEdge || MAX_EDGE;
+    var target = o.targetBytes || TARGET_BYTES;
+    var src = String(dataUrl || '');
+
+    return new Promise(function (done) {
+      if (src.indexOf('data:image/') !== 0) return done(fail('type', '그림이 아닙니다.'));
+      /* 이미 상한 아래면 그대로 둔다 (크기는 그려 봐야 알지만, 작은 것은 어차피 작다) */
+      if (src.length <= target) return done({ image: src, bytes: src.length, width: 0, height: 0, kept: true });
+      if (!available()) return done(fail('unsupported', '이 브라우저에서는 그림을 줄일 수 없습니다.'));
+
+      var img = new Image();
+      img.onerror = function () { done(fail('decode', '그림을 읽지 못했습니다.')); };
+      img.onload = function () {
+        var size = fit(img.width, img.height, maxEdge);
+        if (!size.w || !size.h) return done(fail('decode', '그림을 읽지 못했습니다.'));
+
+        var canvas = document.createElement('canvas');
+        canvas.width = size.w;
+        canvas.height = size.h;
+        var ctx = canvas.getContext('2d');
+        if (!ctx) return done(fail('unsupported', '이 브라우저에서는 그림을 줄일 수 없습니다.'));
+        try {
+          ctx.drawImage(img, 0, 0, size.w, size.h);
+        } catch (e) {
+          return done(fail('decode', '그림을 읽지 못했습니다.'));
+        }
+
+        var out = '';
+        for (var i = 0; i < QUALITIES.length; i += 1) {
+          try {
+            out = canvas.toDataURL(OUT_MIME, QUALITIES[i]);
+          } catch (e) {
+            return done(fail('unsupported', '이 브라우저에서는 그림을 줄일 수 없습니다.'));
+          }
+          if (out.length && out.length <= target) break;
+        }
+        if (!out) return done(fail('encode', '그림을 줄이지 못했습니다.'));
+        /* 가장 낮은 품질로도 목표를 넘었다 — 그래도 **원본보다는 작다.**
+           여기서 버리면 교육을 아예 만들 수 없으므로, 줄어든 만큼이라도 쓰고
+           남은 판정은 상한 검사(`Limits.courseSizeProblem`)에 맡긴다 */
+        done({ image: out.length < src.length ? out : src, bytes: Math.min(out.length, src.length), width: size.w, height: size.h, kept: out.length >= src.length });
+      };
+      img.src = src;
+    });
+  }
+
   return {
     shrink: shrink,
+    shrinkDataUrl: shrinkDataUrl,
     fit: fit,
     available: available,
     bytesOf: bytesOf,
