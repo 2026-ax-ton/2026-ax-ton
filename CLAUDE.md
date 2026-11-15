@@ -255,11 +255,11 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 | 트랙 | 파일 |
 |---|---|
 | 노동자 | `src/worker/home.* learn.* quiz.* report.* talk.* my.*` + `worker.css` |
-| 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` + `admin.css` |
-| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` + `app.css style*.css` |
+| 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` · 🆕 `autogen.*`(AI 교육 자동 생성, PRD-AD-08) · `scan.*`(설비 촬영 가이드) + `admin.css` |
+| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` · 🆕 `curriculum.js`(법정 교육 항목 목록 — 데이터만, 화면 미연결) + `app.css style*.css` |
 | 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 11개 화면 전부가 싣습니다 (D-032) |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
-| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + `api/scans.mjs`(설비 촬영 사진) + 루트 `package.json` (Neon 드라이버 + Blob 2개). 로그인 4개는 `api/auth/[op].mjs` 하나로 묶임 (Vercel Hobby 함수 12개 제한) |
+| 서버 | `api/translate.mjs backtranslate.mjs` · `api/auth/login·logout·signup·signup-workplace.mjs` · `api/store.mjs`(동기화) · `api/reports.mjs` · 🆕 AI 교육 자동 생성 `api/research·hazards·questions·photos·translate-quiz.mjs` + `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs` + `api/scans.mjs`(설비 촬영 사진) + 루트 `package.json` (Neon 드라이버 + Blob 2개). 로그인 4개는 `api/auth/[op].mjs` 하나로 묶임 (Vercel Hobby 함수 12개 제한) |
 | DB | `db/migrations/NNN_설명.sql` — 테이블 변경은 **이 파일로만** 합니다 (A02 §14.2). 운영 DB를 손으로 고치지 않습니다 |
 | 도구 | `scripts/seed-demo.mjs` (시연 데이터 넣기) · `scripts/measure-ai.mjs` (AI 실측) |
 
