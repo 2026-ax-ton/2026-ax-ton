@@ -283,7 +283,7 @@ T 절이 다 끝났으면 아래 셋 중 하나를 제안하고, 사용자가 �
 |---|---|
 | 노동자 | `src/worker/home.* learn.* quiz.* report.* talk.* my.*` + `worker.css` |
 | 관리자·운영자 | `src/admin/setup.* dashboard.* content.* proof.* library.*` · 🆕 `autogen.*`(AI 교육 자동 생성, PRD-AD-08) · `scan.*`(설비 촬영 가이드) + `admin.css` |
-| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` · `photo.js`(사진 줄이기, T17) · 🆕 `curriculum.js`(법정 교육 항목 목록 — 데이터만, 화면 미연결) · 🆕 `edukind.js`(교육 종류·업종 칸) · 🆕 `limits.js`(교육 1건 크기 상한 — 숫자가 사는 한 곳, C06 D-048) + `app.css style*.css` |
+| 공용 | `src/assets/store.js auth.js login.js ui.js seed.js diagrams.js review.js qr.js` · `photo.js`(사진 줄이기, T17) · 🆕 `curriculum.js`(법정 교육 항목 목록 — 데이터만, 화면 미연결) · 🆕 `edukind.js`(교육 종류·업종 칸) · 🆕 `limits.js`(교육 1건 크기 상한 — 숫자가 사는 한 곳, C06 D-048) · 🆕 `legaltag.js`(문구 법정 사항 태그, PRD-AD-02 FR-10~15) + `app.css style*.css` |
 | 서버를 부르는 자리 | `src/assets/net.js` — **`src/` 에서 `fetch` 를 쓰는 유일한 파일** (C06 D-030). 11개 화면 전부가 싣습니다 (D-032) |
 | 검사 | `tests/harness.js run-all.js test-*.js` — 저장소 안, 의존성은 저장소 밖 |
 | 서버 | 함수 11개 — `api/translate.mjs backtranslate.mjs` · `api/store.mjs`(동기화) · `api/reports.mjs`(익명 신고) · 🆕 AI 교육 자동 생성 `api/research·hazards·questions·photos·translate-quiz.mjs` · 🆕 `api/scans.mjs`(설비 촬영 사진) · 로그인·로그아웃·가입 4개는 `api/auth/[op].mjs` **하나로 묶음** (Vercel Hobby 함수 12개 제한, 2026-11-15) + 공용 `api/_shared.mjs _auth.mjs _db.mjs _merge.mjs _hazards.mjs _courses.mjs _official.mjs _questions.mjs _research.mjs _images.mjs _quiztrans.mjs _openai.mjs` + 루트 `package.json` (Neon + @vercel/blob 2개) |

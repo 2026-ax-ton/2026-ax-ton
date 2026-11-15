@@ -79,8 +79,9 @@ function boot(pageRelPath, opts = {}) {
   run('assets/agent.js');  // 운영자 화면(admin/library.html)이 싣는다 — review.js 뒤다
   run('assets/diagrams.js');
   run('assets/qr.js');
-  run('assets/curriculum.js');   // 법정 교육 항목 목록 (데이터) — edukind.js 보다 먼저다
+  run('assets/curriculum.js');   // 법정 교육 항목 목록 (데이터) — edukind.js·legaltag.js 보다 먼저다
   run('assets/edukind.js');      // 교육 종류·업종 칸 (admin/content·autogen·proof 가 싣는다)
+  run('assets/legaltag.js');     // 문구 법정 사항 태그 (admin/library 가 싣는다 — curriculum.js 뒤다)
   if (opts.page) run(opts.page, { shimLocation: true });
 
   return { dom, win, errors, nav, run, $: (id) => win.document.getElementById(id) };
