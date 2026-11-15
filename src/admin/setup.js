@@ -166,6 +166,56 @@
     });
   }
 
+  /* ── 특별교육 대상 안내 (PRD-AD-01 FR-08·09) ─────────────────────────
+
+     ★ **판정이 아니라 안내다.** 「5대 이상」·「1톤 이상」·「75V 이상」 같은
+       조건은 담당자만 안다. 그래서 조건을 함께 적고 **저장을 막지 않는다.**
+     ★ 체크칸은 **기본 해제**다 (FR-09). 낱말이 걸렸다고 우리가 표시해 두면
+       조건을 모르는 채로 「특별교육 대상」이라고 단정하는 셈이 된다.
+     ★ 낱말 표는 `assets/curriculum.js` 한 곳이다 (C06 D-046). 여기에 다시 적지 않는다. */
+
+  /** 지금 이름으로 걸리는 작업 번호들 — 체크했을 때 설비에 저장할 값 */
+  function specialJobs() {
+    var m = Curriculum.equipMatch($('equip-name').value);
+    return m.length ? m[0].jobs : [];
+  }
+
+  function renderSpecialNote(keepChecked) {
+    var box = $('equip-special');
+    var was = keepChecked === undefined ? (($('equip-special-on') || {}).checked || false) : keepChecked;
+    box.textContent = '';
+    var m = Curriculum.equipMatch($('equip-name').value);
+    if (!m.length) { box.hidden = true; return; }
+    box.hidden = false;
+
+    var hit = m[0];
+    var names = hit.jobs.map(function (no) {
+      var j = Curriculum.job(no);
+      return j ? j.title + '(별표 5 제' + no + '호)' : '별표 5 제' + no + '호';
+    }).join(' · ');
+
+    var note = UI.el('div', 'special-note');
+    var head = UI.el('p', 'head');
+    head.appendChild(document.createTextNode('⚠ 특별교육 대상일 수 있습니다'));
+    note.appendChild(head);
+    note.appendChild(UI.el('span', 'what', names));
+    note.appendChild(UI.el('span', 'when', hit.when
+      ? '해당 조건 — ' + hit.when + '. 이 설비에서 일할 사람은 특별교육을 받아야 합니다 (일용직 2시간 · 그 밖 16시간).'
+      : '이 설비에서 일할 사람은 특별교육을 받아야 합니다 (일용직 2시간 · 그 밖 16시간).'));
+
+    /* 조건에 맞는지는 담당자가 안다 — 표시할지 말지도 담당자가 고른다 (FR-09) */
+    var pick = UI.el('label', 'pick');
+    var box2 = UI.el('input');
+    box2.type = 'checkbox';
+    box2.id = 'equip-special-on';
+    box2.checked = !!was;
+    pick.appendChild(box2);
+    pick.appendChild(UI.el('span', null, '특별교육 대상 설비로 표시'));
+    note.appendChild(pick);
+
+    box.appendChild(note);
+  }
+
   function renderEquipments(state) {
     var list = $('list-equip');
     list.textContent = '';
@@ -186,6 +236,14 @@
       tags.appendChild(kind.guessed
         ? UI.stopBadge('종류 확인 필요' + (kLabel ? ' (' + kLabel + '?)' : ''))
         : UI.okBadge('종류 · ' + kLabel));
+      /* 🆕 담당자가 표시한 설비에만 단다 (FR-AD-01-09). 우리가 짐작해서 달지 않는다 */
+      if (Array.isArray(eq.specialWork) && eq.specialWork.length) {
+        var jobNames = eq.specialWork.map(function (no) {
+          var j = Curriculum.job(no);
+          return j ? j.title : '제' + no + '호';
+        }).join(' · ');
+        tags.appendChild(UI.waitBadge('특별교육 · ' + jobNames));
+      }
       var hazards = Array.isArray(eq.hazards) ? eq.hazards : [];
       if (!hazards.length) {
         tags.appendChild(UI.el('span', 'badge badge-neutral', '위험유형 없음'));
@@ -273,6 +331,8 @@
     $('equip-model').value = eq.model || '';
     $('equip-year').value = eq.year || '';
     UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = (eq.hazards || []).indexOf(n.value) !== -1; });
+    /* 🆕 저장해 둔 특별교육 표시를 되살린다 — 수정하다 꺼지면 조용히 표시가 풀린다 */
+    renderSpecialNote(Array.isArray(eq.specialWork) && eq.specialWork.length > 0);
     pendingPhoto = null;
     showPreview(eq.photo || '');
     $('btn-equip-save').lastChild.textContent = ' 수정 저장';
@@ -288,6 +348,7 @@
     $('equip-year').value = '';
     // 위험유형은 초기화한다. 다음 설비에 앞 설비의 위험이 딸려 들어가면 안 된다.
     UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = false; });
+    renderSpecialNote(false);   // 🆕 특별교육 표시도 다음 설비로 딸려 가지 않는다
     pendingPhoto = null;
     showPreview('');
     $('btn-equip-save').lastChild.textContent = ' 설비 추가';
@@ -423,6 +484,9 @@
       $('proc-name').focus();
     });
 
+    /* 🆕 설비 이름을 적는 동안 특별교육 대상 안내 (PRD-AD-01 FR-08·09) */
+    $('equip-name').addEventListener('input', function () { renderSpecialNote(); });
+
     /* 4. 설비 */
     $('form-equip').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -444,6 +508,9 @@
       var yearNum = Number($('equip-year').value);
       var year = Number.isInteger(yearNum) && yearNum >= 1950 && yearNum <= 2100 ? yearNum : null;
 
+      /* 🆕 체크했을 때만 작업 번호를 남긴다. 이름이 바뀌어 낱말이 사라졌으면 빈 배열 (FR-09) */
+      var special = ($('equip-special-on') || {}).checked ? specialJobs() : [];
+
       var photo = pendingPhoto;
       var message = '설비를 추가했습니다.';
       commit(function (s) {
@@ -452,7 +519,9 @@
             id: Store.uid(), processId: processId, name: name, kind: kind,
             icon: icon, hazards: hazards, note: '',
             maker: maker, model: model, year: year,
-            photo: photo || '', analysis: null
+            photo: photo || '', analysis: null,
+            /* 🆕 특별교육 대상 표시 — 담당자가 체크했을 때만 (FR-AD-01-09) */
+            specialWork: special
           });
           return;
         }
@@ -462,6 +531,7 @@
         var changed = eq.kind !== kind || (eq.maker || '') !== maker || (eq.model || '') !== model || (photo !== null && photo !== eq.photo);
         eq.processId = processId; eq.name = name; eq.kind = kind; eq.icon = icon; eq.hazards = hazards;
         eq.maker = maker; eq.model = model; eq.year = year;
+        eq.specialWork = special;
         if (photo !== null) eq.photo = photo;
         if (changed && eq.analysis) { eq.analysis = null; message = '수정했습니다. 종류·모델·사진이 바뀌어 AI 분석 결과를 지웠습니다 — 다시 분석해 주세요.'; }
         else message = '수정했습니다.';
