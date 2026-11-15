@@ -299,6 +299,79 @@ function fakeQuestions(body) {
     ok('화면 오류 없음 (결과 파일)', t5.errors.length === 0, t5.errors.join(' | '));
   }
 
+  /* ═══ 2-1. 결과 파일의 문항도 번역된다 (2026-11-15 사용자 보고) ═══
+
+     결과 파일로 만든 교육은 「문항 번역」 칸이 영원히 ✗ 로 남아 **발급이
+     되지 않았다** — 번역이 `state.source === 'file'` 로 함께 막혀 있었다.
+     [수정 요청]·[전체 다시 만들기] 는 서버가 문항 계획을 다시 봐야 해서
+     막는 것이 맞지만, **번역은 문항 글자만 있으면 되는 일**이다. */
+  {
+    const tt = boot('admin/autogen.html', {
+      login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js',
+      before: (w) => { w.sessionStorage.setItem('safety.token.v1', 'tok-test'); },
+    });
+    const A = tt.win.__autogen;
+    const paths = [];
+    tt.win.Net.available = () => true;
+    tt.win.Net.post = (path, body) => {
+      paths.push(path);
+      if (path !== '/api/translate-quiz') return Promise.resolve({ ok: false, status: 404, data: {} });
+      const i18n = {};
+      body.items.forEach((q) => {
+        const tr = (x) => body.lang + ':' + String(x);
+        i18n[q.id] = { prompt: tr(q.prompt) };
+        if (q.options) i18n[q.id].options = q.options.map(tr);
+        if (q.results) i18n[q.id].results = q.results.map(tr);
+        if (q.why) i18n[q.id].why = tr(q.why);
+        if (q.prevention) i18n[q.id].prevention = tr(q.prevention);
+      });
+      return Promise.resolve({ ok: true, status: 200, data: { equipment: body.equipment, lang: body.lang, i18n, failed: [] } });
+    };
+
+    const qs = fakeQuestions({ equipment: { id: 'e-press3' }, hazards: [{ id: 'r1', part: '램과 금형 사이', hazard: 'pinch', sources: [], answer: GUIDED.mapped[0].answer }] });
+    A.loadRun(A.readRun({ kind: 'safety-ai-run', equipment: { name: 'C형 유압프레스' }, model: 'm', provider: 'openai',
+      research: JSON.parse(JSON.stringify(RESEARCH)), questions: qs }));
+
+    const langs = tt.win.Store.setup.load().languages.filter((l) => l !== 'ko');
+    ok('사업장이 쓰는 언어가 있다 (번역이 필요한 처지)', langs.length > 0);
+    eq('★ 불러오기만으로는 AI 를 부르지 않는다 (돈이 나가는 일은 사람이 누른다)', paths.length, 0);
+
+    const step = () => A.steps().find((x) => x.what === '문항 번역');
+    eq('★★ 번역 전에는 발급이 막힌다', step().done, false);
+
+    const btn = tt.$('btn-retrans');
+    ok('★★ [문항 번역하기] 버튼이 있다 (예전에는 버튼이 있어도 아무 일도 없었다)', !!btn);
+    eq('★ 아직 한 번도 안 돌렸으니 「다시 시도」가 아니다', btn.textContent, '문항 번역하기');
+    has('★ AI 를 부른다는 것을 미리 적는다', tt.$('ag-plan').textContent, '언어마다 AI 를 한 번씩 부릅니다');
+
+    click(tt.win, btn);
+    await ticks();
+
+    eq('★★ 언어마다 한 번씩 번역을 부른다', paths.filter((p) => p === '/api/translate-quiz').length, langs.length);
+    eq('★★ 번역이 끝나면 발급을 막지 않는다', step().done, true);
+    has('언어가 ✓ 로 바뀐다', tt.$('ag-plan').textContent, '✓');
+
+    const q0 = A.state().quiz.quiz[0];
+    ok('★ 문항에 언어별 번역이 들어간다', langs.every((l) => q0.i18n && q0.i18n[l] && q0.i18n[l].prompt));
+    ok('★ 한국어 원문을 덮어쓰지 않는다', q0.prompt.indexOf(langs[0] + ':') !== 0);
+
+    /* ★ 막아 둬야 하는 것은 그대로 막혀 있다 */
+    ok('★★ 결과 파일에서는 여전히 [수정 요청] 이 없다 (서버가 문항 계획을 다시 봐야 한다)',
+      !tt.win.document.querySelector('#ag-quiz button[data-regen]'));
+
+    /* 서버가 없으면 번역도 없다 */
+    const off = boot('admin/autogen.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js' });
+    const A2 = off.win.__autogen;
+    let offCalls = 0;
+    off.win.Net.available = () => true;
+    off.win.Net.post = () => { offCalls += 1; return Promise.resolve({ ok: false }); };
+    A2.loadRun(A2.readRun({ kind: 'safety-ai-run', equipment: { name: 'C형 유압프레스' },
+      research: JSON.parse(JSON.stringify(RESEARCH)), questions: qs }));
+    ok('★★ 로그인 토큰이 없으면 번역 버튼이 없다', !off.$('btn-retrans'));
+    eq('★★ 서버를 부르지 않는다', offCalls, 0);
+    ok('화면 오류 없음 (번역 경로)', tt.errors.length === 0, tt.errors.join(' | '));
+  }
+
   /* ═══ 3. https 가 아니면 · 설비가 없으면 ═══ */
   {
     const t2 = boot('admin/autogen.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js' });
