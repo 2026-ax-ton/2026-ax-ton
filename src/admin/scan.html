@@ -49,6 +49,10 @@
       <video id="scan-video" playsinline muted autoplay></video>
       <canvas id="scan-overlay" aria-hidden="true"></canvas>
       <!-- 촬영 중에는 이 칸이 화면 전체를 덮는다 — 안내·숫자·멈추기가 카메라 위에 있어야 한다 -->
+      <div class="scan-coach" id="scan-coach" role="alert" hidden>
+        <span class="ico" id="scan-coach-ico" aria-hidden="true"></span>
+        <span><b id="scan-coach-what"></b><span id="scan-coach-fix"></span></span>
+      </div>
       <p class="scan-meter" id="scan-meter"></p>
       <div class="scan-warn" id="scan-warn" role="status" aria-live="polite" hidden>
         <span class="ico" id="scan-warn-ico" aria-hidden="true"></span><span id="scan-warn-text"></span>
@@ -64,7 +68,7 @@
     <h2 id="t-result">찍은 사진</h2>
     <p class="meta" id="scan-summary"></p>
     <div class="scan-thumbs" id="scan-thumbs"></div>
-    <p class="why">사진은 아직 이 휴대폰에만 있습니다. [서버에 올리기]를 누르면 사업장 전용 비공개 저장소에 올라갑니다 (밖에서 주소로 열 수 없습니다).</p>
+    <p class="why">두 바퀴를 다 찍으면 사업장 전용 비공개 저장소에 <b>알아서 올라갑니다</b> (밖에서 주소로 열 수 없습니다). 중간에 멈췄거나 올리기에 실패했으면 [서버에 올리기]를 누르세요.</p>
     <div class="big-actions">
       <button class="btn btn-primary" type="button" id="btn-scan-upload">서버에 올리기</button>
     </div>

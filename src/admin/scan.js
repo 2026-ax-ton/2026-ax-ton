@@ -24,7 +24,10 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     DARK: 45,            // 평균 밝기(0~255) 아래면 어둡다
     BRIGHT: 215,         // 위면 역광·과노출
     SHARP_MIN: 60,       // 라플라시안 분산 아래면 흔들림 — ponytail: 고정 문턱, 실물 촬영으로 조정 (화면 아래 숫자를 보고)
-    FAST_DEG: 45         // 초당 회전 각도 위면 너무 빠름
+    FAST_DEG: 45,        // 초당 회전 각도 위면 너무 빠름
+    TILT_DEG: 20,        // 좌우 기울기(gamma) 이 넘으면 「기울었어요」
+    /* 앞뒤 기울기(beta) — 90 = 똑바로 섬, 0 = 바닥에 눕힘. 바퀴마다 맞는 범위 (ponytail: 실물 촬영으로 조정) */
+    PITCH: [[55, 125], [25, 95]]   // [낮게: 기계를 정면으로] · [높게: 위에서 내려다봄]
   };
 
   function segmentOf(deg, n) {
@@ -78,6 +81,18 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     return best;
   }
 
+  /** 휴대폰 자세 — '' 이면 바르다. 아니면 고칠 방향 열쇠 (2026-11-15 사용자 요청: 어떻게 고칠지 알려 주기)
+      gamma: 좌우 기울기(+ = 오른쪽이 내려감) · beta: 앞뒤(90 = 똑바로) · pass: 0 낮게 / 1 높게 */
+  function posture(gamma, beta, pass) {
+    if (gamma > C.TILT_DEG) return 'tiltRight';
+    if (gamma < -C.TILT_DEG) return 'tiltLeft';
+    if (typeof beta !== 'number') return '';
+    var r = C.PITCH[pass] || C.PITCH[0];
+    if (beta < r[0]) return 'pitchDown';     // 너무 숙였다 (바닥 쪽을 본다)
+    if (beta > r[1]) return 'pitchUp';       // 너무 젖혔다 (위쪽을 본다)
+    return '';
+  }
+
   /** 칸에 사진을 넣는다 — 칸마다 PER_SEG 장까지, 더 선명한 것으로 바꾼다. 넣었으면 true */
   function keep(list, shot) {
     if (list.length < C.PER_SEG) { list.push(shot); return true; }
@@ -88,7 +103,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     return true;
   }
 
-  return { C: C, segmentOf: segmentOf, stats: stats, verdict: verdict, coverage: coverage, biggestGap: biggestGap, keep: keep };
+  return { C: C, segmentOf: segmentOf, stats: stats, verdict: verdict, posture: posture, coverage: coverage, biggestGap: biggestGap, keep: keep };
 })();
 
 (function () {
@@ -109,12 +124,16 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     { name: '낮게', say: '허리 높이에서 기계를 화면 틀 안에 두고, 천천히 한 바퀴 도세요.', tip: '1바퀴 · 허리 높이 — 기계를 틀 안에 두고 천천히 도세요' },
     { name: '높게', say: '이번에는 팔을 들어 위에서 내려다보며, 한 바퀴 더 도세요.', tip: '2바퀴 · 팔을 들고 — 위에서 내려다보며 천천히 도세요' }
   ];
+  /* 카메라 위쪽 띠 — 무엇이 문제인지 + 어떻게 고치는지 (글 + 아이콘 + 음성) */
   var WARN = {
-    dark: ['alert', '어두워요 — 밝은 쪽으로 가거나 조명을 켜세요'],
-    bright: ['alert', '너무 밝아요 — 창문·조명을 등지지 마세요'],
-    fast: ['alert-circle', '너무 빨라요 — 천천히 도세요'],
-    blur: ['alert-circle', '흔들려요 — 잠깐 멈췄다가 움직이세요'],
-    tilt: ['alert-circle', '휴대폰을 똑바로 세우세요']
+    dark: ['alert', '어두워요', '조명을 켜거나 밝은 쪽에서 찍으세요'],
+    bright: ['alert', '역광이에요', '창문·조명을 등지고 서세요'],
+    fast: ['alert-circle', '너무 빨라요', '한 걸음에 1초씩, 천천히 도세요'],
+    blur: ['alert-circle', '흔들려요', '팔꿈치를 몸에 붙이고 잠깐 멈추세요'],
+    tiltRight: ['alert-circle', '오른쪽으로 기울었어요', '휴대폰 오른쪽을 올려 가운데 선을 초록으로 맞추세요'],
+    tiltLeft: ['alert-circle', '왼쪽으로 기울었어요', '휴대폰 왼쪽을 올려 가운데 선을 초록으로 맞추세요'],
+    pitchDown: ['alert-circle', '바닥을 보고 있어요', '휴대폰 위쪽을 뒤로 젖혀 기계를 보세요'],
+    pitchUp: ['alert-circle', '위쪽을 보고 있어요', '휴대폰 위쪽을 앞으로 숙여 기계를 보세요']
   };
 
   var params = new URLSearchParams(location.search);
@@ -140,24 +159,27 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
   var stream = null, timer = null;
   var pass = 0;
   var passes = PASSES.map(function () { var a = []; for (var i = 0; i < C.SEGMENTS; i++) a.push([]); return a; });
-  var sensor = { alpha: null, gamma: 0, speed: 0, seen: false };
+  var sensor = { alpha: null, gamma: 0, beta: null, speed: 0, seen: false };
   var fallbackSeg = 0;
   var lastSay = { key: '', at: 0 };
   var shots = 0;
 
   function say(text) { UI.speak({ text: text, lang: 'ko', ko: text }); }
 
-  /** 카메라 위 한 줄 — 경고가 없으면 이번 바퀴 안내를 띄워 둔다 (멈추면 숨긴다) */
+  /** 아래 한 줄 = 이번 바퀴 안내(늘 보임) · 위쪽 띠 = 자세 교정(문제 + 고칠 방향, 있을 때만). 멈추면 둘 다 숨긴다 */
   function warn(key) {
-    var box = $('scan-warn');
-    if (!timer) { box.hidden = true; return; }
-    box.classList.toggle('is-warn', !!key);
-    UI.setIcon($('scan-warn-ico'), key ? WARN[key][0] : 'camera');
-    $('scan-warn-text').textContent = key ? WARN[key][1] : PASSES[pass].tip;
+    var box = $('scan-warn'), coach = $('scan-coach');
+    if (!timer) { box.hidden = true; coach.hidden = true; return; }
+    UI.setIcon($('scan-warn-ico'), 'camera');
+    $('scan-warn-text').textContent = PASSES[pass].tip;
     box.hidden = false;
+    coach.hidden = !key;
     if (!key) return;
+    UI.setIcon($('scan-coach-ico'), WARN[key][0]);
+    $('scan-coach-what').textContent = WARN[key][1];
+    $('scan-coach-fix').textContent = WARN[key][2];
     var now = Date.now();
-    if (lastSay.key !== key || now - lastSay.at > SAY_GAP_MS) { say(WARN[key][1]); lastSay = { key: key, at: now }; }
+    if (lastSay.key !== key || now - lastSay.at > SAY_GAP_MS) { say(WARN[key][1] + '. ' + WARN[key][2]); lastSay = { key: key, at: now }; }
   }
 
   function onOrient(e) {
@@ -165,6 +187,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     sensor.seen = true;
     sensor.alpha = 360 - e.alpha;          // 시계 방향으로 돌면 커지게
     sensor.gamma = e.gamma || 0;
+    sensor.beta = typeof e.beta === 'number' ? e.beta : null;
   }
   function onMotion(e) {
     var r = e.rotationRate;
@@ -176,7 +199,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     var g = overlay.getContext('2d');
     g.clearRect(0, 0, w, h);
     /* 모서리 틀 — 기계를 여기 넣는다 (문서 스캔 앱처럼 네 모서리만) */
-    var fx = w * 0.1, fy = h * 0.16, fw = w * 0.8, fh = h * 0.6, L = Math.min(fw, fh) * 0.14;
+    var fx = w * 0.1, fy = h * 0.23, fw = w * 0.8, fh = h * 0.47,   /* 위: 자세 띠·진행 링 / 아래: 숫자·안내·멈추기 사이 */ L = Math.min(fw, fh) * 0.14;
     g.strokeStyle = 'rgba(255,255,255,.9)';
     g.lineWidth = 4;
     g.lineCap = 'round';
@@ -192,7 +215,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     g.beginPath(); g.moveTo(-w * 0.3, 0); g.lineTo(w * 0.3, 0); g.stroke();
     g.restore();
     /* 진행 링 — 오른쪽 위. 찬 칸은 초록, 지금 방향은 흰 바늘, 가장 빈 쪽은 주황 점 */
-    var segs = passes[pass], R = Math.min(w, h) * 0.13, cx = w - R - 14, cy = R + 14;
+    var segs = passes[pass], R = Math.min(w, h) * 0.085, cx = w - R - 18, cy = R + 92;   // 위쪽 띠(자세 교정) 바로 아래, 틀 위
     var step = Math.PI * 2 / C.SEGMENTS;
     g.lineWidth = R * 0.32;
     for (var s = 0; s < C.SEGMENTS; s++) {
@@ -225,9 +248,11 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     for (var i = 0, j = 0; i < px.length; i += 4, j++) gray[j] = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
     var st = M.stats(gray, pw, ph);
     var bad = M.verdict(st, sensor.speed);
-    if (!bad && sensor.seen && Math.abs(sensor.gamma) > 20) bad = 'tilt';
+    /* 자세가 틀리면 흔들림보다 먼저 말한다 — 자세를 고치면 흔들림도 대개 사라진다 */
+    var pose = sensor.seen ? M.posture(sensor.gamma, sensor.beta, pass) : '';
+    if (pose && (!bad || bad === 'blur')) bad = pose;
     $('scan-meter').textContent = '밝기 ' + Math.round(st.mean) + ' · 선명도 ' + Math.round(st.sharp) + ' (기준 ' + C.SHARP_MIN + ')' +
-      ' · 회전 ' + Math.round(sensor.speed) + '°/s · 방향 센서 ' + (sensor.seen ? '켜짐' : '없음 — 찍은 장수로 채움') +
+      ' · 회전 ' + Math.round(sensor.speed) + '°/s' + (sensor.beta != null ? ' · 앞뒤 ' + Math.round(sensor.beta) + '° 좌우 ' + Math.round(sensor.gamma) + '°' : '') + ' · 방향 센서 ' + (sensor.seen ? '켜짐' : '없음 — 찍은 장수로 채움') +
       ' · 사진 ' + shots + '장';
     warn(bad);
     draw();
@@ -258,8 +283,9 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       $('scan-status').textContent = (pass + 1) + '번째 바퀴 (' + PASSES[pass].name + ') — ' + PASSES[pass].say;
       say(PASSES[pass].say);
     } else {
-      say('다 찍었습니다. 수고하셨습니다.');
+      say('다 찍었습니다. 서버에 올립니다.');
       stop();
+      if (eq && Net.onHttps()) upload();     // 두 바퀴를 다 찍으면 알아서 올린다 (2026-11-15 사용자 요청). 중간에 멈추면 버튼으로
     }
   }
 

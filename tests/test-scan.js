@@ -36,6 +36,17 @@ eq('빨리 돌면 fast', M.verdict({ mean: 120, sharp: 500 }, 90), 'fast');
 eq('흐리면 blur', M.verdict({ mean: 120, sharp: 5 }, 0), 'blur');
 eq('괜찮으면 찍는다', M.verdict({ mean: 120, sharp: 500 }, 5), '');
 
+/* 자세 — 무엇을 어떻게 고칠지 (위쪽 띠) */
+eq('오른쪽이 내려가면 tiltRight', M.posture(30, 90, 0), 'tiltRight');
+eq('왼쪽이 내려가면 tiltLeft', M.posture(-30, 90, 0), 'tiltLeft');
+eq('낮게 돌 때 바닥을 보면 pitchDown', M.posture(0, 30, 0), 'pitchDown');
+eq('낮게 돌 때 하늘을 보면 pitchUp', M.posture(0, 150, 0), 'pitchUp');
+eq('낮게 돌 때 똑바로 서면 바르다', M.posture(0, 90, 0), '');
+eq('★ 높게 돌 때는 내려다보는 것이 바르다 (같은 각도도 바퀴마다 다르다)', M.posture(0, 50, 1) + '|' + M.posture(0, 50, 0), '|pitchDown');
+eq('높게 돌 때 똑바로 서 있으면 pitchUp (숙이라고 말한다)', M.posture(0, 110, 1), 'pitchUp');
+eq('앞뒤 센서가 없으면 좌우만 본다', M.posture(5, null, 0), '');
+ok('위쪽 띠 자리가 있다 (문제 + 고칠 방향)', !!t.$('scan-coach') && !!t.$('scan-coach-what') && !!t.$('scan-coach-fix') && t.$('scan-coach').hidden);
+
 /* 칸마다 PER_SEG 장 — 더 선명한 것으로 바꾼다 */
 const list = [];
 for (let i = 0; i < C.PER_SEG; i++) ok('칸이 찰 때까지 넣는다', M.keep(list, { sharp: 100 + i }));
