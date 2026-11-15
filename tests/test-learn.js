@@ -14,11 +14,12 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
   const cards = doc.querySelectorAll('#course-list .course-card');
   eq('내 공정 교육만 1개 보인다 (도장 부스는 제외)', cards.length, 1);
-  has('제목', text(cards[0].querySelector('strong')), '프레스 3호기 안전교육');
-  has('설비 이름', text(cards[0].querySelector('.meta')), '프레스 3호기');
+  /* 2026-11-11 — 한국어가 아닌 노동자에게는 「설비 이름 · 안전교육(내 언어)」. 담당자가 쓴 한국어 제목은 섞지 않는다 */
+  has('제목 — 설비 이름(고유명사) + 내 언어', text(cards[0].querySelector('strong')), '프레스 3호기 · ' + t.win.I18N.t('learn.course', 'km'));
+  ok('★ 담당자가 쓴 한국어 제목 「안전교육」이 섞이지 않는다', text(cards[0].querySelector('strong')).indexOf('안전교육') === -1);
   /* c-press 는 문구 4개(ph-1,2,3,6). 이 노동자는 크메르어이고 넷 다 크메르어로
      쓸 수 있다 — ph-3 은 인도네시아어만 중지됐고 크메르어는 검수 완료다. */
-  has('내 언어로 쓸 수 있는 문구 4개', text(cards[0].querySelector('.meta')), '안전 문구 4개');
+  has('내 언어로 쓸 수 있는 문구 4개', text(cards[0].querySelector('.meta')), t.win.I18N.t('learn.phraseCount', 'km').replace('{n}', '4'));
   // 예시 데이터에서 이 노동자는 c-press 를 이미 통과했다 → 완료로 보이는 것이 정상
   has('이미 통과한 교육은 완료 배지', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.done', 'km'));
 
@@ -36,7 +37,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
   // ph-1 의 크메르어 번역이 크게, 한국어 원문이 작게
   eq('크메르어 번역이 본문', text(t.$('phrase-card').querySelector('.translated')), 'កុំដាក់ដៃចូល');
-  has('한국어 원문도 함께', text(t.$('phrase-card').querySelector('.original')), '손을 넣지 마십시오');
+  ok('★★ 한국어 원문 줄은 두지 않는다 (한국어를 섞지 않는다, 2026-11-11)', !t.$('phrase-card').querySelector('.original') && text(t.$('phrase-card')).indexOf('손을 넣지 마십시오') === -1);
   eq('큰 픽토그램', iconName(t.$('phrase-card').querySelector('.pict')), 'gear');
 
   /* --- 끝까지 듣기 --- */
@@ -55,7 +56,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
   next();
   has('네 번째 장', text(t.$('step-count')), '4 / 4');
-  has('마지막 장은 버튼 글자가 바뀐다', text(t.$('btn-next')), '다 들었습니다');
+  has('마지막 장은 버튼 글자가 바뀐다 (내 언어)', text(t.$('btn-next')), t.win.I18N.t('learn.heard', 'km'));
 
   const beforeRow = t.win.Store.progress.load().find(
     (r) => r.workerId === 'W-4821-07' && r.courseId === 'c-press');
@@ -84,21 +85,18 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
   const cards = doc.querySelectorAll('#course-list .course-card');
   eq('도장 공정에는 교육 1개', cards.length, 1);
-  has('도장 부스 교육', text(cards[0].querySelector('strong')), '도장 부스 1 안전교육');
+  has('도장 부스 교육', text(cards[0].querySelector('strong')), '도장 부스 1 · ' + t.win.I18N.t('learn.course', 'id'));
   has('미통과 상태이므로 검증이 남았다', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.quizLeft', 'id'));
 
   cards[0].querySelector('.course-open').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
-  has('문구 2개', text(t.$('step-count')), '1 / 2');
+  /* ★★ ph-6 은 인도네시아어 번역이 없다 — 한국어로 띄우지 않고 뺀다. 그래서 1장 */
+  has('★★ 번역 없는 문구는 빼서 1장', text(t.$('step-count')), '1 / 1');
 
   // 1장 = ph-4 (id 번역 있음)
   eq('인도네시아어 번역', text(t.$('phrase-card').querySelector('.translated')), 'Kenakan masker gas');
 
-  // 2장 = ph-6 (id 번역 없음) → 한국어 원문 + "번역 준비 중"
-  t.$('btn-next').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
-  has('번역이 없으면 한국어 원문을 띄운다',
-    text(t.$('phrase-card').querySelector('.translated')), '비상정지 버튼');
-  has('번역이 없다는 사실을 화면에 남긴다',
-    text(t.$('phrase-card')), t.win.I18N.t('learn.transPending', 'id'));
+  ok('★★ 한국어 문구(비상정지 버튼…)가 섞이지 않는다', text(t.$('phrase-card')).indexOf('비상정지') === -1);
+  has('마지막 장 버튼', text(t.$('btn-next')), t.win.I18N.t('learn.heard', 'id'));
 }
 
 /* =================================================================
@@ -118,13 +116,13 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
   const doc = t.win.document;
 
   const cards = doc.querySelectorAll('#course-list .course-card');
-  has('쓸 수 있는 문구가 0개', text(cards[0].querySelector('.meta')), '안전 문구 0개');
+  has('쓸 수 있는 문구가 0개', text(cards[0].querySelector('.meta')), t.win.I18N.t('learn.phraseCount', 'km').replace('{n}', '0'));
   has('몇 개가 빠졌는지 밝힌다', text(cards[0].querySelector('.tags')), t.win.I18N.t('learn.excluded', 'km') + ' 4');
 
   cards[0].querySelector('.course-open').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
   eq('수강 화면으로 넘어가지 않는다', t.$('view-step').hidden, true);
   eq('진행 불가 화면이 뜬다', t.$('view-nophrase').hidden, false);
-  has('이유를 말한다', text(t.$('nophrase-why')), '검수를 지나지 않은 문구는 안전 지시로 쓰지 않습니다');
+  has('이유를 내 언어로 말한다', text(t.$('nophrase-why')), t.win.I18N.t('quiz.notReady', 'km'));
 }
 
 /* =================================================================
@@ -136,7 +134,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
     page: 'worker/learn.js',
     before(win) { win.Store.courses.save([]); },
   });
-  has('무엇을 하면 되는지 말한다', text(t.$('course-list')), '담당자가 아직 내 설비의 교육을 만들지 않았습니다');
+  has('교육이 없다고 내 언어로 말한다', text(t.$('course-list')), t.win.I18N.t('learn.noCourse', 'km'));
 }
 
 /* =================================================================

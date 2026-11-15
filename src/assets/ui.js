@@ -253,6 +253,12 @@ var UI = (function () {
     }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
+    /* 🆕 2026-11-11 서버가 거절한 변경을 알린다 — 전에는 이 브라우저에만 남고 아무도 몰랐다 (store.js onReject) */
+    if (Store.sync && Store.sync.onReject) Store.sync.onReject(function (why) {
+      toast(why.status === 413
+        ? '저장 용량을 넘어 서버에 올라가지 않았습니다 (' + why.key + '). 사진·교육 수를 줄여 주세요.'
+        : '서버가 이 변경을 받지 않았습니다 (' + why.key + (why.message ? ' — ' + why.message : '') + ').');
+    });
   }
 
   /* 노동자 화면 상단 머리띠.
@@ -263,10 +269,9 @@ var UI = (function () {
     var subNode = $('head-sub');
     if (nameNode) nameNode.textContent = setup.site.name || user.siteName || '';
     if (subNode) {
+      /* 🆕 2026-11-11 — 언어 이름은 그 언어 글자로(한국어 이름 「크메르어」를 섞지 않는다), 공정 이름 줄은 뺀다 (단순화) */
       var lang = Store.language(user.lang);
-      var proc = Store.findBy(setup.processes, 'id', user.processId);
-      subNode.textContent = [user.userId, lang && lang.name, proc && proc.name]
-        .filter(Boolean).join(' · ');
+      subNode.textContent = [user.userId, lang && lang.native].filter(Boolean).join(' · ');
     }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
@@ -332,6 +337,45 @@ var UI = (function () {
 
   function speechReady() {
     return typeof window !== 'undefined' && 'speechSynthesis' in window;
+  }
+
+  /* 🆕 2026-11-11 교육·검증 화면 머리의 언어 바꾸기 — 바꾸면 그 자리에서 다시 그린다 (사용자 요청 1-4).
+     계정 언어(accounts[].lang)에 저장하므로 다음 문항·새로고침에도 남는다. 고르는 칸은 모국어 글자로 (마이 화면과 같다).
+     사업장에 등록한 언어 + 한국어만 보인다. 바꾸면 읽던 음성은 끊는다 (그 언어가 아니다) */
+  function langSwitch(box, onChange) {
+    if (!box || typeof Auth === 'undefined') return;
+    var u = Auth.current();
+    if (!u) return;
+    var codes = ((Store.setup.load().languages) || []).concat('ko');
+    var sel = el('select', 'lang-switch');
+    sel.setAttribute('aria-label', typeof I18N !== 'undefined' ? I18N.t('common.lang') : '언어');
+    Store.LANGUAGES.filter(function (l) { return codes.indexOf(l.code) !== -1 || l.code === u.lang; }).forEach(function (l) {
+      var o = el('option', null, l.native);
+      o.value = l.code;
+      if (l.code === (u.lang || 'ko')) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', function () {
+      var code = sel.value;
+      var r = Store.accounts.update(function (list) {
+        var acc = findByKey(list, 'userId', u.userId);
+        if (acc) acc.lang = code;
+      });
+      if (!r.ok) { toast(typeof I18N !== 'undefined' ? I18N.t('common.saveFail') : '저장하지 못했습니다.'); sel.value = u.lang || 'ko'; return; }
+      u = Auth.current();
+      stopSpeak();
+      if (typeof I18N !== 'undefined') I18N.apply();
+      if (sel.setAttribute && typeof I18N !== 'undefined') sel.setAttribute('aria-label', I18N.t('common.lang'));
+      paintAudioButtons();
+      if (typeof onChange === 'function') onChange(code);
+    });
+    box.textContent = '';
+    box.appendChild(sel);
+  }
+
+  function findByKey(list, key, value) {
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i][key] === value) return list[i];
+    return null;
   }
 
   /* 지금 화면을 보는 사람의 언어. i18n.js 와 같은 통로를 쓴다. */
@@ -439,14 +483,30 @@ var UI = (function () {
     });
   }
 
-  function stopSpeak() {
-    if (speechReady()) window.speechSynthesis.cancel();
+  /* 🆕 2026-11-11 재생 상태 — 사용자 요청 「스피커를 끄면 다시 켤 수단이 없다」
+     · 음성은 한 번에 하나다. 새로 읽으면 앞의 것은 끊긴다 (speakToken 으로 늦게 온 신호를 버린다)
+     · 지금 읽는 버튼(nowBtn)은 「그만 듣기」 모양이 되고, 끝나거나 끊기면 다시 「듣기」 모양으로 돌아온다 */
+  var speakToken = 0;
+  var nowBtn = null;
+
+  function setPlaying(entry) {
+    if (nowBtn === entry) return;
+    nowBtn = entry;
+    paintAudioButtons();
   }
+
+  function stopSpeak() {
+    speakToken += 1;
+    if (speechReady()) window.speechSynthesis.cancel();
+    setPlaying(null);
+  }
+
+  function isSpeaking() { return !!nowBtn; }
 
   /* 읽어 준다.
      speech 는 문자열이거나 { text, lang, ko } — ko 는 그 언어 음성이 없을 때 읽을 한국어.
      돌려주는 값은 실제로 읽은 언어 코드다. 화면이 "지금 한국어로 읽었다"를 적을 수 있어야 한다. */
-  function speak(speech, langCode) {
+  function speak(speech, langCode, owner) {
     if (!speechReady()) return '';
 
     var text = (speech && speech.text != null) ? speech.text : speech;
@@ -454,7 +514,10 @@ var UI = (function () {
     var ko = (speech && speech.ko) || '';
     if (!text) return '';
 
+    speakToken += 1;
+    var mine = speakToken;
     window.speechSynthesis.cancel();
+    setPlaying(null);
 
     if (hasVoice(lang) === false) {      // 없다고 확인된 경우에만 판단한다
       /* ★★ 기본은 소리를 내지 않는 것이다.
@@ -480,8 +543,10 @@ var UI = (function () {
        살아 있는 것으로 본다. */
     var heard = false;
     u.onstart = function () { heard = true; markVoiceAlive(); };
-    u.onend = function () { if (!heard) { heard = true; markVoiceAlive(); } };
+    /* 끝나면 버튼이 「듣기」로 돌아온다 — 다 들은 뒤에도 다시 들을 수 있다 */
+    u.onend = function () { if (!heard) { heard = true; markVoiceAlive(); } if (mine === speakToken) setPlaying(null); };
     u.onerror = function (e) {
+      if (mine === speakToken) setPlaying(null);
       var kind = (e && e.error) || '';
       // 우리가 cancel() 해서 끊긴 것은 브라우저 잘못이 아니다
       if (kind === 'interrupted' || kind === 'canceled') return;
@@ -492,22 +557,39 @@ var UI = (function () {
     }
 
     window.speechSynthesis.speak(u);
+    if (owner) setPlaying(owner);
     return lang;
   }
 
   /* 60px 원형 음성 버튼. style.css 의 .btn-audio 를 쓴다.
      getSpeech 를 함수로 받는 이유 — 내용이 바뀌어도 버튼을 다시 만들지 않는다. */
+  /* 🆕 2026-11-11 듣기 ↔ 그만 듣기 전환.
+     · 읽는 중에 누르면 멈춘다 → 다시 누르면 처음부터 다시 읽는다 (끝난 뒤에도 같다)
+     · 빠르게 여러 번 눌러도 겹쳐 읽지 않는다 — 300ms 안의 두 번째 누름은 버린다
+     · 그 언어 음성이 이 기기에 없으면 조용히 아무 일도 안 하지 않는다 — 이유를 그 사람 언어로 알린다
+     btn.play() 는 화면이 스스로 읽어 줄 때 쓴다 (문항이 바뀌면 그 문항 버튼이 「그만 듣기」 모양이 된다) */
   function audioButton(getSpeech, label) {
     var btn = el('button', 'btn-audio');
     btn.type = 'button';
     btn.setAttribute('aria-label', label || '소리로 듣기');
     var ico = iconBox('speaker', 'ico');
     btn.appendChild(ico);
-    btn.addEventListener('click', function () {
-      speak(typeof getSpeech === 'function' ? getSpeech() : getSpeech);
-    });
+    var entry = { btn: btn, ico: ico, label: label || '소리로 듣기', last: 0 };
 
-    audioButtons.push({ btn: btn, ico: ico, label: label || '소리로 듣기' });
+    function play() {
+      if (voiceBlocked() || voiceSilent()) { toast(voiceNote() || ''); return ''; }
+      return speak(typeof getSpeech === 'function' ? getSpeech() : getSpeech, null, entry);
+    }
+    btn.addEventListener('click', function () {
+      var now = Date.now();
+      if (now - entry.last < 300) return;
+      entry.last = now;
+      if (nowBtn === entry) { stopSpeak(); return; }
+      play();
+    });
+    btn.play = play;
+
+    audioButtons.push(entry);
     paintAudioButtons();
     return btn;
   }
@@ -528,9 +610,13 @@ var UI = (function () {
 
     for (var i = 0; i < audioButtons.length; i++) {
       var a = audioButtons[i];
+      var playing = a === nowBtn;
       a.ico.textContent = '';
-      a.ico.appendChild(iconNode(off ? 'speaker-off' : 'speaker'));
-      a.btn.setAttribute('aria-label', why ? a.label + ' — ' + why : a.label);
+      a.ico.appendChild(iconNode(off ? 'speaker-off' : (playing ? 'stop' : 'speaker')));
+      var stopLabel = typeof I18N !== 'undefined' ? I18N.t('voice.stop') : '그만 듣기';
+      a.btn.setAttribute('aria-label', why ? a.label + ' — ' + why : (playing ? stopLabel : a.label));
+      a.btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+      a.btn.classList.toggle('is-playing', playing);
       if (off) a.btn.classList.add('is-mute');
       else a.btn.classList.remove('is-mute');
     }
@@ -873,7 +959,7 @@ var UI = (function () {
     icon: iconNode, iconBox: iconBox, setIcon: setIcon, upgradeIcons: upgradeIcons,
 
     // 음성 — 노동자 화면 전부가 쓴다
-    speak: speak, stopSpeak: stopSpeak, audioButton: audioButton,
+    speak: speak, stopSpeak: stopSpeak, audioButton: audioButton, isSpeaking: isSpeaking, langSwitch: langSwitch,
     hasVoice: hasVoice, onVoicesReady: onVoicesReady, voiceNote: voiceNote,
     voiceNoteKey: voiceNoteKey, voiceSilent: voiceSilent, voiceFallback: voiceFallback,
     /* 음성 사정이 바뀌었다고 알린다 — 🔊/🔇 버튼과 안내 줄이 함께 다시 그려진다.

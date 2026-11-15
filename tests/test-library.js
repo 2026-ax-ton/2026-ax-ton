@@ -30,17 +30,18 @@ function open(opts = {}) {
   has('AI 경계를 화면에 적는다', text(doc.querySelector('.ai-note')), 'AI 여기까지');
   has('승인은 사람이 한다고 적는다', text(doc.querySelector('.ai-note')), '승인은 사람이 합니다');
 
-  /* 예시 데이터 — 문구 6개.
-       ph-1,2,4,6 검수 완료 · ph-5 검수 대기
+  /* 예시 데이터 — 문구 15개.
+       ph-1,2,4,6 검수 완료 · ph-5,7,8,9,10,11,12,13,14,15 검수 대기
+       (ph-7~9 C형프레스 구조 · ph-10~12 유압프레스 전용 · ph-13~15 사출성형기 — 전부 조사만 됐고 미검수)
        ph-3 은 한국어·크메르어는 검수 완료인데 인도네시아어만 중지 (오역 신고 1건)
      타일은 "한 언어라도" 기준으로 센다. ph-3 은 완료에도 중지에도 들어간다 —
      크메르어로는 나가고 인도네시아어로는 안 나가는 것이 사실이다. */
   const tiles = [...t.$('stats').querySelectorAll('.kpi')].map(
     (k) => text(k.querySelector('dt')) + '=' + text(k.querySelector('dd')));
   has('검수 완료 5개', tiles.join(' '), '검수 완료=5개');
-  has('검수 대기 1개', tiles.join(' '), '검수 대기=1개');
+  has('검수 대기 10개', tiles.join(' '), '검수 대기=10개');
   has('사용 중지 1개', tiles.join(' '), '사용 중지=1개');
-  has('전체 6개', tiles.join(' '), '전체=6개');
+  has('전체 15개', tiles.join(' '), '전체=15개');
 
   /* ★ 예시 데이터의 신고는 인도네시아어 한 언어에 대한 것이다 */
   const seedItems = t.$('flag-queue').querySelectorAll('.queue-item');
@@ -49,9 +50,9 @@ function open(opts = {}) {
   has('그 언어만 중지됐다고 알린다', text(seedItems[0]), '인도네시아어 중지');
   has('문구 전체는 검수 완료로 남아 있다', text(seedItems[0]), '검수 완료');
 
-  /* --- 판정이 필요한 문구 = reviewed 가 아닌 것 (ph-3, ph-5) --- */
+  /* --- 판정이 필요한 문구 = reviewed 가 아닌 것 (ph-3, ph-5, ph-7~9, ph-10~12, ph-13~15) --- */
   const blocks = t.$('review-list').querySelectorAll('.review-block');
-  eq('판정 대상 2건', blocks.length, 2);
+  eq('판정 대상 11건', blocks.length, 11);
 
   /* --- ★ ph-3 의 역번역 대조 — 부정이 뒤집힌 장면 --- */
   const ph3 = [...blocks].find((b) => text(b).includes('프레스가 멈춰도'));
@@ -180,7 +181,7 @@ function open(opts = {}) {
    ================================================================= */
 {
   const t = open();
-  eq('전체 6줄', t.$('phrase-rows').querySelectorAll('tr').length, 6);
+  eq('전체 15줄', t.$('phrase-rows').querySelectorAll('tr').length, 15);
 
   click(t.win, t.$('filter-stopped'));
   eq('사용 중지만 1줄', t.$('phrase-rows').querySelectorAll('tr').length, 1);
@@ -192,7 +193,7 @@ function open(opts = {}) {
   eq('검수 완료 5줄', t.$('phrase-rows').querySelectorAll('tr').length, 5);
 
   click(t.win, t.$('filter-all'));
-  eq('다시 6줄', t.$('phrase-rows').querySelectorAll('tr').length, 6);
+  eq('다시 15줄', t.$('phrase-rows').querySelectorAll('tr').length, 15);
 
   // 목록에서 바로 중지
   const row = [...t.$('phrase-rows').querySelectorAll('tr')]
@@ -221,7 +222,7 @@ function open(opts = {}) {
   /* c-press 는 문구 4개(ph-1,2,3,6). 크메르어 노동자에게는 넷 다 쓸 수 있는데,
      ph-1 을 문구 전체 중지했으므로 3개로 줄어야 한다. */
   const card = learn.win.document.querySelector('#course-list .course-card');
-  has('쓸 수 있는 문구가 4개에서 3개로 줄었다', text(card.querySelector('.meta')), '안전 문구 3개');
+  has('쓸 수 있는 문구가 4개에서 3개로 줄었다', text(card.querySelector('.meta')), learn.win.I18N.t('learn.phraseCount', 'km').replace('{n}', '3'));
   has('몇 개가 빠졌는지 밝힌다', text(card.querySelector('.tags')), learn.win.I18N.t('learn.excluded', 'km') + ' 1');
 
   card.querySelector('.course-open').dispatchEvent(new learn.win.MouseEvent('click', { bubbles: true }));
@@ -285,7 +286,8 @@ function open(opts = {}) {
      인도네시아어 번역이 중지된 ph-3 은 인도네시아어 노동자에게만 빠진다. */
   const km = boot('worker/learn.html', { login: 'W-4821-07', page: 'worker/learn.js' });
   const kmCard = km.win.document.querySelector('#course-list .course-card');
-  has('★ 크메르어 노동자는 문구 4개를 다 받는다', text(kmCard.querySelector('.meta')), '안전 문구 4개');
+  const I18N_KM_4 = kmCard.ownerDocument.defaultView.I18N.t('learn.phraseCount', 'km').replace('{n}', '4');
+  has('★ 크메르어 노동자는 문구 4개를 다 받는다', text(kmCard.querySelector('.meta')), I18N_KM_4);
 
   kmCard.querySelector('.course-open')
     .dispatchEvent(new km.win.MouseEvent('click', { bubbles: true }));
@@ -300,12 +302,12 @@ function open(opts = {}) {
     kmTexts.join(' ').includes('ទោះម៉ាស៊ីនឈប់'),
     kmTexts.join(' | ').slice(0, 200));
 
-  /* 인도네시아어 노동자 — 도장 교육에도 ph-3 이 들어 있다 (ph-3,4,6).
-     인도네시아어 번역이 중지됐으니 2개만 남는다. */
+  /* 인도네시아어 노동자 — 도장 교육은 ph-4·ph-6 (2026-11-11 ph-3 은 프레스 문구라 뺐다).
+     ph-6 은 인도네시아어 번역이 없어 한국어로 띄우지 않고 빼므로 1개만 남는다 */
   const id = boot('worker/learn.html', { login: 'W-4821-11', page: 'worker/learn.js' });
   const idCard = id.win.document.querySelector('#course-list .course-card');
   has('★ 인도네시아어 노동자에게는 그 문구가 빠진다',
-    text(idCard.querySelector('.meta')), '안전 문구 2개');
+    text(idCard.querySelector('.meta')), id.win.I18N.t('learn.phraseCount', 'id').replace('{n}', '1'));
 
   idCard.querySelector('.course-open')
     .dispatchEvent(new id.win.MouseEvent('click', { bubbles: true }));

@@ -15,6 +15,7 @@ const PAGES = [
   ['admin/setup.html',      'admin/setup.js',      'kim@daesung.co.kr'],
   ['admin/dashboard.html',  'admin/dashboard.js',  'kim@daesung.co.kr'],
   ['admin/content.html',    'admin/content.js',    'kim@daesung.co.kr'],
+  ['admin/autogen.html',    'admin/autogen.js',    'kim@daesung.co.kr'],
   ['admin/proof.html',      'admin/proof.js',      'kim@daesung.co.kr'],
   ['admin/library.html',    'admin/library.js',    'oper@safety.kr'],
 ];
@@ -92,7 +93,7 @@ PAGES.forEach(([html, js, login]) => {
 
   eq('accounts 6개', S.accounts.load().length, 6);   // 한국인 노동자 W-4821-31 이 늘었다
   eq('설비 3대', S.setup.load().equipments.length, 3);
-  eq('안전 문구 6개', S.library.load().length, 6);
+  eq('안전 문구 15개', S.library.load().length, 15);
   eq('교육 2개', S.courses.load().length, 2);
   eq('수강 이력 3건', S.progress.load().length, 3);
   eq('신고 2건', S.reports.load().length, 2);
@@ -225,7 +226,7 @@ PAGES.forEach(([html, js, login]) => {
 
   // 다른 키도 함께 채워졌는가 — 계정만 있고 사업장이 없으면 로그인 직후 빈 화면이다
   eq('사업장도 함께 채워진다', t.win.Store.setup.load().site.name, '대성정밀');
-  eq('안전 문구도 함께 채워진다', t.win.Store.library.load().length, 6);
+  eq('안전 문구도 함께 채워진다', t.win.Store.library.load().length, 15);
 }
 
 {

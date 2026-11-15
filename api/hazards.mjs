@@ -20,9 +20,10 @@ import {
   guardBasic, parseJson, readConfig, takeDailyCall, callModel,
   json, fail, log, modelFail,
 } from './_shared.mjs';
-import { getSql, authed, withDb } from './_db.mjs';
+import { getSql, requireAdmin, withDb } from './_db.mjs';
 import {
   HAZARD_CODES, systemText, USER_TEXT, parseModelJson, filterPoints, overlapCount,
+  cleanGuidedItems, guidedSystemText, guidedUserText, mapBoxes,
 } from './_hazards.mjs';
 
 export const config = { maxDuration: 45 };
@@ -94,15 +95,23 @@ async function run(request) {
   if (!sql) return fail(500, 'config', '서버 설정 오류입니다.', cors);
 
   /* ★ 누구인지는 토큰으로만 안다. 본문에 역할을 적어 보내도 안 먹는다 */
-  const account = await authed(sql, request);
-  if (!account) return fail(401, 'unauthorized', '다시 로그인해 주세요.', cors);
-  if (account.role !== 'admin') {
-    return fail(403, 'forbidden', '담당자 계정만 쓸 수 있습니다.', cors);
-  }
+  const who = await requireAdmin(sql, request, cors);
+  if (who.done) return who.done;
 
-  const img = readImage(parseJson(text));
+  const body = parseJson(text);
+  const img = readImage(body);
   if (!img) return fail(400, 'bad_request', '사진을 읽을 수 없습니다. JPEG·PNG·WebP 로 다시 찍어 주세요.', cors);
   if (!img.size) return fail(413, 'too_large', '사진이 너무 크거나 작습니다. 다시 찍어 주세요.', cors);
+
+  /* 🆕 안내형 (PRD-AD-08 S3) — 리서치 항목(`items`)을 같이 주면 「항목마다 어디인가」를 묻는다.
+     주지 않으면 지금까지처럼 자유 탐색(AD-07)이다 */
+  const guided = body.items === undefined ? null : cleanGuidedItems(body.items);
+  /* 🆕 2026-11-11 고른 설비 id 를 그대로 돌려준다 — 화면이 다른 설비 결과를 섞지 않게 맞춰 본다 */
+  const e = body.equipment && typeof body.equipment === 'object' ? body.equipment : {};
+  const equipment = { id: typeof e.id === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(e.id) ? e.id : '' };
+  if (guided && !guided.length || body.items !== undefined && !guided) {
+    return fail(400, 'bad_request', '확인할 부위 목록을 읽을 수 없습니다.', cors);
+  }
 
   let cfg = null;
   for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
@@ -112,15 +121,16 @@ async function run(request) {
   }
   cfg = { ...cfg, timeoutMs: Number(process.env.AI_HAZARD_TIMEOUT_MS) || DEFAULT_HAZARD_TIMEOUT_MS };
 
-  if (!takeDailyCall(cfg.dailyLimit)) {
+  if (!(await takeDailyCall(cfg.dailyLimit))) {
     log({ route: 'hazards', ms: Date.now() - started, status: 429, err: 'limit' });
     return fail(429, 'limit', MESSAGES.limit, cors);
   }
 
-  const r = await callModel(cfg, systemText(HAZARD_CODES), [
+  const r = await callModel(cfg, guided ? guidedSystemText() : systemText(HAZARD_CODES), [
     { inline_data: { mime_type: img.mime, data: img.data } },
-    { text: USER_TEXT },
-  ], { maxOutputTokens: MAX_OUTPUT_TOKENS, maxText: MAX_TEXT });
+    { text: guided ? guidedUserText(guided) : USER_TEXT },
+  /* 안내형은 항목이 최대 25개(공식 + 기본 + 고유)라 박스 JSON 이 길다 — GPT 는 추론 토큰도 여기서 센다 */
+  ], { maxOutputTokens: guided ? MAX_OUTPUT_TOKENS * 4 : MAX_OUTPUT_TOKENS, maxText: guided ? MAX_TEXT * 2 : MAX_TEXT });
 
   if (r.error) {
     const f = modelFail(r, cors, MESSAGES);
@@ -138,7 +148,19 @@ async function run(request) {
      그 사진 위에 제안을 그리지 못하게 (FR-20). 사진은 원래 남기지 않는다 */
   if (out.person === true) {
     log({ route: 'hazards', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', person: true });
+    if (guided) {
+      return json(200, { mode: 'guided', person: true, mapped: [], missing: [], dropped: {}, overlaps: 0, equipment, model: cfg.model }, cors);
+    }
     return json(200, { person: true, points: [], dropped: noDrops(), overlaps: 0, model: cfg.model }, cors);
+  }
+
+  if (guided) {
+    const m = mapBoxes(out, guided);
+    log({ route: 'hazards', mode: 'guided', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', n: m.mapped.length, miss: m.missing.length });
+    return json(200, {
+      mode: 'guided', person: false, mapped: m.mapped, missing: m.missing, dropped: m.dropped,
+      overlaps: overlapCount(m.mapped.map((x) => x.answer)), equipment, model: cfg.model,
+    }, cors);
   }
 
   const { points, dropped } = filterPoints(out.points, HAZARD_CODES);

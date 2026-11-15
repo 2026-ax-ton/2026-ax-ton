@@ -1,0 +1,37 @@
+{
+  "_about": "사람(yesol)이 원문 대조로 조사한 정답 기준. 출처: docs/infos/09_AI교육자동생성/2026-11-09_기계조사-결과.md 기계 2. AI 리서치 비교(scripts/compare-research.mjs)에 쓴다.",
+  "machine": "injection-molder",
+  "equipment": { "name": "횡형 사출성형기", "maker": "Woojin Plaimm", "model": "TB-G5", "year": null },
+  "equipmentNote": "woojinplaimm.com 에서 TB-G5 소개문구(90~880톤 절전형 하이브리드)까지 원문 확인. 스펙표·카탈로그 PDF 는 JS 라 못 받음",
+  "items": [
+    { "id": "g1", "part": "금형 사이 (제품 취출)", "hazard": "pinch", "risk": "제품을 꺼내다 금형 사이에 손이 끼인다",
+      "keywords": ["금형", "취출", "형체", "꺼낼"],
+      "sources": [{ "title": "OPS 사출성형기 작업안전 (2023-교육혁신실-859, 고용노동부·안전보건공단)", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g2", "part": "이젝터와 금형 사이", "hazard": "pinch", "risk": "점검 중 이젝터와 금형 사이에 신체가 끼인다",
+      "keywords": ["이젝터"],
+      "sources": [{ "title": "OPS (같은 자료)", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g3", "part": "분쇄기", "hazard": "pinch", "risk": "분쇄기 스크랩을 제거하다 손가락이 감긴다",
+      "keywords": ["분쇄", "스크랩", "감김"],
+      "sources": [{ "title": "OPS (같은 자료)", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g4", "part": "안전문 연동장치", "hazard": "pinch", "risk": "안전문 연동장치(리미트 스위치)를 무효화하고 작업하다 끼인다 (실제 사고)",
+      "keywords": ["안전문", "연동", "리미트", "인터록"],
+      "sources": [{ "title": "OPS (같은 자료)", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g5", "part": "가열 실린더 히터", "hazard": "fire", "risk": "히터 방호덮개가 없으면 고온부에 화상",
+      "keywords": ["가열", "히터", "실린더", "화상", "고온"],
+      "sources": [{ "title": "OPS 안전점검표", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g6", "part": "노즐 충전부", "hazard": "shock", "risk": "노즐 충전부에 절연캡이 없으면 감전",
+      "keywords": ["노즐", "충전부", "절연", "감전"],
+      "sources": [{ "title": "OPS 안전점검표", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g7", "part": "수리·점검 (전원)", "hazard": "pinch", "risk": "전원 차단·잠금·「작업중」 표시 없이 점검하면 갑자기 움직여 끼인다",
+      "keywords": ["전원", "잠금", "차단", "점검", "수리"],
+      "sources": [{ "title": "OPS 안전점검표", "host": "esafetykorea.or.kr", "checked": "원문" }] },
+    { "id": "g8", "part": "비상정지 버튼", "hazard": "pinch", "risk": "비상정지 버튼이 작동하지 않으면 사고를 멈출 수 없다",
+      "keywords": ["비상정지", "비상 정지"],
+      "sources": [{ "title": "OPS 안전점검표", "host": "esafetykorea.or.kr", "checked": "원문" }] }
+  ],
+  "limits": [
+    "KOSHA M-187-2016 은 게시판 본문(목적·적용범위·근거 §121)까지만 확인, 첨부 PDF 는 세션 필요로 못 받음",
+    "M-56-2020 은 존재만 확인",
+    "우진플라임 TB-G5 스펙표·카탈로그 PDF 는 JS 렌더링으로 못 받음"
+  ]
+}

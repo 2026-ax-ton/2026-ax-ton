@@ -42,11 +42,24 @@
       검수를 지나지 않은 문구는 아래 선택지에 아예 나오지 않습니다.</span>
   </p>
 
+  <!-- 🆕 2026-11-11 기본 흐름 — 설비 탭에 등록한 설비를 고르면 AI 가 위험요소를 분석하고 문항을 만든다.
+       설비 정보는 여기서 다시 입력하지 않는다 (설비 탭이 원천) -->
+  <section class="card feature" aria-labelledby="t-eq-pick" id="eq-pick">
+    <h2 id="t-eq-pick">교육 대상 설비 선택</h2>
+    <ul class="item-list" id="eq-cards"></ul>
+    <p class="lockmsg" id="eq-none" hidden>
+      등록된 설비가 없습니다. <a class="btn" href="setup.html?return=content">설비 등록하러 가기</a>
+    </p>
+  </section>
+
   <p class="lockmsg" id="setup-lock" hidden>
     먼저 <a href="setup.html">사업장 · 설비 등록</a>에서 설비와 사용 언어를 등록해 주세요.
     등록한 언어만 교육에 쓸 수 있습니다.
   </p>
 
+  <!-- 예외 흐름 — 담당자가 문항을 손으로 구성한다. 기본은 위의 AI 흐름 (문항 자동 선정) -->
+  <details class="manual-builder" id="manual-builder">
+  <summary>직접 만들기 (예외 — 문항을 손으로 구성)</summary>
   <div id="builder">
 
     <!-- 1단계 — 설비와 언어 -->
@@ -243,6 +256,7 @@
     </dl>
   </section>
 
+</details>
 </main>
 
 <nav class="tabbar fixed" aria-label="담당자 메뉴">

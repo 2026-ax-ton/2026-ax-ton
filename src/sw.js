@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v13';
+var VERSION = 'v22';
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.
@@ -39,7 +39,7 @@ var CACHE = 'safety-' + VERSION;
 var PRECACHE = [
   './',
 
-  /* 화면 HTML 13 */
+  /* 화면 HTML 15 */
   'index.html',
   'signup.html',
   'worker/home.html',
@@ -51,8 +51,10 @@ var PRECACHE = [
   'admin/setup.html',
   'admin/dashboard.html',
   'admin/content.html',
+  'admin/autogen.html',
   'admin/proof.html',
   'admin/library.html',
+  'admin/scan.html',
 
   /* CSS 5 */
   'assets/style.css',
@@ -61,7 +63,7 @@ var PRECACHE = [
   'worker/worker.css',
   'admin/admin.css',
 
-  /* 공용 JS 12 */
+  /* 공용 JS 14 */
   'assets/store.js',
   'assets/auth.js',
   'assets/ui.js',
@@ -75,8 +77,9 @@ var PRECACHE = [
   'assets/review.js',
   'assets/net.js',
   'assets/agent.js',
+  'assets/curriculum.js',
 
-  /* 화면 JS 11 */
+  /* 화면 JS 13 */
   'worker/home.js',
   'worker/learn.js',
   'worker/quiz.js',
@@ -86,8 +89,10 @@ var PRECACHE = [
   'admin/setup.js',
   'admin/dashboard.js',
   'admin/content.js',
+  'admin/autogen.js',
   'admin/proof.js',
-  'admin/library.js'
+  'admin/library.js',
+  'admin/scan.js'
 ];
 
 self.addEventListener('install', function (e) {

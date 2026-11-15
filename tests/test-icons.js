@@ -167,6 +167,7 @@ function emojiIn(text) {
     ['admin/dashboard.html', 'kim@daesung.co.kr', 'admin', 'admin/dashboard.js'],
     ['admin/setup.html', 'kim@daesung.co.kr', 'admin', 'admin/setup.js'],
     ['admin/content.html', 'kim@daesung.co.kr', 'admin', 'admin/content.js'],
+    ['admin/autogen.html', 'kim@daesung.co.kr', 'admin', 'admin/autogen.js'],
     ['admin/proof.html', 'kim@daesung.co.kr', 'admin', 'admin/proof.js'],
     ['admin/library.html', 'oper@safety.kr', 'operator', 'admin/library.js'],
     ['index.html', null, null, 'assets/login.js'],

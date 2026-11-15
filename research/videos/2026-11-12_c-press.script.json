@@ -1,0 +1,63 @@
+{
+  "equipment": "C형 유압프레스",
+  "model": "gpt-5-mini",
+  "at": "2026-11-12T10:33:39.698Z",
+  "scenes": [
+    {
+      "type": "intro",
+      "hazardId": "",
+      "narration": "이 영상은 C형 유압프레스의 주요 위험요소를 소리와 사진으로 보여준다. 각 장면은 무엇이 왜 위험한지 설명한다.",
+      "phraseId": "",
+      "fixed": false
+    },
+    {
+      "type": "hazard",
+      "hazardId": "o1",
+      "narration": "가드의 옆·위·아래로 손을 넣으면 금형 사이에 끼이는 위험이 있다. 금형이 닫힐 때 손이 압착되거나 절단될 수 있다.",
+      "phraseId": "ph-1",
+      "fixed": false
+    },
+    {
+      "type": "hazard",
+      "hazardId": "o2",
+      "narration": "가드를 열어 임시로 조작하고 원위치로 돌리지 않은 상태에서 작업을 다시 시작하면 끼임 사고가 발생한다. 가드가 제자리에 없으면 보호 기능이 없어진다.",
+      "phraseId": "ph-3",
+      "fixed": false
+    },
+    {
+      "type": "hazard",
+      "hazardId": "r1",
+      "narration": "램과 금형 사이(작업지점)에 손이나 팔이 들어가면 하강 시 절단·압착 등 큰 손상을 일으킬 위험이 크다. 작동 중에는 공간이 급격히 줄어든다.",
+      "phraseId": "ph-1",
+      "fixed": false
+    },
+    {
+      "type": "hazard",
+      "hazardId": "r2",
+      "narration": "상승된 램이 유지된 상태에서 유압 잔압이나 밸브 문제로 램이 예기치 않게 하강하면 유지하던 사람이 압착되거나 갇힐 수 있다. 유지력의 불안정성이 위험이다.",
+      "phraseId": "ph-2",
+      "fixed": false
+    },
+    {
+      "type": "hazard",
+      "hazardId": "r4",
+      "narration": "다이 교체·셋업 중 램을 기계력만으로 신뢰하면 램의 하강 또는 돌출로 작업자가 압착되거나 장비가 손상될 수 있다. 지지 장치 미사용이 문제다.",
+      "phraseId": "ph-2",
+      "fixed": false
+    },
+    {
+      "type": "hazard",
+      "hazardId": "r5",
+      "narration": "전기제어반·배선의 절연 손상이나 부적절한 유지보수는 전기 감전 위험과 비상정지 회로의 오동작을 유발한다. 전기계통 문제는 제어 불능으로 이어진다.",
+      "phraseId": "ph-2",
+      "fixed": false
+    },
+    {
+      "type": "outro",
+      "hazardId": "",
+      "narration": "위험 장면을 잘 보고 각 상황의 사진 위치를 확인한다. 비상정지 버튼 위치 정보를 확인한다.",
+      "phraseId": "ph-6",
+      "fixed": false
+    }
+  ]
+}
