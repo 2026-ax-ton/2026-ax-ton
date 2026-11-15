@@ -942,5 +942,11 @@ html.scan-on, html.scan-on body { overflow: hidden; }
 .scan-stage.full video { width: 100%; height: 100%; object-fit: cover; }
 .scan-stage .scan-meter { position: absolute; left: 10px; top: 10px; margin: 0; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; max-width: 60%; }
 .scan-stage.full .scan-warn { bottom: 104px; left: 16px; right: 16px; transform: none; width: fit-content; max-width: none; margin: 0 auto; justify-content: center; }   /* left:50% 이면 폭이 반으로 줄어 네 줄로 꺾인다 */
-.scan-warn.is-warn { background: rgba(180,83,9,.92); }   /* 경고는 주황 바탕 + 경고 아이콘 + 글 (색만으로 구분하지 않는다) */
+/* 위쪽 띠 — 자세 교정: 무엇이 문제인지(굵게) + 어떻게 고치는지. 주황 바탕 + 경고 아이콘 + 글 (색만으로 구분하지 않는다) */
+.scan-coach { position: absolute; left: 10px; right: 10px; top: 10px; display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 12px; background: rgba(180,83,9,.94); color: #fff; z-index: 2; }
+.scan-coach[hidden] { display: none; }
+.scan-coach .ico { width: 26px; height: 26px; flex: 0 0 auto; }
+.scan-coach b { display: block; font-size: 17px; }
+.scan-coach b + span { font-size: 14px; }
+.scan-stage .scan-meter { top: auto; bottom: 168px; }   /* 숫자는 아래 안내 위로 — 위쪽은 자세 교정 자리 */
 .scan-stop { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: auto; padding: 0 36px; min-height: 60px; min-width: 140px; border-radius: 999px; background: #fff; color: #111; font-weight: 700; }
