@@ -251,6 +251,7 @@
 
   function showFeedback(correct, text, ko, speakIt) {
     var box = $('consequence');
+    box.setAttribute('data-correct', correct ? 'yes' : 'no');   // 결과 시트 색 (Figma WK-03) — 아이콘이 뜻을 함께 나른다
     if (text) {
       UI.setIcon($('consequence-ico'), correct ? 'check-circle' : 'alert');
       $('consequence-text').textContent = text;

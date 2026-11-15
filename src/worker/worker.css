@@ -1612,3 +1612,63 @@
 .btn-audio.is-playing { outline: 4px solid currentColor; outline-offset: 2px; }
 /* 머리의 언어 바꾸기 */
 .lang-switch { min-height: 44px; max-width: 9em; font: inherit; border-radius: 8px; padding: 4px 6px; }
+
+/* ===================================================================
+   🆕 2026-11-15 Figma 본선 「00 대표 화면 1 — WK-03 이해도 검증 (폰)」
+   위: 코랄 배너(교육 이름) · 진행 막대 · 문제(24 Bold) · 그림 카드 · 아래: [문제 듣기] 넓은 버튼
+   답한 뒤: 결과 시트(맞으면 초록, 틀리면 분홍) + 먹색 [다음 문제]
+   ★ DOM 은 그대로 두고 순서만 바꾼다 — 검사·음성 흐름이 같은 칸을 본다
+   =================================================================== */
+#view-quiz { display: flex; flex-direction: column; gap: 12px; }
+#view-quiz[hidden] { display: none; }
+#view-quiz .quiz-head { display: contents; }
+#view-quiz .doing-now { order: 1; }
+#view-quiz .step-head { order: 2; }
+#view-quiz .step-once { order: 3; }
+#view-quiz .quiz-kind { order: 4; }
+#view-quiz .quiz-prompt { order: 5; }
+#view-quiz .prompt-note { order: 6; }
+#view-quiz #quiz-body { order: 7; }
+#view-quiz #prompt-audio { order: 8; }
+#view-quiz .consequence { order: 9; }
+#view-quiz .big-actions { order: 10; }
+
+/* 배너 — 머리띠에서 이어지는 코랄 덩어리, 먹색 큰 글자 */
+#view-quiz .doing-now {
+  margin: 0;
+  padding: 18px 20px 22px;
+  background: linear-gradient(100deg, var(--banner) 0%, var(--banner-end) 100%);
+  color: var(--banner-ink);
+  font-size: 28px;
+  line-height: 1.35;
+  font-weight: 800;
+  border-radius: 24px;
+}
+
+/* 진행 막대 — 점 대신 칸 막대. 글자(문제 2 / 5)가 뜻을 나른다 */
+#view-quiz .step-head { margin: 0; }
+#view-quiz .step-dots { flex: 1 1 auto; gap: 4px; order: 0; }
+#view-quiz .step-count { order: 1; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+#view-quiz .step-dots span { flex: 1 1 0; width: auto; height: 6px; border: 0; border-radius: 3px; background: var(--line); }
+#view-quiz .step-dots span[data-state="done"] { background: var(--brand-vivid); }
+#view-quiz .step-dots span[data-state="now"] { width: auto; height: 10px; border: 0; background: var(--brand-vivid); }
+
+#view-quiz .quiz-kind { width: 44px; height: 44px; font-size: 24px; background: var(--warn-soft); color: var(--warn); border-radius: 12px; }
+#view-quiz .quiz-prompt { font-size: 24px; line-height: 1.35; font-weight: 800; letter-spacing: -.01em; }
+
+/* 그림 카드 */
+#view-quiz .quiz-figure { border-radius: 20px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-1); }
+#view-quiz .zonehint { font-size: 15px; color: var(--ink-2); }
+
+/* [문제 듣기] — 아래 넓은 버튼 (주색 연함 바탕) */
+#view-quiz #prompt-audio { display: block; }
+#view-quiz #prompt-audio .btn-audio,
+#view-quiz #prompt-audio button { width: 100%; min-height: 64px; border-radius: 16px; background: var(--brand-soft); color: var(--brand-deep); border: 0; font-size: 18px; font-weight: 700; justify-content: center; }
+
+/* 결과 시트 — 아이콘 + 글 + 색. 맞음/틀림을 색만으로 가르지 않는다(아이콘이 다르다) */
+#view-quiz .consequence { margin: 0; padding: 18px; border-radius: 24px; border: 0; border-left: 0; background: var(--stop-soft); }
+#view-quiz .consequence[data-correct="yes"] { background: var(--ok-soft); }
+#view-quiz .consequence p { color: var(--ink); font-size: 18px; line-height: 1.5; font-weight: 700; }
+#view-quiz .consequence .pict { color: var(--stop); }
+#view-quiz .consequence[data-correct="yes"] .pict { color: var(--ok); }
+#view-quiz .big-actions .btn-primary { min-height: 64px; border-radius: 16px; font-size: 20px; }

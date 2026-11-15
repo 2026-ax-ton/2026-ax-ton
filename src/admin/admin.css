@@ -954,3 +954,22 @@ html.scan-on, html.scan-on body { overflow: hidden; }
 .scan-coach b + span { font-size: 14px; }
 .scan-stage .scan-meter { top: auto; bottom: 168px; }   /* 숫자는 아래 안내 위로 — 위쪽은 자세 교정 자리 */
 .scan-stop { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: auto; padding: 0 36px; min-height: 60px; min-width: 140px; border-radius: 999px; background: #fff; color: #111; font-weight: 700; }
+
+/* ===================================================================
+   🆕 2026-11-15 Figma 본선 「00 대표 화면 2 — AD-05 대시보드 (PC)」
+   넓은 화면: 왼쪽 큰 칸 = 언어 × 위험유형 정답률(취약 항목), 오른쪽 좁은 칸 = 이수 현황·신고·실시 상황·증빙
+   막대는 단색(좋음 초록 · 보통 갈색 · 낮음 진홍) + 숫자 + 등급 글자 — 색만으로 가르지 않는다
+   =================================================================== */
+body.dash-figma .ai-note.off { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand-deep); }
+body.dash-figma .ai-note.off .tag { color: var(--brand); }
+body.dash-figma .card.feature .bar-track { height: 12px; border-radius: 6px; background: var(--track); }
+body.dash-figma .card.feature .bar-fill { border-radius: 6px; }
+body.dash-figma .bar-item[data-level="low"] .bar-fill { background: var(--stop); }
+body.dash-figma .bar-item[data-level="mid"] .bar-fill { background: var(--warn); }
+body.dash-figma .bar-item[data-level="ok"]  .bar-fill { background: var(--ok); }
+@media (min-width: 1024px) {
+  body.dash-figma .page { grid-template-columns: minmax(0, 1fr) 340px; grid-auto-flow: row dense; }
+  body.dash-figma .page > .card { grid-column: 2; }
+  body.dash-figma .page > .card.feature { grid-column: 1; grid-row: span 5; }
+  body.dash-figma .page > section[aria-labelledby="t-action"] { grid-column: 1 / -1; }   /* 표는 넓게 */
+}
