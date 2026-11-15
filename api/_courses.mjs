@@ -16,10 +16,10 @@
    왜 서버도 보나 — 화면(`admin/autogen`)이 발급 전에 막지만, 동기화 경로로
    들어오는 길이 따로 있다. 상한을 넘는 교육이 하나 들어오면 그 사업장은
    덩어리 전체(512KB)가 막혀 **다른 교육까지 못 올린다**. */
-const MAX_COURSE_BYTES = 100 * 1024;
+const MAX_COURSE_BYTES = 125 * 1024;
 const MAX_PICS = 12;
-const PIC_MAX_BYTES = 6 * 1024;
-const PHOTO_MAX_BYTES = 36 * 1024;
+const PIC_MAX_BYTES = 7 * 1024;
+const PHOTO_MAX_BYTES = 28 * 1024;
 
 function bytesOf(value) {
   const s = typeof value === 'string' ? value : JSON.stringify(value === undefined ? null : value);

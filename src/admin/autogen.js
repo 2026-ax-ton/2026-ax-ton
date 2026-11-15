@@ -36,6 +36,8 @@
   var KEEP_QUALITY = 0.7;
   var TIMEOUT_MS = 60000;
   var MAX_RUN_BYTES = 12 * 1024 * 1024;
+  /* 보기 그림을 다시 뽑는 품질 사다리 — 0.4 에서 멈추면 목표(4KB)에 못 든다 (C06 D-048, 11/15 실측) */
+  var PIC_QUALITIES = [0.55, 0.4, 0.32, 0.25];
   var TIER = ['', '제조사', '공공기관', '일반 웹', '동영상', '판매·중계'];
   var KIND = { experience: '현장 경험 글', journal: '업계 전문지' };
   var SUBTYPE = { location: '위치 짚기', action: '행동 고르기', ox: 'OX', situation: '상황 판단', picture: '그림 고르기' };
@@ -206,7 +208,7 @@
 
     if (state.keepPhoto && state.coursePhoto !== state.keepPhoto) {
       state.coursePhoto = state.keepPhoto;
-      jobs.push(Photo.shrinkDataUrl(state.keepPhoto, { maxEdge: Limits.PHOTO_MAX_EDGE, targetBytes: Limits.PHOTO_MAX_BYTES })
+      jobs.push(Photo.shrinkDataUrl(state.keepPhoto, { maxEdge: Limits.PHOTO_MAX_EDGE, targetBytes: Limits.PHOTO_TARGET_BYTES })
         .then(function (r) { if (r && r.image) state.coursePhoto = r.image; }));
     } else if (!state.keepPhoto) {
       state.coursePhoto = '';
@@ -217,7 +219,7 @@
       if (!q || !Array.isArray(q.pics)) return;
       q.pics.forEach(function (pic, i) {
         if (typeof pic !== 'string' || pic.indexOf('data:image/') !== 0) return;
-        jobs.push(Photo.shrinkDataUrl(pic, { maxEdge: Limits.PIC_MAX_EDGE, targetBytes: Limits.PIC_MAX_BYTES })
+        jobs.push(Photo.shrinkDataUrl(pic, { maxEdge: Limits.PIC_MAX_EDGE, targetBytes: Limits.PIC_TARGET_BYTES, qualities: PIC_QUALITIES })
           .then(function (r) { if (r && r.image) q.pics[i] = r.image; }));
       });
     });

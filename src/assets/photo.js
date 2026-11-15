@@ -181,6 +181,10 @@ var Photo = (function () {
     var o = opts || {};
     var maxEdge = o.maxEdge || MAX_EDGE;
     var target = o.targetBytes || TARGET_BYTES;
+    /* ★ 보기 그림은 `QUALITIES`(0.7~0.4)보다 더 내려가야 목표에 든다 —
+       AI 가 그린 그림은 사진보다 압축이 덜 된다 (2026-11-15 실측).
+       설비 사진으로 보내는 `shrink()` 의 사다리는 건드리지 않는다. */
+    var ladder = Array.isArray(o.qualities) && o.qualities.length ? o.qualities : QUALITIES;
     var src = String(dataUrl || '');
 
     return new Promise(function (done) {
@@ -207,9 +211,9 @@ var Photo = (function () {
         }
 
         var out = '';
-        for (var i = 0; i < QUALITIES.length; i += 1) {
+        for (var i = 0; i < ladder.length; i += 1) {
           try {
-            out = canvas.toDataURL(OUT_MIME, QUALITIES[i]);
+            out = canvas.toDataURL(OUT_MIME, ladder[i]);
           } catch (e) {
             return done(fail('unsupported', '이 브라우저에서는 그림을 줄일 수 없습니다.'));
           }
