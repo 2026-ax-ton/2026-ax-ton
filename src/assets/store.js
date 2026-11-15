@@ -448,6 +448,17 @@ var Store = (function () {
         읽을 때는 Store.phraseAgent(p, lang) · Store.phraseJudged(p, lang) 를 쓴다.
         화면이 t.agent 를 직접 뒤지면 칸이 없는 옛 데이터에서 터진다.
 
+        🆕 2026-11-15 (PRD-AD-02 FR-10~15 · C06 D-039) — 법정 사항 태그 칸 둘이 늘었다.
+        **더하기만 했다. 옛 문구는 두 칸이 없을 뿐 그대로 읽히고 그대로 쓰인다** (FR-12).
+
+          legalItems   : [7, 8]       시행규칙 별표 5 제1호다목의 법정 교육 사항 번호
+          specialItems : ['11-2']     특별교육 대상 작업의 개별 사항 (작업번호-사항번호)
+
+          ★ 사람이 정한다. AI 가 달지 않는다 — 번역 판정과 무관하고,
+            태그를 고쳐도 status·translations 는 건드리지 않는다 (FR-11).
+          ★ 목록과 이름은 `assets/curriculum.js` 한 곳이다 (C06 D-046).
+            읽을 때는 `LegalTag.of(p)` 를 쓴다 — 칸이 없는 옛 문구에서 터지지 않는다
+
         status 는 PHRASE_STATUS 의 세 가지 중 하나.
         translations[code].status 는 그 언어만의 판정이고, 없으면 문구 전체를 따른다.
         flags[].lang 이 있으면 그 언어만 중지된다 — 크메르어 오역 하나로

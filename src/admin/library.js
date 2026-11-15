@@ -49,6 +49,9 @@
   UI.warnIfBlocked();
 
   var filter = 'all';
+  var legalFilter = '';     // 🆕 법정 사항으로 거르기 (FR-AD-02-13·15). '' 면 전부
+  var addTagPicker = null;  // 🆕 추가 폼의 법정 사항 고르는 칸
+  var openTagRow = '';      // 🆕 태그를 고치려고 펼친 문구 id (한 번에 하나)
 
   /* -----------------------------------------------------------------
      읽기
@@ -777,9 +780,18 @@
     return out;
   }
 
+  /** 추가 폼의 법정 사항 고르는 칸 (FR-AD-02-10·11·14) */
+  function buildAddTags() {
+    var box = $('add-legal');
+    box.textContent = '';
+    addTagPicker = LegalTag.picker('add-legal', { legalItems: [], specialItems: [] });
+    box.appendChild(addTagPicker);
+  }
+
   function clearAddForm() {
     $('add-ko').value = '';
     $('add-category').value = '';
+    buildAddTags();
     ADD_LANGS.forEach(function (l) {
       $(addId(l.code, 'text')).value = '';
       $(addId(l.code, 'back')).value = '';
@@ -802,12 +814,16 @@
       if (p.status === filter) return true;
       return langsOf(p).some(function (code) { return Store.phraseStatus(p, code) === filter; });
     });
+    /* 🆕 법정 사항으로도 거른다 (FR-AD-02-13·15) — 검수 상태 거르기와 겹쳐 쓴다 */
+    shown = shown.filter(function (p) { return LegalTag.matches(p, legalFilter); });
 
     if (!shown.length) {
       var empty = UI.el('tr');
       var cell = UI.el('td');
       cell.colSpan = 5;
-      cell.appendChild(UI.el('p', 'empty', '해당하는 문구가 없습니다.'));
+      cell.appendChild(UI.el('p', 'empty', legalFilter
+        ? '이 법정 사항에 해당하는 문구가 아직 없습니다. 이 사항을 다루는 문구를 추가해 주세요.'
+        : '해당하는 문구가 없습니다.'));
       empty.appendChild(cell);
       body.appendChild(empty);
       return;
@@ -821,6 +837,8 @@
       if (openFlags(p).length) {
         first.appendChild(UI.el('span', 'sub', '오역 신고 ' + openFlags(p).length + '건'));
       }
+      /* 🆕 법정 사항 태그 (FR-AD-02-10). 없으면 「태그 없음」 — 막지 않는다 (FR-12) */
+      first.appendChild(LegalTag.chips(p));
       tr.appendChild(first);
 
       tr.appendChild(UI.el('td', null, p.category || '-'));
@@ -870,11 +888,61 @@
         stopBtn.addEventListener('click', function () { setStatus(p.id, 'stopped'); });
         row.appendChild(stopBtn);
       }
+      /* 🆕 태그 고치기 (FR-AD-02-11) — 사람이 정한다. 번역 판정과 상관없다 */
+      var tagBtn = UI.el('button', 'btn-sm', openTagRow === p.id ? '법정 사항 닫기' : '법정 사항');
+      tagBtn.type = 'button';
+      tagBtn.setAttribute('aria-expanded', openTagRow === p.id ? 'true' : 'false');
+      tagBtn.addEventListener('click', function () {
+        openTagRow = openTagRow === p.id ? '' : p.id;
+        render();
+      });
+      row.appendChild(tagBtn);
+
       actCell.appendChild(row);
       tr.appendChild(actCell);
 
       body.appendChild(tr);
+
+      if (openTagRow === p.id) body.appendChild(tagEditorRow(p));
     });
+  }
+
+  /** 한 문구의 법정 사항을 고치는 줄 — 표 아래에 펼친다 (FR-AD-02-11) */
+  function tagEditorRow(p) {
+    var tr = UI.el('tr', 'tag-row');
+    var cell = UI.el('td');
+    cell.colSpan = 5;
+
+    var pick = LegalTag.picker('tag-' + p.id, LegalTag.of(p));
+    cell.appendChild(pick);
+
+    var btns = UI.el('div', 'btn-row');
+    var save = UI.el('button', 'btn-sm go', '법정 사항 저장');
+    save.type = 'button';
+    save.addEventListener('click', function () {
+      var t = pick.read();
+      commit(function (list) {
+        var row = Store.findBy(list, 'id', p.id);
+        if (!row) return;
+        /* ★ 태그만 손댄다 — status·translations 를 건드리지 않는다 (FR-11).
+           태그를 고쳤다고 검수 판정이 흔들리면 안 된다 */
+        row.legalItems = t.legalItems;
+        row.specialItems = t.specialItems;
+      }, t.legalItems.length || t.specialItems.length
+        ? '법정 사항을 저장했습니다. 검수 상태는 그대로입니다.'
+        : '법정 사항을 모두 뺐습니다. 문구는 그대로 쓰입니다.');
+      openTagRow = '';
+      render();
+    });
+    var cancel = UI.el('button', 'btn-sm', '취소');
+    cancel.type = 'button';
+    cancel.addEventListener('click', function () { openTagRow = ''; render(); });
+    btns.appendChild(save);
+    btns.appendChild(cancel);
+    cell.appendChild(btns);
+
+    tr.appendChild(cell);
+    return tr;
   }
 
   /* -----------------------------------------------------------------
@@ -989,9 +1057,25 @@
     renderFlagForm(list);
     renderCategoryList(list);
 
+    renderLegalFilter(list);
+
     ['all', 'reviewed', 'waiting', 'stopped'].forEach(function (key) {
       var btn = $('filter-' + key);
       if (btn) btn.setAttribute('aria-pressed', filter === key ? 'true' : 'false');
+    });
+  }
+
+  /** 법정 사항 거르기 칸 — 사항마다 문구가 몇 개인지 함께 적는다 (FR-AD-02-13·15).
+   *  ★ 0개인 사항을 목록에서 빼지 않는다. **비어 있다는 것**이 운영자가 알아야 하는 사실이다 */
+  function renderLegalFilter(list) {
+    var sel = $('filter-legal');
+    if (!sel) return;
+    sel.textContent = '';
+    LegalTag.filterOptions(list).forEach(function (o) {
+      var opt = UI.el('option', null, o.label);
+      opt.value = o.value;
+      if (o.value === legalFilter) opt.selected = true;
+      sel.appendChild(opt);
     });
   }
 
@@ -1020,6 +1104,11 @@
   ['all', 'reviewed', 'waiting', 'stopped'].forEach(function (key) {
     var btn = $('filter-' + key);
     if (btn) btn.addEventListener('click', function () { filter = key; render(); });
+  });
+
+  $('filter-legal').addEventListener('change', function (e) {
+    legalFilter = e.target.value;
+    render();
   });
 
   window.addEventListener('storage', function (e) {
@@ -1060,6 +1149,10 @@
       translations: picked.map,
       flags: []
     };
+    /* 🆕 법정 사항 태그 — 고르지 않았으면 칸을 만들지 않는다 (FR-12 「태그 없음」) */
+    var tags = addTagPicker ? addTagPicker.read() : { legalItems: [], specialItems: [] };
+    if (tags.legalItems.length) phrase.legalItems = tags.legalItems;
+    if (tags.specialItems.length) phrase.specialItems = tags.specialItems;
 
     var saved = commit(function (list) { list.push(phrase); },
       '추가했습니다. 검수 대기입니다 — 판정을 받아야 안전 지시로 나갑니다.');
@@ -1069,6 +1162,7 @@
   });
 
   buildAddInputs();
+  buildAddTags();
 
   /* 운영자 통과 문구 — 이 탭에서만 기억한다. 저장하지 않는다 (A02 §5.6).
      ★ 값을 화면에 되비추지 않는다. 입력 칸에만 머문다. */
