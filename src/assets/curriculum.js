@@ -340,6 +340,58 @@ var Curriculum = (function () {
     [37, '석면해체·제거', ['석면의 특성과 위험성', '석면해체·제거의 작업방법', '장비 및 보호구 사용']]
   ].map(function (r) { return { no: r[0], title: r[1], items: r[2] }; });
 
+  /* ── 설비 이름 낱말 → 특별교육 대상 작업 (PRD-AD-01 FR-08 표) ──────────
+
+     담당자가 설비 이름을 적는 동안 「특별교육 대상일 수 있습니다」를 띄우는 데 쓴다.
+     ★ **판정이 아니라 안내다.** 5대 이상·1톤 이상·75V 이상 같은 조건은
+       담당자만 안다. 그래서 `when` 을 함께 보여 주고, 저장을 막지 않는다.
+     ★ 낱말은 **설비 이름에 흔히 쓰이는 말**이다. 작업 이름(별표 5)과 다르다 —
+       「프레스 3호기」에서 「프레스」를 집어내는 것이 목적이다.
+     출처: 시행규칙 별표 5 (2026.8.1. 시행) · 표는 PRD-AD-01 §4 FR-08 */
+  var EQUIP_WORDS = [
+    [['프레스'], [11], '동력 프레스를 5대 이상 가진 사업장'],
+    [['둥근톱', '띠톱', '대패', '모떼기', '라우터'], [12], '5대 이상 가진 사업장 (휴대용 제외)'],
+    [['지게차', '하역', '운반기계'], [13], '5대 이상 가진 사업장'],
+    [['타워크레인'], [30, 39], '설치·해체 작업이거나 신호 업무를 할 때'],
+    [['크레인', '호이스트'], [14], '1톤 이상 크레인, 또는 1톤 미만·호이스트 5대 이상'],
+    [['리프트', '곤돌라'], [15], '건설용일 때'],
+    [['주물', '단조', '용해로'], [16], ''],
+    [['용접'], [2, 3], '아세틸렌·가스집합 용접장치, 또는 밀폐·습한 장소'],
+    [['건조로', '건조설비'], [9], '위험물 설비 1㎥ 이상, 연료 10kg/h 이상 또는 전력 10kW 이상'],
+    [['반응기', '교반기', '추출기'], [6], ''],
+    [['탱크', '맨홀', '저장조', '밀폐'], [34, 7], '안에 들어가서 작업할 때'],
+    [['보일러'], [31], '소형 보일러 등 제외'],
+    [['압력용기'], [32], '게이지 압력 1kg/㎠ 이상'],
+    [['로봇'], [36], ''],
+    [['수배전', '변전', '고압', '활선'], [17], '75V 이상'],
+    [['도장', '세척'], [35], '관리대상 유해물질을 쓸 때']
+  ].map(function (r) { return { words: r[0], jobs: r[1], when: r[2] }; });
+
+  /** 작업 번호로 이름을 찾는다 — 개별 사항이 있든(SPECIAL) 없든(SPECIAL_LATER) */
+  function job(no) {
+    var all = SPECIAL.concat(SPECIAL_LATER);
+    for (var i = 0; i < all.length; i++) if (all[i].no === no) return all[i];
+    return null;
+  }
+
+  /** 설비 이름에 걸리는 안내 — [{ words, jobs, when, hit }]. 없으면 빈 배열
+   *
+   *  ★ 「타워크레인」이 「크레인」보다 **먼저** 와야 한다. 타워크레인은 작업이
+   *    다르다(30·39 vs 14). 위에서부터 보고 **먼저 걸린 것 하나만** 쓴다. */
+  function equipMatch(name) {
+    var text = String(name || '');
+    if (!text.trim()) return [];
+    for (var i = 0; i < EQUIP_WORDS.length; i++) {
+      var row = EQUIP_WORDS[i];
+      for (var w = 0; w < row.words.length; w++) {
+        if (text.indexOf(row.words[w]) !== -1) {
+          return [{ words: row.words, jobs: row.jobs, when: row.when, hit: row.words[w] }];
+        }
+      }
+    }
+    return [];
+  }
+
   /* 태그 하나로 세부 항목을 찾는다 (B·J·특별교육 모두) */
   function find(tag) {
     var groups = BASIC.concat(REGULAR, SPECIAL);
@@ -354,6 +406,7 @@ var Curriculum = (function () {
   return {
     SOURCE: '수빈 「영상 제작용 교육 항목 정리」 2026-11-14 · 시행규칙 별표 4·5 (2026.8.1. 시행)',
     TRAININGS: TRAININGS, BASIC: BASIC, REGULAR: REGULAR, SPECIAL: SPECIAL, SPECIAL_LATER: SPECIAL_LATER,
-    find: find
+    EQUIP_WORDS: EQUIP_WORDS,
+    find: find, job: job, equipMatch: equipMatch
   };
 })();
