@@ -35,18 +35,26 @@
      "주 색"과 "위험 색"이 같아 보이면 위험 표시가 묻힌다.
    =================================================================== */
 
+/* 🆕 2026-11-15 Figma 「본선 · 00 방향 보드」 작업자 앱(코랄 트랙).
+   배너는 코랄 #FF6556 → #FF8272 위에 먹색 글자(약 6:1). 흰 글자는 대비가 모자라 쓰지 않는다.
+   --brand 는 글자로도 쓰여서 흰 바탕 4.5:1 을 넘는 짙은 코랄로 둔다 — 밝은 코랄은 배너·장식에만 */
 :root {
-  --brand: #c0392c;         /* 흰 글자와 5.6:1, 흰 바탕 위 글자로도 5.6:1 */
+  --brand: #d63b2f;         /* 흰 글자·흰 바탕 모두 4.6:1 */
   --brand-ink: #ffffff;
-  --brand-strong: #9a2a1f;
-  --brand-deep: #8c2a20;
-  --brand-soft: #fdeeeb;
-  --brand-line: #f6ccc4;
-  --brand-vivid: #f4685c;   /* 장식용 — 글자를 얹지 않는다 */
-  --brand-vivid-2: #fb9083;
-  --brand-focus: #ef6a5e;
-  --brand-glow: rgba(192, 57, 44, .28);
+  --brand-strong: #b02e24;
+  --brand-deep: #9a2a1f;
+  --brand-soft: #ffedea;    /* Figma 「주색 연함」 */
+  --brand-line: #ffc9c1;
+  --brand-vivid: #ff6556;   /* Figma 배너 · 장식 — 글자를 얹지 않는다 */
+  --brand-vivid-2: #ff8272;
+  --brand-focus: #ff6556;
+  --brand-glow: rgba(255, 101, 86, .28);
   --brand-tint: #fffaf9;
+
+  --banner: #ff6556;
+  --banner-end: #ff8272;
+  --banner-ink: #191f28;    /* 코랄 배너 위 먹색 글자 */
+  --banner-ink-2: rgba(25, 31, 40, .78);
 }
 
 
@@ -690,8 +698,8 @@
 .today {
   padding: 20px 16px;
   border-radius: var(--radius);
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-line);
+  background: var(--surface);   /* Figma: 주색은 카드 바탕에 쓰지 않는다 */
+  border: 1px solid var(--line);
   text-align: center;
   margin-bottom: var(--gap);
 }
