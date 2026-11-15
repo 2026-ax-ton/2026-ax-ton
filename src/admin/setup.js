@@ -209,8 +209,10 @@
       go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
       li.querySelector('.body').appendChild(go);
       /* 휴대폰으로 설비 둘레 찍기 — 3D·여러 각도 재료 (시제품) */
-      var cam = UI.el('a', 'btn-sm', '설비 촬영');
+      var cam = UI.el('a', 'equip-scan-btn', '둘레 촬영');
+      cam.insertBefore(UI.iconBox('camera', 'ico'), cam.firstChild);
       cam.href = 'scan.html?equipment=' + encodeURIComponent(eq.id);
+      cam.setAttribute('aria-label', eq.name + ' 둘레 촬영 — 카메라 위 안내를 따라 두 바퀴');
       li.querySelector('.body').appendChild(cam);
 
       var ed = UI.el('button', 'btn-sm', '수정');
@@ -264,6 +266,14 @@
     if (data) p.src = data; else p.removeAttribute('src');
   }
 
+  /** 사진 칸 아래 [둘레 촬영] — 저장된 설비(수정 중)만 연다. 새 설비는 저장해야 id 가 생긴다 */
+  function scanEntry(id) {
+    var a = $('btn-equip-scan');
+    a.hidden = !id;
+    $('equip-scan-hint').hidden = !!id;
+    if (id) a.href = 'scan.html?equipment=' + encodeURIComponent(id);
+  }
+
   function startEdit(eq) {
     $('equip-edit-id').value = eq.id;
     $('equip-name').value = eq.name || '';
@@ -275,6 +285,7 @@
     UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = (eq.hazards || []).indexOf(n.value) !== -1; });
     pendingPhoto = null;
     showPreview(eq.photo || '');
+    scanEntry(eq.id);
     $('btn-equip-save').lastChild.textContent = ' 수정 저장';
     $('btn-equip-cancel').hidden = false;
     $('equip-name').focus();
@@ -290,6 +301,7 @@
     UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = false; });
     pendingPhoto = null;
     showPreview('');
+    scanEntry('');
     $('btn-equip-save').lastChild.textContent = ' 설비 추가';
     $('btn-equip-cancel').hidden = true;
   }
