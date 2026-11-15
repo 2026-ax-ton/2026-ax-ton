@@ -574,6 +574,9 @@ fieldset.formset[disabled] { opacity: .5; }
 }
 .tabbar a .ico { font-size: 20px; }
 /* 지금 보고 있는 탭 — 색만으로 알리지 않는다. 옅은 알약 바탕을 함께 깐다 */
+/* 그 역할이 못 여는 탭은 감춘다 (UI.markCurrentTab).
+   display:flex 가 hidden 속성을 이기므로 여기서 한 줄 더 적는다 — .toast[hidden] 과 같은 이유 */
+.tabbar a[hidden] { display: none; }
 .tabbar a[aria-current="page"] { color: var(--brand); }
 .tabbar a[aria-current="page"] .ico {
   background: var(--brand-soft);

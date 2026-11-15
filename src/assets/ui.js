@@ -279,11 +279,33 @@ var UI = (function () {
 
   /* 하단 탭에서 지금 페이지에 표시를 준다.
      탭은 페이지마다 복사되므로, 현재 위치 표시만 여기서 공통으로 한다. */
+  /* 화면마다 들어갈 수 있는 역할 — **각 html 의 `Auth.require(...)` 와 같아야 한다.**
+     탭 막대는 화면 7개에 똑같이 박혀 있어서, 역할을 보지 않으면 담당자에게
+     「문구」가, 운영자에게 「대시보드」·「교육 콘텐츠」가 보인다. 눌러 봐야
+     가드가 자기 첫 화면으로 되돌릴 뿐이라 **못 들어가는 탭을 보여 주는 셈**이다
+     (2026-11-15 사용자 보고).
+     ★ 두 곳이 어긋나지 않는지는 `tests/test-tabbar.js` 가 html 을 읽어 대조한다. */
+  var PAGE_ROLES = {
+    'dashboard.html': ['admin'],
+    'setup.html': ['admin', 'operator'],
+    'content.html': ['admin'],
+    'autogen.html': ['admin'],
+    'proof.html': ['admin', 'operator'],
+    'scan.html': ['admin', 'operator'],
+    'library.html': ['operator']
+  };
+
   function markCurrentTab() {
     var here = location.pathname.split('/').pop();
+    var user = Auth.current();
     $$('.tabbar a').forEach(function (a) {
-      if (a.getAttribute('href') === here) a.setAttribute('aria-current', 'page');
+      var href = a.getAttribute('href');
+      if (href === here) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
+
+      /* 모르는 주소는 건드리지 않는다 — 노동자 탭 막대가 여기로 들어온다 */
+      var roles = PAGE_ROLES[href];
+      a.hidden = !!(roles && user && roles.indexOf(user.role) === -1);
     });
   }
 
@@ -981,6 +1003,7 @@ var UI = (function () {
     emptyRow: emptyRow, itemRow: itemRow,
     fillAdminBar: fillAdminBar, fillWorkerBar: fillWorkerBar, preloginLangPicker: preloginLangPicker,
     markCurrentTab: markCurrentTab,
+    PAGE_ROLES: PAGE_ROLES,
     warnIfBlocked: warnIfBlocked, formatDate: formatDate,
 
     // 아이콘 — 이름이든 이모지든 받아 선 그림으로 (icons.js)
