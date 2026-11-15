@@ -46,7 +46,7 @@ import { fileURLToPath } from 'url';
 import { LANG_NAMES } from '../api/_shared.mjs';
 import { systemText as translateSystem } from '../api/translate.mjs';
 import { systemText as backSystem } from '../api/backtranslate.mjs';
-import { HAZARDS, systemText as hazardSystem } from '../api/_hazards.mjs';
+import { HAZARD_CODES, systemText as hazardSystem } from '../api/_hazards.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
@@ -112,7 +112,7 @@ const SYS_TRANSLATE = translateSystem('__LANG__', '');
 const SYS_TRANSLATE_FULL = translateSystem('__LANG__', '__HINT__');
 const SYS_TRANSLATE_RETRY = SYS_TRANSLATE_FULL.slice(SYS_TRANSLATE.length);
 const SYS_BACK = backSystem('__LANG__');
-const SYS_HAZARDS = hazardSystem(HAZARDS);
+const SYS_HAZARDS = hazardSystem(HAZARD_CODES);
 
 /* ── 거르는 규칙을 **소스째로** 끼워 넣는다 ───────────────────────────
    `api/_hazards.mjs` 는 바깥을 부르지 않는 순수 함수만 모아 둔 파일이라,

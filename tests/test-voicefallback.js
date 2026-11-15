@@ -244,16 +244,14 @@ function pickTo(t, code) {
      글을 못 읽는 사람은 위에서부터 본 것으로 다 봤다고 여기고,
      아래에 있는 번역 안내를 놓칠 수 있다.
      W-4821-11(인도네시아어) + 기본 음성(한국어만) = 둘 다 걸리는 조합 */
+  /* 2026-11-11 — 번역 없는 문구(ph-6)는 이제 한국어로 띄우지 않고 뺀다. 남은 카드에는 음성 안내만 */
   const idLearn = open('learn', { login: 'W-4821-11' });
   click(idLearn.win, idLearn.$('course-list').querySelector('.course-open'));
-  click(idLearn.win, idLearn.$('btn-next'));      // 1장(번역 있음) → 2장(ph-6, 번역 없음)
   const cardText = text(idLearn.$('phrase-card'));
-  const pendingAt = cardText.indexOf(idLearn.win.I18N.t('learn.transPending', 'id'));
   const voiceAt = cardText.indexOf(idLearn.win.UI.voiceNote('id'));
-  ok('★ 번역 안내가 뜬다', pendingAt !== -1, cardText);
-  ok('★ 음성 안내도 뜬다 (인도네시아어 음성이 이 기기에 없다)', voiceAt !== -1, cardText);
-  ok('★★ 번역 준비 중이 먼저, 음성 안내가 그 아래', pendingAt < voiceAt,
-    'pending=' + pendingAt + ' voice=' + voiceAt);
+  ok('★ 번역 없는 문구는 아예 나오지 않는다 (한국어를 섞지 않는다)', cardText.indexOf('비상정지') === -1, cardText);
+  ok('★ 음성 안내는 뜬다 (인도네시아어 음성이 이 기기에 없다)', voiceAt !== -1,
+    cardText);
 
   /* ★★ 배지를 없앤 것이 아니라 한국어에만 안 띄운 것이다.
      이 짝이 없으면 "배지를 통째로 지웠다" 와 구분되지 않는다.

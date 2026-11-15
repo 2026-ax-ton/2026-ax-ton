@@ -59,11 +59,12 @@ var Seed = (function () {
       { id: 'p-assembly', name: '조립',   icon: '🔧' }
     ],
     equipments: [
-      { id: 'e-press3', processId: 'p-press', name: '프레스 3호기',
+      /* kind — 설비 종류 id (Store.EQUIPMENT_KINDS). 문구·공식 문서·AI 조사가 이 값으로 이어진다 (2026-11-11) */
+      { id: 'e-press3', processId: 'p-press', name: '프레스 3호기', kind: 'press',
         icon: '⚙', hazards: ['pinch', 'shock'], note: '' },
-      { id: 'e-booth1', processId: 'p-paint', name: '도장 부스 1',
+      { id: 'e-booth1', processId: 'p-paint', name: '도장 부스 1', kind: 'paint',
         icon: '🔥', hazards: ['fire', 'chemical', 'choke'], note: '' },
-      { id: 'e-panel',  processId: 'p-press', name: '배전반 A',
+      { id: 'e-panel',  processId: 'p-press', name: '배전반 A', kind: 'electric',
         icon: '⚡', hazards: ['shock'], note: '' }
     ],
     workers: [
@@ -125,7 +126,56 @@ var Seed = (function () {
       translations: {
         km: { text: 'ប៊ូតុងបញ្ឈប់សង្គ្រោះបន្ទាន់', back: '비상정지 버튼은 설비 오른쪽 아래에 있습니다' },
         vi: { text: 'Nút dừng khẩn cấp ở phía dưới bên phải', back: '비상정지 버튼은 오른쪽 아래에 있습니다' }
-      } }
+      } },
+    /* ph-7~9 — C형(갭) 유압프레스 전용 조사 결과. 아직 번역도 사람 검수도 안 됐다 (status: waiting).
+         출처: KOSHA CODE M-30-2002 「프레스 방호장치의 선정·설치 및 사용 기술지침」§5.1·§6.5·§7.2
+         (가드 측방·상방·하방 금지, 가드 재전환 확인) +
+         ADH Machine Tool "Types of Press Machines" (C형 프레임은 편심하중 시 벌어짐·비틀림이
+         O형/H형보다 심하다는 구조적 특성, https://www.adhmt.com/types-of-press-machines-drive-frame-and-application-guide/) +
+         고용노동부 정책자료실 2004 협착 사망사례(서울, 재생업체, 근로자 2명,
+         https://www.moel.go.kr/policy/policydata/view.do?bbs_seq=4842) — 영세사업장 실사례로 확인.
+         대상 설비 예시: 남양기공 C형 유압프레스 NCP-20/NCP-30 (제조사 홈페이지는 인증서
+         오류로 직접 확인 못함 — 모델명은 참고용, 구조 유형 확정만 신뢰). */
+    { id: 'ph-7', category: '프레스', status: 'waiting',
+      ko: '덮개(가드) 옆이나 아래로 손을 넣지 마십시오',
+      translations: {} },
+    { id: 'ph-8', category: '프레스', status: 'waiting',
+      ko: '소재는 작업판(테이블) 가운데에 놓고 누르십시오. 한쪽으로 치우쳐 놓지 마십시오',
+      translations: {} },
+    { id: 'ph-9', category: '프레스', status: 'waiting',
+      ko: '덮개를 열고 임시로 조작했다면, 다시 작업을 시작하기 전에 덮개를 제자리로 돌려놓으십시오',
+      translations: {} },
+    /* ph-10~12 — 유압프레스 전용(기계식엔 없는 위험). 아직 번역도 사람 검수도 안 됐다 (status: waiting).
+         출처: 기계설비신문 "유압프레스의 특성과 안전관리의 핵심 수칙" (노정진, 2026.04.06)
+         http://www.kmecnews.co.kr/news/articleView.html?idxno=46338
+         — C형 유압프레스를 "가장 일반적인 형태"로 명시. 배관·호스 누유, 금형 미고정·과압에
+         따른 파편 비산, 안전장치(양수조작·광전자식) 임의해제를 사고 원인으로 지적. */
+    { id: 'ph-10', category: '프레스', status: 'waiting',
+      ko: '작업 전 유압호스와 배관에서 기름이 새는지 확인하십시오',
+      translations: {} },
+    { id: 'ph-11', category: '프레스', status: 'waiting',
+      ko: '금형을 제대로 고정하지 않았거나 정해진 압력을 넘겨서 누르지 마십시오',
+      translations: {} },
+    { id: 'ph-12', category: '프레스', status: 'waiting',
+      ko: '양손 버튼이나 안전장치를 임의로 풀거나 가리지 마십시오',
+      translations: {} },
+    /* ph-13~15 — 사출성형기(두 번째 기계, 다른 종류) 조사 결과. 아직 번역도 사람 검수도 안 됐다
+         (status: waiting). 같은 조사 방법을 그대로 반복한 것 — docs/devlog/c형프레스-조사-방법.md 참고.
+         출처: 안전보건공단 근로자용 OPS "사출성형기 작업안전" (2023-교육혁신실-859, 고용노동부·
+         안전보건공단 공동 제작) — 실제 PDF를 직접 열어 확인함.
+         https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf
+         법적 근거(KOSHA Guide M-187-2016 「사출성형기 방호조치에 관한 기술지침」,
+         산업안전보건기준에관한규칙 §121)는 게시글 본문으로 존재만 확인, 첨부 PDF 자체는
+         다운로드 실패(세션 필요 추정) — 본문 인용은 전부 OPS 쪽에서 가져왔다. */
+    { id: 'ph-13', category: '사출성형', status: 'waiting',
+      ko: '제품을 꺼낼 때 금형 사이로 손을 넣지 마십시오',
+      translations: {} },
+    { id: 'ph-14', category: '사출성형', status: 'waiting',
+      ko: '안전문의 연동장치(리미트 스위치)를 임의로 무효화하지 마십시오',
+      translations: {} },
+    { id: 'ph-15', category: '사출성형', status: 'waiting',
+      ko: '점검·수리·이물질 제거 작업 전에는 전원을 차단하고 잠금장치와 "작업중" 표시를 하십시오',
+      translations: {} }
   ];
 
   /* 교육 콘텐츠.
@@ -156,7 +206,8 @@ var Seed = (function () {
           answer: { x: 52, y: 44, r: 14 },
           i18n: {
             km: { prompt: 'សូមចុចកន្លែងដែលដៃអាចជាប់ក្នុងម៉ាស៊ីននេះ' },
-            id: { prompt: 'Tekan bagian yang dapat menjepit tangan pada mesin ini' }
+            id: { prompt: 'Tekan bagian yang dapat menjepit tangan pada mesin ini' },
+            vi: { prompt: 'Hãy chạm vào chỗ có thể kẹp tay trên máy này' }
           } },
         { id: 'q2', type: 'choice', hazard: 'pinch',
           prompt: '프레스가 멈췄습니다. 어떻게 해야 합니까?',
@@ -193,20 +244,42 @@ var Seed = (function () {
                 'Benar. Matikan daya dan panggil pengawas, ram tidak akan jatuh.',
                 'Jika ram turun saat Anda menekan dengan kaki, kaki terjepit.'
               ]
+            },
+            vi: {
+              prompt: 'Máy dập đã dừng. Bạn phải làm gì?',
+              options: [
+                'Cho tay vào để lấy linh kiện',
+                'Ngắt điện và gọi quản lý',
+                'Thử đạp bằng chân'
+              ],
+              results: [
+                'Dù trông như đã dừng, áp lực còn lại có thể làm đầu dập rơi xuống. Tay sẽ bị kẹp.',
+                'Đúng. Ngắt điện và gọi quản lý thì đầu dập không rơi xuống.',
+                'Nếu đầu dập hạ xuống khi bạn đạp thử, chân sẽ bị kẹp.'
+              ]
             }
           } },
-        /* ★ q3 은 번역을 일부러 넣지 않았다.
-             크메르어 노동자가 이 문항에 오면 "내 언어 번역 준비 중" 배지와 함께
-             한국어가 그대로 보인다. 번역이 없는 것을 조용히 숨기지 않는다는 규칙이
-             화면에서 실제로 보여야 한다. vi 는 세 문항 다 번역이 없다 —
-             교육에 등록된 언어라고 번역이 따라오는 것은 아니다. */
+        /* 2026-11-11 — 예전에는 q3 번역을 일부러 비워 「번역 준비 중」 배지와 한국어를 보였다.
+             이제는 한국어를 섞지 않고 막으므로(quiz.js ready) 시연 교육은 세 언어를 다 채운다 */
         { id: 'q3', type: 'match', hazard: 'shock',
           prompt: '작업에 맞는 보호구를 연결하세요',
           pairs: [['프레스 작업', '안전장갑'], ['배전반 점검', '절연장갑']],
-          why: '작업마다 맞는 보호구가 다릅니다. 배전반 점검에 일반 안전장갑을 끼면 감전을 막지 못합니다.' }
+          why: '작업마다 맞는 보호구가 다릅니다. 배전반 점검에 일반 안전장갑을 끼면 감전을 막지 못합니다.',
+          i18n: {
+            km: { prompt: 'ភ្ជាប់ឧបករណ៍ការពារដែលត្រូវនឹងការងារ',
+              pairs: [['ការងារម៉ាស៊ីនកិន', 'ស្រោមដៃសុវត្ថិភាព'], ['ការត្រួតពិនិត្យតាប្លូអគ្គិសនី', 'ស្រោមដៃអ៊ីសូឡង់']],
+              why: 'ការងារនីមួយៗត្រូវការឧបករណ៍ការពារខុសគ្នា។ ស្រោមដៃសុវត្ថិភាពធម្មតាមិនអាចការពារការឆក់ខ្សែភ្លើងពេលត្រួតពិនិត្យតាប្លូអគ្គិសនីបានទេ។' },
+            id: { prompt: 'Hubungkan alat pelindung yang sesuai dengan pekerjaan',
+              pairs: [['Pekerjaan mesin press', 'Sarung tangan keselamatan'], ['Pemeriksaan panel listrik', 'Sarung tangan isolasi']],
+              why: 'Setiap pekerjaan butuh alat pelindung yang berbeda. Sarung tangan keselamatan biasa tidak mencegah sengatan listrik saat memeriksa panel listrik.' },
+            vi: { prompt: 'Nối đồ bảo hộ phù hợp với công việc',
+              pairs: [['Công việc máy dập', 'Găng tay bảo hộ'], ['Kiểm tra tủ điện', 'Găng tay cách điện']],
+              why: 'Mỗi công việc cần đồ bảo hộ khác nhau. Găng tay bảo hộ thường không ngăn được điện giật khi kiểm tra tủ điện.' }
+          } }
       ] },
+    /* 2026-11-11 — 프레스 문구 ph-3 이 도장 교육에 섞여 있었다. 설비 종류가 다른 문구는 넣지 않는다 */
     { id: 'c-paint', title: '도장 부스 1 안전교육', equipmentId: 'e-booth1',
-      languages: ['id'], phraseIds: ['ph-3', 'ph-4', 'ph-6'],
+      languages: ['id'], phraseIds: ['ph-4', 'ph-6'],
       approved: true, createdAt: '2026-08-03T01:00:00.000Z',
       quiz: [
         { id: 'q1', type: 'choice', hazard: 'fire',

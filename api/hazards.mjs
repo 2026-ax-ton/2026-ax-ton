@@ -1,162 +1,192 @@
-/* POST /api/hazards — 설비 사진 1장에서 위험 지점을 **제안**받는다 (T17).
+/* POST /api/hazards — 담당자가 찍은 설비 사진 1장에서 위험 지점을 **제안**받는다 (T17 · PRD-AD-07).
 
-   요청  { image: <base64, 줄인 사본>, mime: image/jpeg|png|webp }
-   응답  { person, retake, points: [{x,y,r,hazard,why}], dropped, overlaps, model }
-         ← status(승인 상태)는 절대 넣지 않는다. 저장도 하지 않는다
+   요청  { image: base64 (data URL 머리는 있어도 된다), mime: image/jpeg|png|webp }
+   응답  { person: false, points: [{x,y,r,hazard,why}], dropped: {hazard,range,shape,over},
+           overlaps, model }
+         사람·이름표가 찍혔으면 { person: true, points: [], … } — 지점을 보이지 않는다 (FR-20)
 
-   넘지 않는 선 (PRD-AD-07 §7 · C06 D-027)
-     · **AI 는 제안만 한다.** 이 함수는 `courses` 에 아무것도 쓰지 않는다 (AC-02)
-     · 위험유형은 6종 안에서만 받고, 넘치는 지점은 5개까지만 (AC-03 · §11 Q4)
-     · **안전 문구를 만들지 않는다** — 문구는 검수된 라이브러리에서 고른다 (FR-09)
-     · 사진을 **저장하지 않는다**. 분석하고 버린다 (FR-17 · A05 §3.1)
-     · 사람·이름표가 찍히면 **지점을 돌려주지 않고** 다시 찍게 한다 (FR-20)
-     · 실패·지연·한도면 이유를 담아 돌려준다 — 화면은 손 흐름으로 간다 (FR-11)
-     · 노동자는 이 함수를 부르지 않는다. **담당자(admin) 토큰만** 받는다
+   ★ AI 는 제안만 한다. 이 함수는 아무것도 저장하지 않는다 —
+     확정은 담당자가 화면에서, 저장은 교육 만들기(AD-04) 승인 때만 (FR-08·10, AC-AD-07-02).
+   ★ 사진을 저장하지도, 로그에 남기지도 않는다 (FR-17 · Q1 B안 · A05 §3.1).
+     로그에는 크기·지점 수·걸린 시간만 남는다.
+   ★ 담당자(`admin`)만 부른다. 누구인지는 **토큰으로만** 안다 (A02 §14.6).
+     노동자 화면은 이 함수를 부르지 않는다 (FR-13).
+   ★ 보내는 것은 사진 사본과 지시문뿐이다. 계정·진도·신고 데이터를 붙이지 않는다 (FR-14).
+     토큰에서 꺼낸 계정은 역할 확인에만 쓰고 모델에 넘기지 않는다.
 
-   ★ 누구인지는 토큰으로만 안다 (A02 §14.6). 번역 함수와 달리 운영자 통과 문구를
-     쓰지 않는다 — 부르는 사람이 **운영자가 아니라 담당자**다.
-
-   근거: PRD-AD-07 §4·§7·§8 · C06 D-027 (방식 (a) Gemini) · D-028 (모델) · A02 §5.2~§5.6 */
+   근거: PRD-AD-07 §4 FR-03·04·05·11~17·20 · C06 D-027·D-028 · A02 §5.2·§5.6 */
 
 import {
-  guardBasic, parseJson, readConfig, takeDailyCallFor,
-  callModelParts, json, fail, log, modelFail,
+  guardBasic, parseJson, readConfig, takeDailyCall, takeDailyCallFor, callModel,
+  json, fail, log, modelFail,
 } from './_shared.mjs';
-import { getSql, authed, withDb } from './_db.mjs';
+import { getSql, requireAdmin, withDb } from './_db.mjs';
 import {
-  HAZARDS, MAX_POINTS, systemText, parseModelJson, filterPoints, overlapCount,
+  HAZARD_CODES, systemText, USER_TEXT, parseModelJson, filterPoints, overlapCount,
+  cleanGuidedItems, guidedSystemText, guidedUserText, mapBoxes,
 } from './_hazards.mjs';
 
-export const config = { maxDuration: 60 }; // 사진은 글보다 오래 걸린다 (번역은 30)
+export const config = { maxDuration: 45 };
 
 /* ── 결정에 걸린 값 ─────────────────────────────────────────────────── */
 
-/** 본문 상한. base64 는 원본보다 약 4/3 커지므로 사진 750KB ≈ 본문 1MB 다.
- *  화면은 그보다 훨씬 작게 줄여 보낸다 (`src/assets/photo.js` 목표 300KB) —
- *  이 값은 "그래도 이것보다 크면 거절한다" 는 울타리다 (FR-AD-07-03). */
-const MAX_BODY_BYTES = 1024 * 1024;
+/* 사진 사본 상한 (FR-03 「사본 크기 상한은 개발자가 정한다」).
+   화면은 긴 변 1024px JPEG 로 줄여 보낸다 — 보통 150~300KB 다.
+   1.5MB 는 줄이기가 실패한 경우를 막는 천장이다. base64 는 1.34배라
+   본문 상한은 2MB 로 둔다 (Vercel 본문 상한 4.5MB 안). */
+export const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
+export const MIN_IMAGE_BYTES = 1024;   // 이보다 작으면 사진이 아니다
+export const MAX_BODY = 2 * 1024 * 1024;
+export const MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
-/** 디코드한 사진 자체의 상한 (FR-AD-07-03 「사본 크기 상한은 개발자가 정한다」). */
-const MAX_IMAGE_BYTES = 750 * 1024;
-
-/** 사진 응답은 JSON 이라 번역문(600자)보다 길다. 지점 5개 + 이유면 넉넉하다. */
+/* 사진은 글보다 오래 걸린다 (번역 20초, 실측 도구 30초) — scripts/measure-hazards.mjs 와 같게 */
+export const DEFAULT_HAZARD_TIMEOUT_MS = 30000;
+/* 지점 5개 × (좌표 + 이유 120자) JSON 이 번역 한 문장(600자)보다 길다 */
 const MAX_OUTPUT_TOKENS = 1200;
-const MAX_ANSWER_CHARS = 4000;
+const MAX_TEXT = 4000;
 
-/** 사진은 번역보다 비싸서 통을 따로 쓴다 (`_shared.takeDailyCallFor`).
- *  값은 Gemini 예산 월 5,000원(A04 6-1) 안에서 넉넉히 잡은 것이다. */
+/* 모델 이름 — 따로 두지 않으면 번역 모델을 그대로 쓴다 (C06 D-028 「lite 유지」).
+   AI_MODEL_HAZARDS 는 상위 모델로 올릴 때만 넣는다 (D-028 상향 조건). */
+const MODEL_ENVS = ['AI_MODEL_HAZARDS', 'AI_MODEL_PHOTO', 'AI_MODEL_TRANSLATE'];
+
+/* 사진은 번역보다 비싸서 하루 통을 따로 쓴다 (`_shared.takeDailyCallFor`, 2026-11-07).
+   값은 Gemini 예산 월 5,000원(A04 6-1) 안에서 넉넉히 잡은 것이다.
+   ★ 이 울타리는 인스턴스 메모리라 근사치다 — 단단한 상한은 `takeDailyCall`(DB)이 쥔다 */
 const DEFAULT_PHOTO_DAILY_LIMIT = 60;
 
-const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
+/* 실패 안내 — 손 흐름(도해에서 직접 고르기)으로 이어진다는 것을 함께 말한다 (FR-11) */
+const MESSAGES = {
+  model: 'AI 가 사진을 읽지 못했습니다. 그림에서 직접 골라 주세요.',
+  timeout: 'AI 가 제시간에 답하지 못했습니다. 그림에서 직접 골라 주세요.',
+  limit: 'AI 사용 한도에 걸렸습니다. 잠시 뒤 다시 하거나 그림에서 직접 골라 주세요.',
+};
 
-/* base64 만 받는다. data: URL 머리(`data:image/jpeg;base64,`)가 붙어 오면
-   화면 쪽 실수이므로 **고쳐 주지 않고 거절한다** — 조용히 고쳐 주면 다음에도
-   그렇게 보낸다. */
+/* ── 입력 다듬기 ───────────────────────────────────────────────────── */
+
 const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
-function base64Bytes(s) {
-  const pad = s.endsWith('==') ? 2 : (s.endsWith('=') ? 1 : 0);
-  return Math.floor((s.length * 3) / 4) - pad;
+/** 사진을 꺼낸다. 돌려주는 값: { mime, data, bytes } 또는 null */
+export function readImage(body) {
+  if (!body || typeof body.image !== 'string') return null;
+  let data = body.image.trim();
+  let mime = typeof body.mime === 'string' ? body.mime.trim().toLowerCase() : '';
+
+  /* 화면이 canvas.toDataURL() 을 그대로 보내도 받는다 — 머리의 형식이 우선이다 */
+  const m = /^data:([a-z/+.-]+);base64,/i.exec(data);
+  if (m) { mime = m[1].toLowerCase(); data = data.slice(m[0].length); }
+
+  if (MIMES.indexOf(mime) === -1) return null;
+  if (!data || data.length % 4 !== 0 || !BASE64.test(data)) return null;
+
+  const pad = data.endsWith('==') ? 2 : (data.endsWith('=') ? 1 : 0);
+  const bytes = (data.length / 4) * 3 - pad;
+  if (bytes < MIN_IMAGE_BYTES || bytes > MAX_IMAGE_BYTES) return { mime, data, bytes, size: false };
+  return { mime, data, bytes, size: true };
 }
 
-/* ── 본체 ──────────────────────────────────────────────────────────── */
+function noDrops() {
+  return { hazard: 0, range: 0, shape: 0, over: 0 };
+}
+
+/* ── 함수 ──────────────────────────────────────────────────────────── */
 
 async function run(request) {
   const started = Date.now();
-  const g = await guardBasic(request, { methods: ['POST'], maxBytes: MAX_BODY_BYTES });
+  const g = await guardBasic(request, { methods: ['POST'], maxBytes: MAX_BODY });
   if (g.done) return g.done;
-  const { cors, text: raw } = g;
+  const { cors, text } = g;
 
   const sql = await getSql();
   if (!sql) return fail(500, 'config', '서버 설정 오류입니다.', cors);
 
-  const account = await authed(sql, request);
-  if (!account) return fail(401, 'unauthorized', '다시 로그인해 주세요.', cors);
-  if (account.role !== 'admin') {
-    log({ route: 'hazards', role: account.role, ms: Date.now() - started, status: 403, err: 'role' });
-    return fail(403, 'forbidden', '담당자만 쓸 수 있습니다.', cors);
+  /* ★ 누구인지는 토큰으로만 안다. 본문에 역할을 적어 보내도 안 먹는다 */
+  const who = await requireAdmin(sql, request, cors);
+  if (who.done) return who.done;
+
+  const body = parseJson(text);
+  const img = readImage(body);
+  if (!img) return fail(400, 'bad_request', '사진을 읽을 수 없습니다. JPEG·PNG·WebP 로 다시 찍어 주세요.', cors);
+  if (!img.size) return fail(413, 'too_large', '사진이 너무 크거나 작습니다. 다시 찍어 주세요.', cors);
+
+  /* 🆕 안내형 (PRD-AD-08 S3) — 리서치 항목(`items`)을 같이 주면 「항목마다 어디인가」를 묻는다.
+     주지 않으면 지금까지처럼 자유 탐색(AD-07)이다 */
+  const guided = body.items === undefined ? null : cleanGuidedItems(body.items);
+  /* 🆕 2026-11-11 고른 설비 id 를 그대로 돌려준다 — 화면이 다른 설비 결과를 섞지 않게 맞춰 본다 */
+  const e = body.equipment && typeof body.equipment === 'object' ? body.equipment : {};
+  const equipment = { id: typeof e.id === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(e.id) ? e.id : '' };
+  if (guided && !guided.length || body.items !== undefined && !guided) {
+    return fail(400, 'bad_request', '확인할 부위 목록을 읽을 수 없습니다.', cors);
   }
 
-  const body = parseJson(raw);
-  const image = body && typeof body.image === 'string' ? body.image.trim() : '';
-  const mime = body && typeof body.mime === 'string' ? body.mime.trim() : '';
-
-  if (!image || ALLOWED_MIME.indexOf(mime) === -1 || !BASE64.test(image)) {
-    return fail(400, 'bad_request', '사진을 읽을 수 없습니다. 다시 찍어 주세요.', cors);
-  }
-  if (base64Bytes(image) > MAX_IMAGE_BYTES) {
-    return fail(413, 'too_large', '사진이 너무 큽니다. 다시 찍어 주세요.', cors);
-  }
-
-  /* 모델 이름은 `AI_MODEL_PHOTO` 가 있으면 그것, 없으면 번역과 같은 모델을 쓴다.
-     ★ 환경변수를 새로 넣지 않아도 돌게 해 둔다 — 설정 변경은 사용자 몫이고
-       (A04), 모델을 따로 올리고 싶을 때만 넣으면 된다 (D-028 상향 조건). */
-  const cfg = readConfig('AI_MODEL_PHOTO') || readConfig('AI_MODEL_TRANSLATE');
+  let cfg = null;
+  for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
   if (!cfg) {
     log({ route: 'hazards', ms: Date.now() - started, status: 500, err: 'config' });
     return fail(500, 'config', '서버 설정 오류입니다.', cors);
   }
+  cfg = { ...cfg, timeoutMs: Number(process.env.AI_HAZARD_TIMEOUT_MS) || DEFAULT_HAZARD_TIMEOUT_MS };
 
-  const dailyLimit = Number(process.env.AI_PHOTO_DAILY_LIMIT) || DEFAULT_PHOTO_DAILY_LIMIT;
-  if (!takeDailyCallFor('photo', dailyLimit)) {
+  /* 사진 통 먼저 — 사진이 그날의 번역 예산을 먹지 않게 (A02 §5.6) */
+  const photoLimit = Number(process.env.AI_PHOTO_DAILY_LIMIT) || DEFAULT_PHOTO_DAILY_LIMIT;
+  if (!takeDailyCallFor('photo', photoLimit)) {
+    log({ route: 'hazards', ms: Date.now() - started, status: 429, err: 'limit', bucket: 'photo' });
+    return fail(429, 'limit', MESSAGES.limit, cors);
+  }
+  /* 그다음 하루 전체 통 (DB 한 줄 — AI 함수가 함께 더한다) */
+  if (!(await takeDailyCall(cfg.dailyLimit))) {
     log({ route: 'hazards', ms: Date.now() - started, status: 429, err: 'limit' });
-    return fail(429, 'limit', '오늘 사진 분석 한도를 넘었습니다. 직접 만드실 수 있습니다.', cors);
+    return fail(429, 'limit', MESSAGES.limit, cors);
   }
 
-  const r = await callModelParts(cfg, systemText(HAZARDS), [
-    { inline_data: { mime_type: mime, data: image } },
-    { text: '이 설비 사진의 위험 지점을 찾아라.' },
-  ], MAX_OUTPUT_TOKENS);
+  const r = await callModel(cfg, guided ? guidedSystemText() : systemText(HAZARD_CODES), [
+    { inline_data: { mime_type: img.mime, data: img.data } },
+    { text: guided ? guidedUserText(guided) : USER_TEXT },
+  /* 안내형은 항목이 최대 25개(공식 + 기본 + 고유)라 박스 JSON 이 길다 — GPT 는 추론 토큰도 여기서 센다 */
+  ], { maxOutputTokens: guided ? MAX_OUTPUT_TOKENS * 4 : MAX_OUTPUT_TOKENS, maxText: guided ? MAX_TEXT * 2 : MAX_TEXT });
 
   if (r.error) {
-    const f = modelFail(r, cors);
-    log({ route: 'hazards', ms: Date.now() - started, status: f.status, err: r.error, why: r.why || '' });
+    const f = modelFail(r, cors, MESSAGES);
+    log({ route: 'hazards', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: f.status, err: r.error, why: r.why || '' });
     return f.response;
   }
-  if (r.text.length > MAX_ANSWER_CHARS) {
-    log({ route: 'hazards', ms: Date.now() - started, status: 502, err: 'model', why: '출력이 너무 김' });
-    return fail(502, 'model', 'AI 응답을 읽을 수 없습니다. 직접 만드실 수 있습니다.', cors);
+
+  const out = parseModelJson(r.text);
+  if (!out) {
+    log({ route: 'hazards', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 502, err: 'model', why: 'JSON 이 아님' });
+    return fail(502, 'model', MESSAGES.model + ' (응답 모양이 틀림)', cors);
   }
 
-  const answer = parseModelJson(r.text);
-  if (!answer) {
-    /* ★ 받은 글을 응답에 담지 않는다 — 모델이 무엇을 뱉었는지는 로그에도
-       남기지 않는다(사진 설명이 섞일 수 있다). 화면은 손 흐름으로 간다 (FR-11). */
-    log({ route: 'hazards', ms: Date.now() - started, status: 502, err: 'model', why: 'JSON 이 아님' });
-    return fail(502, 'model', 'AI 응답을 읽을 수 없습니다. 직접 만드실 수 있습니다.', cors);
+  /* ★ 사람이 찍혔으면 지점을 **하나도** 돌려주지 않는다 — 화면이 실수로라도
+     그 사진 위에 제안을 그리지 못하게 (FR-20). 사진은 원래 남기지 않는다 */
+  if (out.person === true) {
+    log({ route: 'hazards', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', person: true });
+    if (guided) {
+      return json(200, { mode: 'guided', person: true, mapped: [], missing: [], dropped: {}, overlaps: 0, equipment, model: cfg.model }, cors);
+    }
+    /* `retake` 는 화면(`src/admin/content.js`)과 제출본 조각이 읽는 칸이다 — 빼지 않는다 (2026-11-07) */
+    return json(200, { person: true, retake: true, points: [], dropped: noDrops(), overlaps: 0, model: cfg.model }, cors);
   }
 
-  /* ★ 사람·이름표가 찍혔으면 **지점을 돌려주지 않는다** (FR-AD-07-20).
-     화면에서 가리는 것으로 두지 않고 서버에서 비운다 — 화면이 실수로
-     보여 줄 수 있는 길 자체를 없앤다. 사진은 어차피 저장하지 않는다. */
-  if (answer.person === true) {
-    log({ route: 'hazards', ms: Date.now() - started, status: 200, err: '', person: 1 });
+  if (guided) {
+    const m = mapBoxes(out, guided);
+    log({ route: 'hazards', mode: 'guided', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', n: m.mapped.length, miss: m.missing.length });
     return json(200, {
-      person: true, retake: true, points: [], dropped: null, overlaps: 0, model: cfg.model,
+      mode: 'guided', person: false, mapped: m.mapped, missing: m.missing, dropped: m.dropped,
+      overlaps: overlapCount(m.mapped.map((x) => x.answer)), equipment, model: cfg.model,
     }, cors);
   }
 
-  const { points, dropped } = filterPoints(answer.points, HAZARDS, MAX_POINTS);
-
-  log({
-    route: 'hazards', ms: Date.now() - started, status: 200, err: '',
-    n: points.length, dropped: dropped.hazard + dropped.range + dropped.shape + dropped.over,
-  });
-
+  const { points, dropped } = filterPoints(out.points, HAZARD_CODES);
+  log({ route: 'hazards', kb: Math.round(img.bytes / 1024), ms: Date.now() - started, status: 200, err: '', n: points.length });
   return json(200, {
-    person: false,
-    retake: false,
-    points,
-    dropped,                       // 몇 개를 왜 버렸는지 화면에 적는다 (FR-05)
-    overlaps: overlapCount(points), // 겹친 쌍 — 합쳐 보여야 한다 (FR-21)
-    model: cfg.model,
+    person: false, retake: false, points, dropped, overlaps: overlapCount(points), model: cfg.model,
   }, cors);
 }
 
 export const handle = withDb('hazards', run);
 
-/* ★ default 를 내보내지 않는다 — Vercel 이 옛 Node 방식(req, res)으로 불러
-   `request.headers.get` 이 없다며 터진다 (2차에서 실물로 겪었다). */
+/* default 를 내보내지 않는다 — Vercel 이 옛 Node 방식으로 불러 터진다 (2차에서 겪음).
+   POST 밖의 메서드도 받아서 우리 405 JSON 을 돌려준다 (A02 §5.2) */
 export const GET = handle;
 export const POST = handle;
 export const PUT = handle;

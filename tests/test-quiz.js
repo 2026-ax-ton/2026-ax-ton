@@ -3,6 +3,9 @@ const { boot, ok, eq, has, report, iconName, SRC } = require('./harness');
 
 const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+/* 2026-11-11 — 사진·도해 문항은 고르고 [제출] 을 눌러야 채점된다 */
+const pickZone = (t, zone) => { click(t.win, zone); click(t.win, t.$('btn-hotspot-submit')); };
+const K = (t, key, lang) => t.win.I18N.t(key, lang || 'km');
 
 function openQuiz(opts) {
   return boot('worker/quiz.html' + (opts.query || ''), Object.assign({ page: 'worker/quiz.js' }, opts));
@@ -26,7 +29,7 @@ function openQuiz(opts) {
   ok('오류 없이 뜬다', t.errors.length === 0, t.errors.join(' | '));
   eq('문항 화면이 뜨지 않는다', t.$('view-quiz').hidden, true);
   eq('안내 화면이 뜬다', t.$('view-gate').hidden, false);
-  has('먼저 들으라고 말한다', text(t.$('gate-title')), '먼저 교육을 들어야 합니다');
+  has('먼저 들으라고 내 언어로 말한다', text(t.$('gate-title')), K(t, 'quiz.learnFirst'));
   has('교육 목록으로 갈 길을 준다', t.$('gate-actions').innerHTML, 'learn.html');
 }
 
@@ -37,12 +40,12 @@ function openQuiz(opts) {
   const t = openQuiz({ login: 'W-4821-07', query: '?course=c-press' });
 
   eq('문항 화면이 뜬다', t.$('view-quiz').hidden, false);
-  has('문항 1 / 3', text(t.$('step-count')), '문항 1 / 3');
-  has('유형을 적는다', text(t.$('step-count')), '위험 지점 짚기');
+  has('문항 1 / 3 (내 언어)', text(t.$('step-count')), K(t, 'quiz.stepLabel') + ' 1 / 3');
+  has('유형을 내 언어로 적는다', text(t.$('step-count')), K(t, 'quiz.kindHotspot'));
+  ok('★★ 화면 글자에 한국어가 섞이지 않는다 (문항 머리)', !/[가-힣]/.test(text(t.$('step-count')) + text(t.$('quiz-prompt')) + text(t.$('btn-next'))));
   eq('유형 픽토그램', iconName(t.$('quiz-kind')), 'touch');
   has('문항을 읽어 준다', t.$('prompt-audio').innerHTML, 'btn-audio');
-  has('★ 한 번만 답할 수 있다고 내 언어로 미리 알린다 (H2 · FR-WK-03-12)',
-    text(t.$('step-once')), t.win.I18N.t('quiz.onceOnly', 'km'));
+  ok('「한 번만」 은 음성으로만 — 글자 줄은 두지 않는다 (2026-11-11 단순화)', t.$('step-once').hidden === true);
 
   const svg = t.$('quiz-body').querySelector('.quiz-figure svg');
   ok('프레스 도해가 들어온다', !!svg);
@@ -54,9 +57,21 @@ function openQuiz(opts) {
   ok('구역마다 이름이 있다 (읽어 주는 데 쓴다)', labels.every(Boolean), JSON.stringify(labels));
   has('정답 구역이 램과 금형 사이', labels.join(' | '), '램과 금형 사이');
 
-  /* --- 틀린 곳을 눌러 본다 (전원 스위치) --- */
+  /* --- 고르기 → 바꾸기 → 취소 → 다시 고르기 → 제출 (2026-11-11) --- */
+  const submitBtn = t.$('btn-hotspot-submit');
+  const clearBtn = t.$('btn-hotspot-clear');
+  ok('★★ 고르기 전에는 제출할 수 없다', submitBtn.disabled === true);
+  const right0 = [...zones].find((z) => z.getAttribute('aria-label').includes('램과 금형'));
+  click(t.win, right0);
+  eq('고른 구역이 표시된다', right0.getAttribute('data-selected'), 'yes');
+  ok('★★ 제출 전에는 정답·오답 표시가 없다 (정답 자리를 보이지 않는다)', [...zones].every((z) => !z.getAttribute('data-mark')));
   const wrong = [...zones].find((z) => z.getAttribute('aria-label') === '전원 스위치');
   click(t.win, wrong);
+  ok('★★ 다시 고르면 앞 선택이 풀린다 (하나만)', !right0.getAttribute('data-selected') && wrong.getAttribute('data-selected') === 'yes');
+  click(t.win, clearBtn);
+  ok('★ 선택 취소 — 표시가 지워지고 제출이 다시 막힌다', [...zones].every((z) => !z.getAttribute('data-selected')) && submitBtn.disabled === true);
+  click(t.win, wrong);
+  click(t.win, submitBtn);
 
   eq('고른 곳이 오답으로 표시된다', wrong.getAttribute('data-mark'), 'no');
   const right = [...zones].find((z) => z.getAttribute('aria-label').includes('램과 금형'));
@@ -64,18 +79,19 @@ function openQuiz(opts) {
   ok('전부 잠긴다 (한 문항에 한 번만)', [...zones].every((z) => z.disabled));
 
   eq('결과 학습 문장이 뜬다', t.$('consequence').hidden, false);
-  has('무슨 사고가 되는지 말한다', text(t.$('consequence-text')), '손이 끼이는 자리는 아닙니다');
+  has('★ 결과를 내 언어로 말한다 (도해 구역 문장은 한국어뿐이라 쓰지 않는다)', text(t.$('consequence-text')), K(t, 'quiz.wrongSpot'));
+  ok('★ 제출 뒤에는 고르기·취소가 잠긴다', submitBtn.disabled && clearBtn.disabled);
 
   // 두 번 눌러도 답이 바뀌지 않는다
   click(t.win, right);
   eq('두 번째 누름은 무시된다', right.getAttribute('data-mark'), 'ok');
 
   eq('다음 버튼이 나온다', t.$('btn-next').hidden, false);
-  has('마지막이 아니므로 다음 문항', text(t.$('btn-next')), '다음 문항');
+  has('마지막이 아니므로 다음 문항', text(t.$('btn-next')), K(t, 'quiz.nextQuestion'));
 
   /* --- 문항 2: choice --- */
   click(t.win, t.$('btn-next'));
-  has('문항 2 / 3', text(t.$('step-count')), '문항 2 / 3');
+  has('문항 2 / 3', text(t.$('step-count')), K(t, 'quiz.stepLabel') + ' 2 / 3');
   eq('선택지 유형 픽토그램', iconName(t.$('quiz-kind')), 'checkbox');
 
   const choices = t.$('quiz-body').querySelectorAll('.choice-btn');
@@ -90,9 +106,9 @@ function openQuiz(opts) {
 
   /* --- 문항 3: match --- */
   click(t.win, t.$('btn-next'));
-  has('문항 3 / 3', text(t.$('step-count')), '문항 3 / 3');
+  has('문항 3 / 3', text(t.$('step-count')), K(t, 'quiz.stepLabel') + ' 3 / 3');
   eq('연결 유형 픽토그램', iconName(t.$('quiz-kind')), 'link');
-  has('마지막 문항은 결과 보기', text(t.$('btn-next')), '결과 보기');
+  has('마지막 문항은 결과 보기', text(t.$('btn-next')), K(t, 'quiz.seeResult'));
 
   const rows = t.$('quiz-body').querySelectorAll('.match-row');
   eq('짝 2줄', rows.length, 2);
@@ -105,7 +121,7 @@ function openQuiz(opts) {
   eq('연결이 끝나기 전에는 확인 버튼이 없다', confirmBtn.hidden, true);
 
   // 정답대로 연결한다 (오른쪽은 섞여 있으므로 글자로 찾는다)
-  const pairOf = { '프레스 작업': '안전장갑', '배전반 점검': '절연장갑' };
+  const pairOf = { 'ការងារម៉ាស៊ីនកិន': 'ស្រោមដៃសុវត្ថិភាព', 'ការត្រួតពិនិត្យតាប្លូអគ្គិសនី': 'ស្រោមដៃអ៊ីសូឡង់' };
   lefts.forEach((lb) => {
     click(t.win, lb);
     const want = pairOf[labelOf(lb)];
@@ -124,14 +140,15 @@ function openQuiz(opts) {
   click(t.win, t.$('btn-next'));
 
   eq('결과 화면이 뜬다', t.$('view-result').hidden, false);
-  has('세 문항 중 두 문항 정답 → 미통과', text(t.$('result-title')), '아직 통과하지 못했습니다');
-  eq('★ 점수(%) 대신 문항 수로 보인다 (H2)', text(t.$('result-score')), '3문항 중 2문항');
+  has('세 문항 중 두 문항 정답 → 미통과', text(t.$('result-title')), K(t, 'quiz.failTitle'));
+  eq('★ 점수(%) 대신 문항 수로 보인다 (H2)', text(t.$('result-score')), K(t, 'quiz.score').replace('{t}', 3).replace('{r}', 2));
   ok('★ 결과에 "점"이 없다', text(t.$('result-score')).indexOf('점') === -1);
-  has('통과 기준을 밝힌다', text(t.$('result-note')), '전 문항 정답');
+  has('통과 기준을 밝힌다', text(t.$('result-note')), K(t, 'quiz.passRule'));
 
   eq('미통과 화면에 그 문장이 있다', t.$('result-fault').hidden, false);
-  has('노동자의 실패가 아니라 교육의 실패',
-    text(t.$('result-fault')), '노동자의 실패가 아니라 교육의 실패로 기록됩니다');
+  has('노동자의 실패가 아니라 교육의 실패 (내 언어)', text(t.$('result-fault')), K(t, 'quiz.notYourFault'));
+  eq('★ 한국어 원문에도 그 문장이 그대로 있다 (SCREEN 기능4)', t.win.I18N.t('quiz.notYourFault', 'ko'), '미통과는 노동자의 실패가 아니라 교육의 실패로 기록됩니다.');
+  ok('★★ 결과 화면에 한국어가 섞이지 않는다', !/[가-힣]/.test(text(t.$('view-result'))), text(t.$('view-result')).slice(0, 200));
 
   eq('문항별 복기 3줄', t.$('result-review').children.length, 3);
   has('첫 문항은 오답', text(t.$('result-review').children[0]), t.win.I18N.t('state.wrong', 'km'));
@@ -187,8 +204,8 @@ function openQuiz(opts) {
 
   // 문항1 hotspot — 정답 구역
   const zones = t.$('quiz-body').querySelectorAll('.zone');
-  click(t.win, [...zones].find((z) => z.getAttribute('aria-label').includes('램과 금형')));
-  has('정답일 때도 왜 위험한지 말한다', text(t.$('consequence-text')), '남아 있는 압력으로 램이 떨어져');
+  pickZone(t, [...zones].find((z) => z.getAttribute('aria-label').includes('램과 금형')));
+  has('정답이면 맞다고 내 언어로 말한다', text(t.$('consequence-text')), K(t, 'quiz.rightSpot'));
   click(t.win, t.$('btn-next'));
 
   // 문항2 choice — 정답
@@ -200,17 +217,17 @@ function openQuiz(opts) {
   const lefts = [...rows].map((r) => r.querySelectorAll('.match-btn')[0]);
   const rights = [...rows].map((r) => r.querySelectorAll('.match-btn')[1]);
   const labelOf = (b) => text(b.querySelector('.text'));
-  const pairOf = { '프레스 작업': '안전장갑', '배전반 점검': '절연장갑' };
+  const pairOf = { 'ការងារម៉ាស៊ីនកិន': 'ស្រោមដៃសុវត្ថិភាព', 'ការត្រួតពិនិត្យតាប្លូអគ្គិសនី': 'ស្រោមដៃអ៊ីសូឡង់' };
   lefts.forEach((lb) => {
     click(t.win, lb);
     click(t.win, rights.find((rb) => labelOf(rb) === pairOf[labelOf(lb)]));
   });
   click(t.win, t.$('quiz-body').querySelector('.big-actions .btn'));
-  has('연결 결과도 설명한다', text(t.$('consequence-text')), '배전반 점검에 일반 안전장갑');
+  has('연결 결과도 내 언어 해설로 설명한다', text(t.$('consequence-text')), 'ស្រោមដៃសុវត្ថិភាពធម្មតា');
   click(t.win, t.$('btn-next'));
 
-  has('통과', text(t.$('result-title')), '이해도 검증을 통과했습니다');
-  eq('만점', text(t.$('result-score')), '3문항 중 3문항');
+  has('통과', text(t.$('result-title')), K(t, 'quiz.passTitle'));
+  eq('만점', text(t.$('result-score')), K(t, 'quiz.score').replace('{t}', 3).replace('{r}', 3));
   eq('통과 화면에는 그 문장을 띄우지 않는다', t.$('result-fault').hidden, true);
   has('홈으로 갈 수 있다', t.$('result-actions').innerHTML, 'home.html');
 
@@ -253,12 +270,11 @@ function openQuiz(opts) {
   has('환기팬이 구역에 있다', labels.join(' | '), '환기팬');
   has('도장 작업 구역이 정답', labels.join(' | '), '도장 작업 구역');
 
-  click(t.win, [...zones].find((z) => z.getAttribute('aria-label') === '도장 작업 구역'));
-  has('마스크 없이 들어가면 어떻게 되는지 말한다',
-    text(t.$('consequence-text')), '방독마스크 없이 들어가면');
+  pickZone(t, [...zones].find((z) => z.getAttribute('aria-label') === '도장 작업 구역'));
+  ok('결과 문장이 인도네시아어 (한국어 구역 문장을 섞지 않는다)', !/[가-힣]/.test(text(t.$('consequence-text'))), text(t.$('consequence-text')));
 
   click(t.win, t.$('btn-next'));
-  eq('1문항 오답이라 미통과', text(t.$('result-score')), '2문항 중 1문항');
+  eq('1문항 오답이라 미통과', text(t.$('result-score')), K(t, 'quiz.score', 'id').replace('{t}', 2).replace('{r}', 1));
 
   const row = t.win.Store.progress.load()
     .find((r) => r.workerId === 'W-4821-11' && r.courseId === 'c-paint');
@@ -271,7 +287,7 @@ function openQuiz(opts) {
 {
   const t = openQuiz({ login: 'W-4821-07', query: '?course=c-paint' });
   eq('문항이 뜨지 않는다', t.$('view-quiz').hidden, true);
-  has('내 설비가 아니라고 말한다', text(t.$('gate-why')), '내 설비의 교육이 아닙니다');
+  has('풀 문제가 없다고 내 언어로 말한다', text(t.$('gate-title')), K(t, 'quiz.noCourse'));
 }
 
 /* =================================================================
@@ -287,9 +303,8 @@ function openQuiz(opts) {
       });
     },
   });
-  has('문항이 없다고 말한다', text(t.$('gate-title')), '아직 문항이 없습니다');
-  has('완료로 기록하지 않는 이유를 밝힌다',
-    text(t.$('gate-why')), '교육 완료로 기록하지 않습니다');
+  has('문항이 없다고 내 언어로 말한다', text(t.$('gate-title')), K(t, 'quiz.noCourse'));
+  eq('문항 화면은 열리지 않는다 (완료로 기록하지 않는다)', t.$('view-quiz').hidden, true);
 }
 
 /* =================================================================
@@ -298,7 +313,7 @@ function openQuiz(opts) {
 {
   const t = openQuiz({ login: 'W-4821-11' });
   eq('문항 화면이 바로 뜬다', t.$('view-quiz').hidden, false);
-  has('도장 부스 교육을 골랐다', text(t.$('quiz-course')), '도장 부스 1 안전교육');
+  has('도장 부스 교육을 골랐다 (설비 이름 + 내 언어)', text(t.$('quiz-course')), '도장 부스 1 · ' + K(t, 'learn.course', 'id'));
 }
 
 /* =================================================================
@@ -316,7 +331,33 @@ function openQuiz(opts) {
       });
     },
   });
-  has('모르는 유형은 문항 수에 들어가지 않는다', text(t.$('step-count')), '문항 1 / 3');
+  has('모르는 유형은 문항 수에 들어가지 않는다', text(t.$('step-count')), K(t, 'quiz.stepLabel') + ' 1 / 3');
+}
+
+/* =================================================================
+   8-1. 그림 보기 (2026-11-12) — 영상의 3D 장면·AI 그림을 보기로 고른다 (scripts/make-video-quiz.mjs)
+   ================================================================= */
+{
+  const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+  const t = openQuiz({
+    login: 'W-4821-07',
+    query: '?course=c-press',
+    before(win) {
+      win.Store.courses.update((list) => {
+        const c = list.find((x) => x.id === 'c-press');
+        const q = c.quiz.splice(1, 1)[0];          // 고르기 문항을 맨 앞으로
+        q.pics = [PNG, 'https://example.com/x.png', PNG];
+        c.quiz.unshift(q);
+      });
+    },
+  });
+  const btns = [...t.$('quiz-body').querySelectorAll('.choice-btn')];
+  const pics = t.$('quiz-body').querySelectorAll('img.pic');
+  eq('그림 보기 2장이 보인다', pics.length, 2);
+  ok('★★ data:image 가 아닌 그림 주소는 싣지 않는다 (제3자 요청 0건)', [...pics].every((p) => p.getAttribute('src').indexOf('data:image/') === 0));
+  ok('그림 없는 보기는 글자로 남는다', !btns[1].querySelector('img') && !!btns[1].querySelector('.text'));
+  ok('그림에 내 언어 설명(alt)이 붙는다', !!pics[0].getAttribute('alt') && !/[가-힣]/.test(pics[0].getAttribute('alt')));
+  ok('보기마다 들려주기 버튼이 그대로다', t.$('quiz-body').querySelectorAll('.choice-row .btn-audio').length === btns.length);
 }
 
 /* =================================================================
@@ -361,12 +402,28 @@ function openQuiz(opts) {
   click(t.win, choices[1]);
   eq('★ 번역된 선택지로도 정답 판정이 맞다', choices[1].getAttribute('data-mark'), 'ok');
 
-  // 문항 3 (match) — 번역을 일부러 넣지 않은 문항
+  // 문항 3 (match) — 2026-11-11 시드에 크메르어를 채웠다
   click(t.win, t.$('btn-next'));
-  eq('★ 번역 없는 문항은 배지를 띄운다', t.$('prompt-note').hidden, false);
-  has('배지에 이유가 글자로 적힌다', text(t.$('prompt-note')), t.win.I18N.t('learn.transPending', 'km'));
-  has('★ 번역이 없으면 한국어를 띄운다 — 조용히 숨기지 않는다',
-    text(t.$('quiz-prompt')), '작업에 맞는 보호구를 연결하세요');
+  has('★ 짝 맞추기도 크메르어', text(t.$('quiz-prompt')), 'ភ្ជាប់ឧបករណ៍ការពារ');
+  /* 설비 이름(「프레스 3호기」)은 고유명사라 원문 그대로 둔다 (요청서 1 · 마지막 단락) */
+  ok('★★ 문항 화면 어디에도 한국어가 없다 (설비 이름 빼고)', !/[가-힣]/.test(text(t.$('view-quiz')).replace('프레스 3호기', '')), text(t.$('view-quiz')).slice(0, 200));
+}
+
+/* --- ★★ 문항 번역이 하나라도 빠지면 한국어를 띄우지 않고 막는다 (2026-11-11 요청 1-6) --- */
+{
+  const t = openQuiz({
+    login: 'W-4821-07', query: '?course=c-press',
+    before(win) { win.Store.courses.update((list) => { delete list.find((c) => c.id === 'c-press').quiz[2].i18n.km; }); },
+  });
+  eq('★★ 문항 화면을 열지 않는다', t.$('view-quiz').hidden, true);
+  has('★★ 내 언어로 「아직 준비되지 않았습니다」', text(t.$('gate-title')), K(t, 'quiz.notReady'));
+  ok('★★ 한국어 문항이 화면에 없다', text(t.$('view-gate')).indexOf('보호구를 연결') === -1);
+  const k = openQuiz({ login: 'W-4821-31', query: '?course=c-press',
+    before(win) { win.Store.courses.update((list) => { delete list.find((c) => c.id === 'c-press').quiz[2].i18n.km; });
+      win.Store.setup.update((s) => { s.workers.find((w) => w.id === 'W-4821-31').processId = 'p-press'; });
+      win.Store.accounts.update((l) => { const a = l.find((x) => x.userId === 'W-4821-31'); a.processId = 'p-press'; });
+      win.Store.progress.update((l) => { l.push({ workerId: 'W-4821-31', courseId: 'c-press', lang: 'ko', learnedAt: '2026-08-01T00:00:00Z', quiz: null }); }); } });
+  eq('한국어 노동자는 번역 없이도 푼다', k.$('view-quiz').hidden, false);
 }
 
 /* --- 인도네시아어 노동자는 인도네시아어를 본다 --- */
@@ -394,15 +451,9 @@ function openQuiz(opts) {
     },
   });
 
-  click(t.win, t.$('btn-next'));
-  const choices = [...t.$('quiz-body').querySelectorAll('.choice-btn')];
-  eq('선택지 개수가 한국어 기준으로 유지된다', choices.length, 3);
-  has('★ 길이가 어긋난 번역은 쓰지 않고 한국어로 되돌린다',
-    text(choices[1]), '전원을 차단하고 관리자를 부른다');
-  eq('★ 되돌린 뒤에도 배지로 그 사실을 남긴다', t.$('prompt-note').hidden, false);
-
-  click(t.win, choices[1]);
-  eq('★ 정답 인덱스가 어긋나지 않았다', choices[1].getAttribute('data-mark'), 'ok');
+  /* 2026-11-11 — 길이가 어긋난 번역은 qtext 가 한국어로 되돌리고, 화면은 한국어를 띄우지 않고 막는다 */
+  eq('★★ 길이가 어긋난 번역이면 문항을 열지 않는다', t.$('view-quiz').hidden, true);
+  has('내 언어로 막는다', text(t.$('gate-title')), K(t, 'quiz.notReady'));
 }
 
 /* --- 빈 칸이 섞인 번역도 쓰지 않는다 --- */
@@ -418,9 +469,7 @@ function openQuiz(opts) {
     },
   });
 
-  click(t.win, t.$('btn-next'));
-  const choices = [...t.$('quiz-body').querySelectorAll('.choice-btn')];
-  has('빈 선택지를 화면에 내보내지 않는다', text(choices[1]), '전원을 차단하고 관리자를 부른다');
+  eq('★ 빈 칸이 섞인 번역도 문항을 열지 않는다 (빈 선택지도 한국어도 내보내지 않는다)', t.$('view-quiz').hidden, true);
 }
 
 /* --- 결과 복기도 같은 언어로 --- */
@@ -432,7 +481,7 @@ function openQuiz(opts) {
   // 문항 2 는 hotspot — 정답 구역을 눌러 끝낸다
   const zones = [...t.$('quiz-body').querySelectorAll('.zone')];
   if (zones.length) {
-    click(t.win, zones[0]);
+    pickZone(t, zones[0]);
     click(t.win, t.$('btn-next'));
     has('결과 복기도 인도네시아어로 보인다',
       text(t.$('result-review')), 'Terjadi kebakaran');
@@ -484,7 +533,7 @@ function openQuiz(opts) {
 
   ok('오류 없이 뜬다', t.errors.length === 0, t.errors.join(' | '));
   has('★ 내린 문항을 빼고 낸다 — 3문항이 아니라 2문항',
-    text(t.$('step-count')), '문항 1 / 2');
+    text(t.$('step-count')), K(t, 'quiz.stepLabel') + ' 1 / 2');
   ok('★ 내린 문항이 첫 문항으로 나오지 않는다',
     iconName(t.$('quiz-kind')) !== 'touch', iconName(t.$('quiz-kind')));
 

@@ -292,8 +292,13 @@ const GOOD = {
     await settle();
     click(t.win, t.$('btn-photo-confirm'));
     const cands = [...t.$('photo-result').querySelectorAll('input[name="photo-phrase"]')].map((i) => i.value);
-    ok('질식 → 방독마스크 문구(ph-4) 후보', cands.indexOf('ph-4') !== -1, cands.join(','));
+    /* 🆕 2026-11-15 합치기 — 문구 후보를 **설비 종류**로 좁힌다 (`Store.phrasesFor`, yesol).
+       고른 설비가 프레스면 「도장」 문구(ph-4 방독마스크)는 섞이지 않는다.
+       11/7 에는 위험유형 낱말만 봤기 때문에 ph-4 가 나왔다 — 좁아진 쪽이 맞다 */
+    ok('★★ 다른 설비 종류의 문구(ph-4 도장)는 섞이지 않는다', cands.indexOf('ph-4') === -1, cands.join(','));
     ok('★★ 환기팬 문구(ph-5, 검수 대기)는 후보에 없다', cands.indexOf('ph-5') === -1, cands.join(','));
+    ok('★ 맞는 문구가 없으면 운영자에게 요청하라고 알려 준다 (조용히 비우지 않는다)',
+      cands.length > 0 || /문구 등록을 요청/.test(text(t.$('photo-result'))));
   }
 
   /* =================================================================

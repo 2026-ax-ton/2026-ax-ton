@@ -96,3 +96,11 @@ create table if not exists audit (
   at            timestamptz default now()
 );
 create index if not exists audit_workplace_idx on audit (workplace_id, at desc);
+
+-- ── 8. AI 하루 사용 횟수 (A02 §5.6 3층) ───────────────────────────────
+-- ★ 함수 인스턴스 메모리로 세면 인스턴스마다 0부터 다시 센다 → 하루 상한이 안 된다.
+--   날짜 한 줄에 모든 AI 함수가 함께 더한다 (api/_shared.mjs takeDailyCall).
+create table if not exists ai_usage (
+  day   date primary key,
+  used  int not null default 0
+);

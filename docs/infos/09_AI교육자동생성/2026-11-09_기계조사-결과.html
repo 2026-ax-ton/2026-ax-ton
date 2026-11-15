@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>영세사업장 위험기계 안전콘텐츠 조사 — 기계별 결과</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../README.html">처음 (사용법)</a>
+<a href="../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../05_%EB%A9%98%ED%86%A0%EB%A7%81/%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+<a href="README.html">09 AI 교육 자동 생성 (yesol)</a>
+<div class="sub">09_AI교육자동생성</div>
+<a href="README.html">이 폴더 안내</a>
+<a href="2026-11-09_AI%EC%8B%A4%EC%B8%A1-%EB%B9%84%EA%B5%90.html">2026-11-09 AI실측-비교</a>
+<a href="2026-11-09_%EA%B8%B0%EA%B3%84%EC%A1%B0%EC%82%AC-%EA%B2%B0%EA%B3%BC.html" class="on">2026-11-09 기계조사-결과</a>
+<a href="2026-11-09_%EA%B8%B0%EA%B3%84%EC%A1%B0%EC%82%AC-%EA%B7%9C%EC%B9%99.html">2026-11-09 기계조사-규칙</a>
+<a href="2026-11-09_%EB%8B%B4%EB%8B%B9%EC%9E%90-%EA%B2%80%ED%86%A0.html">2026-11-09 담당자-검토</a>
+<a href="2026-11-09_%EC%98%81%EC%83%81-%EA%B3%B5%EA%B8%89%EC%82%AC-%EB%B9%84%EA%B5%90.html">2026-11-09 영상-공급사-비교</a>
+</nav>
+<main>
+<h1 id="영세사업장-위험기계-안전콘텐츠-조사--기계별-결과">영세사업장 위험기계 안전콘텐츠 조사 — 기계별 결과</h1>
+<p>지금까지 실제로 조사한 기계 2개의 과정과 찾은 내용을 그대로 적는다. **재사용 가능한 규칙·체크리스트는 <a href="./2026-11-09_기계조사-규칙.html"><code>2026-11-09_기계조사-규칙.md</code></a>에 따로 있다** — 다음 기계를 조사할 땐 그 문서를 먼저 읽고, 지난 조사가 실제로 어떻게 진행됐는지 참고가 필요할 때 이 문서를 본다.</p>
+<hr>
+<h2 id="기계-1--c형-유압프레스">기계 1 — C형 유압프레스</h2>
+<h3 id="0-출발점--질문">0. 출발점 — 질문</h3>
+<p>&quot;산업단지·영세사업장에서 가장 많이 쓰는 유압프레스 기계는 뭔가? 이해도 검증 콘텐츠(퀴즈·hotspot)를 그 기계 기준으로 만들고 싶다.&quot;</p>
+<h3 id="1-기종-좁히기--브랜드가-아니라-구조로">1. 기종 좁히기 — 브랜드가 아니라 구조로</h3>
+<ul><li>먼저 &quot;브랜드/제조사 점유율&quot;로 검색했으나 <strong>공식 통계 자체가 없음</strong> (영세 금형업체 83%가 10인 미만이라 통계가 안 잡힘).</li><li>그래서 기준을 &quot;브랜드&quot;에서 &quot;구조방식(기종 유형)&quot;으로 바꿨다. 검색어 예: <code>산업단지 영세사업장 많이 사용하는 유압프레스 제조사 기종 순위</code>, <code>국내 프레스기 제조사 점유율 중소 금속가공 영세사업장</code></li><li>결론: <strong>C형(갭)프레스</strong>가 구조방식 기준 1순위 — 개방형이라 영세 판금·부품가공 현장 표준, 끼임사고 최다 유형. (근거: KOSHA 재해통계·업계 설명 종합, 단일 출처 숫자표는 없음 — 이 부분은 &quot;합리적 추정&quot;이지 &quot;공식 통계 인용&quot;이 아니라고 매번 사용자에게 밝혔다.)</li></ul>
+<h3 id="2-공식-안전기준-문서-찾기--kosha-guide">2. 공식 안전기준 문서 찾기 — KOSHA Guide</h3>
+<ul><li>검색어: <code>KOSHA 프레스 안전작업지침 매뉴얼 PDF 안전보건기준</code></li><li><strong>1차 실패</strong>: 검색엔진이 &quot;M-122-2012&quot;라는 번호를 요약해서 내놓았는데 <strong>틀린 번호였다.</strong> kosha.or.kr 의 공식 다운로드 URL은 접속은 되지만(HTTP 200) 내용이 0자로 비어 응답 — <strong>검색 스니펫을 실제 원문 확인 없이 믿으면 안 된다.</strong></li><li><strong>해결</strong>: 공식 사이트 직링크 대신, 그 문서를 미러링한 민간/공공 게시판을 찾아 (<code>eshc.kr</code> 게시글) 첨부 PDF 원본(<code>moel.go.kr</code> 다운로드 링크)을 받아 <strong>Read 도구로 PDF를 직접 열어</strong> 표지의 진짜 코드번호를 확인했다. → 진짜는 <strong>KOSHA CODE M-30-2002</strong>「프레스 방호장치의 선정·설치 및 사용 기술지침」.</li><li>교훈: <strong>PDF/문서 링크는 검색 요약만 믿지 말고 반드시 실제로 열어서 표지·코드번호·발행처를 확인한다.</strong> 특히 정부기관 사이트의 &quot;다운로드&quot; 엔드포인트는 200을 반환해도 내용이 빈 경우가 있다.</li></ul>
+<h3 id="3-구조-고유-특성-찾기--공통-기준과-이-기종만의-특징을-나눔">3. 구조 고유 특성 찾기 — &quot;공통 기준&quot;과 &quot;이 기종만의 특징&quot;을 나눔</h3>
+<p>사용자가 &quot;포괄적 주의사항 말고 이 기계 특유의 특징도 필요하다&quot;고 명확히 요구함. M-30-2002 는 <strong>모든 프레스 공통</strong> 기준(가드식/양수조작식/광전자식 등)이라 C형만의 특징은 아니었다 — 그래서 별도로 찾았다.</p>
+<ul><li>검색어: <code>C형 프레스 프레임 변형 디플렉션 편심하중 단점 특징 O형 비교</code></li><li>영어 자료(ADH Machine Tool 블로그)에서 <strong>구조공학적 설명</strong>을 찾음: C형은 3면 중 앞면만 열려 있어 편심하중(중심에서 벗어난 위치에서 가압) 시 위아래 팔이 벌어지는 각도 디플렉션이 O형/H형보다 심함.</li><li>실제 사고 사례도 함께 찾아 <strong>영세사업장 연관성</strong>을 확인: 검색어 <code>C형 프레스 끼임사고 사례 산업안전보건공단 재해조사 측면 개방</code> → 검색엔진 요약이 &quot;2020년 평택, 스크랩 제거 중 끼임&quot;이라고 틀리게 요약함. 실제 URL(<code>moel.go.kr/policy/policydata/view.do?bbs_seq=4842</code>)을 직접 열어보니 <strong>전혀 다른 사건</strong>(2004년 서울, 재생업체, 근로자 2명, 압축작업 중 협착사망)이었음. → <strong>여기서도 검색 요약을 그대로 믿지 않고 원문 대조가 필수였다.</strong></li></ul>
+<h3 id="4-기계-종류유압-vs-기계식-고유-특성--블로그-기사">4. 기계 종류(유압 vs 기계식) 고유 특성 — 블로그 기사</h3>
+<p>사용자가 &quot;유튜브나 블로그도 찾아봐 달라&quot;고 추가 요청.</p>
+<ul><li>검색어: <code>C형 유압프레스 사용 주의사항 블로그 후기 안전수칙 현장</code>, <code>C형 프레스 작업 유튜브 안전교육 끼임 조작법</code></li><li><strong>기계설비신문</strong>(업계 전문지) 기사를 찾음 — &quot;유압프레스의 특성과 안전관리의 핵심 수칙&quot; (노정진, 포스코 안전환경 리더 기고, 2026.04.06). C형을 &quot;가장 일반적인 형태&quot;로 명시하고, <strong>유압 고유 위험</strong>(배관·호스 누유, 유압유 고압 분출 화상·감전, 금형 미고정/과압 시 파편비산, 안전장치 임의해제)을 구체적으로 서술 — 이건 기계식 프레스 기준인 M-30-2002 에는 없는 내용이었다.</li><li>YouTube 영상(<code>[재해사례] 프레스 정비 작업 중 작업자 끼임</code>)도 검색에 걸렸으나 <strong>자막/본문 내용을 가져올 방법이 없어 제목·존재만 확인하고 내용은 인용하지 않았다.</strong> → 영상은 &quot;참고용으로 존재를 알려줄 뿐 인용 근거로는 못 쓴다&quot;가 맞는 처리.</li></ul>
+<h3 id="5-모델명제조사기종-확정--끝까지-불확실로-남은-부분">5. 모델명(제조사·기종) 확정 — 끝까지 불확실로 남은 부분</h3>
+<ul><li>검색으로 <code>남양기공(주) C형 유압프레스 NCP-20/NCP-30</code> (20톤/30톤, 1975년 설립, 약 3,000대 공급 실적)을 찾음 — 여러 검색 스니펫과 komachine.com(제3자 카탈로그)이 일치해서 <strong>회사 실존은 신뢰</strong>.</li><li>그러나 <strong>제조사 공식 홈페이지(nypress.co.kr)는 SSL 자체서명 인증서 오류로 실제 fetch 접속 자체가 실패</strong> — 제품페이지 원문은 끝까지 못 열었다.</li><li>전용 사용설명서(취급설명서) PDF도 공개된 곳을 못 찾음 — 검색에 걸린 &quot;NCP Series&quot; 매뉴얼은 전혀 다른 회사(일본 나치후지코시, 유압펌프 제조사)의 동명이인 제품이었다. <strong>모델명이 같다고 같은 제품이 아니다 — 제조사까지 대조해야 함.</strong></li><li><strong>결론 처리</strong>: 모델명(NCP-20/NCP-30)은 &quot;참고용 예시&quot;로만 쓰고, 콘텐츠의 근거는 &quot;구조 유형(C형 유압프레스)&quot;에만 걸었다. 특정 모델 단정은 하지 않음.</li></ul>
+<h3 id="6-콘텐츠로-변환--storelibrary-반영">6. 콘텐츠로 변환 — Store.library 반영</h3>
+<ul><li>조사한 문장을 그대로 콘텐츠에 넣지 않고, <strong>노동자에게 주는 한 줄 지시문</strong>으로 바꿔 <code>src/assets/seed.js</code> 의 <code>LIBRARY</code> 배열에 추가했다 (<code>ph-7</code>~<code>ph-12</code>).</li><li>전부 <code>status: 'waiting'</code> — 이 프로젝트 규칙상 <strong>AI가 조사·작성한 문구는 사람이 검수(<code>admin/library.html</code>)하기 전까지 실제 지시문으로 못 쓴다.</strong> 번역(<code>translations</code>)도 아직 안 돌렸으므로 빈 객체로 둠.</li><li>출처(URL·기사명·KOSHA 코드번호)는 코드 주석으로 남겨, 나중에 검수자가 &quot;이 문장이 어디서 왔는지&quot; 추적할 수 있게 했다.</li><li>세부 데이터(예시 데이터)를 바꾸면 그 개수를 세는 테스트들이 함께 깨진다 (<code>tests/test-smoke.js</code>, <code>test-content.js</code>, <code>test-db.mjs</code>, <code>test-library.js</code>) — 실패 목록을 보고 &quot;개수 기대값&quot;만 새 값으로 고쳤다. <strong>기존 로직을 바꾼 게 아니라 시드 데이터가 늘어난 것이므로, 테스트를 고치는 게 맞는 대응이다.</strong></li></ul>
+<hr>
+<h2 id="기계-2--사출성형기-같은-절차를-다른-종류에-재현">기계 2 — 사출성형기 (같은 절차를 &quot;다른 종류&quot;에 재현)</h2>
+<p>기계 1 에서 세운 1~6단계를 그대로 다시 돌렸다. 구조(프레스는 압착, 사출성형기는 가열+사출+형체결)가 완전히 다른 기계라 <strong>절차가 설비 종류를 안 타는지</strong>를 검증하는 자리였다.</p>
+<h3 id="1-기종-좁히기">1. 기종 좁히기</h3>
+<ul><li>검색어: <code>영세사업장 많이 사용하는 사출성형기 종류 횡형 수형 톤수</code></li><li>공식 점유율 통계는 역시 없었음. 대신 업계 설명 종합으로 <strong>횡형(수평형)</strong>이 &quot;전 세계적으로 가장 널리 쓰이는 형태&quot;(사출+형체 장치가 일직선 수평 배치, 취출 쉬움·자동화 용이·고속·생산성)임을 확인. 톤수는 30~268T 범위로 다양함 — 이번엔 톤수·브랜드까지 좁히지 않고 &quot;횡형&quot;이라는 구조까지만 확정.</li></ul>
+<h3 id="2-공식-안전기준-문서-찾기">2. 공식 안전기준 문서 찾기</h3>
+<ul><li>검색어: <code>KOSHA 사출성형기 방호장치 기술지침 끼임 안전수칙 PDF</code></li><li>이번엔 <strong>두 개</strong>가 걸림 — <code>M-187-2016 사출성형기 방호조치에 관한 기술지침</code>, <code>M-56-2020 사출성형기의 안전작업에 관한 기술지침</code>.</li><li>M-187-2016 을 미러링한 게시판(<code>insdoit.co.kr</code>)의 <strong>페이지 본문</strong>(목적·적용범위)은 직접 열어 확인함 — &quot;산업안전보건기준에 관한 규칙 제121조(사출성형기 등의 방호장치)&quot;에 근거한다는 것까지 확인됐다. 단 <strong>첨부 PDF 자체의 다운로드는 실패</strong>(세션/쿠키가 필요한 다운로드 방식으로 보임, HTML 오류 페이지만 돌아옴). → <strong>여기서는 &quot;본문까지만 확인되고 PDF 세부조항은 확인 못 함&quot;을 그대로 인정하고, 세부조항 인용 없이 존재·근거법령만 쓰는 선에서 멈췄다.</strong> (기계 1 의 &quot;검색 요약 말고 원문 확인&quot; 원칙을 지키되, 원문조차 못 받으면 못 받은 한계를 숨기지 않고 밝히는 것도 같은 원칙의 연장.)</li></ul>
+<h3 id="34-전용-특성--실제-자료--공식-근로자용-교육자료를-바로-찾은-경우">3~4. 전용 특성 + 실제 자료 — 공식 &quot;근로자용 교육자료&quot;를 바로 찾은 경우</h3>
+<ul><li>검색 중 <code>esafetykorea.or.kr</code> 에 올라온 <strong>고용노동부·안전보건공단 공동 제작 OPS(One Point Sheet)</strong> &quot;사출성형기 작업안전&quot; (문서번호 2023-교육혁신실-859)를 발견. PDF를 <strong>Read 도구로 직접 열어</strong> 전체 내용(2페이지)을 확인함 — 이번엔 기계 1 의 &quot;표지만 확인&quot;보다 더 나아가 <strong>본문 전체(사고사례 2건 + 10항목 안전점검표)를 통째로 읽었다.</strong></li><li>원문 그대로 확인된 내용:<ul><li>위험요인 3가지: 금형 사이 손 끼임(제품 취출), 이젝터-금형 사이 신체 끼임 (점검 중), 분쇄기 스크랩 제거 중 손가락 감김</li><li>실제 사고 2건 — ① 안전문 연동장치(리미트 스위치)를 무효화하고 노즐을 뚫다가 끼임, ② 반자동 운전 중 금형 내부에서 작업하다 안전도어가 외부 충격으로 닫히며 끼임</li><li>안전점검표 10항목 — 안전인증/안전검사, 안전문 연동장치 정상작동, 가열 실린더 히터 방호덮개, 수리·점검 시 전원차단+잠금+&quot;작업중&quot; 표시, 비상정지버튼, 노즐 충전부 절연캡 등</li></ul></li><li>이번엔 블로그/유튜브를 따로 더 찾지 않았다 — <strong>공식 교육자료 자체가 이미 &quot;이 기계만의 특징 + 실제 사고 + 점검표&quot;를 다 갖추고 있어서,</strong> 기계 1 처럼 공식기준(공통)과 블로그(전용특성)를 따로 찾아 조합할 필요가 없었다. → <strong>교훈 추가</strong>: 항상 공식기준→전용특성→블로그 순서를 기계적으로 반복할 필요는 없다. 공식 &quot;근로자용 OPS/교육자료&quot;가 있으면 그게 더 품질이 높고(실제 사고 기반, 노동자 눈높이) 그걸로 충분할 때가 있다 — 매 단계를 채워야 한다는 강박 없이, <strong>찾은 자료의 품질을 보고 단계를 생략해도 된다.</strong></li></ul>
+<h3 id="5-모델명-확정--처음엔-생략했다가-사용자가-기계-1-과-동일한-깊이로-요구해-다시-함">5. 모델명 확정 — 처음엔 생략했다가, 사용자가 &quot;기계 1 과 동일한 깊이로&quot; 요구해 다시 함</h3>
+<ul><li>처음엔 &quot;비용 대비 효과 적다&quot;고 판단해 생략했었다. 그런데 사용자가 &quot;사출성형기도 모델명까지 조사해줘, 다른 모델이 읽어도 똑같이 조사해야 한다&quot;고 <strong>명시적으로 대칭을 요구</strong>했다 — 이 경우 생략 판단을 접고 다시 조사했다. → 교훈: &quot;비용 대비 효과로 생략해도 된다&quot;는 <strong>기본값일 뿐</strong>이고, 사용자가 다른 조사 건과 같은 깊이를 명시적으로 요구하면 그 지시가 우선한다.</li><li>검색어: <code>국내 중소 영세사업장 많이 사용하는 사출성형기 제조사 모델 우진플라임 엘에스엠트론 동신유압</code>, <code>우진플라임 TB시리즈 사출성형기 모델 톤수</code></li><li><strong>우진플라임(Woojin Plaimm)</strong> — 국내 사출성형기 전문 제조사, 30여 개국 6,000여 회사에 공급, 2000년 국내 최초 전동식 사출성형기 개발. 제품군 중 <strong>TB-G5 시리즈</strong>(&quot;글로벌 절전형 하이브리드 토글식&quot;, 90~880톤)가 영세·중소 현장에서 흔한 범용 유압(토글)식에 해당.</li><li><strong>공식 홈페이지(<code>woojinplaimm.com</code>)를 실제로 열어 확인</strong> — 기계 1 의 nypress.co.kr 과 달리 <strong>SSL 인증서 문제 없이 정상 로드됨.</strong> 제품소개 → TB-G5 페이지(<code>/page/product_new/product.php?pd_id=5&amp;me_code=2020</code>)에서 소개문구 &quot;90톤부터 880톤까지의 형체력을 제공하는 절전형 하이브리드 사출성형기&quot;를 원문 그대로 확인.</li><li><strong>톤수별 스펙표(형체력·스크류직경·사출압력 등)는 이 페이지에 없음</strong> — 기능 설명(센터프레스 일체형 형판, L/M가이드, 서보펌프 시스템, 컨트롤러 IMC710 등)만 텍스트로 있고 표는 JS 렌더링이라 fetch 로 못 가져옴.</li><li><strong>카탈로그 페이지(<code>/page/prcenter/catalogue.php?me_code=4040</code>)도 실제로 열어 확인</strong> — &quot;TB-G5&quot; 카탈로그 항목 자체는 목록에 있으나, 실제 PDF 다운로드 링크는 JS(onclick)로 처리돼 fetch 로는 못 얻음. 썸네일 이미지 URL만 확인됨 — <strong>&quot;자료실은 있지만 그 안의 파일은 못 받았다&quot;</strong>는 한계를 그대로 남긴다.</li><li><strong>기계 1 과 비교한 핵심 차이</strong>: 기계 1(남양기공)은 회사 홈페이지 자체가 인증서 오류로 못 열려 &quot;회사 실존만 간접 확인&quot;에 그쳤다. 기계 2(우진플라임)는 홈페이지가 정상적으로 열려 <strong>제품라인·소개문구까지 1차 출처로 직접 확인</strong>했고, 막힌 지점은 그보다 한 단계 더 안쪽인 &quot;스펙표·PDF 파일 자체&quot;였다. → 같은 &quot;모델명 조사&quot; 단계도 막히는 지점이 설비마다 다를 수 있다. 어디까지 열리고 어디서부터 막혔는지를 구체적으로 적어야 다음 조사자가 어디를 다시 시도해야 할지 알 수 있다.</li></ul>
+<h3 id="6-콘텐츠로-변환--storelibrary-반영">6. 콘텐츠로 변환 — Store.library 반영</h3>
+<ul><li><code>ph-13</code>~<code>ph-15</code> 로 추가, <code>category: '사출성형'</code> (새 카테고리 — library 의 category 는 자유 텍스트라 하드코딩된 목록에 추가할 필요 없음, <code>admin/library.js</code> 확인함).</li><li>역시 <code>status: 'waiting'</code>, 번역 없음, 출처는 코드 주석으로.</li><li>예시 데이터 개수 테스트(6군데)가 또 깨졌고, 역시 &quot;개수만 새 값으로&quot; 고쳤다 — 기계 1 때와 똑같은 여섯 곳(<code>test-smoke.js</code> 2곳, <code>test-content.js</code> 1곳, <code>test-db.mjs</code> 1곳, <code>test-library.js</code> 5곳)이 <strong>항목 하나 추가할 때마다 항상 같이 움직인다는 패턴</strong>을 이번에 확인했다. → 다음에 또 추가할 때는 이 여섯 지점을 먼저 찾아서 한 번에 고치면 된다.</li></ul>
+<p class="src">이 페이지는 <code>2026-11-09_기계조사-결과.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>

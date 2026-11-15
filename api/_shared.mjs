@@ -9,6 +9,8 @@
 
 /* ── 결정에 걸린 값 (A02 §5.2·§5.3·§5.5) ───────────────────────────── */
 
+import { callOpenAI } from './_openai.mjs';
+
 export const MAX_BODY_BYTES = 4096;      // A02 §5.2 본문 상한
 export const MAX_KO = 300;               // A02 §5.3 ko 1~300자
 export const MAX_TEXT = 600;             // A02 §5.4 text·모델 출력 1~600자
@@ -54,20 +56,18 @@ export function fail(status, code, message, cors) {
 }
 
 /* ── 일일 상한 (A02 §5.6 3층) ───────────────────────────────────────
-   함수는 상태가 없다. 인스턴스 메모리 계산이라 근사치다 — 정확히 세려면
-   KV 저장소가 필요하다(후보). 최악의 비용은 4층(공급사 예산)이 막는다. */
+   ★ DB(`ai_usage`, 날짜 한 줄)에서 센다. AI 함수 7개가 한 숫자를 함께 더한다.
+     인스턴스 메모리로 세면 함수마다·인스턴스마다 0부터 다시 세서 상한이 안 됐다 (2026-11-15).
+   ★ 더하기와 상한 검사를 한 문장으로 한다 → 동시에 와도 넘지 않는다.
+   ★ DB가 없으면(로컬·`DATABASE_URL` 없음) 메모리로 센다.
+   ★ DB 질의가 실패하면 **막는다** — 돈이 나가는 쪽으로 열지 않는다.
+   최악의 비용은 4층(공급사 예산·자동 충전 끄기)이 막는다. */
 
 let countDay = '';
-const countUsed = {};
+const countUsed = {};      // 쓰임새(bucket)별 메모리 횟수 — DB 가 없을 때와 쓰임새 울타리에 쓴다
+let memoryOnly = false;
 
-/** 쓰임새(bucket)별로 따로 센다.
- *
- *  ★ 왜 가르나 — 사진 한 장은 번역 한 줄보다 훨씬 비싸다 (이미지 토큰).
- *    한 통에 같이 세면 **사진 몇 장이 그날의 번역 예산을 먹는다.**
- *    번역은 운영자가 하루에 수십 번 하고, 사진은 담당자가 가끔 한다 —
- *    둘이 서로의 한도를 깎지 않게 통을 나눈다 (A02 §5.6).
- *    마지막 방어는 여전히 공급사 예산 상한이다 (A04 6-1). */
-export function takeDailyCallFor(bucket, limit) {
+function takeMemory(bucket, limit) {
   const today = new Date().toISOString().slice(0, 10);
   if (today !== countDay) {
     countDay = today;
@@ -79,15 +79,44 @@ export function takeDailyCallFor(bucket, limit) {
   return true;
 }
 
-/** 번역·역번역이 쓰는 통. 옛 이름을 그대로 둔다 (부르는 곳을 고치지 않는다). */
-export function takeDailyCall(limit) {
-  return takeDailyCallFor('ai', limit);
+/** 쓰임새(bucket)별 **보조** 울타리. 이 함수만 인스턴스 메모리로 센다 (2026-11-07 사진용).
+ *
+ *  ★ 왜 가르나 — 사진 한 장은 번역 한 줄보다 훨씬 비싸다 (이미지 토큰).
+ *    한 통에 같이 세면 사진 몇 장이 그날의 번역 예산을 먹는다. 번역은 운영자가 하루에
+ *    수십 번, 사진은 담당자가 가끔 한다 — 서로의 한도를 깎지 않게 통을 나눈다 (A02 §5.6).
+ *  ★ 단단한 하루 상한은 `takeDailyCall`(DB 한 줄)이 쥔다 — 이 함수와 **같이** 쓴다.
+ *    DB 표(`ai_usage`)에 bucket 열이 없어 쓰임새 구분은 인스턴스 안에서만 맞는다
+ *    (2026-11-15 합치기 — 쓰임새를 DB 로 옮기는 것은 표 변경이라 기능 동결 뒤로 미뤘다).
+ *    마지막 방어는 여전히 공급사 예산 상한이다 (A04 6-1). */
+export function takeDailyCallFor(bucket, limit) {
+  return takeMemory(bucket, limit);
 }
 
-/** 검사에서만 쓴다. 상한 계산이 묶음 사이로 새지 않게 한다. */
-export function resetDailyCall() {
+export async function takeDailyCall(limit) {
+  if (memoryOnly) return takeMemory('ai', limit);
+  /* 동적 import — _db.mjs 가 이 파일을 불러서, 맨 위에서 서로 부르면 순환이 된다 */
+  const { getSql } = await import('./_db.mjs');
+  const sql = await getSql();
+  if (!sql) return takeMemory('ai', limit);
+  try {
+    const rows = await sql`
+      insert into ai_usage (day, used) values (current_date, 1)
+      on conflict (day) do update set used = ai_usage.used + 1
+       where ai_usage.used < ${limit}
+      returning used`;
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (e) {
+    log({ route: 'daily-limit', err: 'db', why: String(e && e.message || '').slice(0, 120) });
+    return false;
+  }
+}
+
+/** 검사에서만 쓴다. 숫자를 0으로 돌리고 메모리로 센다 (가짜 sql 을 건드리지 않게).
+ *  `{ db: true }` 면 DB 경로를 검사한다. */
+export function resetDailyCall(opts) {
   countDay = '';
   Object.keys(countUsed).forEach((k) => { delete countUsed[k]; });
+  memoryOnly = !(opts && opts.db);
 }
 
 /* ── 같은 출처로 볼 주소 (A02 §5.2) ─────────────────────────────────
@@ -209,27 +238,38 @@ export function isAllowedLang(lang) {
 /* ── 모델 호출 (A02 §5.3) ──────────────────────────────────────────── */
 
 export function readConfig(modelEnvName) {
+  const limits = {
+    timeoutMs: Number(process.env.AI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
+    dailyLimit: Number(process.env.AI_DAILY_LIMIT) || DEFAULT_DAILY_LIMIT,
+  };
+  /* 🆕 개인 사본 선택지 — AI_PROVIDER=openai 면 GPT (api/_openai.mjs). 기본은 Gemini (C06 D-018).
+     모델은 OPENAI_MODEL 하나만 본다 — Gemini 모델 이름(AI_MODEL_*)을 GPT 에 넘기지 않는다 */
+  if (process.env.AI_PROVIDER === 'openai') {
+    const okey = process.env.OPENAI_API_KEY || '';
+    const omodel = process.env.OPENAI_MODEL || '';
+    if (!okey || !omodel) return null;
+    return { provider: 'openai', key: okey, model: omodel, ...limits };
+  }
   const key = process.env.GEMINI_API_KEY || '';
   const model = process.env[modelEnvName] || '';
   // 키 값은 어디에도 내지 않는다 (STC-E19-001)
   if (!key || !model) return null;
-  return {
-    key,
-    model,
-    timeoutMs: Number(process.env.AI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
-    dailyLimit: Number(process.env.AI_DAILY_LIMIT) || DEFAULT_DAILY_LIMIT,
-  };
+  return { key, model, ...limits };
 }
 
-/** 모델을 한 번 부르고 **자른 적 없는 출력 문자열**을 돌려준다.
+/** 모델을 한 번 부르고 문장 하나를 돌려준다.
+ *  돌려주는 값: { text } 또는 { error: 'model' | 'timeout' }
  *
- *  `parts` 는 Gemini 가 받는 모양 그대로다 — 글만 보낼 때는 `[{text}]`,
- *  사진을 보낼 때는 `[{inline_data}, {text}]` 다 (T17, `api/hazards.mjs`).
- *  길이 판정은 **부르는 쪽**이 한다 — 번역문(600자)과 사진 응답 JSON 은
- *  쓸 만한 길이가 다르다.
- *
- *  돌려주는 값: { text } 또는 { error: 'model' | 'timeout' | 'limit', why } */
-export async function callModelParts({ key, model, timeoutMs }, systemText, parts, maxOutput) {
+ *  `userText` 에 **배열**을 주면 그대로 `parts` 로 보낸다 — 사진(`inline_data`)을
+ *  함께 보낼 때 쓴다 (T17 `api/hazards.mjs`). 문자열이면 지금처럼 글 한 조각이다.
+ *  `opts.maxOutputTokens`·`opts.maxText` 로 상한을 바꿀 수 있다 — 지점 5개짜리 JSON 은
+ *  번역문 한 문장보다 길다. 주지 않으면 번역용 기본값 그대로다. */
+export async function callModel(cfg, systemText, userText, opts) {
+  if (cfg && cfg.provider === 'openai') return callOpenAI(cfg, systemText, userText, opts);
+  const { key, model, timeoutMs } = cfg;
+  const maxOut = (opts && opts.maxOutputTokens) || MAX_OUTPUT_TOKENS;
+  const maxText = (opts && opts.maxText) || MAX_TEXT;
+  const userParts = Array.isArray(userText) ? userText : [{ text: userText }];
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);
 
@@ -244,12 +284,14 @@ export async function callModelParts({ key, model, timeoutMs }, systemText, part
       },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemText }] },
-        contents: [{ role: 'user', parts }],
+        contents: [{ role: 'user', parts: userParts }],
         // temperature 를 보내지 않는다 — 최신 모델은 무시하고 경고를 낸다 (A02 §5.3)
         generationConfig: {
-          maxOutputTokens: maxOutput || MAX_OUTPUT_TOKENS,
+          maxOutputTokens: maxOut,
           thinkingConfig: { thinkingLevel: 'low' },
         },
+        // 검색 근거(google_search) 같은 도구 — 리서치(PRD-AD-08 S2)만 쓴다
+        ...(opts && opts.tools ? { tools: opts.tools } : {}),
       }),
       signal: ac.signal,
     });
@@ -288,24 +330,22 @@ export async function callModelParts({ key, model, timeoutMs }, systemText, part
     return { error: 'model', why: '모델이 막음' };
   }
 
-  const got = data && data.candidates && data.candidates[0]
-    && data.candidates[0].content && data.candidates[0].content.parts;
-  const out = got && got[0] && typeof got[0].text === 'string' ? got[0].text.trim() : '';
+  const cand = data && data.candidates && data.candidates[0];
+  const parts = cand && cand.content && cand.content.parts;
+  /* 도구를 쓰면 답이 여러 조각으로 올 수 있어 글 조각을 이어 붙인다.
+     도구가 없으면 지금까지처럼 첫 조각만 본다 (번역 동작을 바꾸지 않는다) */
+  const out = opts && opts.tools
+    ? (Array.isArray(parts) ? parts.map((p) => (p && typeof p.text === 'string' ? p.text : '')).join('').trim() : '')
+    : (parts && parts[0] && typeof parts[0].text === 'string' ? parts[0].text.trim() : '');
 
-  // 빈 출력은 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도 문자열 그대로
-  // 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
-  if (out.length < 1) return { error: 'model', why: '빈 출력' };
+  // 빈 출력·길이 초과는 모델 오류로 본다 (A02 §5.3). HTML 이 섞여 있어도
+  // 문자열 그대로 돌려준다 — 보여 주는 쪽이 textContent 를 쓴다 (SPEC-BE §2.2)
+  if (out.length < 1 || out.length > maxText) {
+    return { error: 'model', why: out.length < 1 ? '빈 출력' : '출력이 너무 김' };
+  }
 
-  return { text: out };
-}
-
-/** 글 한 줄을 보내고 **문장 하나**를 돌려준다 (번역·역번역).
- *  길이 상한 `MAX_TEXT`(600자)는 여기서 본다 — 지금까지와 같다. */
-export async function callModel(cfg, systemText, userText) {
-  const r = await callModelParts(cfg, systemText, [{ text: userText }], MAX_OUTPUT_TOKENS);
-  if (r.error) return r;
-  if (r.text.length > MAX_TEXT) return { error: 'model', why: '출력이 너무 김' };
-  return r;
+  /* 검색 근거 — 모델이 실제로 본 출처 목록. 리서치가 「지어낸 출처」를 거르는 데 쓴다 */
+  return opts && opts.tools ? { text: out, grounding: (cand && cand.groundingMetadata) || null } : { text: out };
 }
 
 /* ── 로그 (A02 §5.2) ────────────────────────────────────────────────
@@ -321,9 +361,11 @@ const MODEL_ERRORS = {
   limit: [429, 'AI 사용 한도에 걸렸습니다. 잠시 뒤 다시 받거나 직접 입력해 주세요.'],
 };
 
-/** 모델 실패를 HTTP 응답으로 바꾼다. why 는 공급사 본문이 아니라 우리가 지은 한 마디다. */
-export function modelFail(r, cors) {
-  const [status, message] = MODEL_ERRORS[r.error];
+/** 모델 실패를 HTTP 응답으로 바꾼다. why 는 공급사 본문이 아니라 우리가 지은 한 마디다.
+ *  `messages` 를 주면 안내 문장만 바꾼다 (상태 코드는 그대로) — 번역이 아닌 함수가 쓴다. */
+export function modelFail(r, cors, messages) {
+  const status = MODEL_ERRORS[r.error][0];
+  const message = (messages && messages[r.error]) || MODEL_ERRORS[r.error][1];
   return {
     status,
     response: fail(status, r.error, r.why ? message + ' (' + r.why + ')' : message, cors),

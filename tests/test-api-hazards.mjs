@@ -94,7 +94,8 @@ function httpFail(status) {
 
 /* ── 부르기 ────────────────────────────────────────────────────────── */
 
-const IMG = Buffer.from('fake-jpeg-bytes').toString('base64');
+/* 합친 서버는 1KB 미만을 「사진이 아니다」로 본다 (`MIN_IMAGE_BYTES`, yesol 2026-11-15) */
+const IMG = Buffer.alloc(4000, 7).toString('base64');
 
 function req(body, token, method = 'POST') {
   const headers = { 'content-type': 'application/json', origin: ORIGIN };
@@ -156,20 +157,32 @@ console.log = (...a) => logs.push(a.join(' '));
   eq('★ 받지 않는 형식은 400 (gif)', (await call({ image: IMG, mime: 'image/gif' }, ADMIN)).status, 400);
   eq('★ pdf 를 사진이라고 해도 400', (await call({ image: IMG, mime: 'application/pdf' }, ADMIN)).status, 400);
 
-  /* ★ data: URL 머리를 붙여 보내는 실수는 **고쳐 주지 않고 거절**한다 —
-     조용히 고쳐 주면 화면이 계속 그렇게 보낸다 */
+  /* 🆕 2026-11-15 합치기 — data: URL 머리를 **받아 준다**. 화면이 `canvas.toDataURL()`
+     을 그대로 보내도 돌게 yesol 이 `readImage` 에서 벗긴다. 머리의 형식이 `mime` 보다 앞선다.
+     (11/7 에는 거절이었다 — 바뀐 쪽을 검사도 같이 따라간다) */
   const dataUrl = 'data:image/jpeg;base64,' + IMG;
-  eq('★★ data: URL 머리가 붙어 오면 400 (고쳐 주지 않는다)',
-    (await call({ image: dataUrl, mime: 'image/jpeg' }, ADMIN)).status, 400);
+  eq('★ data: URL 머리가 붙어 와도 받는다 (머리를 벗긴다)',
+    (await call({ image: dataUrl, mime: '' }, ADMIN)).status, 200);
+  eq('★ 머리가 받지 않는 형식이면 400', 
+    (await call({ image: 'data:image/gif;base64,' + IMG, mime: 'image/jpeg' }, ADMIN)).status, 400);
 
   eq('base64 가 아니면 400', (await call({ image: '!!!not base64!!!', mime: 'image/jpeg' }, ADMIN)).status, 400);
 
-  /* 750KB 상한 — base64 로는 약 1MB 다. 본문 상한(1MB)에 먼저 걸릴 수 있으니
-     둘 중 어느 쪽으로 막히든 **413** 이면 된다 */
-  const big = 'A'.repeat(760 * 1024 * 4 / 3);
+  /* 1.5MB 상한 (`MAX_IMAGE_BYTES`, 2026-11-15) — base64 로는 약 2MB 다. 본문 상한(2MB)에
+     먼저 걸릴 수 있으니 둘 중 어느 쪽으로 막히든 **413** 이면 된다.
+     ★ D-037 개정(실제 사진 사용)으로 상한이 세트다 — 확인요청 2번 ⓑ */
+  const big = 'A'.repeat(Math.ceil(1.6 * 1024 * 1024 * 4 / 3 / 4) * 4);
   const r = await call({ image: big, mime: 'image/jpeg' }, ADMIN);
   eq('★ 사진이 너무 크면 413', r.status, 413);
-  ok('★ 다시 찍으라고 알려 준다', /다시 찍/.test(r.data.message));
+  /* 본문 상한(2MB)이 먼저 걸리면 「보낸 내용이 너무 깁니다」, 사진 상한(1.5MB)이면
+     「다시 찍어 주세요」 — 어느 쪽이든 413 과 사람이 읽을 안내가 있어야 한다 */
+  ok('★ 왜 막혔는지 알려 준다', /다시 찍|너무 (깁|큽)/.test(r.data.message));
+
+  /* 사진 상한 쪽도 따로 본다 — 서버 함수에 직접 넣어 본다 (본문 상한보다 작은 길에서) */
+  eq('★ 1KB 미만은 사진으로 보지 않는다 (MIN_IMAGE_BYTES)',
+    hz.readImage({ image: Buffer.alloc(300, 1).toString('base64'), mime: 'image/jpeg' }).size, false);
+  eq('★ 1.5MB 초과도 사진으로 보지 않는다 (MAX_IMAGE_BYTES)',
+    hz.readImage({ image: Buffer.alloc(1.6 * 1024 * 1024, 1).toString('base64'), mime: 'image/jpeg' }).size, false);
 }
 
 /* ===================================================================
@@ -290,7 +303,7 @@ console.log = (...a) => logs.push(a.join(' '));
   eq('★★ JSON 이 아니면 502', bad.status, 502);
   ok('★★ 모델이 뱉은 글을 응답에 담지 않는다',
     !/script|죄송/.test(JSON.stringify(bad.data)));
-  ok('★ 손으로 만들 수 있다고 알려 준다', /직접 만드/.test(bad.data.message));
+  ok('★ 손으로 만들 수 있다고 알려 준다', /직접 (만드|골라)/.test(bad.data.message));
 }
 
 /* ===================================================================
@@ -300,18 +313,21 @@ console.log = (...a) => logs.push(a.join(' '));
   httpFail(500);
   const broke = await photo(ADMIN);
   eq('★ 공급사가 아프면 502', broke.status, 502);
-  ok('★ 이유를 적어 준다', /(응답하지|읽을 수)/.test(broke.data.message));
+  ok('★ 이유를 적어 준다', /(응답하지|읽을 수|읽지 못)/.test(broke.data.message));
 
   httpFail(429);
   const over = await photo(ADMIN);
   eq('★ 공급사 한도는 429 로 그대로 전한다 (고장이 아니다)', over.status, 429);
-  ok('★ 직접 입력하라고 알려 준다', /직접 입력|직접 만드/.test(over.data.message));
+  ok('★ 직접 입력하라고 알려 준다', /직접 (입력|만드|골라)/.test(over.data.message));
 
   reply = () => Promise.reject(new Error('boom'));
   const gone = await photo(ADMIN);
   eq('★ 닿지 못하면 502', gone.status, 502);
 
-  /* 우리 하루 상한 — 번역과 **다른 통**이다 (사진이 번역 예산을 먹지 않는다) */
+  /* 우리 하루 상한 — 사진은 **자기 통**(`AI_PHOTO_DAILY_LIMIT`)으로 먼저 막힌다.
+     🆕 2026-11-15 합치기 — 하루 전체 상한(`AI_DAILY_LIMIT`)은 AI 함수가 DB 한 줄에서
+     함께 세므로, 사진도 그 줄을 쓴다. 사진 통은 「사진이 번역 예산을 다 먹지 않게」
+     앞에 둔 보조 울타리다 (A02 §5.6) */
   answer({ person: false, points: [] });
   shared.resetDailyCall();
   process.env.AI_PHOTO_DAILY_LIMIT = '2';
@@ -320,8 +336,10 @@ console.log = (...a) => logs.push(a.join(' '));
   const c = await hz.handle(req({ image: IMG, mime: 'image/jpeg' }, ADMIN));
   eq('상한 안에서는 된다', a.status + ',' + b.status, '200,200');
   eq('★★ 하루 상한을 넘으면 429', c.status, 429);
-  ok('★ 번역 통은 그대로 남아 있다 (사진이 번역 예산을 먹지 않는다)',
-    shared.takeDailyCall(1) === true);
+  ok('★★ 사진 통이 먼저 막는다 — 하루 전체 상한(600)에는 아직 자리가 있다',
+    (await shared.takeDailyCall(600)) === true);
+  ok('★ 막힌 사진 요청은 하루 전체 통을 쓰지 않는다 (상한에 걸린 뒤 더 세지 않는다)',
+    JSON.parse(await c.text()).error === 'limit');
   process.env.AI_PHOTO_DAILY_LIMIT = '';
   shared.resetDailyCall();
 }

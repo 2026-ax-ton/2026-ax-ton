@@ -35,16 +35,16 @@ function tableBody(name) {
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   1. 테이블 7개 (A02 §14.2)
+   1. 테이블 8개 (A02 §14.2 + AI 하루 횟수)
    ─────────────────────────────────────────────────────────────────── */
 
-const TABLES = ['workplaces', 'accounts', 'sessions', 'docs', 'library', 'reports', 'audit'];
+const TABLES = ['workplaces', 'accounts', 'sessions', 'docs', 'library', 'reports', 'audit', 'ai_usage'];
 
 TABLES.forEach((t) => {
   ok('테이블 ' + t + ' 를 만든다', new RegExp('create table if not exists ' + t + '\\b').test(sqlText));
 });
 
-eq('테이블은 정확히 7개다 (A02 §14.2)',
+eq('테이블은 정확히 8개다',
   (sqlText.match(/create table if not exists/g) || []).length, TABLES.length);
 
 ok('여러 번 돌려도 같다 — create table 은 전부 if not exists',
@@ -118,8 +118,11 @@ ok('인덱스도 if not exists 로 만든다',
 
 {
   const deps = Object.keys(pkg.dependencies || {});
-  eq('★ 서버 의존성은 1개뿐이다', deps.length, 1);
-  eq('그 1개는 Neon 드라이버다', deps[0], '@neondatabase/serverless');
+  /* 2026-11-14 (yesol 사본) — 설비 촬영 사진 비공개 저장소로 @vercel/blob 이 더해졌다 (C05 T-5′) */
+  eq('★ 서버 의존성은 Neon 드라이버 · Blob 2개뿐이다', deps.slice().sort().join(','), '@neondatabase/serverless,@vercel/blob');
+  ok('Blob 도 버전을 고정한다', /^\d+\.\d+\.\d+$/.test(pkg.dependencies['@vercel/blob']), pkg.dependencies['@vercel/blob']);
+  ok('★ Blob 라이브러리는 부를 때만 불러온다 (검사는 npm install 없이 돈다)',
+    !/^import .*@vercel\/blob/m.test(fs.readFileSync(path.join(ROOT, 'api/scans.mjs'), 'utf8')));
   eq('개발용 의존성은 두지 않는다 (jsdom 은 저장소 밖)',
     Object.keys(pkg.devDependencies || {}).length, 0);
 
@@ -162,7 +165,7 @@ ok('인덱스도 if not exists 로 만든다',
 {
   const claude = fs.readFileSync(path.join(ROOT, 'CLAUDE.md'), 'utf8');
   has('CLAUDE.md 코드 규칙에 T-5′ 가 적혀 있다', claude,
-    '`src/` 는 의존성 0, 서버 `api/` 만 드라이버 1개');
+    '`src/` 는 의존성 0, 서버 `api/` 만 라이브러리 2개');
   const c05 = fs.readFileSync(
     path.join(ROOT, 'docs/documentations/00_개발컨벤션/C05_개발규칙.md'), 'utf8');
   has('C05 에 T-1′ 가 있다', c05, 'T-1′');
@@ -180,7 +183,7 @@ ok('인덱스도 if not exists 로 만든다',
     seedSrc, "'src/assets/seed.js'");
 
   eq('계정 6개를 읽었다', data.accounts.length, 6);
-  eq('문구 6개를 읽었다', data.library.length, 6);
+  eq('문구 15개를 읽었다', data.library.length, 15);
   eq('교육 2개를 읽었다', data.courses.length, 2);
   eq('신고 2건을 읽었다', data.reports.length, 2);
   eq('사업장 이름을 읽었다', data.setup.site.name, '대성정밀');
@@ -199,9 +202,9 @@ ok('인덱스도 if not exists 로 만든다',
 {
   const statements = seedMod.splitStatements(sqlText);
   eq('마이그레이션을 문장 단위로 나눈다 (HTTP 드라이버는 한 번에 한 문장)',
-    statements.length, 12);
-  eq('그중 테이블 만들기가 7개다',
-    statements.filter((s) => /^create table/.test(s)).length, 7);
+    statements.length, 13);
+  eq('그중 테이블 만들기가 8개다',
+    statements.filter((s) => /^create table/.test(s)).length, 8);
   ok('주석만 남은 빈 문장이 없다', statements.every((s) => s.length > 10));
 }
 

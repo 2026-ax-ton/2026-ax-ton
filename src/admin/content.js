@@ -173,9 +173,11 @@
      쓸 수 있으면 고를 수 있게 둔다 — 인도네시아어 번역만 중지된 문구를
      선택지에서 아예 빼면 크메르어 노동자도 그 안전 지시를 못 받는다.
      어느 언어에서 빠지는지는 renderPhraseWarn 이 화면에 적는다. */
+  /* 🆕 2026-11-11 — 고른 설비의 종류(Store.kindOf) 문구와 「공통」만. 프레스 교육에 도장 문구가 섞이지 않게 */
   function usablePhrases() {
     var langs = setup().languages;
-    return Store.library.load().filter(function (p) {
+    var kind = Store.kindOf(equipmentOf(draft.equipmentId)).id;
+    return Store.phrasesFor(kind).filter(function (p) {
       if (!langs.length) return Store.phraseOk(p, 'ko');
       return langs.some(function (code) { return Store.phraseOk(p, code); });
     });
@@ -1456,8 +1458,32 @@
     node.appendChild(document.createTextNode(' ' + (done ? doneText : todoText)));
   }
 
+  /** 교육 대상 설비 카드 — 설비 탭의 사진·종류·AI 분석을 그대로 보인다. 누르면 AI 흐름(autogen)으로 */
+  function renderEquipCards(state) {
+    var list = $('eq-cards');
+    list.textContent = '';
+    $('eq-none').hidden = state.equipments.length > 0;
+    state.equipments.forEach(function (e) {
+      var k = Store.kindOf(e);
+      var a = e.analysis && e.analysis.research && Array.isArray(e.analysis.research.items) ? e.analysis : null;
+      var li = UI.itemRow(e.icon || 'tools', e.name,
+        ((Store.equipmentKind(k.id) || {}).label || '종류 모름') + (k.guessed ? ' (확인 필요)' : '')
+        + ' · ' + (a ? 'AI 분석: 위험 ' + a.research.items.length + (a.at ? ' · ' + UI.formatDate(a.at) : '') : 'AI 분석 전')
+        + ' · 사진 ' + (e.photo ? '있음' : '없음'));
+      li.setAttribute('data-id', e.id);
+      var go = UI.el('a', 'btn btn-primary', a ? '분석 불러와 교육 만들기' : 'AI 분석하고 교육 만들기');
+      go.href = 'autogen.html#eq=' + encodeURIComponent(e.id);
+      li.appendChild(go);
+      var fix = UI.el('a', 'btn-sm', '설비 정보 고치기');
+      fix.href = 'setup.html?return=content';
+      li.appendChild(fix);
+      list.appendChild(li);
+    });
+  }
+
   function render() {
     var state = setup();
+    renderEquipCards(state);
     var ready = state.equipments.length > 0 && state.languages.length > 0;
     $('setup-lock').hidden = ready;
     $('builder').hidden = !ready;
@@ -1537,6 +1563,9 @@
 
   $('draft-equip').addEventListener('change', function () {
     draft.equipmentId = $('draft-equip').value;
+    /* 설비가 바뀌면 다른 종류 문구는 빼고 다시 확인한다 */
+    var ok = usablePhrases().map(function (p) { return p.id; });
+    draft.phraseIds = draft.phraseIds.filter(function (id) { return ok.indexOf(id) !== -1; });
     // 제목을 아직 손대지 않았으면 설비 이름으로 채워 준다
     var eq = equipmentOf(draft.equipmentId);
     if (eq && !$('draft-title').value.trim()) {

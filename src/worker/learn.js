@@ -88,8 +88,23 @@
     return ids.map(function (id) {
       return Store.findBy(library, 'id', id);
     }).filter(function (p) {
-      return Store.phraseOk(p, me.lang);
+      /* 🆕 2026-11-11 — 한국어를 섞지 않는다 (사용자 요청). 내 언어 번역이 없는 문구는 한국어로 띄우지 않고 뺀다.
+         몇 개가 빠졌는지는 목록 배지(learn.excluded)가 내 언어로 알린다 */
+      return Store.phraseOk(p, me.lang) && (me.lang === 'ko' || !!translationOf(p));
     });
+  }
+
+  function T(key, vars) {
+    var s = I18N.t(key, me.lang);
+    Object.keys(vars || {}).forEach(function (k) { s = s.split('{' + k + '}').join(String(vars[k])); });
+    return s;
+  }
+
+  /** 교육 이름 — 한국어가 아니면 「설비 이름 · 안전교육」(담당자가 쓴 한국어 제목을 섞지 않는다. 설비 이름은 고유명사) */
+  function courseTitle(course) {
+    if (me.lang === 'ko') return course.title;
+    var eq = equipmentOf(course);
+    return (eq ? eq.name + ' · ' : '') + T('learn.course');
   }
 
   /* 걸러지기 전 개수 — "몇 개가 검수 대기라 빠졌는지" 를 말해 주려면 필요하다 */
@@ -154,18 +169,16 @@
     var proc = Store.findBy(setup.processes, 'id', me.processId);
     var lang = Store.language(me.lang);
 
-    $('courses-why').textContent = [
-      proc ? proc.name + ' 공정' : '공정 미배정',
-      lang ? lang.name : me.lang
-    ].join(' · ') + ' — 내 설비의 교육만 보입니다.';
+    /* 2026-11-11 단순화 — 공정·언어 설명 줄은 두지 않는다 */
+    $('courses-why').textContent = '';
+    $('courses-why').hidden = true;
+    void proc; void lang;
 
     var list = $('course-list');
     list.textContent = '';
 
     if (!courses.length) {
-      list.appendChild(UI.emptyRow(
-        '담당자가 아직 내 설비의 교육을 만들지 않았습니다. 현장 관리자에게 알려 주세요.'
-      ));
+      list.appendChild(UI.emptyRow(T('learn.noCourse')));
       return;
     }
 
@@ -185,35 +198,29 @@
       open.appendChild(ico);
 
       var body = UI.el('div', 'body');
-      body.appendChild(UI.el('strong', null, course.title));
-      body.appendChild(UI.el('p', 'meta',
-        [(eq && eq.name) || '설비 미지정', '안전 문구 ' + usable + '개'].join(' · ')));
+      body.appendChild(UI.el('strong', null, courseTitle(course)));
+      body.appendChild(UI.el('p', 'meta', T('learn.phraseCount', { n: usable })));
 
       var tags = UI.el('div', 'tags');
       tags.appendChild(badgeFor(state));
       // 검수를 못 지난 문구가 있으면 몇 개가 빠졌는지 밝힌다
       if (total > usable) tags.appendChild(UI.waitBadge(I18N.t('learn.excluded') + ' ' + (total - usable)));
-      if (needsTranslation() && !translationCoverage(course))
-        tags.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
+      if (needsTranslation() && !usable && total) tags.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
       body.appendChild(tags);
 
       open.appendChild(body);
       open.addEventListener('click', function () { openCourse(course); });
       li.appendChild(open);
 
-      // 카드가 무슨 교육인지 소리로도 알 수 있게. 제목은 한국어라 한국어로 읽는다.
+      // 카드가 무슨 교육인지 소리로도 — 내 언어 제목으로 읽는다
       li.appendChild(UI.audioButton(function () {
-        return { text: course.title, lang: 'ko' };
-      }, course.title + ' 소리로 듣기'));
+        return { text: courseTitle(course), lang: me.lang, ko: course.title };
+      }, courseTitle(course) + ' — ' + T('voice.play')));
 
       list.appendChild(li);
     });
   }
 
-  /* 이 교육의 문구 중 내 언어 번역이 하나라도 있는지 */
-  function translationCoverage(course) {
-    return phrasesOf(course).some(function (p) { return !!translationOf(p); });
-  }
 
   /* -----------------------------------------------------------------
      화면 B — 수강 진행. 문구 한 장씩.
@@ -240,10 +247,8 @@
     //   검수 안 된 문구를 안전 지시로 쓰는 것보다 못 듣는 편이 낫다.
     if (!phrases.length) {
       var total = phraseTotal(course);
-      $('nophrase-why').textContent = total
-        ? '이 교육의 안전 문구 ' + total + '개가 아직 검수를 지나지 않았습니다. ' +
-          '검수를 지나지 않은 문구는 안전 지시로 쓰지 않습니다. 담당자에게 알려 주세요.'
-        : '이 교육에 아직 안전 문구가 들어 있지 않습니다. 담당자에게 알려 주세요.';
+      $('nophrase-why').textContent = T('quiz.notReady');
+      void total;
       show('nophrase');
       return;
     }
@@ -268,9 +273,8 @@
     var eq = equipmentOf(course);
     var last = current.index === current.phrases.length - 1;
 
-    $('step-title').textContent = course.title;
-    $('step-count').textContent =
-      '안전 문구 ' + (current.index + 1) + ' / ' + current.phrases.length;
+    $('step-title').textContent = courseTitle(course);
+    $('step-count').textContent = T('learn.step') + ' ' + (current.index + 1) + ' / ' + current.phrases.length;
 
     var dots = $('step-dots');
     dots.textContent = '';
@@ -290,19 +294,9 @@
     pict.setAttribute('aria-hidden', 'true');
     card.appendChild(pict);
 
+    /* 내 언어 문장만 — 한국어 원문 줄은 두지 않는다 (phrasesOf 가 번역 없는 문구를 이미 뺐다) */
     var t = translationOf(phrase);
-    if (t) {
-      card.appendChild(UI.el('p', 'translated', t.text));
-      card.appendChild(UI.el('p', 'original', phrase.ko));
-    } else {
-      // 내 언어 번역이 없다. 숨기지 않고 한국어를 띄우고 그 사실을 배지로 남긴다.
-      card.appendChild(UI.el('p', 'translated', phrase.ko));
-      if (needsTranslation()) {
-        var miss = UI.el('p', 'original');
-        miss.appendChild(UI.waitBadge(I18N.t('learn.transPending')));
-        card.appendChild(miss);
-      }
-    }
+    card.appendChild(UI.el('p', 'translated', t ? t.text : phrase.ko));
 
     /* ★ H8 (FR-WK-02-10) — 번역 없음(위) 다음에 음성 없음(아래) 순서로.
        머리의 voicenote 는 수강 중엔 접어 두고(show) 여기서 같은 문장을 보여 준다. */
@@ -310,14 +304,14 @@
     if (voiceNote) card.appendChild(UI.el('p', 'voicenote', voiceNote));
 
     var listen = UI.el('div', 'listen');
-    listen.appendChild(UI.audioButton(function () { return speechFor(phrase); }, I18N.t('learn.listenAgain')));
-    listen.appendChild(UI.el('span', 'label', '다시 듣기'));
+    var audio = UI.audioButton(function () { return speechFor(phrase); }, I18N.t('learn.listenAgain', me.lang));
+    listen.appendChild(audio);
     card.appendChild(listen);
 
     $('btn-prev').disabled = current.index === 0;
-    $('btn-next').textContent = last ? '다 들었습니다 ✓' : '다음 ▶';
+    $('btn-next').textContent = last ? T('learn.heard') + ' ✓' : T('action.next') + ' ▶';
 
-    if (autoSpeak) UI.speak(speechFor(phrase));
+    if (autoSpeak) audio.play();
   }
 
   function step(delta) {
@@ -357,7 +351,7 @@
     });
 
     if (!result.ok) {
-      UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.');
+      UI.toast(T('common.saveFail'));
       return;
     }
 
@@ -392,6 +386,22 @@
     if (e.key === Store.courses.KEY || e.key === Store.library.KEY ||
         e.key === Store.progress.KEY || e.key === Store.setup.KEY) {
       if (!current) renderList();
+    }
+  });
+
+  /* 언어를 바꾸면 지금 화면을 그 언어로 다시 그린다 (문구 장은 같은 자리에서) */
+  UI.langSwitch($('lang-switch'), function () {
+    user = Auth.current();
+    me = whoAmI();
+    if (current) {
+      var phrases = phrasesOf(current.course);
+      if (!phrases.length) { backToList(); return; }
+      current.phrases = phrases;
+      current.index = Math.min(current.index, phrases.length - 1);
+      renderStep(false);
+    } else {
+      renderVoiceNote();
+      renderList();
     }
   });
 

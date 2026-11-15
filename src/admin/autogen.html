@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI로 교육 만들기 — 안전교육 이해도 검증 플랫폼</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/style-admin.css">
+<link rel="stylesheet" href="../assets/app.css">
+<link rel="stylesheet" href="admin.css">
+<script src="../assets/store.js"></script>
+<script src="../assets/auth.js"></script>
+<script>Auth.require('admin');</script>
+</head>
+<body class="has-tabbar">
+
+<header class="adminbar apphead">
+  <div class="who">
+    <strong id="head-site">사업장 미등록</strong>
+    <span id="head-sub"></span>
+  </div>
+  <span class="role-chip admin" id="role-chip"></span>
+  <button class="btn-sm" type="button" id="btn-logout">로그아웃</button>
+</header>
+
+<main class="page page-single">
+
+  <div class="pagehead">
+    <h1>AI로 교육 만들기</h1>
+  </div>
+
+  <p class="blocked" id="blocked" hidden>
+    이 브라우저에서는 저장소를 쓸 수 없습니다. 입력해도 새로고침하면 사라집니다.
+  </p>
+
+  <!-- 2026-11-10 사용자 요청: 「AI 여기까지」 안내·회색 설명은 지운다. AI 경계는 코드(승인 버튼·검수 문구만)가 지킨다 -->
+
+  <p class="lockmsg" id="offline-note" hidden>
+    이 화면은 AI 서버를 부릅니다. 배포 주소(https)에서 로그인했을 때만 동작합니다 —
+    여기서는 아래 <b>[결과 파일 불러오기]</b>로 실측 결과를 검토하거나, <a href="content.html">교육 콘텐츠 생성</a>에서 손으로 만들 수 있습니다.
+  </p>
+
+  <!-- ① 설비 — 설비 탭(setup)이 원천. 여기서는 고르고 불러오기만 한다 (2026-11-11) -->
+  <section class="card" aria-labelledby="t-s1">
+    <h2 id="t-s1"><span class="step-no">1</span>교육 대상 설비</h2>
+    <div class="field">
+      <label for="ag-equip">설비</label>
+      <select id="ag-equip"></select>
+      <p class="field-hint" id="ag-equip-spec"></p>
+    </div>
+    <p class="lockmsg" id="ag-no-equip" hidden>
+      등록된 설비가 없습니다. <a class="btn" href="setup.html?return=content">설비 등록하러 가기</a>
+    </p>
+    <img id="ag-equip-photo" class="equip-photo" alt="설비 사진" hidden>
+    <button class="btn btn-primary" type="button" id="btn-research">AI 위험요소 분석 시작</button>
+    <!-- 서버 없이: 실측 도구가 남긴 결과 파일로 같은 검토를 한다. 파일은 이 브라우저에서만 읽는다 -->
+    <label class="btn" for="ag-runfile">결과 파일 불러오기</label>
+    <input id="ag-runfile" type="file" accept=".json,application/json" hidden>
+    <p class="field-hint" id="ag-research-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <!-- ② 위험요소 분석 — 목록 번호 = 사진 박스 번호 -->
+  <section class="card" aria-labelledby="t-s2" id="sec-items" hidden>
+    <h2 id="t-s2"><span class="step-no">2</span>AI 위험요소 분석 — 담당자 판정</h2>
+    <p class="ag-counts" id="ag-counts" role="status"></p>
+    <ul class="item-list" id="ag-limits"></ul>
+    <div class="ag-photo-row">
+      <label class="btn" for="ag-photo">설비 사진 찍기 · 바꾸기</label>
+      <input id="ag-photo" type="file" accept="image/*" capture="environment" hidden>
+      <p class="field-hint"><b>사람 얼굴·이름표가 나오지 않게 설비만 찍어 주세요.</b></p>
+      <p class="field-hint" id="ag-photo-status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="ag-figure" id="ag-figure" hidden></div>
+    <div class="ag-tabs" id="ag-tabs" role="tablist" aria-label="항목 나눠 보기"></div>
+    <label class="ag-all" id="ag-all" hidden><input type="checkbox" id="ag-all-box"> <span id="ag-all-text">전체 선택</span></label>
+    <ul class="item-list" id="ag-items"></ul>
+    <details class="ag-add" id="ag-add">
+      <summary>AI가 빠뜨린 위험 추가</summary>
+      <div class="field"><label for="ag-add-part">부위</label><input id="ag-add-part" type="text" maxlength="40"></div>
+      <div class="field"><label for="ag-add-hazard">위험유형</label><select id="ag-add-hazard"></select></div>
+      <div class="field"><label for="ag-add-risk">무엇이 왜 위험한가</label><input id="ag-add-risk" type="text" maxlength="160"></div>
+      <button class="btn-sm" type="button" id="btn-add-item">추가</button>
+    </details>
+  </section>
+
+  <!-- ③ 교육자료 — 이 설비 종류의 검수 문구를 자동으로 넣는다. 다른 설비 문구는 고를 수 없다 -->
+  <section class="card" aria-labelledby="t-s3" id="sec-material" hidden>
+    <h2 id="t-s3"><span class="step-no">3</span>교육자료 (자동)</h2>
+    <ul class="item-list" id="ag-phrases"></ul>
+  </section>
+
+  <!-- ④ AI 평가문항 — 규칙으로 수·유형·난이도를 정하고 자동 선정. 담당자는 고르지 않는다 -->
+  <section class="card" aria-labelledby="t-s4" id="sec-quiz" hidden>
+    <h2 id="t-s4"><span class="step-no">4</span>AI 평가문항 (자동 생성·선정)</h2>
+    <p class="field-hint" id="ag-quiz-status" role="status" aria-live="polite"></p>
+    <ul class="item-list" id="ag-plan"></ul>
+    <ol class="ag-quiz" id="ag-quiz"></ol>
+    <div class="ag-judge">
+      <button class="btn" type="button" id="btn-regen-all">전체 다시 만들기</button>
+      <button class="btn" type="button" id="btn-hold">발급 보류</button>
+    </div>
+  </section>
+
+  <!-- ⑤ 검토 후 발급 -->
+  <section class="card" aria-labelledby="t-s5" id="sec-approve" hidden>
+    <h2 id="t-s5"><span class="step-no">5</span>검토 후 발급</h2>
+    <div class="field">
+      <label for="ag-title">교육 제목</label>
+      <input id="ag-title" type="text" maxlength="60">
+    </div>
+    <label class="ag-all" id="ag-reviewed-row"><input type="checkbox" id="ag-reviewed"> <span id="ag-reviewed-text">AI 작성 문항을 검토했습니다</span></label>
+    <ul class="checklist" id="ag-check"></ul>
+    <p class="field-hint" id="ag-lang-note"></p>
+    <button class="btn btn-primary" type="button" id="btn-approve" disabled>승인·발급</button>
+  </section>
+
+</main>
+
+<nav class="tabbar fixed" aria-label="담당자 메뉴">
+  <a href="dashboard.html"><span class="ico" aria-hidden="true">📊</span>대시보드</a>
+  <a href="setup.html"><span class="ico" aria-hidden="true">🏭</span>설비</a>
+  <a href="content.html"><span class="ico" aria-hidden="true">📝</span>콘텐츠</a>
+  <a href="proof.html"><span class="ico" aria-hidden="true">📄</span>증빙</a>
+  <a href="library.html"><span class="ico" aria-hidden="true">🔍</span>문구</a>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="../assets/icons.js"></script>
+<script src="../assets/ui.js"></script>
+<script src="../assets/net.js"></script>
+<script src="autogen.js"></script>
+</body>
+</html>

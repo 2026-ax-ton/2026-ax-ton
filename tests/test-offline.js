@@ -54,9 +54,9 @@ const ui = fs.readFileSync(path.join(SRC, 'assets/ui.js'), 'utf8');
     listed.indexOf('sw.js') === -1);
 
   // 갈래별 개수 — 위 대조가 먼저 잡지만, 어느 갈래가 비었는지 바로 보이게 세어 둔다
-  eq('화면 HTML 13개', listed.filter((f) => /\.html$/.test(f)).length, 13);
+  eq('화면 HTML 15개 (+ AI로 교육 만들기 · 설비 촬영)', listed.filter((f) => /\.html$/.test(f)).length, 15);
   eq('CSS 5개', listed.filter((f) => /\.css$/.test(f)).length, 5);
-  eq('JS 25개 (공용 14 · 화면 11)', listed.filter((f) => /\.js$/.test(f)).length, 25);
+  eq('JS 28개 (공용 15 · 화면 13)', listed.filter((f) => /\.js$/.test(f)).length, 28);
 }
 
 /* =================================================================

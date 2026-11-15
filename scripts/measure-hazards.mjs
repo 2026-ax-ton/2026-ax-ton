@@ -42,13 +42,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
-  HAZARDS, MAX_POINTS, systemText, parseModelJson, filterPoints, overlapCount,
+  HAZARD_CODES, MAX_POINTS, systemText, parseModelJson, filterPoints, overlapCount,
 } from '../api/_hazards.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /* ── 위험유형 6종 — 화면이 쓰는 표를 그대로 읽는다 ─────────────────
-   서버(`api/_hazards.mjs` 의 HAZARDS)는 `src/` 를 읽을 수 없어 사본을 둔다.
+   서버(`api/_hazards.mjs` 의 HAZARD_CODES)는 `src/` 를 읽을 수 없어 사본을 둔다.
    이 도구는 `src/assets/store.js` 를 직접 읽어 **화면의 정답**을 꺼낸다 —
    검사(`tests/test-measure-hazards.mjs`)가 두 값이 같은지 본다. */
 export function readHazards(root = ROOT) {
@@ -81,7 +81,7 @@ const MIME = {
 
 /* ── 여기서부터는 실제로 부르는 부분 ───────────────────────────────── */
 
-function readEnvLocal() {
+export function readEnvLocal() {
   const p = path.join(ROOT, '.env.local');
   if (!fs.existsSync(p)) return {};
   const out = {};
@@ -165,7 +165,7 @@ function main() {
     process.exit(1);
   }
 
-  const hazards = HAZARDS;
+  const hazards = HAZARD_CODES;
   const system = systemText(hazards);
 
   console.log('모델 ' + model + ' · 위험유형 ' + hazards.length + '종 (' + hazards.join('·') + ')'

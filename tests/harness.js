@@ -10,7 +10,9 @@ const SRC = path.join(ROOT, 'src');
 
 function boot(pageRelPath, opts = {}) {
   // ?course=... 같은 쿼리는 URL 에만 붙이고 파일 경로에서는 뗀다
-  const [filePart, queryPart] = pageRelPath.split('?');
+  // #eq=... 같은 해시도 URL 에만 (2026-11-11 설비 id 로 화면 사이를 오간다)
+  const [beforeHash, hashPart] = pageRelPath.split('#');
+  const [filePart, queryPart] = beforeHash.split('?');
   const html = fs.readFileSync(path.join(SRC, filePart), 'utf8');
   const errors = [];
 
@@ -19,7 +21,7 @@ function boot(pageRelPath, opts = {}) {
   vc.on('error', (m) => errors.push(String(m)));
 
   const dom = new JSDOM(html, {
-    url: 'https://test.local/' + filePart + (queryPart ? '?' + queryPart : ''),
+    url: 'https://test.local/' + filePart + (queryPart ? '?' + queryPart : '') + (hashPart ? '#' + hashPart : ''),
     runScripts: 'outside-only',
     pretendToBeVisual: true,
     virtualConsole: vc,
@@ -40,6 +42,7 @@ function boot(pageRelPath, opts = {}) {
     hostname: win.location.hostname,
     pathname: win.location.pathname,
     search: win.location.search,
+    get hash() { return win.location.hash; },
     get href() { return win.location.href; },
     set href(v) { nav.push(v); },
     replace: (v) => nav.push(v),

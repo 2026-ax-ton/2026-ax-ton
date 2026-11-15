@@ -46,7 +46,7 @@ export async function handle(request) {
     return fail(500, 'config', '서버 설정 오류입니다.', cors);
   }
 
-  if (!takeDailyCall(cfg.dailyLimit)) {
+  if (!(await takeDailyCall(cfg.dailyLimit))) {
     log({ route: 'backtranslate', lang, attempt: 0, ms: Date.now() - started, status: 429, err: 'limit' });
     return fail(429, 'limit', '오늘 AI 사용 한도를 넘었습니다.', cors);
   }

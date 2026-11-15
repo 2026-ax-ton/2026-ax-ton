@@ -54,6 +54,21 @@ var Store = (function () {
 
   var ICONS = ['⚙', '🏭', '🔧', '🔩', '⚡', '🔥', '🧪', '🧯', '📦', '🚜'];
 
+  /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
+     **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
+     label 은 문구 분류(category) 값과 같다. 「공통」 문구는 모든 종류에 붙는다.
+     ★ 새 종류를 더할 때는 문구 화면의 분류 이름도 같은 label 로 쓴다 */
+  var EQUIPMENT_KINDS = [
+    { id: 'press',     label: '프레스' },
+    { id: 'paint',     label: '도장' },
+    { id: 'injection', label: '사출성형' },
+    { id: 'electric',  label: '전기설비' },
+    { id: 'other',     label: '기타' }
+  ];
+  var COMMON_CATEGORY = '공통';
+  /* 종류 칸이 없던 옛 설비 — 이름으로 한 번만 짐작한다 (화면에 「종류 확인 필요」로 보인다) */
+  var KIND_GUESS = [[/프레스/, 'press'], [/도장/, 'paint'], [/사출/, 'injection'], [/배전|분전|전기/, 'electric']];
+
   /* 사업장 규모는 11-admin-start.html 의 가입 폼과 같은 3구간을 쓴다.
      같은 개념을 두 화면이 다르게 물으면 나중에 합칠 때 값을 손으로 옮겨야 한다. */
   var SIZE_BANDS = ['10인 미만', '10~49인', '50인 이상'];
@@ -131,6 +146,7 @@ var Store = (function () {
 
   var Sync = (function () {
     var listeners = [];
+    var rejectListeners = [];   // 🆕 2026-11-11 서버가 거절(400·403·413)한 변경 — 버리기 전에 화면에 알린다
     var state = 'idle';     // idle | ok | offline
     var sending = false;
 
@@ -210,7 +226,12 @@ var Store = (function () {
         // 토큰이 만료됐다. 화면이 다음 가드에서 로그인으로 보낸다
         if (r.status === 401) { if (setState('offline')) fire([]); return; }
         // 우리가 보낸 것이 틀렸다 (400·403). 쌓아 두면 영영 안 빠진다
-        if (!r.ok) { dropFirst(); if (setState('ok')) fire([]); return; }
+        if (!r.ok) {
+          /* 이 변경은 이 브라우저에만 남는다. 담당자가 모르면 「저장됐다」고 믿는다 — 알린다 (2026-11-11 점검에서 찾음) */
+          var why = { key: name, status: r.status, code: (r.data && r.data.error) || '', message: (r.data && r.data.message) || '' };
+          rejectListeners.forEach(function (fn) { try { fn(why); } catch (e) { /* 다음 화면 */ } });
+          dropFirst(); if (setState('ok')) fire([]); return;
+        }
 
         var moved = applyFromServer(name, r.data.data, r.data.version);
         dropFirst();
@@ -288,6 +309,7 @@ var Store = (function () {
     return {
       on: on, queue: queue, send: send, pull: pull, every: every,
       onChange: onChange, reset: reset,
+      onReject: function (fn) { rejectListeners.push(fn); },
       state: function () { return state; },
       pending: function () { return outbox(); },
       versions: meta,
@@ -378,7 +400,14 @@ var Store = (function () {
       return { userId: d.userId || '', role: d.role || '', at: d.at || null };
     });
 
-  /* 3. setup — 관리자 기능1 (사업장 · 언어 · 공정 · 설비 · 노동자) */
+  /* 3. setup — 관리자 기능1 (사업장 · 언어 · 공정 · 설비 · 노동자)
+        equipments[]: { id, processId, name, icon, hazards[], note, maker, model, year,
+                        🆕 2026-11-11 kind, photo, analysis }
+          kind     : EQUIPMENT_KINDS 의 id — 문구·공식 문서·AI 조사를 이 값으로 잇는다
+          photo    : 설비 사진 data URL (긴 변 640). AI 위치 찾기와 사진 문항이 쓴다
+          analysis : { at, model, source, kind, research, guided } — AI 위험요소 분석 결과.
+                     ★ 설비 탭이 원천이다. 콘텐츠(AI 교육 만들기)는 여기서 불러오고, 새로 분석하면 여기에 쓴다.
+                     참고 사진(외부 그림 data)은 넣지 않는다 — 동기화 상한(512KB) 때문 */
   var setup = makeStore('setup',
     function () {
       return {
@@ -432,6 +461,15 @@ var Store = (function () {
   /* 5. courses — 관리자 기능2 가 만든 교육. 노동자 기능3·4 가 읽는다
         { id, title, equipmentId, languages: [], phraseIds: [], dueAt,
           quiz: [ { id, type, prompt, i18n } ], approved, createdAt }
+
+        🆕 2026-11-11 AI 교육(autogen) 이 더하는 칸 — 더하기만 했다. 노동자 화면은 읽지 않는다
+          photo     : 설비 사진 data URL (hotspot 문항이 쓴다)
+          hazards   : [{ id, equipmentId, part, hazard, risk, status, official, specific, box, sources }]
+                      문항이 어느 위험에서 나왔는지 추적하는 스냅샷. 서버가 equipmentId·hazardId 를 맞춰 본다
+          rulesVersion : SAFETY_QUESTION_GENERATION_RULES.md 의 version
+          quiz[]    : + hazardId · subtype(location|action|ox|situation) · difficulty · prevention ·
+                      sources · evidence · answerFrom('phrase:ph-1' | 'ai') · aiWritten
+          aiDraft   : AI 가 무엇을 냈고 담당자가 어떻게 봤나 (기록)
 
         문항의 한국어 문구는 prompt · options · results · pairs · why 에 있고,
         번역은 i18n[언어코드] 아래에 같은 이름으로 들어간다.
@@ -715,6 +753,25 @@ var Store = (function () {
     return ra >= rb ? a : b;
   }
 
+  function equipmentKind(id) { return findBy(EQUIPMENT_KINDS, 'id', id); }
+
+  /** 설비의 종류 id — kind 가 있으면 그것, 없으면 이름으로 짐작('' = 모름). guessed 로 짐작인지 알린다 */
+  function kindOf(eq) {
+    if (!eq) return { id: '', guessed: false };
+    if (equipmentKind(eq.kind)) return { id: eq.kind, guessed: false };
+    var name = String(eq.name || '');
+    for (var i = 0; i < KIND_GUESS.length; i++) if (KIND_GUESS[i][0].test(name)) return { id: KIND_GUESS[i][1], guessed: true };
+    return { id: '', guessed: true };
+  }
+
+  /** 이 설비 종류에 쓸 수 있는 문구 — 분류가 그 종류이거나 「공통」인 것만. 다른 설비 문구는 섞지 않는다 */
+  function phrasesFor(kindId, list) {
+    var k = equipmentKind(kindId);
+    return (list || library.load()).filter(function (p) {
+      return p.category === COMMON_CATEGORY || (!!k && p.category === k.label);
+    });
+  }
+
   function phraseStatus(phrase, lang) {
     if (!phrase) return 'stopped';
 
@@ -886,6 +943,8 @@ var Store = (function () {
   return {
     // 어휘
     LANGUAGES: LANGUAGES, HAZARDS: HAZARDS, ICONS: ICONS,
+    EQUIPMENT_KINDS: EQUIPMENT_KINDS, COMMON_CATEGORY: COMMON_CATEGORY,
+    equipmentKind: equipmentKind, kindOf: kindOf, phrasesFor: phrasesFor,
     SIZE_BANDS: SIZE_BANDS, ROLES: ROLES, PHRASE_STATUS: PHRASE_STATUS,
     language: language, hazard: hazard, role: role, findBy: findBy,
 
