@@ -765,7 +765,14 @@
   }
 
   function translateQuiz(langs) {
-    if (!serverReady() || state.source === 'file' || !quizItems().length) return;
+    /* ★ 2026-11-15 — 결과 파일로 불러온 문항도 **번역은 된다** (사용자 보고).
+       [수정 요청]·[전체 다시 만들기] 는 서버가 문항 계획(`plan.slots`)을 다시
+       들여다봐야 해서 파일 경로에서 막아 둔다. 그런데 **번역은 문항 글자만
+       있으면 되는 일**이라 계획이 필요 없다. 같은 조건으로 묶어 막는 바람에
+       결과 파일로 만든 교육은 「문항 번역」 칸이 영원히 ✗ 로 남아
+       **발급 자체가 되지 않았다** — 언어를 쓰는 사업장에서는 길이 없었다.
+       서버가 없으면 여전히 돌지 않는다 (`serverReady()` 는 그대로다). */
+    if (!serverReady() || !quizItems().length) return;
     var e = state.equipment;
     (langs || transMissing()).forEach(function (lang) {
       var items = quizItems().filter(function (q) { return !translatedFor(q, lang); }).map(function (q) {
@@ -809,7 +816,13 @@
 
   function renderQuiz() {
     $('sec-quiz').hidden = false;
+    /* 두 가지를 가른다 (2026-11-15) —
+         server       문항을 **만들거나 다시 만드는** 일. 서버가 문항 계획(`plan.slots`)을
+                      다시 들여다봐야 해서 결과 파일 경로에서는 할 수 없다
+         canTranslate 문항을 **번역하는** 일. 문항 글자만 있으면 되므로 계획이 필요 없다.
+                      결과 파일로 불러온 문항도 번역할 수 있어야 **발급까지 간다** */
     var server = serverReady() && state.source !== 'file';
+    var canTranslate = serverReady();
     $('btn-regen-all').textContent = state.quiz ? '전체 다시 만들기' : 'AI 문항 만들기';
     $('btn-regen-all').disabled = !server;
     $('btn-hold').textContent = state.hold ? '보류 풀기' : '발급 보류';
@@ -831,12 +844,19 @@
         var st = state.trans[l];
         return langName(l) + (miss.indexOf(l) === -1 ? ' ✓' : (st === 'pending' ? ' (번역 중)' : ' ✗' + (st && st !== 'ok' ? ' ' + st : '')));
       }).join(' · '), miss.length ? '번역이 빠진 언어의 노동자에게는 문항이 열리지 않습니다 (한국어를 섞지 않는다).' : '노동자 화면은 고른 언어로만 나옵니다.');
-      if (miss.length && server && miss.some(function (l) { return state.trans[l] !== 'pending'; })) {
-        var rt = UI.el('button', 'btn-sm', '번역 다시 시도');
+      if (miss.length && canTranslate && miss.some(function (l) { return state.trans[l] !== 'pending'; })) {
+        /* 아직 한 번도 안 돌렸으면 「다시 시도」가 아니다 — 결과 파일로 불러온
+           문항이 바로 그 처지다 (서버 흐름은 문항을 만든 뒤 자동으로 돈다) */
+        var tried = miss.some(function (l) { return state.trans[l]; });
+        var rt = UI.el('button', 'btn-sm', tried ? '번역 다시 시도' : '문항 번역하기');
         rt.type = 'button';
         rt.id = 'btn-retrans';
         rt.addEventListener('click', function () { translateQuiz(); });
         tl.appendChild(rt);
+      }
+      /* 결과 파일은 번역이 **저절로** 돌지 않는다 — AI 를 부르는 일이라 사람이 누른다 */
+      if (miss.length && canTranslate && state.source === 'file' && !miss.some(function (l) { return state.trans[l]; })) {
+        tl.appendChild(UI.el('p', 'sub', '결과 파일의 문항은 번역이 따로 돕니다. [문항 번역하기]를 누르면 언어마다 AI 를 한 번씩 부릅니다.'));
       }
       plan.appendChild(tl);
     }
