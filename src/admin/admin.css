@@ -973,3 +973,97 @@ body.dash-figma .bar-item[data-level="ok"]  .bar-fill { background: var(--ok); }
   body.dash-figma .page > .card.feature { grid-column: 1; grid-row: span 5; }
   body.dash-figma .page > section[aria-labelledby="t-action"] { grid-column: 1 / -1; }   /* 표는 넓게 */
 }
+
+/* ===================================================================
+   🆕 2026-11-16 담당자 메뉴 — 5개 그룹 + 상세 메뉴 (ui.js buildAdminMenu)
+   누르면 열리고 열린 채로 남는다 (hover 로 열지 않는다). 폰은 아래 탭바 위로, PC 는 머리띠 아래 가로 메뉴.
+   =================================================================== */
+.tabbar.admin-menu { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; }
+.admin-menu .menu-group { position: static; display: flex; }
+.admin-menu .menu-btn {
+  flex: 1 1 auto; min-height: var(--tap-min, 60px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: 0; background: transparent; font: inherit; font-size: .68em; font-weight: 700; color: var(--ink-3); cursor: pointer;
+}
+.admin-menu .menu-btn .ico { width: 22px; height: 22px; }
+.admin-menu .menu-btn .caret { display: none; font-size: .9em; transition: transform .15s; }
+.admin-menu .menu-btn[aria-current="page"] { color: var(--brand); }
+.admin-menu .menu-btn[aria-expanded="true"] { color: var(--brand); background: var(--brand-soft); }
+.admin-menu .menu-btn[aria-expanded="true"] .caret { transform: rotate(180deg); }
+.admin-menu .menu-panel {
+  position: fixed; left: 8px; right: 8px; bottom: 78px; z-index: 50;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(25, 31, 40, .16); padding: 8px;
+  max-height: 70vh; overflow: auto;
+}
+.admin-menu .menu-panel[hidden] { display: none; }
+.admin-menu .menu-item {
+  display: flex; align-items: center; gap: 14px; min-height: var(--tap-min, 60px);
+  padding: 10px 14px; border-radius: 12px; color: var(--ink, #191f28); text-decoration: none;
+}
+.admin-menu .menu-item:hover, .admin-menu .menu-item:focus-visible { background: var(--brand-soft); }
+.admin-menu .menu-item[aria-current="page"] { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
+.admin-menu .menu-text { display: flex; flex-direction: column; gap: 2px; }
+.admin-menu .menu-text b { font-size: .95em; }
+.admin-menu .menu-text small { color: var(--ink-3); font-size: .8em; }
+
+@media (min-width: 1024px) {
+  body.has-admin-menu .apphead { padding-left: 28px; }
+  .tabbar.fixed.admin-menu {
+    position: sticky; top: var(--head-h, 60px); bottom: auto; left: auto; right: auto;
+    width: auto; height: auto; z-index: 35;
+    display: flex; flex-direction: row; gap: 4px; padding: 0 20px;
+    border-top: 0; border-right: 0; border-bottom: 1px solid var(--line); box-shadow: none;
+    background: var(--surface);
+  }
+  .admin-menu .menu-group { position: relative; }
+  .admin-menu .menu-btn {
+    flex-direction: row; gap: 8px; min-height: 56px; padding: 0 16px; font-size: .95em;
+    border-bottom: 3px solid transparent; border-radius: 0;
+  }
+  .admin-menu .menu-btn[aria-current="page"] { border-bottom-color: var(--brand); }
+  .admin-menu .menu-btn[aria-expanded="true"] { background: transparent; }
+  .admin-menu .menu-btn .caret { display: inline; }
+  .admin-menu .menu-panel { position: absolute; top: calc(100% + 6px); left: 0; right: auto; bottom: auto; min-width: 320px; }
+  body.has-tabbar.has-admin-menu .page { margin-left: auto; margin-right: auto; }
+}
+
+/* 설비 화면 나누기 — 상세 메뉴 항목마다 한 부분만 */
+[data-view][hidden] { display: none !important; }
+.viewtabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; }
+.viewtabs a {
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink-2, #4e5968); font-size: .88em; font-weight: 700; text-decoration: none;
+}
+.viewtabs a[aria-current="page"] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink, #fff); }
+#equip-added { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#equip-added[hidden], .edit-slot[hidden], .cam-panel[hidden], .review-memo[hidden] { display: none; }
+.edit-slot { border: 2px solid var(--brand); border-radius: 14px; padding: 14px; margin-bottom: 14px; background: var(--brand-soft); }
+.edit-slot h3 { margin: 0 0 10px; }
+
+/* 위험유형 더하기 · 카메라 */
+.hazard-more { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.hazard-more select, .hazard-more input { flex: 1 1 200px; min-height: 44px; }
+.photo-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.cam-panel { margin-top: 8px; }
+.cam-panel video { display: block; width: 100%; max-width: 480px; border-radius: 12px; background: #000; }
+
+/* AI 검수 — AI 가 조사한 부분은 색 띠 + 「AI 조사」 글자 (색만으로 구분하지 않는다) */
+.ai-mark {
+  display: inline-block; padding: 1px 8px; border-radius: 6px; font-size: .78em; font-weight: 800;
+  background: #fde8e8; color: #b42318; border: 1px solid #f5b5b0;
+}
+.review { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.review-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.review-items { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; }
+.review-item { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+.review-item.is-deleted { opacity: .6; }
+.review-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ai-found {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px;
+  padding: 8px 10px; border-left: 4px solid #d92d20; background: #fff5f4; border-radius: 0 8px 8px 0;
+}
+.ai-found b { color: #b42318; }
+.ai-found .src { font-size: .85em; }
+.review-memo { display: grid; gap: 6px; margin-top: 8px; }
+.review-memo textarea { width: 100%; box-sizing: border-box; }

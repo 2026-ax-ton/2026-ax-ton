@@ -44,18 +44,28 @@
     시크릿 모드이거나 사이트 데이터가 차단된 상태인지 확인해 주세요.
   </p>
 
-  <!-- 기능1은 AI가 개입하지 않는다 -->
-  <div class="ai-note off">
-    <span class="tag">AI 개입 없음</span>
-    <span>이 화면은 입력한 값을 그대로 저장합니다. 추정하거나 채워 넣지 않습니다.</span>
+  <!-- 🆕 2026-11-16 입력은 그대로 저장하고, AI 는 등록 뒤 검수만 제안한다 (반영은 담당자 승인 때만) -->
+  <div class="ai-note">
+    <span class="tag">AI 1차 검수</span>
+    <span>입력한 값은 그대로 저장됩니다. 설비를 등록하면 AI 가 공개 자료로 맞는지 확인하고,
+      <b>담당자가 [승인]한 것만</b> 설비 정보에 반영됩니다.</span>
   </div>
+
+  <!-- 🆕 2026-11-16 상세 메뉴(설비 ▾)마다 이 화면의 한 부분만 보인다 — #site · #equip · #list · #workers · #backup -->
+  <nav class="viewtabs" aria-label="설비 화면 나누기">
+    <a href="#site">사업장 등록</a>
+    <a href="#equip">설비 등록</a>
+    <a href="#list">등록 설비 확인·수정</a>
+    <a href="#workers">노동자 관리</a>
+    <a href="#backup">데이터 백업</a>
+  </nav>
 
   <div class="setup-grid">
 
     <div class="col-main">
 
       <!-- 1. 사업장 기본정보 ------------------------------------------ -->
-      <section class="card" aria-labelledby="t-site">
+      <section class="card" aria-labelledby="t-site" data-view="site">
         <div class="sec-head">
           <div>
             <h2 id="t-site"><span class="step-no">1</span>사업장 기본정보</h2>
@@ -82,7 +92,7 @@
       </section>
 
       <!-- 2. 사용 언어 등록 ------------------------------------------- -->
-      <section class="card" aria-labelledby="t-lang">
+      <section class="card" aria-labelledby="t-lang" data-view="site">
         <div class="sec-head">
           <div>
             <h2 id="t-lang"><span class="step-no">2</span>사용 언어 등록</h2>
@@ -99,7 +109,7 @@
       </section>
 
       <!-- 3. 공정 등록 ------------------------------------------------ -->
-      <section class="card" aria-labelledby="t-proc">
+      <section class="card" aria-labelledby="t-proc" data-view="site">
         <div class="sec-head">
           <div>
             <h2 id="t-proc"><span class="step-no">3</span>공정 등록</h2>
@@ -127,22 +137,30 @@
       </section>
 
       <!-- 4. 설비 등록 — 이 화면의 핵심 ------------------------------- -->
-      <section class="card" aria-labelledby="t-equip">
+      <section class="card" aria-labelledby="t-equip" data-view="equip">
         <div class="sec-head">
           <div>
             <h2 id="t-equip"><span class="step-no">4</span>설비 등록</h2>
             <p class="why">
               위험유형은 나중에 이해도 검증 문항이 만들어지는 기준이 됩니다.
               실제로 그 설비에 있는 위험만 고르세요.
+              이미 등록한 설비는 <a href="#list">등록 설비 확인·수정</a>에서 고칩니다.
             </p>
           </div>
           <span class="badge badge-neutral" id="b-equip"><span aria-hidden="true">○</span> 미설정</span>
         </div>
 
         <p class="lockmsg" id="equip-lock" hidden>
-          먼저 <b>3. 공정</b>을 하나 이상 등록해 주세요. 설비는 공정에 속합니다.
+          먼저 <a href="#site">사업장 등록</a>에서 <b>3. 공정</b>을 하나 이상 등록해 주세요. 설비는 공정에 속합니다.
         </p>
 
+        <!-- 등록 직후 — AI 검수 결과를 보러 가는 바로가기 -->
+        <p class="lockmsg" id="equip-added" hidden>
+          <span id="equip-added-text">등록했습니다. AI 가 등록 정보를 확인하고 있습니다.</span>
+          <a class="btn-sm" href="#list" id="equip-added-go">AI 검수 결과 보기</a>
+        </p>
+
+        <div id="equip-form-home">
         <form id="form-equip" autocomplete="off">
           <fieldset class="formset" id="equip-fields">
             <div class="field-pair">
@@ -180,19 +198,37 @@
 
             <div class="field">
               <label id="l-hazard">위험유형</label>
-              <p class="field-hint" style="margin:-2px 0 6px">여러 개 고를 수 있습니다.</p>
+              <p class="field-hint" style="margin:-2px 0 6px">
+                여러 개 고를 수 있습니다. 자주 쓰는 6가지 외에는 아래 목록(고용노동부 재해 발생형태 · 보건기준 분류)에서 더하거나 직접 적으세요.
+              </p>
               <div class="picker" id="pick-hazard" role="group" aria-labelledby="l-hazard"></div>
+              <div class="hazard-more">
+                <label class="sr-only" for="hazard-add">위험유형 목록에서 더하기</label>
+                <select id="hazard-add"></select>
+                <label class="sr-only" for="hazard-custom">위험유형 직접 적기</label>
+                <input id="hazard-custom" type="text" maxlength="20" placeholder="목록에 없으면 직접 적기 (예: 고압가스)">
+                <button class="btn-sm" type="button" id="btn-hazard-custom">더하기</button>
+              </div>
             </div>
 
-            <div class="field">
-              <label id="l-equip-icon">픽토그램</label>
-              <div class="picker icons" id="pick-equip-icon" role="radiogroup" aria-labelledby="l-equip-icon"></div>
-            </div>
+            <!-- 🆕 2026-11-16 픽토그램은 고르지 않는다 — 설비 종류(AI 검수로 확인)에서 정한다 -->
 
             <!-- 🆕 2026-11-11 설비 사진 — AI 위험 위치 찾기와 사진 문항이 쓴다. 긴 변 640px 로 줄여 저장한다 -->
             <div class="field">
               <label for="equip-photo">설비 사진 <small>(선택 · 사람 얼굴이 나오지 않게)</small></label>
-              <input id="equip-photo" type="file" accept="image/*" capture="environment">
+              <div class="photo-pick">
+                <input id="equip-photo" type="file" accept="image/*">
+                <!-- 🆕 2026-11-16 카메라로 바로 찍기 — 갤러리 고르기는 위에 그대로 -->
+                <button class="btn-sm" type="button" id="btn-equip-camera">카메라로 찍기</button>
+                <input id="equip-photo-cam" type="file" accept="image/*" capture="environment" hidden>
+              </div>
+              <div class="cam-panel" id="cam-panel" hidden>
+                <video id="cam-video" autoplay playsinline muted></video>
+                <div class="btn-row">
+                  <button class="btn btn-primary" type="button" id="btn-cam-shot">찍기</button>
+                  <button class="btn" type="button" id="btn-cam-close">닫기</button>
+                </div>
+              </div>
               <img id="equip-photo-preview" class="equip-photo" alt="고른 설비 사진" hidden>
               <!-- 🆕 2026-11-15 가이드 촬영 — 사진 1장이 아니라 둘레를 두 바퀴 (3D·여러 각도 재료). 저장된 설비만 -->
               <a class="equip-scan-btn" id="btn-equip-scan" href="#" hidden>둘레 촬영 (가이드 · 3D용)</a>
@@ -206,13 +242,28 @@
             <button class="btn" type="button" id="btn-equip-cancel" hidden>수정 취소</button>
           </fieldset>
         </form>
+        </div>
+      </section>
 
-        <hr class="hr">
+      <!-- 🆕 2026-11-16 등록 설비 확인·수정 — 수정은 여기서 한다 (등록 폼으로 돌아가지 않는다) -->
+      <section class="card" aria-labelledby="t-list" data-view="list">
+        <div class="sec-head">
+          <div>
+            <h2 id="t-list">등록 설비 확인·수정</h2>
+            <p class="why">
+              <span class="ai-mark">AI 조사</span> 표시가 AI 가 공개 자료로 확인한 부분입니다.
+              항목마다 <b>승인</b>(AI 대로 반영) · <b>수정</b>(메모를 달아 다시 조사) · <b>삭제</b>(이 AI 결과 버리기)를 고르세요.
+            </p>
+          </div>
+        </div>
+        <div class="edit-slot" id="equip-edit-slot" hidden>
+          <h3 id="equip-edit-title">설비 수정</h3>
+        </div>
         <ul class="item-list" id="list-equip"></ul>
       </section>
 
       <!-- 5. 노동자 등록 ---------------------------------------------- -->
-      <section class="card" aria-labelledby="t-worker">
+      <section class="card" aria-labelledby="t-worker" data-view="workers">
         <div class="sec-head">
           <div>
             <h2 id="t-worker"><span class="step-no">5</span>노동자 등록</h2>
@@ -277,7 +328,7 @@
         <p class="muted" style="margin-top:10px" id="updated-at">아직 저장된 내용이 없습니다.</p>
       </section>
 
-      <section class="card" aria-labelledby="t-store">
+      <section class="card" aria-labelledby="t-store" data-view="backup">
         <h2 class="card-title" id="t-store">저장 위치</h2>
         <p class="storagenote">
           입력한 내용은 서버로 보내지 않고 <b>이 브라우저 안에만</b> 남습니다
@@ -290,7 +341,7 @@
         </p>
       </section>
 
-      <section class="card" aria-labelledby="t-data">
+      <section class="card" aria-labelledby="t-data" data-view="backup">
         <h2 class="card-title" id="t-data">데이터 주고받기</h2>
         <div class="btn-row" style="margin-bottom:10px">
           <button class="btn-sm" type="button" id="btn-export">내보내기</button>

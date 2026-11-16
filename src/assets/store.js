@@ -51,7 +51,47 @@ var Store = (function () {
     { code: 'chemical', label: '화학물질', icon: '🧪' }
   ];
 
+  /* 🆕 2026-11-16 설비 등록용 위험유형 — 위 6종(노동자 신고·AI 문항이 쓰는 핵심)에 공식 분류를 더한 목록.
+     ★ HAZARDS 는 그대로 둔다 — 노동자 신고 화면이 그 6개를 칩으로 보인다 (글 못 읽는 노동자에게 20개는 많다).
+     분류 근거
+       accident : 고용노동부 「산업재해 현황분석」 재해 발생형태 (떨어짐·끼임·감전 …)
+       health   : 산업안전보건기준에 관한 규칙 제3편 보건기준 (소음·진동, 분진, 근골격계, 온도, 방사선)
+     목록에 없는 것은 담당자가 직접 적는다 — 코드 'x:' + 글자 (customHazard) */
+  var HAZARD_GROUPS = [
+    { id: 'accident', label: '재해 발생형태 (고용노동부 산업재해 분류)' },
+    { id: 'health',   label: '건강장해 (산업안전보건기준 규칙 보건기준)' }
+  ];
+  var HAZARD_TYPES = HAZARDS.map(function (h) { return { code: h.code, label: h.label, icon: h.icon, group: 'accident' }; }).concat([
+    { code: 'trip',      label: '넘어짐',             icon: 'alert',   group: 'accident' },
+    { code: 'crush',     label: '깔림·뒤집힘',        icon: 'box',     group: 'accident' },
+    { code: 'collide',   label: '부딪힘',             icon: 'barrier', group: 'accident' },
+    { code: 'struck',    label: '물체에 맞음',        icon: 'helmet',  group: 'accident' },
+    { code: 'collapse',  label: '무너짐',             icon: 'barrier', group: 'accident' },
+    { code: 'cut',       label: '절단·베임·찔림',     icon: 'tools',   group: 'accident' },
+    { code: 'explode',   label: '폭발·파열',          icon: 'flame',   group: 'accident' },
+    { code: 'temp',      label: '이상온도 접촉(화상)', icon: 'flame',   group: 'accident' },
+    { code: 'strain',    label: '불균형·무리한 동작', icon: 'person',  group: 'accident' },
+    { code: 'drown',     label: '빠짐·익사',          icon: 'alert',   group: 'accident' },
+    { code: 'traffic',   label: '사업장 내 교통사고(지게차 등)', icon: 'tractor', group: 'accident' },
+    { code: 'noise',     label: '소음',               icon: 'speaker', group: 'health' },
+    { code: 'vibration', label: '진동',               icon: 'repeat',  group: 'health' },
+    { code: 'dust',      label: '분진',               icon: 'mask',    group: 'health' },
+    { code: 'msd',       label: '근골격계 부담',      icon: 'person',  group: 'health' },
+    { code: 'heatcold',  label: '고열·한랭',          icon: 'flame',   group: 'health' },
+    { code: 'radiation', label: '방사선·유해광선',    icon: 'eye',     group: 'health' }
+  ]);
+  var CUSTOM_HAZARD = 'x:';
+  /** 담당자가 직접 적은 위험유형의 코드 — 같은 글자는 같은 코드 (목록에 있는 이름이면 그 코드) */
+  function customHazard(text) {
+    var t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 20);
+    if (!t) return '';
+    for (var i = 0; i < HAZARD_TYPES.length; i++) if (HAZARD_TYPES[i].label === t) return HAZARD_TYPES[i].code;
+    return CUSTOM_HAZARD + t;
+  }
+
   var ICONS = ['⚙', '🏭', '🔧', '🔩', '⚡', '🔥', '🧪', '🧯', '📦', '🚜'];
+  /* 🆕 2026-11-16 설비 픽토그램은 담당자가 고르지 않는다 — 종류(AI 검수로 확인)에서 정한다 */
+  var KIND_ICON = { press: '⚙', paint: '🧪', injection: '🏭', electric: '⚡', other: '🔧' };
 
   /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
      **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
@@ -406,7 +446,13 @@ var Store = (function () {
           photo    : 설비 사진 data URL (긴 변 640). AI 위치 찾기와 사진 문항이 쓴다
           analysis : { at, model, source, kind, research, guided } — AI 위험요소 분석 결과.
                      ★ 설비 탭이 원천이다. 콘텐츠(AI 교육 만들기)는 여기서 불러오고, 새로 분석하면 여기에 쓴다.
-                     참고 사진(외부 그림 data)은 넣지 않는다 — 동기화 상한(512KB) 때문 */
+                     참고 사진(외부 그림 data)은 넣지 않는다 — 동기화 상한(512KB) 때문
+          🆕 2026-11-16 (더하기만)
+          hazards[] : HAZARD_TYPES 코드 + 직접 적은 것('x:글자'). 읽을 때는 Store.hazard(code)
+          review    : { status: 'checking'|'waiting'|'approved'|'error', at, model, message,
+                        items: [{ key, field, claim, verdict: 'ok'|'wrong'|'unknown', suggest, reason,
+                                  sources, decision: ''|'approved'|'deleted'|'redo', note }] }
+                      등록 정보의 AI 1차 검수 (setup.js). ★ AI 는 제안만 — 반영은 담당자가 [승인]할 때만 */
   var setup = makeStore('setup',
     function () {
       return {
@@ -721,7 +767,16 @@ var Store = (function () {
     return null;
   }
   function language(code) { return findBy(LANGUAGES, 'code', code); }
-  function hazard(code)   { return findBy(HAZARDS, 'code', code); }
+  /* 6종 → 공식 분류 → 직접 적은 것('x:글자') 순으로 찾는다 */
+  function hazard(code) {
+    var h = findBy(HAZARDS, 'code', code) || findBy(HAZARD_TYPES, 'code', code);
+    if (h) return h;
+    if (typeof code === 'string' && code.indexOf(CUSTOM_HAZARD) === 0 && code.length > CUSTOM_HAZARD.length) {
+      return { code: code, label: code.slice(CUSTOM_HAZARD.length), icon: 'pencil', group: 'custom' };
+    }
+    return null;
+  }
+  function kindIcon(kindId) { return KIND_ICON[kindId] || KIND_ICON.other; }
   function role(code)     { return findBy(ROLES, 'code', code); }
 
   /* -----------------------------------------------------------------
@@ -942,6 +997,7 @@ var Store = (function () {
   return {
     // 어휘
     LANGUAGES: LANGUAGES, HAZARDS: HAZARDS, ICONS: ICONS,
+    HAZARD_TYPES: HAZARD_TYPES, HAZARD_GROUPS: HAZARD_GROUPS, customHazard: customHazard, kindIcon: kindIcon,
     EQUIPMENT_KINDS: EQUIPMENT_KINDS, COMMON_CATEGORY: COMMON_CATEGORY,
     equipmentKind: equipmentKind, kindOf: kindOf, phrasesFor: phrasesFor,
     SIZE_BANDS: SIZE_BANDS, ROLES: ROLES, PHRASE_STATUS: PHRASE_STATUS,

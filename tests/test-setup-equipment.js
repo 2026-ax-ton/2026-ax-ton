@@ -84,5 +84,93 @@ const r = boot('admin/setup.html?return=content', { login: 'kim@daesung.co.kr', 
 eq('★ ?return=content 면 「콘텐츠로 돌아가기」', r.win.document.getElementById('return-note').hidden, false);
 eq('평소에는 안 보인다', $('return-note').hidden, true);
 
-ok('화면 오류 없음', t.errors.length === 0, t.errors.join(' | '));
-report('설비 등록 — 제조사·모델명·연식 (PRD-AD-08 S1)');
+/* 🆕 2026-11-16 — 같은 이름 · 위험유형 목록/직접 입력 · 수정은 「등록 설비」 안에서 · AI 검수 승인 */
+{
+  const before = S.setup.load().equipments.length;
+  addEquip(' 프레스  9호기', '', '', '');
+  eq('★★ 같은 이름(띄어쓰기 달라도)은 등록하지 않는다', S.setup.load().equipments.length, before);
+  has('「동일한 이름을 가진 설비가 존재합니다」', doc.getElementById('toast').textContent, '동일한 이름을 가진 설비가 존재합니다');
+
+  ok('★ 픽토그램 고르기가 없다 (종류에서 정한다)', !$('pick-equip-icon'));
+  ok('★ 공식 분류 드롭다운 — 6종 밖이 더 있다', $('hazard-add').querySelectorAll('optgroup option').length >= 15);
+  $('hazard-add').value = 'noise';
+  $('hazard-add').dispatchEvent(new win.Event('change'));
+  $('hazard-custom').value = '고압가스';
+  $('btn-hazard-custom').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+  $('equip-kind').value = 'electric';
+  const n = addEquip('위험유형 시험기', '', '', '');
+  eq('★★ 목록에서 더한 것 + 직접 적은 것이 저장된다', n && n.hazards.join(), 'noise,x:고압가스');
+  eq('★ 아이콘은 종류에서 (전기설비 → ⚡)', n && n.icon, '⚡');
+  has('목록에 직접 적은 위험유형이 보인다', $('list-equip').querySelector('li[data-id="' + n.id + '"]').textContent, '고압가스');
+  eq('★ 저장 뒤 6종 밖 칩은 비워진다', doc.querySelectorAll('input[name="hazard"]').length, S.HAZARDS.length);
+  eq('★ 등록 뒤 AI 검수 바로가기', $('equip-added').hidden + '|' + $('equip-added-go').getAttribute('href'), 'false|#list');
+
+  /* 수정 — 폼이 「등록 설비」 칸 안으로 옮겨 간다 */
+  Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '위험유형 시험기 설비 수정').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+  ok('★★ 수정 폼은 등록 화면이 아니라 등록 설비 칸 안에 있다', $('equip-edit-slot').contains($('form-equip')) && !$('equip-edit-slot').hidden);
+  eq('수정 화면이 보인다', doc.querySelector('[data-view="list"]').hidden + '|' + doc.querySelector('[data-view="equip"]').hidden, 'false|true');
+  eq('★ 수정 폼에 그 설비의 위험유형(6종 밖 포함)이 그대로', Array.from(doc.querySelectorAll('input[name="hazard"]:checked')).map((x) => x.value).join(), 'noise,x:고압가스');
+  $('btn-equip-cancel').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+  ok('취소하면 폼이 등록 화면으로 돌아간다', $('equip-form-home').contains($('form-equip')) && $('equip-edit-slot').hidden);
+
+  /* AI 검수 — 서버가 없는 곳(검사)에서는 「검수 못 함」, 등록은 그대로 */
+  return new Promise((done) => setTimeout(done, 30)).then(() => {
+    has('★ 서버가 없으면 「AI 검수 못 함」 · 등록은 남는다', $('list-equip').querySelector('li[data-id="' + n.id + '"]').textContent, 'AI 검수 못 함');
+    /* 검수 결과를 넣고 승인/삭제 */
+    S.setup.update((s) => {
+      const e = s.equipments.find((x) => x.id === n.id);
+      e.analysis = { at: 'x' };
+      e.review = { status: 'waiting', items: [
+        { key: 'kind', field: '설비 종류', claim: '전기설비', verdict: 'wrong', suggest: '사출성형기', reason: 'r', sources: [{ title: 'KOSHA', url: 'https://kosha.or.kr/a', host: 'kosha.or.kr' }], decision: '' },
+        { key: 'hazard:1', field: '위험유형', claim: '고압가스', code: 'x:고압가스', verdict: 'wrong', suggest: '', reason: 'r', sources: [], decision: '' },
+        { key: 'add:끼임', field: '위험유형 추가 제안', claim: '', label: '끼임', verdict: 'wrong', suggest: '끼임', reason: 'r', sources: [], decision: '' },
+        { key: 'hazard:0', field: '위험유형', claim: '소음', code: 'noise', verdict: 'ok', suggest: '', reason: 'r', sources: [], decision: '' },
+      ] };
+    });
+    $('equip-kind').dispatchEvent(new win.Event('change'));   // 다시 그리게
+    win.dispatchEvent(new win.HashChangeEvent('hashchange'));
+    const li = () => $('list-equip').querySelector('li[data-id="' + n.id + '"]');
+    // 다시 그리기 — 아무 commit 이나 (언어 칩 change)
+    $('pick-lang').dispatchEvent(new win.Event('change'));
+    has('★ AI 가 조사한 부분이 「AI 조사」로 표시된다', li().querySelector('.ai-found').textContent, 'AI 조사');
+    has('승인 대기 건수', li().textContent, '승인 대기 4건');
+    has('★ 승인하면 무엇이 바뀌는지 미리 말한다', li().textContent, '승인하면 설비 종류을(를) 「사출성형기」(으)로 바꿉니다');
+    const btns = (label) => Array.from(li().querySelectorAll('.review-item')).map((x) => Array.from(x.querySelectorAll('button')).find((b) => b.textContent === label));
+    btns('승인')[0].dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    let e2 = S.setup.load().equipments.find((x) => x.id === n.id);
+    eq('★★ 종류 승인 → AI 값으로 바뀌고 아이콘·옛 분석도 따라간다', e2.kind + '|' + e2.icon + '|' + e2.analysis, 'injection|🏭|null');
+    btns('승인')[1].dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    btns('승인')[2].dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    e2 = S.setup.load().equipments.find((x) => x.id === n.id);
+    eq('★★ 관계없는 위험유형은 빠지고, 추가 제안은 더해진다', e2.hazards.join(), 'noise,pinch');
+    btns('삭제')[3].dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    e2 = S.setup.load().equipments.find((x) => x.id === n.id);
+    eq('★ 전부 정하면 검수 완료', e2.review.status, 'approved');
+    has('검수 완료 표시', li().textContent, '담당자 승인 완료');
+    /* 수정 — 메모를 달아 재조사 */
+    S.setup.update((s) => { s.equipments.find((x) => x.id === n.id).review.items[3].decision = ''; });
+    $('pick-lang').dispatchEvent(new win.Event('change'));
+    btns('수정')[3].dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    const memo = li().querySelectorAll('.review-memo')[0];
+    ok('[수정]을 누르면 메모 칸이 열린다', memo && !memo.hidden);
+    memo.querySelector('textarea').value = '프레스 소음 기준으로 다시';
+    memo.querySelector('button').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    e2 = S.setup.load().equipments.find((x) => x.id === n.id);
+    eq('★★ 메모가 남고 다시 검수를 부른다', e2.review.items[3].note + '|' + e2.review.status, '프레스 소음 기준으로 다시|checking');
+    /* 담당자 메뉴 — 5개 그룹 · 누르면 열리고 남는다 · 바깥을 누르면 닫힌다 */
+    const groups = doc.querySelectorAll('.admin-menu .menu-btn');
+    eq('★ 담당자 메뉴는 5개 그룹', groups.length, 5);
+    const setupBtn = Array.from(groups).find((b) => b.textContent.indexOf('설비') !== -1);
+    eq('★ 지금 화면의 그룹이 표시된다', setupBtn.getAttribute('aria-current'), 'page');
+    setupBtn.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    const panel = doc.getElementById(setupBtn.getAttribute('aria-controls'));
+    ok('★★ 누르면 상세 메뉴가 열린다', !panel.hidden && setupBtn.getAttribute('aria-expanded') === 'true');
+    has('상세 메뉴에 등록 설비 확인·수정', panel.textContent, '등록 설비 확인·수정');
+    setupBtn.dispatchEvent(new win.MouseEvent('mouseleave', { bubbles: true }));
+    ok('★★ 마우스를 떼도 열린 채로 남는다', !panel.hidden);
+    doc.body.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    ok('바깥을 누르면 닫힌다', panel.hidden);
+    ok('화면 오류 없음', t.errors.length === 0, t.errors.join(' | '));
+    report('설비 등록 — 제조사·모델명·연식 (PRD-AD-08 S1)');
+  });
+}
