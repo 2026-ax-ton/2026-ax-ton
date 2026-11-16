@@ -19,11 +19,21 @@
 - `legaltag.js`의 `specialLabel()`이 `Curriculum.find()`로 이름을 찾았는데, 27종 쪽 태그는 `curriculum.js`에 없고 `legaltag.js`가 그 자리에서 만든 것이라 못 찾았다 → `Curriculum.find` 대신 이 파일 자체의 `jobs()`에서 찾게 바꿨다
 - `admin.css` 충돌 — 양쪽이 같은 줄(`#btn-scan-start[hidden], #btn-scan-stop[hidden] {…}`)을 서로 다르게 넓혔다. 두 선택자를 합쳐 한 줄로 만들고 나머지(내 쪽 `.special-note`·`.edu-equip-note`, yesol 쪽 `.equip-scan-btn`·`.scan-stage.full`·`.scan-coach`·`.dash-figma`)는 전부 그대로 둘 다 살렸다
 
+**이어서 한 것 (같은 날, 뒤쪽)**
+- Neon-Vercel 자동 브랜치 정리 옵션 — Vercel-Managed 연동은 Neon 콘솔 쪽 자동 삭제 토글이 없다는 걸 사용자가 확인해 줘서, 대신 `.github/workflows/neon-cleanup.yml` 추가(PR close 이벤트 + `workflow_dispatch` 수동 실행). 테스트 PR로 두 번 돌려 보며 고쳤다 — 처음엔 `NEON_PROJECT_ID`에 숨은 줄바꿈이 섞여 들어가 있었고, 두 번째는 테스트 브랜치의 Vercel 빌드가 (또!) Neon 브랜치 한도 재발로 실패해서 애초에 지울 브랜치가 없었다. 그 과정에서 유령 브랜치 재발(`Subin-prd-2`) + yesol이 나와 **독립적으로 같은 legaltag 39종 작업을 먼저 해 둔** 미머지 브랜치(`feat/legaltag-39`)까지 같이 찾아서 정리
+- PR #9(수빈님 PRD 4차 문서, 충돌 37건) 리뷰 후 머지 — "수빈님 최신 문장 + 개발 확인·구현 상태"로 합쳤다. 아직 코드 없는 수빈님의 새 제안(정기교육 반기 증빙·위탁기관 체크칸·추가 법정 태그)은 "제안"으로 정직하게 남겼다
+- 운영 DB에 `ai_usage_bucket` 표 생성(A04 6-8), `AI_DAILY_LIMIT` 50으로 낮추고 재배포 확인(A04 6-6) — 둘 다 사용자가 Neon SQL Editor·Vercel 대시보드에서 직접 하고, Vercel API로 재배포 시각까지 교차 확인
+- Gemini 실제 청구액 확인 — 월 ₩41 / 예산 상한 ₩5,000. OpenAI는 팀 프로젝트에 연결된 적 없음(코드 확인)
+
+**막혔던 것 / 어떻게 풀었는지 (이어서)**
+- `main`에 실수로 작업 커밋(`neon-cleanup.yml` 추가)을 직접 올릴 뻔했다 — push 전에 알아채서 `git reset --hard`로 `main`을 되돌리고 `develop`에 cherry-pick 했다. **push 하기 전에 `git log` 로 브랜치 확인하는 습관이 필요**
+- `.env.local`의 `DATABASE_URL`이 운영 DB가 아닐 수 있어서(미리보기용일 가능성), 운영 DB 작업은 전부 사용자가 Neon 콘솔에서 직접 하게 안내만 했다 — 로컬 자격 증명으로 운영을 건드리지 않는다
+
 **다음에 할 것**
-- Neon-Vercel 자동 브랜치 정리 옵션 켜기 (계정 설정)
-- `main` 배포 — 이번 세션 merge(PR #12·#13·yesol team-share, v31)가 아직 운영에 안 올라감
-- 앱 이름이 Figma 반영으로 "Safelang"이 됐다 — `docs/08-overview.md` 등 사람이 읽는 문서에 이름이 바뀐 걸 반영해야 하는지 확인 필요
-- iOS·두 기기 실물 확인 일정
+- `main` 배포 — `develop`이 `main`보다 3커밋 앞섬(Neon 워크플로·PR #9 머지, `src/` 변경 없음이라 급하지 않음)
+- 앱 이름이 Figma 반영으로 "Safelang"이 됐다 — `docs/08-overview.md` 등 사람이 읽는 문서에 반영해야 하는지 확인 필요
+- PR #16(교육 그림 → Blob)은 yesol이 해커톤 뒤 머지로 명시 — 지금 할 일 아님
+- iOS·두 기기 실물 확인 일정, 검증 인터뷰 3명·MVP 3회(PM·발표준비 몫)
 
 ## 2026-11-15 (6) — 세션을 닫는다. 검사 52묶음 3,631건 전부 통과
 
