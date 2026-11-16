@@ -56,7 +56,37 @@
     box.hidden = false;
   }
 
-  UI.preloginLangPicker('lang-gate', renderQrNote);
+  /* 🆕 2026-11-16 로그인 시안 — 노동자 화면이 기본이고, 담당자·운영자는 아래 링크로 바꾼다.
+     같은 입력칸·같은 Auth 를 쓴다 (식별번호든 이메일이든 Auth 가 가린다). 글자만 바꾼다.
+     ★ 담당자 글자는 한국어로 둔다 — 담당자는 한국어 사용자이고, 언어를 바꿔도 되돌아가지 않게
+       언어를 고를 때마다 다시 적는다. */
+  var adminMode = false;
+  function applyMode() {
+    var h = $('t-login'), lab = document.querySelector('label[for="login-id"]'),
+        input = $('login-id'), link = $('admin-mode-label'), btn = $('btn-admin-mode');
+    if (!h || !lab || !input) return;
+    if (adminMode) {
+      h.textContent = '담당자 · 운영자 로그인';
+      lab.textContent = '업무용 이메일';
+      input.setAttribute('placeholder', 'name@company.co.kr');
+      var pwLab = document.querySelector('label[for="login-pw"]');
+      var go = document.querySelector('#btn-login [data-i18n]');
+      if (pwLab) pwLab.textContent = '비밀번호';
+      if (go) go.textContent = '로그인';
+    } else {
+      I18N.apply(document.querySelector('.login-card'));
+    }
+    if (link) link.textContent = adminMode ? '근로자 로그인으로' : '안전관리자 · 반장 로그인';
+    if (btn) btn.setAttribute('aria-pressed', adminMode ? 'true' : 'false');
+  }
+  var modeBtn = $('btn-admin-mode');
+  if (modeBtn) modeBtn.addEventListener('click', function () {
+    adminMode = !adminMode;
+    applyMode();
+    $('login-id').focus();
+  });
+
+  UI.preloginLangPicker('lang-gate', function () { renderQrNote(); applyMode(); });
   renderQrNote();
 
   /* 처음 여는 브라우저면 예시 데이터를 채운다.

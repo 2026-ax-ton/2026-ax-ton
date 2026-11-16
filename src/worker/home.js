@@ -30,6 +30,8 @@
   var user = Auth.current();
 
   UI.fillWorkerBar(user);
+  /* 🆕 2026-11-16 홈 새 디자인 — 머리띠 로고 · 마이 아이콘 (로그인 화면과 같은 방식) */
+  UI.$$('.hv2-head [data-icon]').forEach(function (n) { UI.setIcon(n, n.getAttribute('data-icon')); });
   UI.markCurrentTab();
   UI.warnIfBlocked();
 
@@ -364,6 +366,7 @@
 
     if (!courses.length) {
       ['learn', 'quiz', 'done'].forEach(function (s) { mark(s, 'wait'); });
+      renderTask(null);
       say.textContent = '아직 받을 교육이 없습니다. 관리자가 교육을 만들면 여기 나옵니다.';
       return;
     }
@@ -373,6 +376,7 @@
     var verify = courses.filter(function (c) { return stateOf(c.id) === 'verify'; })[0];
     var target = todo || verify || courses[0];
     var state = stateOf(target.id);
+    renderTask(target);
 
     if (state === 'todo') {
       mark('learn', 'now'); mark('quiz', 'wait'); mark('done', 'wait');
@@ -395,6 +399,56 @@
     }, I18N.t('home.listenStatus'));
     listen.classList.add('inline-audio');
     say.appendChild(listen);
+  }
+
+  /* 🆕 2026-11-16 홈 새 디자인 — 「오늘 할 교육」 카드 머리.
+     설비 그림 + 교육 이름 + 수칙 수. 시안의 "약 3분" 같은 시간은 데이터에
+     없어서 적지 않는다 (지어낸 숫자를 화면에 두지 않는다). */
+  function renderTask(course) {
+    var title = $('task-title');
+    var meta = $('task-meta');
+    var pict = $('task-pict');
+    if (!title) return;
+
+    if (!course) {
+      title.textContent = '';
+      if (meta) meta.hidden = true;
+      if (pict) UI.setIcon(pict, 'clipboard');
+      return;
+    }
+
+    title.textContent = course.title || '';
+    var eq = Store.findBy(Store.setup.load().equipments, 'id', course.equipmentId);
+    if (pict) UI.setIcon(pict, (eq && eq.icon) || 'clipboard');
+
+    var n = (course.phraseIds || []).length;
+    if (meta) {
+      meta.textContent = n ? I18N.t('home.rulesN').replace('{n}', n) : '';
+      meta.hidden = !n;
+    }
+  }
+
+  /* 🆕 2026-11-16 내 진행 상황 — 받을 교육 중 검증까지 통과한 수.
+     ★ 받을 교육이 없으면 카드를 통째로 감춘다. */
+  function renderProgress() {
+    var card = $('prog-card');
+    if (!card) return;
+    var courses = myCourses();
+    if (!courses.length) { card.hidden = true; return; }
+
+    var done = courses.filter(function (c) { return stateOf(c.id) === 'done'; }).length;
+    var pct = Math.round(done / courses.length * 100);
+
+    $('prog-num').textContent = done + ' / ' + courses.length;
+    $('prog-bar').style.width = pct + '%';
+
+    var say = $('prog-say');
+    say.textContent = '';
+    var left = courses.length - done;
+    say.appendChild(left
+      ? UI.waitBadge(I18N.t('home.coursesLeft') + ' ' + left)
+      : UI.okBadge(I18N.t('state.allDone')));
+    card.hidden = false;
   }
 
   function bigLink(icon, label, href) {
@@ -447,7 +501,7 @@
     box.textContent = '';
 
     MENU.forEach(function (item) {
-      var cell = UI.el('div', 'bigmenu-cell');
+      var cell = UI.el('div', 'bigmenu-cell is-' + item.href.replace('.html', ''));
 
       var a = UI.el('a', 'bigmenu-link');
       a.href = item.href;
@@ -530,6 +584,7 @@
     renderToday();
     renderOrders();
     renderStage();
+    renderProgress();
     renderMenu();
     renderOfflineOk();
     renderBadTrans();
