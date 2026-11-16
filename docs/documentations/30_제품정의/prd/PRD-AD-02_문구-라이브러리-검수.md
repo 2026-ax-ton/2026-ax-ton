@@ -166,5 +166,6 @@
 |---|---|---|---|
 | 0.1 | 2026-10-22 | byeonsoyun | 최초 작성 |
 | 1.0 | 2026-10-22 | byeonsoyun | Figma 2회차 반영, 열린 질문을 결정으로 닫음, 최종본으로 확정 |
-| 1.2 | 2026-11-15 | byeonsoyun | **FR-10~15 구현 완료** — 🆕 `src/assets/legaltag.js`(고르는 칸·이름표·거르기, 목록은 `curriculum.js` 한 곳) · `admin/library` 의 추가 폼·문구 행·거르기 칸. 문구에 `legalItems`·`specialItems` 두 칸(더하기만, 옛 문구는 「태그 없음」). ⚠️ **개별 사항 자료가 있는 특별교육 작업은 39종 중 12종**이라 나머지는 고를 수 없고 화면에 그렇게 적었다. 검사 `tests/test-legal-tag.js` 65건 |
+| 1.3 | 2026-11-16 | yesol(코드)·byeonsoyun(문서) | **개별 사항 태그를 39종 전부로** — `legaltag.js` `jobs()`가 대표 12종(`Curriculum.SPECIAL`)뿐 아니라 나머지 27종(`SPECIAL_LATER`)도 읽는다. 27종은 이름만 있어 태그를 `작업번호-순번`으로 맞춰 만든다. 「아직 자료가 없어 고를 수 없습니다」 안내 제거. 영상 대본용 상세(꼭 들어갈 내용·단어·분)는 27종 쪽에 여전히 비어 있다 — 법정 사항 태그와는 다른 일이라 막지 않는다. 검사 `tests/test-legal-tag.js` 65건 |
+| 1.2 | 2026-11-15 | byeonsoyun | **FR-10~15 구현 완료** — 🆕 `src/assets/legaltag.js`(고르는 칸·이름표·거르기, 목록은 `curriculum.js` 한 곳) · `admin/library` 의 추가 폼·문구 행·거르기 칸. 문구에 `legalItems`·`specialItems` 두 칸(더하기만, 옛 문구는 「태그 없음」). ⚠️ **개별 사항 자료가 있는 특별교육 작업은 39종 중 12종**이라 나머지는 고를 수 없고 화면에 그렇게 적었다 (✅ 2026-11-16 해소). 검사 `tests/test-legal-tag.js` 65건 |
 | 1.1 | 2026-11-12 | Subin | 🆕 법정 사항 태그 FR-10~13, 특별교육 개별 사항 태그 FR-14·15와 39종 개별 사항 표, US-08, 데이터 `legalItems`·`specialItems`, AC-04~06, §11 (C06 D-039 제안) |

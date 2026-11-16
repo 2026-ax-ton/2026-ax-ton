@@ -23,10 +23,11 @@
    ★ 태그는 **사람이** 정한다 (FR-11). AI 가 달지 않는다. 번역 판정과도
      상관없다 — 태그를 바꿔도 언어별 상태는 그대로다.
 
-   ⚠️ 개별 사항 자료가 있는 특별교육 작업은 **39종 중 12종**이다
-     (`Curriculum.SPECIAL`). 나머지는 이름만 있어(`SPECIAL_LATER`) 고를 수
-     없고, 화면에 「개별 사항 자료 없음」으로 보인다. 숨기지 않는다 —
-     비어 있다는 것이 운영자가 알아야 하는 사실이다.
+   ★ 개별 사항 태그는 **특별교육 39종 전부**에 달 수 있다 (2026-11-16).
+     대표 12종(`Curriculum.SPECIAL`)은 세부 항목까지 있고, 나머지 27종
+     (`SPECIAL_LATER`)은 이름만 있어 태그를 `작업번호-순번`으로 맞춰 만든다.
+     영상 대본용 상세(꼭 들어갈 내용·꼭 나올 단어·권장 분)는 27종 쪽에
+     여전히 비어 있다 — 그건 **법정 사항 태그와 다른 일**이라 막지 않는다.
 
    ★ 서버를 부르지 않는다. 바깥 요청 0건, ES 모듈 아님 (file:// 에서 열린다).
 
@@ -54,20 +55,18 @@ var LegalTag = (function () {
       .map(function (b) { return { no: b.no, title: b.title }; });
   }
 
-  /** 개별 사항 자료가 있는 특별교육 작업 — [{ no, title, items: [{ tag, title }] }] */
+  /** 특별교육 39종 전부 — [{ no, title, items: [{ tag, title }] }]
+   *  대표 12종(`SPECIAL`)은 항목에 원래 태그가 있고, 나머지 27종(`SPECIAL_LATER`)은
+   *  이름뿐이라 `작업번호-순번`으로 태그를 맞춰 만든다 */
   function jobs() {
-    return Curriculum.SPECIAL.map(function (s) {
-      return {
-        no: s.no,
-        title: s.title,
-        items: s.items.map(function (it) { return { tag: it.tag, title: it.title }; })
-      };
+    function itemsOf(s) {
+      return (s.items || []).map(function (it, i) {
+        return typeof it === 'string' ? { tag: s.no + '-' + (i + 1), title: it } : { tag: it.tag, title: it.title };
+      });
+    }
+    return Curriculum.SPECIAL.concat(Curriculum.SPECIAL_LATER || []).map(function (s) {
+      return { no: s.no, title: s.title, items: itemsOf(s) };
     }).sort(function (a, b) { return a.no - b.no; });
-  }
-
-  /** 개별 사항 자료가 아직 없는 작업 — 고를 수 없다는 것을 화면에 적는다 */
-  function jobsWithoutItems() {
-    return (Curriculum.SPECIAL_LATER || []).slice();
   }
 
   /** 문구의 태그 — 칸이 없는 옛 문구도 터지지 않는다 (FR-12) */
@@ -90,11 +89,14 @@ var LegalTag = (function () {
     return b ? circled(no) + ' ' + b.title : circled(no);
   }
 
-  /** 개별 사항 태그 → 「특별 11-② 방호장치 종류와 취급」 */
+  /** 개별 사항 태그 → 「특별 11-② 방호장치 종류와 취급」
+   *  ★ `Curriculum.find` 가 아니라 이 파일의 `jobs()` 로 찾는다 — 27종(`SPECIAL_LATER`)의
+   *    태그는 `curriculum.js` 에 없고 여기서 만들기 때문이다 */
   function specialLabel(tag) {
-    var item = Curriculum.find(tag);
     var part = String(tag || '').split('-');
     var head = '특별 ' + part[0] + '-' + circled(Number(part[1]));
+    var job = jobs().filter(function (j) { return String(j.no) === part[0]; })[0];
+    var item = job && job.items.filter(function (it) { return it.tag === tag; })[0];
     return item ? head + ' ' + item.title : head;
   }
 
@@ -261,13 +263,6 @@ var LegalTag = (function () {
 
     jobSel.addEventListener('change', renderItems);
     spBox.appendChild(chosen);
-
-    var later = jobsWithoutItems();
-    if (later.length) {
-      spBox.appendChild(UI.el('p', 'sub',
-        '개별 사항 자료가 있는 작업은 ' + jobs().length + '종입니다. 나머지 ' + later.length
-        + '종은 아직 자료가 없어 고를 수 없습니다.'));
-    }
     box.appendChild(spBox);
 
     renderChosen();
@@ -287,7 +282,6 @@ var LegalTag = (function () {
   return {
     basics: basics,
     jobs: jobs,
-    jobsWithoutItems: jobsWithoutItems,
     of: of,
     hasAny: hasAny,
     label: label,

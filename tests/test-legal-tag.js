@@ -15,7 +15,8 @@
      4. ★ 기본 11개와 특별교육 개별 사항을 함께 달 수 있다 (FR-10·14)
      5. ★ 목록을 법정 사항으로 거를 수 있고, **0개인 사항도 목록에 남는다** (FR-13·15)
         — 비어 있다는 것이 운영자가 알아야 하는 사실이다
-     6. ★ 개별 사항 자료가 없는 작업(39종 중 27종)은 고를 수 없다고 화면에 적는다
+     6. ★ 특별교육 39종 전부 개별 사항을 고를 수 있다 (2026-11-16, 대표 12종은 원래 태그로 ·
+        나머지 27종은 작업번호-순번 태그로)
      7. ★ 이름표가 법령 모양이다 — 「⑦ …」 · 「특별 11-② …」
      8. ★ 브라우저 규칙 — fetch·ES 모듈 없음, 법령 숫자를 다시 적지 않는다 */
 
@@ -54,11 +55,15 @@ function rowOf(t, ko) {
     L.basics().map((b) => b.no).join(','),
     C.BASIC.filter((b) => b.legal).map((b) => b.no).join(','));
   eq('이름도 그대로', L.basics()[6].title, C.BASIC.find((b) => b.no === 7).title);
-  eq('개별 사항이 있는 작업은 curriculum.js 의 SPECIAL 그대로',
-    L.jobs().map((j) => j.no).join(','),
-    C.SPECIAL.map((s) => s.no).sort((a, b) => a - b).join(','));
-  eq('개별 사항 태그도 그대로', L.jobs().find((j) => j.no === 11).items.map((i) => i.tag).join(','),
+  eq('특별교육 39종 전부 — curriculum.js 의 SPECIAL + SPECIAL_LATER',
+    L.jobs().map((j) => j.no).sort((a, b) => a - b).join(','),
+    C.SPECIAL.concat(C.SPECIAL_LATER).map((s) => s.no).sort((a, b) => a - b).join(','));
+  eq('대표 12종의 개별 사항 태그는 curriculum.js 그대로',
+    L.jobs().find((j) => j.no === 11).items.map((i) => i.tag).join(','),
     C.SPECIAL.find((s) => s.no === 11).items.map((i) => i.tag).join(','));
+  eq('나머지 27종도 태그가 생긴다 (작업번호-순번)',
+    L.jobs().find((j) => j.no === C.SPECIAL_LATER[0].no).items[0].tag,
+    C.SPECIAL_LATER[0].no + '-1');
 
   /* ★ 법령 숫자·이름을 legaltag.js 안에 다시 적지 않았는가 */
   const code = legalSrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
@@ -269,19 +274,16 @@ function rowOf(t, ko) {
 }
 
 /* =================================================================
-   8. 개별 사항 자료가 없는 작업은 고를 수 없다고 적는다 (★ 6)
-      — 39종 중 12종만 자료가 있다
+   8. 특별교육 39종 전부 고를 수 있다 (★ 6, 2026-11-16 부터)
    ================================================================= */
 {
   const t = open();
   const L = t.win.LegalTag;
-  const later = L.jobsWithoutItems();
-  ok('자료가 없는 작업이 있다', later.length > 0);
-  eq('자료가 있는 작업 + 없는 작업 = 특별교육 39종',
-    L.jobs().length + later.length, 39);
-  has('★ 고를 수 있는 작업이 몇 종인지 화면에 적는다', text(t.$('add-legal')), '종은 아직 자료가 없어 고를 수 없습니다');
-  ok('자료 없는 작업은 고르는 칸에 나오지 않는다',
-    [...t.$('add-legal').querySelectorAll('option')].every((o) => !o.value || L.jobs().some((j) => String(j.no) === o.value)));
+  eq('개별 사항이 있는 작업 = 특별교육 39종 전부', L.jobs().length, 39);
+  ok('「아직 자료가 없어 고를 수 없습니다」 안내가 더는 없다',
+    text(t.$('add-legal')).indexOf('아직 자료가 없어 고를 수 없습니다') === -1);
+  eq('고르는 칸에 39종이 다 나온다',
+    [...t.$('add-legal').querySelectorAll('select option')].filter((o) => o.value).length, 39);
 }
 
 /* =================================================================
