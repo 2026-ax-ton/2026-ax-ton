@@ -123,10 +123,6 @@
             <label for="proc-name">공정 이름</label>
             <input id="proc-name" name="name" type="text" placeholder="프레스" maxlength="30">
           </div>
-          <div class="field">
-            <label id="l-proc-icon">픽토그램</label>
-            <div class="picker icons" id="pick-proc-icon" role="radiogroup" aria-labelledby="l-proc-icon"></div>
-          </div>
           <button class="btn btn-ghost" type="submit">
             <span aria-hidden="true">＋</span> 공정 추가
           </button>
@@ -211,28 +207,18 @@
               </div>
             </div>
 
-            <!-- 🆕 2026-11-16 픽토그램은 고르지 않는다 — 설비 종류(AI 검수로 확인)에서 정한다 -->
 
             <!-- 🆕 2026-11-11 설비 사진 — AI 위험 위치 찾기와 사진 문항이 쓴다. 긴 변 640px 로 줄여 저장한다 -->
             <div class="field">
               <label for="equip-photo">설비 사진 <small>(선택 · 사람 얼굴이 나오지 않게)</small></label>
               <div class="photo-pick">
                 <input id="equip-photo" type="file" accept="image/*">
-                <!-- 🆕 2026-11-16 카메라로 바로 찍기 — 갤러리 고르기는 위에 그대로 -->
-                <button class="btn-sm" type="button" id="btn-equip-camera">카메라로 찍기</button>
-                <input id="equip-photo-cam" type="file" accept="image/*" capture="environment" hidden>
+                <!-- 🆕 2026-11-16 카메라로 찍기 = 가이드 촬영(scan.html) — 틀·수평선·자세 교정 위에서 둘레를 돌면 선명한 장면을 알아서 찍는다.
+                     새 설비는 먼저 저장(검수 대기)하고 촬영으로 넘어간다. 가장 선명한 한 장이 설비 사진이 된다 -->
+                <button class="equip-scan-btn" type="button" id="btn-equip-camera">카메라로 찍기 (가이드 촬영)</button>
               </div>
-              <div class="cam-panel" id="cam-panel" hidden>
-                <video id="cam-video" autoplay playsinline muted></video>
-                <div class="btn-row">
-                  <button class="btn btn-primary" type="button" id="btn-cam-shot">찍기</button>
-                  <button class="btn" type="button" id="btn-cam-close">닫기</button>
-                </div>
-              </div>
+              <p class="field-hint">카메라 위 안내를 따라 설비 둘레를 천천히 돌면 흔들리지 않은 장면만 알아서 찍힙니다. 새 설비는 이 버튼을 누를 때 먼저 등록됩니다.</p>
               <img id="equip-photo-preview" class="equip-photo" alt="고른 설비 사진" hidden>
-              <!-- 🆕 2026-11-15 가이드 촬영 — 사진 1장이 아니라 둘레를 두 바퀴 (3D·여러 각도 재료). 저장된 설비만 -->
-              <a class="equip-scan-btn" id="btn-equip-scan" href="#" hidden>둘레 촬영 (가이드 · 3D용)</a>
-              <p class="field-hint" id="equip-scan-hint">설비를 저장한 뒤 목록의 <b>[둘레 촬영]</b>을 누르면, 휴대폰 카메라 위에 안내가 나오고 설비 둘레를 두 바퀴 찍습니다. 다 찍으면 알아서 올라갑니다.</p>
             </div>
 
             <input type="hidden" id="equip-edit-id" value="">

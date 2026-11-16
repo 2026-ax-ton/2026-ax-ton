@@ -1075,6 +1075,15 @@
         + ' · ' + (a ? 'AI 분석: 위험 ' + a.research.items.length + (a.at ? ' · ' + UI.formatDate(a.at) : '') : 'AI 분석 전')
         + ' · 사진 ' + (e.photo ? '있음' : '없음'));
       li.setAttribute('data-id', e.id);
+      /* ★ AI 검수를 승인받지 않은 설비는 교육을 만들 수 없다 — 승인하러 가는 길만 보인다 (2026-11-16) */
+      if (!Store.equipmentReady(e)) {
+        li.querySelector('.body').appendChild(UI.waitBadge('검수 대기 — 등록 설비에서 AI 검수를 승인해야 교육을 만들 수 있습니다'));
+        var rv = UI.el('a', 'btn btn-primary', '검수 승인하러 가기');
+        rv.href = 'setup.html#list';
+        li.appendChild(rv);
+        list.appendChild(li);
+        return;
+      }
       var go = UI.el('a', 'btn btn-primary', a ? '분석 불러와 교육 만들기' : 'AI 분석하고 교육 만들기');
       go.href = 'autogen.html#eq=' + encodeURIComponent(e.id);
       li.appendChild(go);
@@ -1088,17 +1097,18 @@
   function render() {
     var state = setup();
     renderEquipCards(state);
-    var ready = state.equipments.length > 0 && state.languages.length > 0;
+    var usable = state.equipments.filter(Store.equipmentReady);   // 검수 대기 설비는 직접 만들기에서도 못 고른다
+    var ready = usable.length > 0 && state.languages.length > 0;
     $('setup-lock').hidden = ready;
     $('builder').hidden = !ready;
 
     if (ready) {
-      UI.fillSelect($('draft-equip'), state.equipments,
+      UI.fillSelect($('draft-equip'), usable,
         function (e) { return e.id; },
       /* ★ <option> 안에는 그림을 넣을 수 없다. 이모지를 남기면 이 목록만
          옛 말투로 남으므로 이름만 쓴다 (그림은 고른 뒤 화면에서 보인다). */
         function (e) { return e.name; });
-      if (!draft.equipmentId) draft.equipmentId = $('draft-equip').value;
+      if (!draft.equipmentId || !Store.findBy(usable, 'id', draft.equipmentId)) draft.equipmentId = $('draft-equip').value;
       $('draft-equip').value = draft.equipmentId;
 
       buildLangPicker();

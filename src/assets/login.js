@@ -56,7 +56,7 @@
     box.hidden = false;
   }
 
-  UI.preloginLangPicker('lang-gate', renderQrNote);
+  /* 2026-11-16 로그인 화면 언어 선택은 뺐다 (사용자 결정) — 로그인 뒤 계정 언어로 바뀐다 */
   renderQrNote();
 
   /* 처음 여는 브라우저면 예시 데이터를 채운다.

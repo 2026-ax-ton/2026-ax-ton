@@ -1067,3 +1067,4 @@ body.dash-figma .bar-item[data-level="ok"]  .bar-fill { background: var(--ok); }
 .ai-found .src { font-size: .85em; }
 .review-memo { display: grid; gap: 6px; margin-top: 8px; }
 .review-memo textarea { width: 100%; box-sizing: border-box; }
+#scan-photo-note[hidden] { display: none; }

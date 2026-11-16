@@ -49,7 +49,8 @@ const d = addEquip('사출기 1', '우진', 'TB-G5', '');
 eq('★★ 종류가 id 로 저장된다', d && d.kind, 'injection');
 eq('새 설비는 사진·분석이 비어 있다', d && (d.photo + '|' + d.analysis), '|null');
 has('목록에 종류가 보인다', $('list-equip').querySelector('li[data-id="' + d.id + '"]').textContent, '종류 · 사출성형');
-ok('★ 분석·교육 만들기로 가는 길 (설비 id)', $('list-equip').querySelector('li[data-id="' + d.id + '"] a[href="autogen.html#eq=' + d.id + '"]') !== null);
+ok('★★ 새 설비는 검수 대기 — 교육 만들기로 가는 길이 없다', $('list-equip').querySelector('li[data-id="' + d.id + '"] a[href="autogen.html#eq=' + d.id + '"]') === null);
+ok('★★ 검수 대기는 교육에 못 쓴다 · review 없는 옛 설비는 쓴다', !S.equipmentReady(d) && S.equipmentReady({ id: 'old' }) && S.equipmentReady({ id: 'x', review: { status: 'approved' } }));
 
 /* 수정 — 분석 결과가 있던 설비의 종류를 바꾸면 분석을 지운다 (다른 설비의 결과가 남지 않게) */
 S.setup.update((s) => { const e = s.equipments.find((x) => x.id === d.id); e.analysis = { at: '2026-11-11T00:00:00Z', research: { items: [{ id: 'r1' }, { id: 'r2' }] }, guided: { mapped: [{ id: 'r1' }] } }; });
@@ -61,9 +62,9 @@ ok('수정 버튼이 있다', !!editBtn);
 $('equip-kind').dispatchEvent(new win.Event('change'));
 editBtn.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
 eq('★ 수정을 누르면 그 설비 값이 폼에 들어간다', $('equip-name').value + '|' + $('equip-kind').value + '|' + $('equip-edit-id').value, '사출기 1|injection|' + d.id);
-/* 2026-11-15 — 둘레 촬영(가이드)을 설비 화면 안에서 연다 */
-ok('★ 수정 중인 설비는 사진 칸 아래 [둘레 촬영]이 그 설비로 열린다', !$('btn-equip-scan').hidden && $('btn-equip-scan').getAttribute('href') === 'scan.html?equipment=' + encodeURIComponent(d.id) && $('equip-scan-hint').hidden);
-ok('목록 줄에도 [둘레 촬영] 버튼이 있다', Array.from($('list-equip').querySelectorAll('a')).some((x) => x.textContent === '둘레 촬영' && (x.getAttribute("href") || "").indexOf("scan.html?equipment=") === 0));
+/* 2026-11-16 — [카메라로 찍기] = 가이드 촬영(scan.html). 목록 줄에서 그 설비로 연다 */
+ok('★ 사진 칸에 [카메라로 찍기 (가이드 촬영)] 버튼', !!$('btn-equip-camera') && $('btn-equip-camera').textContent.indexOf('가이드 촬영') !== -1);
+ok('★ 목록 줄의 [카메라로 찍기]가 그 설비의 가이드 촬영으로 간다', Array.from($('list-equip').querySelectorAll('a')).some((x) => (x.getAttribute('href') || '') === 'scan.html?equipment=' + encodeURIComponent(d.id) + '&return=list'));
 $('equip-model').value = 'TB-G5';
 $('form-equip').dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
 const d2 = S.setup.load().equipments.find((e) => e.id === d.id);
@@ -77,7 +78,7 @@ const d3 = S.setup.load().equipments.find((e) => e.id === d.id);
 eq('★★ 종류를 바꾸면 예전 AI 분석을 지운다', d3.kind + '|' + d3.analysis, 'press|null');
 has('★ 종류가 없던 옛 설비는 「종류 확인 필요」(이름으로 짐작)', $('list-equip').querySelector('li[data-id="e-old"]').textContent, '종류 확인 필요 (전기설비?)');
 eq('저장 뒤 수정 상태가 풀린다', $('equip-edit-id').value + '|' + $('btn-equip-cancel').hidden, '|true');
-eq('새 설비 폼에서는 [둘레 촬영]을 숨기고 「저장한 뒤」 안내를 보인다', $('btn-equip-scan').hidden + '|' + $('equip-scan-hint').hidden, 'true|false');
+ok('★ 화면 안 일반 카메라는 없다 (가이드 촬영만)', !$('cam-panel') && !$('equip-photo-cam'));
 
 /* 콘텐츠에서 왔으면 돌아가는 길을 보인다 */
 const r = boot('admin/setup.html?return=content', { login: 'kim@daesung.co.kr', page: 'admin/setup.js' });
@@ -133,7 +134,7 @@ eq('평소에는 안 보인다', $('return-note').hidden, true);
     // 다시 그리기 — 아무 commit 이나 (언어 칩 change)
     $('pick-lang').dispatchEvent(new win.Event('change'));
     has('★ AI 가 조사한 부분이 「AI 조사」로 표시된다', li().querySelector('.ai-found').textContent, 'AI 조사');
-    has('승인 대기 건수', li().textContent, '승인 대기 4건');
+    has('승인 대기 건수', li().textContent, '승인할 항목 4건');
     has('★ 승인하면 무엇이 바뀌는지 미리 말한다', li().textContent, '승인하면 설비 종류을(를) 「사출성형기」(으)로 바꿉니다');
     const btns = (label) => Array.from(li().querySelectorAll('.review-item')).map((x) => Array.from(x.querySelectorAll('button')).find((b) => b.textContent === label));
     btns('승인')[0].dispatchEvent(new win.MouseEvent('click', { bubbles: true }));

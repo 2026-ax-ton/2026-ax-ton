@@ -333,6 +333,41 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     $('btn-scan-start').hidden = false;
     $('btn-scan-start').textContent = '처음부터 다시 찍기';
     showResult();
+    savePhoto();
+  }
+
+  /* 🆕 2026-11-16 설비 화면의 [카메라로 찍기] — 가장 선명한 한 장을 설비 사진으로 (긴 변 640, setup.js 와 같은 값).
+     낮은 바퀴(정면)에서 먼저 고른다. 사진이 바뀌면 예전 AI 위치 분석은 그 사진의 것이 아니라 지운다 */
+  var PHOTO_MAX = 640, PHOTO_QUALITY = 0.7;
+  function bestShot() {
+    var best = null;
+    [passes[0], passes[1]].forEach(function (segs) {
+      if (best) return;
+      segs.forEach(function (list) { list.forEach(function (s) { if (!best || s.sharp > best.sharp) best = s; }); });
+    });
+    return best;
+  }
+  function savePhoto() {
+    var shot = eq && bestShot();
+    if (!shot) return;
+    var url = URL.createObjectURL(shot.blob), img = new Image();
+    img.onload = function () {
+      var k = Math.min(1, PHOTO_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      var data = c.toDataURL('image/jpeg', PHOTO_QUALITY);
+      Store.setup.update(function (s) {
+        var e = Store.findBy(s.equipments, 'id', eq.id);
+        if (!e) return;
+        if (e.photo !== data && e.analysis) e.analysis = null;
+        e.photo = data;
+      });
+      $('scan-photo-note').hidden = false;
+      $('scan-photo-note').textContent = '가장 선명한 한 장을 「' + eq.name + '」의 설비 사진으로 저장했습니다.';
+    };
+    img.src = url;
   }
 
   function showResult() {

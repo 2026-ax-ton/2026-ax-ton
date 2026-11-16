@@ -777,6 +777,9 @@ var Store = (function () {
     return null;
   }
   function kindIcon(kindId) { return KIND_ICON[kindId] || KIND_ICON.other; }
+  /** 교육에 쓸 수 있는 설비인가 — 새 흐름으로 등록한 설비는 담당자가 AI 검수를 승인해야 한다 (2026-11-16).
+      review 칸이 없는 옛 설비는 이 흐름 전에 등록된 것이라 그대로 쓴다 */
+  function equipmentReady(eq) { return !!eq && (!eq.review || eq.review.status === 'approved'); }
   function role(code)     { return findBy(ROLES, 'code', code); }
 
   /* -----------------------------------------------------------------
@@ -997,7 +1000,7 @@ var Store = (function () {
   return {
     // 어휘
     LANGUAGES: LANGUAGES, HAZARDS: HAZARDS, ICONS: ICONS,
-    HAZARD_TYPES: HAZARD_TYPES, HAZARD_GROUPS: HAZARD_GROUPS, customHazard: customHazard, kindIcon: kindIcon,
+    HAZARD_TYPES: HAZARD_TYPES, HAZARD_GROUPS: HAZARD_GROUPS, customHazard: customHazard, kindIcon: kindIcon, equipmentReady: equipmentReady,
     EQUIPMENT_KINDS: EQUIPMENT_KINDS, COMMON_CATEGORY: COMMON_CATEGORY,
     equipmentKind: equipmentKind, kindOf: kindOf, phrasesFor: phrasesFor,
     SIZE_BANDS: SIZE_BANDS, ROLES: ROLES, PHRASE_STATUS: PHRASE_STATUS,

@@ -56,7 +56,9 @@
   var state = emptyState(null);
 
   function setup() { return Store.setup.load(); }
-  function equipments() { return setup().equipments || []; }
+  /* ★ AI 검수를 승인받지 않은 설비(검수 대기)는 고를 수 없다 — 맞는지 확인 안 된 정보로 교육을 만들지 않는다 */
+  function equipments() { return (setup().equipments || []).filter(Store.equipmentReady); }
+  function waitingCount() { return (setup().equipments || []).length - equipments().length; }
   function hazardLabel(code) { var h = Store.hazard(code); return h ? h.label : '위험유형 확인 필요'; }
   function langName(code) { var l = Store.language(code); return l ? l.name : code; }
   function kindId() { return Store.kindOf(state.equipment).id; }
@@ -137,7 +139,7 @@
     var list = equipments();
     $('ag-no-equip').hidden = list.length > 0;
     if (!list.length) {
-      var o = UI.el('option', null, '등록된 설비가 없습니다');
+      var o = UI.el('option', null, waitingCount() ? '승인된 설비가 없습니다 (AI 검수 대기 ' + waitingCount() + '대)' : '등록된 설비가 없습니다');
       o.value = '';
       sel.appendChild(o);
       $('btn-research').disabled = true;
