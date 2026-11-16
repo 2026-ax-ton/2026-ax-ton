@@ -79,17 +79,35 @@ function takeMemory(bucket, limit) {
   return true;
 }
 
-/** 쓰임새(bucket)별 **보조** 울타리. 이 함수만 인스턴스 메모리로 센다 (2026-11-07 사진용).
+/** 쓰임새(bucket)별 하루 울타리 (2026-11-07 사진용 → 🆕 2026-11-16 DB 로).
  *
  *  ★ 왜 가르나 — 사진 한 장은 번역 한 줄보다 훨씬 비싸다 (이미지 토큰).
  *    한 통에 같이 세면 사진 몇 장이 그날의 번역 예산을 먹는다. 번역은 운영자가 하루에
  *    수십 번, 사진은 담당자가 가끔 한다 — 서로의 한도를 깎지 않게 통을 나눈다 (A02 §5.6).
- *  ★ 단단한 하루 상한은 `takeDailyCall`(DB 한 줄)이 쥔다 — 이 함수와 **같이** 쓴다.
- *    DB 표(`ai_usage`)에 bucket 열이 없어 쓰임새 구분은 인스턴스 안에서만 맞는다
- *    (2026-11-15 합치기 — 쓰임새를 DB 로 옮기는 것은 표 변경이라 기능 동결 뒤로 미뤘다).
+ *  ★ `ai_usage_bucket(day, bucket)` 한 줄에서 `takeDailyCall` 과 같은 한 문장(더하기 + 상한 검사)으로 센다.
+ *    서버 인스턴스가 꺼지거나 여럿이어도 숫자가 0 으로 돌아가지 않는다.
+ *  ★ 전체 상한은 여전히 `takeDailyCall`(ai_usage) 이 쥔다 — 이 함수와 **같이** 쓴다.
+ *  ★ DB 가 없으면 메모리로 센다. DB 질의가 실패하면 막는다(돈 쪽으로 열지 않는다).
+ *    다만 **표가 아직 없으면**(migration 을 운영 DB 에 적용하기 전, Postgres 42P01) 예전처럼 메모리로 센다 —
+ *    배포와 표 만들기의 순서가 꼬여도 사진 분석이 통째로 막히지 않게. 그 일은 로그에 남긴다.
  *    마지막 방어는 여전히 공급사 예산 상한이다 (A04 6-1). */
-export function takeDailyCallFor(bucket, limit) {
-  return takeMemory(bucket, limit);
+export async function takeDailyCallFor(bucket, limit) {
+  if (memoryOnly) return takeMemory(bucket, limit);
+  const { getSql } = await import('./_db.mjs');
+  const sql = await getSql();
+  if (!sql) return takeMemory(bucket, limit);
+  try {
+    const rows = await sql`
+      insert into ai_usage_bucket (day, bucket, used) values (current_date, ${bucket}, 1)
+      on conflict (day, bucket) do update set used = ai_usage_bucket.used + 1
+       where ai_usage_bucket.used < ${limit}
+      returning used`;
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (e) {
+    const missing = (e && e.code === '42P01') || /ai_usage_bucket.*does not exist|relation .* does not exist/i.test(String(e && e.message || ''));
+    log({ route: 'daily-limit', err: missing ? 'no-table' : 'db', bucket, why: String(e && e.message || '').slice(0, 120) });
+    return missing ? takeMemory(bucket, limit) : false;
+  }
 }
 
 export async function takeDailyCall(limit) {
