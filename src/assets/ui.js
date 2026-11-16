@@ -353,7 +353,7 @@ var UI = (function () {
      ------------------------------------------------------------------- */
 
   var VOICE_TAG = {
-    km: 'km-KH', id: 'id-ID', vi: 'vi-VN',
+    km: 'km-KH', vi: 'vi-VN',
     ne: 'ne-NP', th: 'th-TH', ko: 'ko-KR'
   };
 

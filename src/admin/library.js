@@ -13,7 +13,7 @@
    이 파일이 코드로 지키는 것 —
 
    · 검수 판정은 언어별로 낼 수 있다 (translations[code].status).
-     크메르어 번역 하나가 오역이어도 문구 전체를 내리면 인도네시아어·베트남어
+     크메르어 번역 하나가 오역이어도 문구 전체를 내리면 네팔어·베트남어
      노동자도 그 안전 지시를 못 듣는다. 그것은 오역보다 나은 상태가 아니다.
      읽을 때는 Store.phraseOk(p, lang) 을 쓴다.
 
@@ -124,7 +124,7 @@
   /* 판정을 내린다. lang 이 있으면 그 언어만, 없으면 문구 전체.
 
      ★ 언어별 판정이 있는 이유 — 크메르어 번역 하나가 오역이어도 문구 전체를
-       내리면 인도네시아어·베트남어 노동자도 그 안전 지시를 못 듣는다.
+       내리면 네팔어·베트남어 노동자도 그 안전 지시를 못 듣는다.
        그것은 오역보다 나은 상태가 아니다. */
   function setStatus(id, status, lang) {
     var target = Store.findBy(phrases(), 'id', id);
@@ -244,7 +244,7 @@
       var row = UI.el('div', 'btn-row');
 
       /* 신고마다 "다시 사용" 을 따로 준다.
-         인도네시아어 신고를 처리하는 것과 문구 전체를 다시 쓰는 것은 다른 판단이다.
+         네팔어 신고를 처리하는 것과 문구 전체를 다시 쓰는 것은 다른 판단이다.
          한 버튼으로 묶으면 한 언어를 고친 것이 문구 전체를 되살리게 된다. */
       var langsFlagged = {};
       openFlags(p).forEach(function (f) { langsFlagged[f.lang || ''] = true; });
@@ -506,7 +506,7 @@
     box.textContent = '';
 
     /* 문구 전체가 대기·중지이거나, 어느 한 언어라도 완료가 아니면 판정이 필요하다.
-       p.status 만 보면 "인도네시아어만 중지" 인 문구가 목록에서 사라진다. */
+       p.status 만 보면 "네팔어만 중지" 인 문구가 목록에서 사라진다. */
     var need = list.filter(function (p) {
       if (p.status !== 'reviewed') return true;
       return langsOf(p).some(function (code) {
@@ -569,7 +569,7 @@
         block.appendChild(UI.el('p', 'meta', '번역문 — ' + t.text));
 
         /* ★ 이 언어만의 판정. 크메르어 오역 하나로 문구 전체를 내리면
-             인도네시아어·베트남어 노동자도 이 안전 지시를 못 듣는다. */
+             네팔어·베트남어 노동자도 이 안전 지시를 못 듣는다. */
         var langRow = UI.el('div', 'btn-row lang-verdict');
         langRow.appendChild(UI.phraseBadge(Store.phraseStatus(p, code)));
 
@@ -808,7 +808,7 @@
     var body = $('phrase-rows');
     body.textContent = '';
 
-    /* 걸러 보기도 언어별 판정을 본다. p.status 만 보면 "인도네시아어만 중지" 인
+    /* 걸러 보기도 언어별 판정을 본다. p.status 만 보면 "네팔어만 중지" 인
        문구가 '사용 중지' 목록에서 빠진다. */
     var shown = filter === 'all' ? list : list.filter(function (p) {
       if (p.status === filter) return true;

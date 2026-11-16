@@ -36,7 +36,6 @@ var Store = (function () {
 
   var LANGUAGES = [
     { code: 'km', name: '크메르어',     native: 'ភាសាខ្មែរ' },
-    { code: 'id', name: '인도네시아어', native: 'Bahasa Indonesia' },
     { code: 'vi', name: '베트남어',     native: 'Tiếng Việt' },
     { code: 'ne', name: '네팔어',       native: 'नेपाली' },
     { code: 'th', name: '태국어',       native: 'ภาษาไทย' },
@@ -470,7 +469,7 @@ var Store = (function () {
         status 는 PHRASE_STATUS 의 세 가지 중 하나.
         translations[code].status 는 그 언어만의 판정이고, 없으면 문구 전체를 따른다.
         flags[].lang 이 있으면 그 언어만 중지된다 — 크메르어 오역 하나로
-        인도네시아어 노동자까지 안전 지시를 못 듣게 되지 않는다.
+        네팔어 노동자까지 안전 지시를 못 듣게 되지 않는다.
 
         읽을 때는 Store.phraseOk(p, lang) 을 쓴다. p.status 를 직접 보면
         언어별 판정이 무시된다.
@@ -748,7 +747,7 @@ var Store = (function () {
      문구를 언어별로 판정한다 — phraseStatus / phraseOk
 
      ★ 검수 상태가 문구 단위이면, 크메르어 번역 하나가 오역이어도 문구 전체가
-       내려가고 인도네시아어·베트남어 노동자도 그 안전 지시를 함께 못 듣습니다.
+       내려가고 네팔어·베트남어 노동자도 그 안전 지시를 함께 못 듣습니다.
        그것은 오역보다 나은 상태가 아닙니다 — 안전 지시가 조용히 사라집니다.
 
      그래서 언어마다 상태를 가질 수 있게 합니다.

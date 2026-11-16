@@ -152,14 +152,14 @@ PAGES.forEach(([html, js, login]) => {
     JSON.stringify(reports.map(Object.keys)));
 
   /* 오역 문구는 사용 중지여야 한다.
-     ★ ph-3 은 인도네시아어 번역만 뜻이 뒤집혔다. 그 언어만 내려가고
+     ★ ph-3 은 네팔어 번역만 뜻이 뒤집혔다. 그 언어만 내려가고
        한국어·크메르어는 계속 나간다 — 문구 전체를 내리면 크메르어 노동자도
        이 안전 지시를 못 듣고, 그것은 오역보다 나은 상태가 아니다. */
   const ph3 = S.library.load().find((p) => p.id === 'ph-3');
-  eq('★ 뜻이 뒤집힌 인도네시아어는 나가지 않는다', S.phraseOk(ph3, 'id'), false);
+  eq('★ 뜻이 뒤집힌 네팔어는 나가지 않는다', S.phraseOk(ph3, 'ne'), false);
   eq('★ 크메르어는 계속 나간다', S.phraseOk(ph3, 'km'), true);
   eq('한국어 원문도 계속 나간다', S.phraseOk(ph3, 'ko'), true);
-  eq('신고에 어느 언어인지 남아 있다', ph3.flags[0].lang, 'id');
+  eq('신고에 어느 언어인지 남아 있다', ph3.flags[0].lang, 'ne');
 }
 
 /* -------------------------------------------------------------------
@@ -482,9 +482,9 @@ function bootWithSpeech(mode) {
   const t = boot('index.html', { page: 'assets/login.js' });
 
   const btns = t.$('lang-gate').querySelectorAll('.lang-btn');
-  eq('언어 6개가 뜬다', btns.length, 6);
+  eq('언어 5개가 뜬다 (4개 + 한국어)', btns.length, 5);
   has('★ 모국어 글자로 뜬다 (한국어를 몰라도 찾을 수 있다)', text(btns[0]), 'ភាសាខ្មែរ');
-  eq('음성 버튼도 언어마다 하나씩', t.$('lang-gate').querySelectorAll('.btn-audio').length, 6);
+  eq('음성 버튼도 언어마다 하나씩', t.$('lang-gate').querySelectorAll('.btn-audio').length, 5);
 
   const koBtn = [...btns].find((b) => text(b) === '한국어');
   eq('★ 아직 고르지 않았으면 한국어가 기본으로 골라져 있다', koBtn.getAttribute('aria-pressed'), 'true');
@@ -520,10 +520,10 @@ function bootWithSpeech(mode) {
 
   /* 언어를 바꾸면 안내 문장도 그 언어로 다시 그려진다 */
   const idBtn = [...t.$('lang-gate').querySelectorAll('.lang-btn')]
-    .find((b) => text(b).indexOf('Bahasa Indonesia') !== -1);
+    .find((b) => text(b).indexOf('नेपाली') !== -1);
   click(t.win, idBtn);
   has('★ 언어를 바꾸면 QR 안내도 그 언어로 바뀐다',
-    text(t.$('qr-note')), t.win.I18N.t('login.qrNote', 'id').split('{')[0]);
+    text(t.$('qr-note')), t.win.I18N.t('login.qrNote', 'ne').split('{')[0]);
 }
 
 {

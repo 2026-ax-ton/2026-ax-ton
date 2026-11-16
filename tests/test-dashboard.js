@@ -61,14 +61,14 @@ function open(opts = {}) {
   bars.forEach((b) => { byLabel[text(b.querySelector('.what'))] = b; });
   const labels = Object.keys(byLabel);
 
-  ok('인도네시아어 화재가 있다', labels.some((l) => l.includes('인도네시아어 · 화재')),
+  ok('네팔어 화재가 있다', labels.some((l) => l.includes('네팔어 · 화재')),
     JSON.stringify(labels));
   ok('크메르어 끼임이 있다', labels.some((l) => l.includes('크메르어 · 끼임')),
     JSON.stringify(labels));
 
   // ★ 낮은 것이 맨 위
   const first = bars[0];
-  has('가장 낮은 항목이 맨 위 — 인도네시아어 화재', text(first.querySelector('.what')), '화재');
+  has('가장 낮은 항목이 맨 위 — 네팔어 화재', text(first.querySelector('.what')), '화재');
   has('0%', text(first.querySelector('.num')), '0%');
   eq('낮음 등급', first.getAttribute('data-level'), 'low');
   has('★ 색만이 아니라 등급 글자도 준다', text(first.querySelector('.num')), '낮음');
@@ -88,7 +88,7 @@ function open(opts = {}) {
   has('양호 글자', text(good.querySelector('.num')), '양호');
 
   // 무엇부터 하면 되는지 말해 준다
-  has('가장 낮은 항목을 지목한다', text(t.$('weak-hint')), '인도네시아어');
+  has('가장 낮은 항목을 지목한다', text(t.$('weak-hint')), '네팔어');
   has('무엇을 하라고 말한다', text(t.$('weak-hint')), '설명을 다시 만드는 것부터');
 }
 
@@ -167,7 +167,7 @@ function open(opts = {}) {
   const rows = [...t.$('action-rows').querySelectorAll('tr')];
   eq('조치 대상 1명 (미통과)', rows.length, 1);
   has('식별번호', text(rows[0]), 'W-4821-11');
-  has('언어', text(rows[0]), '인도네시아어');
+  has('언어', text(rows[0]), '네팔어');
   has('교육', text(rows[0]), '도장 부스 1 안전교육');
   has('미통과 상태', text(rows[0]), '미통과');
   has('★ 어느 항목에서 막혔는지', text(rows[0]), '화재');
@@ -344,15 +344,15 @@ function lastYearISO() {
   click(t.win, t.$('range-all'));
   const allBars = bars();
   ok('전체에서는 두 교육의 항목이 다 나온다', allBars.length >= 3, JSON.stringify(allBars));
-  ok('작년 교육(도장·인도네시아어) 항목이 보인다',
-    allBars.join(' ').includes('인도네시아어'), JSON.stringify(allBars));
+  ok('작년 교육(도장·네팔어) 항목이 보인다',
+    allBars.join(' ').includes('네팔어'), JSON.stringify(allBars));
 
   click(t.win, t.$('range-quarter'));
   const qBars = bars();
   ok('★ 범위를 바꾸면 막대도 함께 바뀐다',
     qBars.length < allBars.length, JSON.stringify(allBars) + ' → ' + JSON.stringify(qBars));
   ok('★ 범위 밖 교육의 항목은 막대에서 빠진다',
-    !qBars.join(' ').includes('인도네시아어'), JSON.stringify(qBars));
+    !qBars.join(' ').includes('네팔어'), JSON.stringify(qBars));
 }
 
 {
