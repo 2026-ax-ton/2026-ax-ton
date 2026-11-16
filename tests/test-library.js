@@ -33,9 +33,9 @@ function open(opts = {}) {
   /* 예시 데이터 — 문구 15개.
        ph-1,2,4,6 검수 완료 · ph-5,7,8,9,10,11,12,13,14,15 검수 대기
        (ph-7~9 C형프레스 구조 · ph-10~12 유압프레스 전용 · ph-13~15 사출성형기 — 전부 조사만 됐고 미검수)
-       ph-3 은 한국어·크메르어는 검수 완료인데 네팔어만 중지 (오역 신고 1건)
+       ph-3 은 한국어·캄보디아어는 검수 완료인데 네팔어만 중지 (오역 신고 1건)
      타일은 "한 언어라도" 기준으로 센다. ph-3 은 완료에도 중지에도 들어간다 —
-     크메르어로는 나가고 네팔어로는 안 나가는 것이 사실이다. */
+     캄보디아어로는 나가고 네팔어로는 안 나가는 것이 사실이다. */
   const tiles = [...t.$('stats').querySelectorAll('.kpi')].map(
     (k) => text(k.querySelector('dt')) + '=' + text(k.querySelector('dd')));
   has('검수 완료 5개', tiles.join(' '), '검수 완료=5개');
@@ -92,7 +92,7 @@ function open(opts = {}) {
   eq('접수 전에는 검수 완료', before.status, 'reviewed');
 
   // ph-1 을 골라 문구 전체 신고 접수
-  fileFlag(t, 'ph-1', 'ALL', '크메르어에서 "프레스가 멈춰도" 가 빠졌습니다');
+  fileFlag(t, 'ph-1', 'ALL', '캄보디아어에서 "프레스가 멈춰도" 가 빠졌습니다');
 
   const after = t.win.Store.library.load().find((p) => p.id === 'ph-1');
   eq('★ 접수하는 순간 사용 중지', after.status, 'stopped');
@@ -219,7 +219,7 @@ function open(opts = {}) {
     before(win) { win.Store.library.save(saved); },
   });
 
-  /* c-press 는 문구 4개(ph-1,2,3,6). 크메르어 노동자에게는 넷 다 쓸 수 있는데,
+  /* c-press 는 문구 4개(ph-1,2,3,6). 캄보디아어 노동자에게는 넷 다 쓸 수 있는데,
      ph-1 을 문구 전체 중지했으므로 3개로 줄어야 한다. */
   const card = learn.win.document.querySelector('#course-list .course-card');
   has('쓸 수 있는 문구가 4개에서 3개로 줄었다', text(card.querySelector('.meta')), learn.win.I18N.t('learn.phraseCount', 'km').replace('{n}', '3'));
@@ -253,7 +253,7 @@ function open(opts = {}) {
    N. ★ 언어별 검수 판정 — 한 언어의 오역으로 다른 언어를 잃지 않는다
 
    ph-3 은 네팔어 번역만 뜻이 뒤집혔다 ("넣지 마십시오" → "넣어도 됩니다").
-   문구 전체를 내리면 크메르어 노동자도 이 안전 지시를 못 듣는다.
+   문구 전체를 내리면 캄보디아어 노동자도 이 안전 지시를 못 듣는다.
    그것은 오역보다 나은 상태가 아니다.
    ================================================================= */
 {
@@ -262,7 +262,7 @@ function open(opts = {}) {
 
   eq('문구 전체는 검수 완료', p3.status, 'reviewed');
   eq('한국어 원문은 쓸 수 있다', t.win.Store.phraseOk(p3, 'ko'), true);
-  eq('★ 크메르어는 쓸 수 있다', t.win.Store.phraseOk(p3, 'km'), true);
+  eq('★ 캄보디아어는 쓸 수 있다', t.win.Store.phraseOk(p3, 'km'), true);
   eq('★ 네팔어는 못 쓴다', t.win.Store.phraseOk(p3, 'ne'), false);
   eq('번역이 없는 언어는 문구 전체를 따른다', t.win.Store.phraseOk(p3, 'th'), true);
 
@@ -273,8 +273,8 @@ function open(opts = {}) {
   const labels = [...block.querySelectorAll('.btn-sm')].map((b) => text(b));
   ok('네팔어만 되살리는 버튼이 있다',
     labels.some((l) => l.includes('네팔어만 검수 완료')), labels.join(' | '));
-  ok('크메르어만 내리는 버튼이 있다',
-    labels.some((l) => l.includes('크메르어만 중지')), labels.join(' | '));
+  ok('캄보디아어만 내리는 버튼이 있다',
+    labels.some((l) => l.includes('캄보디아어만 중지')), labels.join(' | '));
   ok('문구 전체 버튼도 따로 있다',
     labels.some((l) => l.includes('문구 전체')), labels.join(' | '));
 }
@@ -282,12 +282,12 @@ function open(opts = {}) {
 /* --- ★ 같은 교육, 다른 언어 — 한쪽에는 남고 한쪽에서는 빠진다 --- */
 {
   /* c-press 는 문구 4개(ph-1,2,3,6)이고 언어는 km·id·vi 다.
-     크메르어 노동자에게는 4개가 다 나가고,
+     캄보디아어 노동자에게는 4개가 다 나가고,
      네팔어 번역이 중지된 ph-3 은 네팔어 노동자에게만 빠진다. */
   const km = boot('worker/learn.html', { login: 'W-4821-07', page: 'worker/learn.js' });
   const kmCard = km.win.document.querySelector('#course-list .course-card');
   const I18N_KM_4 = kmCard.ownerDocument.defaultView.I18N.t('learn.phraseCount', 'km').replace('{n}', '4');
-  has('★ 크메르어 노동자는 문구 4개를 다 받는다', text(kmCard.querySelector('.meta')), I18N_KM_4);
+  has('★ 캄보디아어 노동자는 문구 4개를 다 받는다', text(kmCard.querySelector('.meta')), I18N_KM_4);
 
   kmCard.querySelector('.course-open')
     .dispatchEvent(new km.win.MouseEvent('click', { bubbles: true }));
@@ -297,7 +297,7 @@ function open(opts = {}) {
     const next = km.$('btn-next');
     if (next && !next.hidden) next.dispatchEvent(new km.win.MouseEvent('click', { bubbles: true }));
   }
-  ok('★ 크메르어 화면에는 그 문구가 그대로 나온다',
+  ok('★ 캄보디아어 화면에는 그 문구가 그대로 나온다',
     kmTexts.join(' ').includes('프레스가 멈춰도') ||
     kmTexts.join(' ').includes('ទោះម៉ាស៊ីនឈប់'),
     kmTexts.join(' | ').slice(0, 200));
@@ -335,7 +335,7 @@ function open(opts = {}) {
   const options = [...t.$('flag-lang').querySelectorAll('option')].map((o) => text(o));
   has('고르라고 적혀 있다', options.join(' | '), '고르세요');
   ok('그 문구가 가진 언어가 올라온다',
-    options.some((o) => o.includes('크메르어')), options.join(' | '));
+    options.some((o) => o.includes('캄보디아어')), options.join(' | '));
   ok('문구 전체도 고를 수 있다',
     options.some((o) => o.includes('문구 전체')), options.join(' | '));
 
@@ -350,15 +350,15 @@ function open(opts = {}) {
 /* --- 한 언어만 신고하면 그 언어만 내려간다 --- */
 {
   const t = open();
-  fileFlag(t, 'ph-1', 'km', '크메르어에서 부정이 빠졌습니다');
+  fileFlag(t, 'ph-1', 'km', '캄보디아어에서 부정이 빠졌습니다');
 
   const p = t.win.Store.library.load().find((x) => x.id === 'ph-1');
   eq('★ 문구 전체는 살아 있다', p.status, 'reviewed');
-  eq('★ 크메르어만 중지', p.translations.km.status, 'stopped');
+  eq('★ 캄보디아어만 중지', p.translations.km.status, 'stopped');
   eq('네팔어는 그대로', p.translations.ne.status, undefined);
   eq('어느 언어의 신고인지 남는다', p.flags[p.flags.length - 1].lang, 'km');
 
-  eq('크메르어로는 못 쓴다', t.win.Store.phraseOk(p, 'km'), false);
+  eq('캄보디아어로는 못 쓴다', t.win.Store.phraseOk(p, 'km'), false);
   eq('★ 네팔어로는 계속 쓴다', t.win.Store.phraseOk(p, 'ne'), true);
 
   // 그 언어만 되살린다
@@ -366,13 +366,13 @@ function open(opts = {}) {
   const item = [...t.$('flag-queue').querySelectorAll('.queue-item')]
     .find((i) => text(i).includes('부정이 빠졌습니다'));
   const fix = [...item.querySelectorAll('.btn-sm')]
-    .find((b) => text(b).includes('크메르어 번역이 고쳐졌습니다'));
+    .find((b) => text(b).includes('캄보디아어 번역이 고쳐졌습니다'));
   ok('그 언어만 되살리는 버튼이다', !!fix,
     [...item.querySelectorAll('.btn-sm')].map((b) => text(b)).join(' | '));
   click(t.win, fix);
 
   const fixed = t.win.Store.library.load().find((x) => x.id === 'ph-1');
-  eq('크메르어가 다시 검수 완료', fixed.translations.km.status, 'reviewed');
+  eq('캄보디아어가 다시 검수 완료', fixed.translations.km.status, 'reviewed');
   eq('그 언어의 신고만 닫힌다',
     fixed.flags.filter((f) => f.lang === 'km' && !f.resolvedAt).length, 0);
 }
@@ -410,7 +410,7 @@ function addPhrase(t, { ko, category, lang, textIn, back }) {
   /* 언어 칸은 Store.LANGUAGES 에서 나온다 — 화면에 언어를 박아 두면
      언어가 늘 때 한 곳을 빠뜨린다. 한국어는 원문 칸이 이미 받는다. */
   eq('언어 칸이 4개 (한국어 제외)', doc.querySelectorAll('#add-i18n .i18n-box').length, 4);
-  ok('크메르어 칸이 있다', !!t.$('add-km-text') && !!t.$('add-km-back'));
+  ok('캄보디아어 칸이 있다', !!t.$('add-km-text') && !!t.$('add-km-back'));
   ok('한국어 번역 칸은 없다', !t.$('add-ko-text'));
 
   /* 분류 후보는 라이브러리에서 온다. Store.setup 의 공정 이름을 쓰면
@@ -437,7 +437,7 @@ function addPhrase(t, { ko, category, lang, textIn, back }) {
   const before = t.win.Store.library.load().length;
   addPhrase(t, { ko: '지게차 뒤에 서지 마십시오', lang: 'km', textIn: 'កុំឈរខាងក្រោយ' });
   eq('★ 역번역이 없으면 저장되지 않는다', t.win.Store.library.load().length, before);
-  has('어느 언어인지 말한다', text(t.$('toast')), '크메르어');
+  has('어느 언어인지 말한다', text(t.$('toast')), '캄보디아어');
   has('왜 막았는지 말한다', text(t.$('toast')), '역번역');
   has('그 언어 칸에도 적어 둔다', text(t.$('add-km-warn')), '역번역을 적어 주세요');
 }
@@ -801,9 +801,9 @@ function addPhrase(t, { ko, category, lang, textIn, back }) {
 
     const buttons = [...t.win.document.querySelectorAll('#review-list button')].map(text);
     ok('★★ 그 언어의 「검수 완료」 버튼이 없다',
-      !buttons.some((b) => b === '크메르어만 검수 완료'));
+      !buttons.some((b) => b === '캄보디아어만 검수 완료'));
     ok('★ 중지 버튼은 그대로 있다 (막을 길은 언제나 열려 있다)',
-      buttons.some((b) => b === '크메르어만 중지'));
+      buttons.some((b) => b === '캄보디아어만 중지'));
 
     ok('★ 직접 입력 칸이 열려 있다', !!t.$('fix-ph-esc-km-text'));
     ok('역번역 칸도 함께 받는다', !!t.$('fix-ph-esc-km-back'));
@@ -821,7 +821,7 @@ function addPhrase(t, { ko, category, lang, textIn, back }) {
     ok('★★ 이제 승인이 열린다', t.win.Store.approvalBlocked(saved, 'km') === false);
 
     const after = [...t.win.document.querySelectorAll('#review-list button')].map(text);
-    ok('화면에도 「검수 완료」 버튼이 돌아온다', after.some((b) => b === '크메르어만 검수 완료'));
+    ok('화면에도 「검수 완료」 버튼이 돌아온다', after.some((b) => b === '캄보디아어만 검수 완료'));
   }
 
   /* --- 역번역 없이 저장하지 못한다 --- */

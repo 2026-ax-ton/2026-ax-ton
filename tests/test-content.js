@@ -40,8 +40,8 @@ const checkAll = (win, root, name, values) => {
 
   /* ★ 검수를 지난 문구만 선택지에 오른다.
 
-     판정은 언어별이다. ph-3 은 네팔어만 중지됐고 크메르어로는 쓸 수 있으므로
-     선택지에 남는다 — 여기서 빼면 크메르어 노동자도 그 안전 지시를 못 받는다.
+     판정은 언어별이다. ph-3 은 네팔어만 중지됐고 캄보디아어로는 쓸 수 있으므로
+     선택지에 남는다 — 여기서 빼면 캄보디아어 노동자도 그 안전 지시를 못 받는다.
      어느 언어에서 빠지는지는 아래 "그 언어에서 나가지 않는 조합" 경고가 적는다.
      ph-5 는 검수 대기라 어느 언어로도 못 쓴다 — 선택지에 없다. */
   const phrases = t.$('pick-phrase').querySelectorAll('input[name="phrase"]');
@@ -148,7 +148,7 @@ const checkAll = (win, root, name, values) => {
   /* --- ★ 노동자 화면에 나타나는지 --- */
   const saved = t.win.Store.courses.load();
   const learn = boot('worker/learn.html', {
-    login: 'W-4821-07',           // 크메르어 · 프레스 공정 (배전반 A 도 프레스 공정)
+    login: 'W-4821-07',           // 캄보디아어 · 프레스 공정 (배전반 A 도 프레스 공정)
     page: 'worker/learn.js',
     before(win) { win.Store.courses.save(saved); },
   });
@@ -172,8 +172,8 @@ const checkAll = (win, root, name, values) => {
     },
   });
 
-  /* 2026-11-11 — 손으로 만든 이 교육은 크메르어 번역이 없다. 크메르어 노동자에게 한국어를 띄우지 않고 막는다 */
-  eq('★★ 번역 없는 교육은 크메르어 노동자에게 열리지 않는다', quiz.$('view-quiz').hidden, true);
+  /* 2026-11-11 — 손으로 만든 이 교육은 캄보디아어 번역이 없다. 캄보디아어 노동자에게 한국어를 띄우지 않고 막는다 */
+  eq('★★ 번역 없는 교육은 캄보디아어 노동자에게 열리지 않는다', quiz.$('view-quiz').hidden, true);
   has('내 언어로 「준비되지 않았습니다」', text(quiz.$('gate-title')), quiz.win.I18N.t('quiz.notReady', 'km'));
 
   /* 같은 교육을 한국어로 받는 노동자는 그대로 푼다 */
@@ -365,11 +365,11 @@ const checkAll = (win, root, name, values) => {
 
   const box = t.$('q-i18n');
   eq('고른 언어 수만큼 번역 칸', box.querySelectorAll('.i18n-box').length, 2);
-  has('언어 이름이 칸에 적힌다', text(box), '크메르어');
+  has('언어 이름이 칸에 적힌다', text(box), '캄보디아어');
   has('비워 두면 어떻게 되는지 적는다', text(box), '번역 준비 중');
   eq('한국어 번역 칸은 만들지 않는다 — 원문이 한국어다', t.$('q-i18n-ko-prompt'), null);
 
-  // hotspot 문항에 크메르어 번역을 넣는다
+  // hotspot 문항에 캄보디아어 번역을 넣는다
   const zones = t.$('q-hot-figure').querySelectorAll('.zone');
   input(t.win, t.$('q-hot-prompt'), '손이 끼일 수 있는 곳을 누르세요');
   click(t.win, zones[0]);

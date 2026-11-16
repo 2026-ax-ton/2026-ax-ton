@@ -35,7 +35,7 @@ var Store = (function () {
      ----------------------------------------------------------------- */
 
   var LANGUAGES = [
-    { code: 'km', name: '크메르어',     native: 'ភាសាខ្មែរ' },
+    { code: 'km', name: '캄보디아어', native: 'ភាសាខ្មែរ' },
     { code: 'vi', name: '베트남어',     native: 'Tiếng Việt' },
     { code: 'ne', name: '네팔어',       native: 'नेपाली' },
     { code: 'th', name: '태국어',       native: 'ภาษาไทย' },

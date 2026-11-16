@@ -63,7 +63,7 @@ function open(opts = {}) {
 
   ok('네팔어 화재가 있다', labels.some((l) => l.includes('네팔어 · 화재')),
     JSON.stringify(labels));
-  ok('크메르어 끼임이 있다', labels.some((l) => l.includes('크메르어 · 끼임')),
+  ok('캄보디아어 끼임이 있다', labels.some((l) => l.includes('캄보디아어 · 끼임')),
     JSON.stringify(labels));
 
   // ★ 낮은 것이 맨 위
@@ -112,8 +112,8 @@ function open(opts = {}) {
   const bars = [...t.$('weak-bars').querySelectorAll('.bar-item')];
   const byLabel = {};
   bars.forEach((b) => { byLabel[text(b.querySelector('.what'))] = b; });
-  const pinchLabel = Object.keys(byLabel).find((l) => l.includes('크메르어 · 끼임'));
-  const shockLabel = Object.keys(byLabel).find((l) => l.includes('크메르어 · 감전'));
+  const pinchLabel = Object.keys(byLabel).find((l) => l.includes('캄보디아어 · 끼임'));
+  const shockLabel = Object.keys(byLabel).find((l) => l.includes('캄보디아어 · 감전'));
 
   has('★ 인원이 늘면 n명 표기도 따라 늘어난다', pinchLabel, '4명');
   ok('★ 4명이 되면 주의 문구가 사라진다 (그 항목만)',
