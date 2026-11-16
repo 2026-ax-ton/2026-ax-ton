@@ -23,10 +23,12 @@
    ★ 태그는 **사람이** 정한다 (FR-11). AI 가 달지 않는다. 번역 판정과도
      상관없다 — 태그를 바꿔도 언어별 상태는 그대로다.
 
-   ⚠️ 개별 사항 자료가 있는 특별교육 작업은 **39종 중 12종**이다
-     (`Curriculum.SPECIAL`). 나머지는 이름만 있어(`SPECIAL_LATER`) 고를 수
-     없고, 화면에 「개별 사항 자료 없음」으로 보인다. 숨기지 않는다 —
-     비어 있다는 것이 운영자가 알아야 하는 사실이다.
+   🆕 2026-11-16 — 특별교육 대상 작업 **39종 전부** 개별 사항을 고를 수 있다.
+     대표 12종(`Curriculum.SPECIAL`, ★)은 영상용 세부 내용까지 있고,
+     나머지 27종(`Curriculum.SPECIAL_LATER`)은 별표 5 개별 사항 **이름만** 있다
+     (수빈 「영상 제작용 교육 항목 정리」 8절 — 원문을 줄여 적음). 태그는 이름과
+     번호만 있으면 되므로 27종도 「작업-순번」(예 `1-2`)으로 단다.
+     개별 사항 이름이 비어 있는 작업이 생기면 그 작업만 고를 수 없다고 화면에 적는다.
 
    ★ 서버를 부르지 않는다. 바깥 요청 0건, ES 모듈 아님 (file:// 에서 열린다).
 
@@ -54,20 +56,42 @@ var LegalTag = (function () {
       .map(function (b) { return { no: b.no, title: b.title }; });
   }
 
-  /** 개별 사항 자료가 있는 특별교육 작업 — [{ no, title, items: [{ tag, title }] }] */
+  /** 개별 사항을 고를 수 있는 특별교육 작업 — [{ no, title, detailed, items: [{ tag, title }] }]
+   *  detailed: 영상용 세부 내용까지 있는 대표 12종(★). 나머지는 별표 5 개별 사항 이름만 */
   function jobs() {
-    return Curriculum.SPECIAL.map(function (s) {
+    var detailed = (Curriculum.SPECIAL || []).map(function (s) {
       return {
         no: s.no,
         title: s.title,
+        detailed: true,
         items: s.items.map(function (it) { return { tag: it.tag, title: it.title }; })
       };
-    }).sort(function (a, b) { return a.no - b.no; });
+    });
+    var later = (Curriculum.SPECIAL_LATER || []).filter(function (r) { return r.items && r.items.length; })
+      .map(function (r) {
+        return {
+          no: r.no,
+          title: r.title,
+          detailed: false,
+          items: r.items.map(function (name, i) { return { tag: r.no + '-' + (i + 1), title: name }; })
+        };
+      });
+    return detailed.concat(later).sort(function (a, b) { return a.no - b.no; });
   }
 
-  /** 개별 사항 자료가 아직 없는 작업 — 고를 수 없다는 것을 화면에 적는다 */
+  /** 개별 사항 이름이 아직 없는 작업 — 고를 수 없다는 것을 화면에 적는다 (지금은 없다) */
   function jobsWithoutItems() {
-    return (Curriculum.SPECIAL_LATER || []).slice();
+    return (Curriculum.SPECIAL_LATER || []).filter(function (r) { return !r.items || !r.items.length; });
+  }
+
+  /** 태그 → 개별 사항 이름. 대표 12종은 curriculum.find, 나머지는 jobs() 에서 */
+  function itemTitle(tag) {
+    var item = Curriculum.find(tag);
+    if (item) return item.title;
+    var no = String(tag || '').split('-')[0];
+    var job = jobs().filter(function (j) { return String(j.no) === no; })[0];
+    var hit = job && job.items.filter(function (it) { return it.tag === tag; })[0];
+    return hit ? hit.title : '';
   }
 
   /** 문구의 태그 — 칸이 없는 옛 문구도 터지지 않는다 (FR-12) */
@@ -92,10 +116,10 @@ var LegalTag = (function () {
 
   /** 개별 사항 태그 → 「특별 11-② 방호장치 종류와 취급」 */
   function specialLabel(tag) {
-    var item = Curriculum.find(tag);
+    var title = itemTitle(tag);
     var part = String(tag || '').split('-');
     var head = '특별 ' + part[0] + '-' + circled(Number(part[1]));
-    return item ? head + ' ' + item.title : head;
+    return title ? head + ' ' + title : head;
   }
 
   /** 어느 쪽이든 하나 — 화면이 두 종류를 구분하지 않아도 되게 */
@@ -163,7 +187,7 @@ var LegalTag = (function () {
     });
     jobs().forEach(function (j) {
       var sum = j.items.reduce(function (n, it) { return n + c.special[it.tag]; }, 0);
-      out.push({ value: 'job' + j.no, label: '특별 ' + j.no + ' ' + j.title + ' — ' + sum + '개', group: true });
+      out.push({ value: 'job' + j.no, label: '특별 ' + (j.detailed ? '★ ' : '') + j.no + ' ' + j.title + ' — ' + sum + '개', group: true });
       j.items.forEach(function (it) {
         out.push({ value: 's' + it.tag, label: '   ' + specialLabel(it.tag) + ' — ' + c.special[it.tag] + '개' });
       });
@@ -204,7 +228,7 @@ var LegalTag = (function () {
     none.value = '';
     jobSel.appendChild(none);
     jobs().forEach(function (j) {
-      var o = UI.el('option', null, j.no + '. ' + j.title);
+      var o = UI.el('option', null, (j.detailed ? '★ ' : '') + j.no + '. ' + j.title);
       o.value = String(j.no);
       jobSel.appendChild(o);
     });
@@ -262,11 +286,15 @@ var LegalTag = (function () {
     jobSel.addEventListener('change', renderItems);
     spBox.appendChild(chosen);
 
+    var all = jobs();
+    var plain = all.filter(function (j) { return !j.detailed; }).length;
+    spBox.appendChild(UI.el('p', 'sub',
+      '특별교육 대상 작업 ' + all.length + '종을 고를 수 있습니다. ★ 표시 ' + (all.length - plain) + '종은 영상용 세부 내용까지 있고, '
+      + '나머지 ' + plain + '종은 별표 5 개별 사항 이름만 있습니다.'));
     var later = jobsWithoutItems();
     if (later.length) {
       spBox.appendChild(UI.el('p', 'sub',
-        '개별 사항 자료가 있는 작업은 ' + jobs().length + '종입니다. 나머지 ' + later.length
-        + '종은 아직 자료가 없어 고를 수 없습니다.'));
+        '개별 사항 이름이 없는 ' + later.length + '종은 고를 수 없습니다.'));
     }
     box.appendChild(spBox);
 
