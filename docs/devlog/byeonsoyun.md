@@ -6,6 +6,30 @@
 
 ---
 
+## 2026-11-16 (2) — 팀원 PR #20 미리보기 장애 해결 · 운영 배포 v34
+
+**한 것**
+- 팀원(소윤님 아닌 박소윤 팀원, `smilesy0603`)이 올린 PR #20(노동자 화면 새 디자인, `develop` ← `feat/worker-design-2`)의 Vercel 미리보기 실패를 고쳤다. 전체 검사는 통과했고 **코드 문제가 아니었다**
+- 원인: Vercel 배포 상세의 `errorMessage: "Resource provisioning failed"` · `integrations.status: error`(1.9초 만에 끝) — 빌드 로그가 비어 있다. 빌드 전 **Neon DB 브랜치 생성 단계**에서 끊긴 것. Neon 브랜치가 **정확히 10개로 한도 꽉 참**
+- 한도를 채운 4개는 **머지가 끝난 PR 의 잔재**(`agent-autogen`·`special-work-preselect`·`agent-photo-hazard`·`agent-prd-v1`). `neon-cleanup.yml` 을 11/16 15:17 에 만들었으니 그 전에 머지된 것들은 한 번도 정리된 적이 없었다 → `workflow_dispatch` 로 4개 삭제(10→6)
+- `npx vercel --scope a-636a redeploy dpl_8uJrf3KGre7PTSghsZTBi9BmkXNs` → Ready 30초. PR #20 체크 3개 전부 통과 → **팀원이 직접 머지**(23:18) → `develop`→`main` `--ff-only` 로 운영 배포(`d5fe68c`, `sw.js` v34)
+- 확인: 운영 `sw.js` v34 · `login-v2` 실림 · `worker/worker.css` 200 · `/CLAUDE.md` 404 · `commits/main/status` `total_count: 1`
+
+**막혔던 것 / 어떻게 풀었는지**
+- **팀원이 말한 원인이 틀렸다.** "닫은 `feat/worker-design` 브랜치의 Neon 브랜치를 지워 달라" 였는데 **그 브랜치는 존재하지 않았다** — 정리 워크플로를 돌려 보니 "not found" 였고, 그 로그에 **남은 브랜치 전체 목록이 찍혀서** 10개 한도라는 진짜 원인을 거기서 찾았다. 닫힌 PR #19 의 배포도 같은 한도로 실패해서 DB 브랜치가 생기기 전에 끝났던 것. **팀원 진단을 그대로 믿지 말고 사실부터 확인한다**
+- **없는 이름으로 `neon-cleanup.yml` 을 돌리면 남은 Neon 브랜치 목록을 볼 수 있다** — 로컬에 `NEON_API_KEY` 가 없어도 된다. Actions 에 빨간 X 가 남는 게 대가
+- **`neon-cleanup.yml` 이 `develop` 에만 있어서 `main` 대상 PR 에는 안 걸린다.** PR #19 가 그 경우였고, 그래서 닫혀도 자동 정리가 돌지 않았다. 팀원에게 **PR base 는 항상 `develop`**(`git-rules/GIT.md:97`)을 전달
+- PR #19 가 닫힌 진짜 이유는 base 가 아니라 **파일 위치**였다 — GitHub 웹 업로드로 `app.css`·`home.html`·`worker.css` 를 `src/` 밖 저장소 맨 위에 올렸다(전체 파일 통째로, `worker.css` 1898줄). PR #20 은 `src/` 안에 제대로 들어가 있고 **기존 파일 끝에 덧붙이기만 해서(삭제 0줄) 남의 작업과 겹치지 않는다**
+- **로컬 `vercel` CLI 가 로그아웃 상태여서 로그를 볼 수 없었다** — 사용자가 `npx vercel login` 해 준 뒤에야 원인을 확정할 수 있었다. Vercel MCP 쪽은 팀 scope 권한이 없어 403, CLI 로 우회
+- **팀원은 Vercel 팀 멤버가 아니다**(팀 `a-636a` 멤버는 byeonsoyun 1명). 그래서 **대시보드(빌드 상태·로그·Redeploy)는 못 본다.** 다만 `ssoProtection: null` 이라 **배포된 화면은 전부 공개**다 — 팀원이 "링크로 확인이 안 된다" 고 한 건 그때 배포가 실패해서 **PR 코멘트에 Preview 링크가 아예 안 붙었고**, 거기 있던 Error 링크는 대시보드라서 안 열렸던 것
+- Hobby 플랜은 멤버 추가가 안 된다(Pro 필요). 얻는 것이 대시보드 접근뿐이라 **주소 공유로 충분**하다고 판단
+
+**다음에 할 것**
+- 팀원이 PR 을 열 때 base 가 `develop` 인지 확인(반복되면 `neon-cleanup.yml` 을 `main` 에도 넣는 것을 검토 — 다만 `main` 은 `src/` 변경만 올리는 규칙이라 판단 필요)
+- PR #16(교육 그림 Vercel Blob)은 해커톤 뒤 머지 그대로
+
+---
+
 ## 2026-11-16 — yesol PR #12·#13 머지·배포, Vercel 장애 해결, 법정 사항 태그 39종으로
 
 **한 것**
