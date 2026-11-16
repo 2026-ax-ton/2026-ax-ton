@@ -177,8 +177,10 @@ var Net = (function () {
         if (res) return res.text();
         return post('/api/scans', { op: 'media-get', ref: ref }, opts).then(function (r) {
           var data = r.ok && r.data && typeof r.data.data === 'string' && r.data.data.indexOf('data:image/') === 0 ? r.data.data : '';
+          /* 담기가 끝난 뒤에 돌려준다 — 곧바로 끊겨도 방금 받은 그림이 캐시에 있어야 한다 (CI 에서 순서가 갈렸다) */
           if (data && cache && typeof Response === 'function') {
-            cache.put(key, new Response(data, { headers: { 'Content-Type': 'text/plain' } })).catch(function () {});
+            return cache.put(key, new Response(data, { headers: { 'Content-Type': 'text/plain' } }))
+              .catch(function () {}).then(function () { return data; });
           }
           return data;
         });
