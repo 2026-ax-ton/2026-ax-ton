@@ -191,7 +191,8 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
      (`12-admin-dashboard.html`). 둘 다 모아 실제로 있는지 본다. */
   const mocks = [...new Set([
     ...(t.match(/docs\/mockups\/[\w.-]+/g) || []),
-    ...(t.match(/\b\d\d-[\w-]+\.html\b/g) || []).map((f) => 'docs/mockups/' + f),
+    /* 앞이 글자·숫자·「-」 이면 목업 이름이 아니다 — `07_기술미팅-2026-11-16.html` 의 `11-16.html` 을 잡지 않게 (2026-11-16) */
+    ...(t.match(/(?<![\w-])\d\d-[\w-]+\.html\b/g) || []).map((f) => 'docs/mockups/' + f),
   ])];
 
   ok('목업을 가리킨다 (' + mocks.length + '개)', mocks.length >= 3, String(mocks.length));
