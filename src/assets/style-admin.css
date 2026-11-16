@@ -30,8 +30,8 @@
 
 .adminbar {
   flex: 0 0 auto;
-  background: linear-gradient(100deg, var(--admin-ink) 0%, var(--admin-ink-2) 100%);
-  color: #fff;
+  background: linear-gradient(100deg, var(--banner) 0%, var(--banner-end) 100%);   /* Figma 관리자 보라 배너 */
+  color: var(--banner-ink);
   padding: 12px 16px;
   display: flex;
   align-items: center;

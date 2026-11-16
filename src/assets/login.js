@@ -197,5 +197,17 @@
   // 조용히 채우면 "내가 넣지도 않았는데 왜 있지" 가 된다. 채웠으면 채웠다고 적는다.
   if (seededNow) $('seed-auto').hidden = false;
 
+  /* 🆕 2026-11-15 로그인 시안 — 아이콘 자리(data-icon)와 비밀번호 보기 */
+  UI.$$('.login-body [data-icon]').forEach(function (n) { UI.setIcon(n, n.getAttribute('data-icon')); });
+  var eye = $('btn-pw-eye');
+  if (eye) {
+    eye.addEventListener('click', function () {
+      var show = $('login-pw').type === 'password';
+      $('login-pw').type = show ? 'text' : 'password';
+      eye.setAttribute('aria-pressed', show ? 'true' : 'false');
+      eye.setAttribute('aria-label', show ? '비밀번호 숨기기' : '비밀번호 보기');
+    });
+  }
+
   renderAccounts();
 })();

@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v30';   // 2026-11-16 — 표시한 설비 → 교육 0단계 작업 미리 고르기 (PRD-AD-04 FR-23)
+var VERSION = 'v31';   // 2026-11-16 — yesol team-share 머지: 설비 촬영 화면 개선 · Figma 디자인 반영 · J7-1 문구 수정
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사업장 · 설비 등록 — 안전교육 이해도 검증 플랫폼</title>
+<title>사업장 · 설비 등록 — Safelang</title>
 <meta name="description" content="기능1 사업장·공정·설비·노동자 언어 등록. 최초 1회 설정.">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="stylesheet" href="../assets/style-admin.css">
@@ -197,6 +197,9 @@
               <label for="equip-photo">설비 사진 <small>(선택 · 사람 얼굴이 나오지 않게)</small></label>
               <input id="equip-photo" type="file" accept="image/*" capture="environment">
               <img id="equip-photo-preview" class="equip-photo" alt="고른 설비 사진" hidden>
+              <!-- 🆕 2026-11-15 가이드 촬영 — 사진 1장이 아니라 둘레를 두 바퀴 (3D·여러 각도 재료). 저장된 설비만 -->
+              <a class="equip-scan-btn" id="btn-equip-scan" href="#" hidden>둘레 촬영 (가이드 · 3D용)</a>
+              <p class="field-hint" id="equip-scan-hint">설비를 저장한 뒤 목록의 <b>[둘레 촬영]</b>을 누르면, 휴대폰 카메라 위에 안내가 나오고 설비 둘레를 두 바퀴 찍습니다. 다 찍으면 알아서 올라갑니다.</p>
             </div>
 
             <input type="hidden" id="equip-edit-id" value="">

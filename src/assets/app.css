@@ -675,8 +675,8 @@ html[data-env="dev"] .todo > h2::before {
    같은 폰을 돌려 쓸 때 지금 누구 화면인지 헷갈리면 안 된다. */
 .workerbar {
   flex: 0 0 auto;
-  background: linear-gradient(100deg, var(--brand) 0%, var(--brand-strong) 100%);
-  color: #fff;
+  background: linear-gradient(100deg, var(--banner) 0%, var(--banner-end) 100%);
+  color: var(--banner-ink);
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -691,6 +691,46 @@ html[data-env="dev"] .todo > h2::before {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.workerbar .who span { font-size: .74em; color: rgba(255, 255, 255, .78); }
-.workerbar .btn-sm { background: rgba(255, 255, 255, .12); color: #fff; border-color: rgba(255, 255, 255, .3); }
-.workerbar .btn-sm:hover { background: rgba(255, 255, 255, .2); color: #fff; border-color: #fff; }
+.workerbar .who span { font-size: .74em; color: var(--banner-ink-2); }
+.workerbar .btn-sm { background: rgba(255, 255, 255, .35); color: var(--banner-ink); border-color: rgba(25, 31, 40, .18); }
+.workerbar .btn-sm:hover { background: rgba(255, 255, 255, .6); color: var(--banner-ink); border-color: var(--banner-ink); }
+
+/* ===================================================================
+   🆕 2026-11-15 로그인 화면 — 시안(밝은 회색 바탕 + 가운데 흰 카드), 이름은 Safelang
+   언어 선택(H9)·QR 안내·시연 계정은 그대로 둔다. 회원가입(signup.html)은 옛 .gate 를 계속 쓴다
+   =================================================================== */
+.login-body { background: var(--bg); min-height: 100vh; }
+.login-strip { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.login-strip-brand { display: inline-flex; align-items: center; gap: 6px; font-size: .85em; font-weight: 700; color: var(--ink-2); }
+.login-strip-brand .ico { width: 18px; height: 18px; color: var(--brand); }
+.login-main { max-width: 488px; margin: 0 auto; padding: 32px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
+.login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 36px 32px 28px; box-shadow: var(--shadow-1); }
+@media (max-width: 480px) { .login-card { padding: 28px 20px 24px; border-radius: 22px; } }
+.login-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.login-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 1.1em; font-weight: 800; color: var(--ink); }
+.login-logo-mark { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: var(--brand); color: #fff; }
+.login-logo-mark .ico { width: 22px; height: 22px; }
+.login-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-deep); font-size: .78em; font-weight: 600; }
+.login-chip .ico { width: 15px; height: 15px; }
+.login-card h1 { margin: 0 0 10px; font-size: 1.6em; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.login-lead { margin: 0 0 24px; color: var(--ink-2); line-height: 1.6; }
+.login-input { position: relative; display: flex; align-items: center; }
+.login-input input { width: 100%; min-height: 52px; padding-right: 52px; border-radius: 12px; }
+.login-input > .ico { position: absolute; right: 16px; width: 20px; height: 20px; color: var(--ink-3); pointer-events: none; }
+.login-eye { position: absolute; right: 4px; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--ink-2); border-radius: 10px; cursor: pointer; }
+.login-eye .ico { width: 22px; height: 22px; }
+.login-eye[aria-pressed="true"] { color: var(--brand); background: var(--brand-soft); }
+.login-go { width: 100%; min-height: var(--tap-min); margin-top: 8px; border-radius: 14px; background: var(--brand); color: var(--brand-ink); font-size: 1.05em; box-shadow: 0 4px 12px var(--brand-glow); }   /* 시안: 로그인만 주색 버튼 */
+.login-go:hover { background: var(--brand-strong); }
+.login-note { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; padding: 14px 16px; border-radius: 12px; background: var(--bg); color: var(--ink-2); font-size: .85em; line-height: 1.6; }
+.login-note .ico { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; color: var(--brand); }
+.login-signup { display: flex; align-items: center; justify-content: center; min-height: var(--tap-min); color: var(--ink-2); text-decoration: none; }
+.login-signup b { margin-left: 6px; color: var(--brand); }
+.login-demo h2 { margin: 0 0 6px; font-size: 1.05em; }
+.login-foot { margin: 8px 0 0; text-align: center; color: var(--ink-3); font-size: .82em; }
+/* 언어 선택·QR 안내 — 옛 화면은 짙은 바탕이라 흰 글자였다. 밝은 바탕에 맞춘다 */
+.login-body .lang-gate { margin: 0; justify-content: center; }
+.login-body .lang-btn { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.login-body .lang-btn.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.login-body .qr-note { margin: 0; background: var(--brand-soft); color: var(--brand-deep); }
+.login-body .qr-note[hidden] { display: none; }   /* display:flex 가 hidden 을 덮는다 */

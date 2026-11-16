@@ -61,6 +61,9 @@ ok('수정 버튼이 있다', !!editBtn);
 $('equip-kind').dispatchEvent(new win.Event('change'));
 editBtn.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
 eq('★ 수정을 누르면 그 설비 값이 폼에 들어간다', $('equip-name').value + '|' + $('equip-kind').value + '|' + $('equip-edit-id').value, '사출기 1|injection|' + d.id);
+/* 2026-11-15 — 둘레 촬영(가이드)을 설비 화면 안에서 연다 */
+ok('★ 수정 중인 설비는 사진 칸 아래 [둘레 촬영]이 그 설비로 열린다', !$('btn-equip-scan').hidden && $('btn-equip-scan').getAttribute('href') === 'scan.html?equipment=' + encodeURIComponent(d.id) && $('equip-scan-hint').hidden);
+ok('목록 줄에도 [둘레 촬영] 버튼이 있다', Array.from($('list-equip').querySelectorAll('a')).some((x) => x.textContent === '둘레 촬영' && (x.getAttribute("href") || "").indexOf("scan.html?equipment=") === 0));
 $('equip-model').value = 'TB-G5';
 $('form-equip').dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
 const d2 = S.setup.load().equipments.find((e) => e.id === d.id);
@@ -74,6 +77,7 @@ const d3 = S.setup.load().equipments.find((e) => e.id === d.id);
 eq('★★ 종류를 바꾸면 예전 AI 분석을 지운다', d3.kind + '|' + d3.analysis, 'press|null');
 has('★ 종류가 없던 옛 설비는 「종류 확인 필요」(이름으로 짐작)', $('list-equip').querySelector('li[data-id="e-old"]').textContent, '종류 확인 필요 (전기설비?)');
 eq('저장 뒤 수정 상태가 풀린다', $('equip-edit-id').value + '|' + $('btn-equip-cancel').hidden, '|true');
+eq('새 설비 폼에서는 [둘레 촬영]을 숨기고 「저장한 뒤」 안내를 보인다', $('btn-equip-scan').hidden + '|' + $('equip-scan-hint').hidden, 'true|false');
 
 /* 콘텐츠에서 왔으면 돌아가는 길을 보인다 */
 const r = boot('admin/setup.html?return=content', { login: 'kim@daesung.co.kr', page: 'admin/setup.js' });

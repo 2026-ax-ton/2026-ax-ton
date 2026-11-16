@@ -993,8 +993,25 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 .scan-warn .ico { width: 22px; height: 22px; flex: 0 0 auto; }
 .scan-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; }
 .scan-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; border: 1px solid var(--line, #ccc); }
-#btn-scan-start[hidden], #btn-scan-stop[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
-
+#btn-scan-start[hidden], #btn-scan-stop[hidden], #btn-equip-scan[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
+/* 설비 목록·수정 폼의 [둘레 촬영] — 글자 링크가 아니라 누르는 버튼으로 보이게 (2026-11-15) */
+.equip-scan-btn { display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; margin-top: 8px; min-height: var(--tap-min, 60px); padding: 8px 14px; border-radius: 10px; background: var(--brand); color: var(--brand-ink, #fff); font-weight: 700; text-decoration: none; }
+.equip-scan-btn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
+.equip-scan-btn[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
+/* 촬영 중 — 카메라가 휴대폰 화면 전체를 덮고, 안내·숫자·멈추기를 그 위에 둔다 (2026-11-15) */
+html.scan-on, html.scan-on body { overflow: hidden; }
+.scan-stage.full { position: fixed; inset: 0; z-index: 1000; max-width: none; margin: 0; border-radius: 0; }
+.scan-stage.full video { width: 100%; height: 100%; object-fit: cover; }
+.scan-stage .scan-meter { position: absolute; left: 10px; top: 10px; margin: 0; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; max-width: 60%; }
+.scan-stage.full .scan-warn { bottom: 104px; left: 16px; right: 16px; transform: none; width: fit-content; max-width: none; margin: 0 auto; justify-content: center; }   /* left:50% 이면 폭이 반으로 줄어 네 줄로 꺾인다 */
+/* 위쪽 띠 — 자세 교정: 무엇이 문제인지(굵게) + 어떻게 고치는지. 주황 바탕 + 경고 아이콘 + 글 (색만으로 구분하지 않는다) */
+.scan-coach { position: absolute; left: 10px; right: 10px; top: 10px; display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 12px; background: rgba(180,83,9,.94); color: #fff; z-index: 2; }
+.scan-coach[hidden] { display: none; }
+.scan-coach .ico { width: 26px; height: 26px; flex: 0 0 auto; }
+.scan-coach b { display: block; font-size: 17px; }
+.scan-coach b + span { font-size: 14px; }
+.scan-stage .scan-meter { top: auto; bottom: 168px; }   /* 숫자는 아래 안내 위로 — 위쪽은 자세 교정 자리 */
+.scan-stop { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: auto; padding: 0 36px; min-height: 60px; min-width: 140px; border-radius: 999px; background: #fff; color: #111; font-weight: 700; }
 
 /* 특별교육 대상 안내 — 설비 이름에 낱말이 걸리면 뜬다 (PRD-AD-01 FR-08).
    ★ 판정이 아니라 안내다. 노란색은 「막는 것」이 아니라 「확인해 달라」는 뜻이다 —
@@ -1015,3 +1032,22 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 /* 🆕 FR-AD-04-23 — 0단계: 고른 설비가 특별교육 대상으로 표시돼 있다는 안내 (설비 등록의 .special-note 와 같은 노란 ⚠) */
 .edu-equip-note { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); border: 1px solid var(--warn-line); color: #6b5200; font-weight: 700; }
 .edu-equip-note .ico { width: 20px; height: 20px; flex: 0 0 auto; margin-top: 1px; color: var(--warn); }
+
+/* ===================================================================
+   🆕 2026-11-15 Figma 본선 「00 대표 화면 2 — AD-05 대시보드 (PC)」
+   넓은 화면: 왼쪽 큰 칸 = 언어 × 위험유형 정답률(취약 항목), 오른쪽 좁은 칸 = 이수 현황·신고·실시 상황·증빙
+   막대는 단색(좋음 초록 · 보통 갈색 · 낮음 진홍) + 숫자 + 등급 글자 — 색만으로 가르지 않는다
+   =================================================================== */
+body.dash-figma .ai-note.off { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand-deep); }
+body.dash-figma .ai-note.off .tag { color: var(--brand); }
+body.dash-figma .card.feature .bar-track { height: 12px; border-radius: 6px; background: var(--track); }
+body.dash-figma .card.feature .bar-fill { border-radius: 6px; }
+body.dash-figma .bar-item[data-level="low"] .bar-fill { background: var(--stop); }
+body.dash-figma .bar-item[data-level="mid"] .bar-fill { background: var(--warn); }
+body.dash-figma .bar-item[data-level="ok"]  .bar-fill { background: var(--ok); }
+@media (min-width: 1024px) {
+  body.dash-figma .page { grid-template-columns: minmax(0, 1fr) 340px; grid-auto-flow: row dense; }
+  body.dash-figma .page > .card { grid-column: 2; }
+  body.dash-figma .page > .card.feature { grid-column: 1; grid-row: span 5; }
+  body.dash-figma .page > section[aria-labelledby="t-action"] { grid-column: 1 / -1; }   /* 표는 넓게 */
+}
