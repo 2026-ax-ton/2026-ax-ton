@@ -8,11 +8,20 @@
 #   (develop·PR #12 양쪽이 이렇게 막혔다 — 그때는 Neon 콘솔에서 손으로 지웠다).
 #
 # 이 워크플로는 Vercel의 보존 정책과 상관없이, PR이 닫히는 즉시 지운다.
+#
+# ★ 수동 실행(workflow_dispatch) — git 브랜치가 이미 지워졌는데 Neon 브랜치만
+#   유령으로 남아 한도를 또 채웠을 때, PR 없이 바로 지우는 비상 수단이다
+#   (2026-11-16, Subin-prd-2 가 지운 뒤에도 다시 나타난 사고에서 추가).
 name: Neon 미리보기 브랜치 정리
 
 on:
   pull_request:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: '지울 Neon 브랜치 이름 (예: preview/feature/Subin-prd-2)'
+        required: true
 
 permissions:
   contents: read
@@ -24,5 +33,5 @@ jobs:
       - uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/${{ github.head_ref }}
+          branch: ${{ inputs.branch || format('preview/{0}', github.head_ref) }}
           api_key: ${{ secrets.NEON_API_KEY }}
