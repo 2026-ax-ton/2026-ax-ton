@@ -52,10 +52,10 @@ function open(page, opts = {}) {
 
   // 4. 번역 이상 신고 안내
   const main = text(t.win.document.querySelector('main'));
-  // ★ 이제 이 사람(크메르어)의 언어로 뜬다. 한국어 글자를 박아 두면
+  // ★ 이제 이 사람(캄보디아어)의 언어로 뜬다. 한국어 글자를 박아 두면
   //   번역이 될수록 검사가 깨진다. 사전을 거쳐 "그 언어로 나오는가" 를 본다.
   has('말이 이상하면 알려 달라고 한다 (내 언어로)', main, t.win.I18N.t('home.badTrans'));
-  ok('★ 크메르어 사용자에게 한국어 원문이 아니라 번역이 뜬다',
+  ok('★ 캄보디아어 사용자에게 한국어 원문이 아니라 번역이 뜬다',
     t.win.I18N.t('home.badTrans') !== t.win.I18N.t('home.badTrans', 'ko'));
   has('알린 사람을 기록하지 않는다고 말한다', main, '누구인지는 기록하지 않습니다');
 
@@ -91,7 +91,7 @@ function open(page, opts = {}) {
 
   const btn = t.$('today-report');
   ok('신고 버튼이 있다', !!btn && btn.querySelector('.btn-sm') !== null);
-  has('★ 내 언어로 뜬다 (크메르어)', text(btn), t.win.I18N.t('home.reportTrans', 'km'));
+  has('★ 내 언어로 뜬다 (캄보디아어)', text(btn), t.win.I18N.t('home.reportTrans', 'km'));
 
   click(t.win, btn.querySelector('.btn-sm'));
 
@@ -286,7 +286,7 @@ function open(page, opts = {}) {
   has('식별번호', meText, 'W-4821-07');
   has('사업장', meText, '대성정밀');
   has('공정', meText, '프레스');
-  has('내 언어', meText, '크메르어');
+  has('내 언어', meText, '캄보디아어');
   const card = t.$('me-list').closest('.card');
   has('★ 받지 않는다는 것을 적는다', text(card), '외국인등록번호와 여권번호는 받지 않습니다');
   ok('★ 화면에 그런 항목이 없다', !/등록번호\s*[:：]|여권번호\s*[:：]/.test(meText));
@@ -422,11 +422,11 @@ function open(page, opts = {}) {
   has('★ 노동자의 실패가 아니라고 적는다', text(stuck), '교육의 실패로 기록됩니다');
 
   /* 문항 문구는 내 언어로 나온다 — Store.qtext 를 거친다.
-     seed 의 c-press q2 는 크메르어 번역이 있다. */
-  has('★ 문항 문구가 크메르어로 나온다', text(stuck), 'ម៉ាស៊ីន');
+     seed 의 c-press q2 는 캄보디아어 번역이 있다. */
+  has('★ 문항 문구가 캄보디아어로 나온다', text(stuck), 'ម៉ាស៊ីន');
 
-  /* 2026-11-11 시드 q3 에 크메르어를 채웠다 — 막힌 문항도 내 언어로 */
-  has('★ q3 도 크메르어로 나온다', text(stuck), 'ភ្ជាប់ឧបករណ៍ការពារ');
+  /* 2026-11-11 시드 q3 에 캄보디아어를 채웠다 — 막힌 문항도 내 언어로 */
+  has('★ q3 도 캄보디아어로 나온다', text(stuck), 'ភ្ជាប់ឧបករណ៍ការពារ');
 
   // 통과한 교육에는 붙지 않는다 — 복기가 성적표가 되면 안 된다
   const passed = open('my');
@@ -469,7 +469,7 @@ function open(page, opts = {}) {
   const row = t.win.Store.progress.load()
     .find((x) => x.workerId === 'W-4821-07' && x.courseId === 'c-press');
   eq('★ 지난 기록의 언어는 안 바뀐다', row.lang, 'km');
-  has('★ 증빙도 그때 언어로 남는다', text(t.$('proof-rows')), '크메르어');
+  has('★ 증빙도 그때 언어로 남는다', text(t.$('proof-rows')), '캄보디아어');
 }
 
 /* =================================================================
@@ -702,7 +702,7 @@ function openPostByTitle(t, title) {
        예전에는 배지를 listen 옆에 새로 끼워 넣어서 render 할 때마다 늘었다. */
   const t = open('home', {
     before(win) {
-      // 크메르어 번역이 없는 문구만 남긴다 → 배지가 뜨는 상태
+      // 캄보디아어 번역이 없는 문구만 남긴다 → 배지가 뜨는 상태
       win.Store.library.update((list) => {
         list.forEach((p) => {
           if (p.translations) delete p.translations.km;
@@ -981,7 +981,7 @@ const asAdmin = (opts = {}) =>
     before(win) {
       win.speechSynthesis = {
         cancel() {},
-        /* 이 노동자는 크메르어다. 한국어 음성만 주면 UI.speak 이 (규칙대로)
+        /* 이 노동자는 캄보디아어다. 한국어 음성만 주면 UI.speak 이 (규칙대로)
            소리를 내지 않아, 여기서 보려던 '배지도 읽어 주는가' 를 못 본다.
            음성이 없을 때의 동작은 test-voicefallback.js 가 따로 본다. */
         getVoices() { return [{ lang: 'km-KH' }, { lang: 'ko-KR' }]; },

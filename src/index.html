@@ -15,7 +15,7 @@
      ★ 시안의 「보안 서버 정상 가동 중」「SSL 256-bit」 「법 제31조 준수 인증」 「1588-0000」은 넣지 않았다 —
        확인하지 않은 상태·인증·연락처를 화면에 쓰면 사실이 아닌 말이 된다. 이름은 전부 Safelang. -->
 <header class="login-strip">
-  <span class="login-strip-brand"><span class="ico" data-icon="shield" aria-hidden="true"></span>Safelang</span>
+  <span class="login-strip-brand" data-brand="sm">safelang.</span>
 </header>
 
 <main class="login-main">
@@ -32,7 +32,7 @@
 
   <section class="login-card" aria-labelledby="t-login">
     <div class="login-head">
-      <span class="login-logo"><span class="login-logo-mark"><span class="ico" data-icon="shield" aria-hidden="true"></span></span>Safelang</span>
+      <span class="login-logo" data-brand="lg">safelang.</span>
       <span class="login-chip"><span class="ico" data-icon="person" aria-hidden="true"></span>노동자 · 담당자 · 운영자</span>
     </div>
 
@@ -46,7 +46,6 @@
           <input id="login-id" type="text" placeholder="식별번호 또는 업무용 이메일" autocomplete="username">
           <span class="ico" data-icon="factory" aria-hidden="true"></span>
         </div>
-        <p class="field-hint">노동자는 사업장에서 받은 식별번호, 담당자·운영자는 업무용 이메일입니다.</p>
       </div>
       <div class="field">
         <label for="login-pw" data-i18n="login.pw">비밀번호</label>
@@ -68,10 +67,6 @@
 
     <hr class="hr">
 
-    <p class="login-note"><span class="ico" data-icon="shield" aria-hidden="true"></span>
-      Safelang 은 사업장 안전교육 전용입니다. 계정을 받은 사람만 쓸 수 있습니다.
-      위치·근태를 기록하지 않고, 개인 점수를 인사·평가 목적으로 내보내지 않습니다.</p>
-
     <a class="login-signup" href="signup.html">처음이세요? <b data-i18n="login.signupTitle">회원가입</b></a>
   </section>
 
@@ -79,14 +74,7 @@
        처음 여는 사람이 빈 화면에서 막히지 않게 통로를 하나 둔다. -->
   <section class="login-card login-demo" aria-labelledby="t-demo">
     <div class="sec-head">
-      <div>
-        <h2 id="t-demo">시연용 계정</h2>
-        <p class="why">
-          서버가 없어 계정도 이 브라우저 안에만 있습니다.
-          아래 버튼을 누르면 예시 사업장과 계정이 한 번에 만들어집니다.
-        </p>
-      </div>
-      <span class="badge badge-wait"><span aria-hidden="true">●</span> 목업</span>
+      <h2 id="t-demo">시연용 계정</h2>
     </div>
 
     <p class="why" id="seed-auto" hidden>
@@ -101,11 +89,7 @@
 
     <ul class="demo-accounts" id="demo-accounts"></ul>
 
-    <p class="muted" style="margin-top:10px">
-      비밀번호는 전부 <b>1234</b> 입니다.
-      서버가 없으면 어차피 브라우저에 그대로 남으므로, 감추지 않고 목업이라고 밝힙니다.
-      초기화한 뒤 새로고침하면 예시 데이터가 다시 채워집니다.
-    </p>
+    <p class="muted" style="margin-top:10px">비밀번호는 전부 <b>1234</b> 입니다.</p>
   </section>
 
   <p class="login-foot">Safelang © 2026</p>

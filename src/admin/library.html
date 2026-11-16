@@ -27,7 +27,6 @@
 
   <div class="pagehead">
     <h1>안전 문구 라이브러리</h1>
-    <p class="lead">사용자에게 보이지 않지만 제품 신뢰의 단일 최대 요인입니다.</p>
   </div>
 
   <p class="blocked" id="blocked" hidden>
@@ -35,11 +34,6 @@
   </p>
 
   <!-- 0. AI 경계 — 어디까지 AI 가 했는지 화면에서 보여야 신뢰할 근거가 생긴다 -->
-  <p class="ai-note on">
-    <span class="tag">AI 여기까지</span>
-    <span>초안 번역 · 역번역 대조 · 음성 합성까지가 AI 입니다.
-      <b>승인은 사람이 합니다.</b> 아래 판정 버튼을 누르는 것은 운영자입니다.</span>
-  </p>
 
   <!-- 1. 오역 신고 큐 — 본문 맨 위.
        ★ 접수하는 순간 사용 중지입니다. 확인한 뒤 내리는 순서가 아닙니다.
@@ -48,13 +42,6 @@
     <div class="sec-head">
       <div>
         <h2 id="t-flags">오역 신고</h2>
-        <p class="why">
-          접수하는 순간 그 문구는 <b>사용 중지</b>가 됩니다. 확인한 뒤 내리는 순서가 아닙니다.
-          <!-- ★ 규칙만 적으면 언젠가 "확인부터 하자" 로 바뀐다. 이유를 함께 남긴다 -->
-          안전 지시의 오역은 <b>그대로 사고가 되기 때문입니다.</b>
-          중지된 문구는 교육 콘텐츠 생성(기능2)의 선택지에서 즉시 사라지고,
-          노동자 수강 화면에도 나오지 않습니다.
-        </p>
       </div>
     </div>
 
@@ -70,10 +57,6 @@
       <div class="field">
         <label for="flag-lang">어느 언어의 번역입니까</label>
         <select id="flag-lang"></select>
-        <p class="why">
-          그 언어만 사용 중지됩니다. 다른 언어 노동자는 이 안전 지시를 계속 듣습니다.
-          문구 자체가 잘못됐으면 "문구 전체" 를 고르세요.
-        </p>
       </div>
       <div class="field">
         <label for="flag-note">무엇이 잘못됐는지</label>
@@ -88,11 +71,6 @@
     <div class="sec-head">
       <div>
         <h2 id="t-review">판정이 필요한 문구</h2>
-        <p class="why">
-          원문과 역번역을 나란히 놓고 봅니다. 노란 표시는 AI 가 찾아낸 차이일 뿐이고,
-          <b>승인과 중지는 사람이 정합니다.</b>
-          검수를 지나지 않은 문구는 어떤 화면에서도 안전 지시로 쓰이지 않습니다.
-        </p>
       </div>
     </div>
     <!-- AI 번역을 부르려면 운영자 통과 문구가 필요합니다 (A02 §5.6).
@@ -116,12 +94,6 @@
     <div class="sec-head">
       <div>
         <h2 id="t-add">문구 추가</h2>
-        <p class="why">
-          새 문구는 <b>검수 대기</b>로 들어갑니다. 여기서 바로 검수 완료로 만들 수 없습니다 —
-          올리는 것은 위 판정 버튼을 누르는 사람입니다.
-          번역문을 적으면 <b>역번역</b>도 함께 받습니다. 대조할 것이 없으면
-          검수가 읽지도 못하는 문장을 눈감고 승인하는 일이 됩니다.
-        </p>
       </div>
     </div>
 
@@ -136,9 +108,6 @@
         <input type="text" id="add-category" list="add-category-list" autocomplete="off"
                placeholder="예) 프레스">
         <datalist id="add-category-list"></datalist>
-        <p class="why">
-          설비나 공정 이름으로 적으면 담당자가 교육을 만들 때 찾기 쉽습니다. 비워 둬도 됩니다.
-        </p>
       </div>
 
       <div id="add-i18n"></div>
@@ -152,11 +121,6 @@
     <div class="sec-head">
       <div>
         <h2 id="t-list">문구 목록</h2>
-        <p class="why">
-          언어별로 번역이 준비된 상태와 검수 상태를 함께 봅니다.
-          <!-- ★ 기획에서 온 문장 (목업 13-operator-library) -->
-          <b>검수 완료가 아닌 문구는 어떤 화면에서도 안전 지시로 노출되지 않습니다.</b>
-        </p>
       </div>
       <div class="btn-row">
         <button class="btn-sm" type="button" id="filter-all">전체</button>
@@ -186,9 +150,6 @@
     <div class="sec-head">
       <div>
         <h2 id="t-stat">라이브러리 상태</h2>
-        <p class="why">
-          문구 200개가 인터넷 없이 도는 것이 원래 요구입니다. 지금은 예시 데이터 기준입니다.
-        </p>
       </div>
     </div>
     <dl class="kpi-row" id="stats"></dl>
@@ -209,17 +170,6 @@
   </section>
 
   <!-- 여기부터 채우면 됩니다 -->
-  <section class="todo">
-    <h2>여기부터 채우시면 됩니다</h2>
-    <p class="why">
-      아래는 골격에 넣지 않은 것들입니다. 지금 상태로도 데이터는 끝까지 흐릅니다.
-    </p>
-    <dl>
-      <dt>음성 검수</dt><dd>문구처럼 음성도 검수 상태를 가져야 합니다 (우선순위 3층)</dd>
-      <dt>신고 회신</dt><dd>신고자를 식별하지 않는 티켓 번호로 "조치됐습니다" 회신 (3층)</dd>
-      <dt>내 파일</dt><dd><code>admin/library.html</code> · <code>admin/library.js</code> · <code>admin/admin.css</code></dd>
-    </dl>
-  </section>
 
 </main>
 

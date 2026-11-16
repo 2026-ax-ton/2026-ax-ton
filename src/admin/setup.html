@@ -28,10 +28,6 @@
 
   <div class="pagehead">
     <h1>사업장 · 설비 등록</h1>
-    <p class="lead">
-      최초 1회 설정입니다. <b>여기서 등록한 것만 이후 화면에 나옵니다.</b>
-      등록하지 않은 언어는 교육 콘텐츠에도, 노동자 화면에도 제공되지 않습니다.
-    </p>
   </div>
 
   <!-- 🆕 2026-11-11 콘텐츠(AI 교육 만들기)에서 「설비 등록하러 가기」로 왔을 때 — 등록 뒤 돌아가는 길 -->
@@ -45,11 +41,6 @@
   </p>
 
   <!-- 🆕 2026-11-16 입력은 그대로 저장하고, AI 는 등록 뒤 검수만 제안한다 (반영은 담당자 승인 때만) -->
-  <div class="ai-note">
-    <span class="tag">AI 1차 검수</span>
-    <span>입력한 값은 그대로 저장됩니다. 설비를 등록하면 AI 가 공개 자료로 맞는지 확인하고,
-      <b>담당자가 [승인]한 것만</b> 설비 정보에 반영됩니다.</span>
-  </div>
 
   <!-- 🆕 2026-11-16 상세 메뉴(설비 ▾)마다 이 화면의 한 부분만 보인다 — #site · #equip · #list · #workers · #backup -->
   <nav class="viewtabs" aria-label="설비 화면 나누기">
@@ -69,7 +60,6 @@
         <div class="sec-head">
           <div>
             <h2 id="t-site"><span class="step-no">1</span>사업장 기본정보</h2>
-            <p class="why">교육일지에 그대로 기록될 이름입니다.</p>
           </div>
           <span class="badge badge-neutral" id="b-site"><span aria-hidden="true">○</span> 미설정</span>
         </div>
@@ -96,10 +86,6 @@
         <div class="sec-head">
           <div>
             <h2 id="t-lang"><span class="step-no">2</span>사용 언어 등록</h2>
-            <p class="why">
-              <b>여기서 넣지 않은 언어는 어떤 화면에서도 제공되지 않습니다.</b>
-              실제로 그 언어를 쓰는 노동자가 있는 것만 켜 주세요.
-            </p>
           </div>
           <span class="badge badge-neutral" id="b-lang"><span aria-hidden="true">○</span> 미설정</span>
         </div>
@@ -113,7 +99,6 @@
         <div class="sec-head">
           <div>
             <h2 id="t-proc"><span class="step-no">3</span>공정 등록</h2>
-            <p class="why">설비의 상위 분류입니다. 신고와 교육이 이 단위로 묶입니다.</p>
           </div>
           <span class="badge badge-neutral" id="b-proc"><span aria-hidden="true">○</span> 미설정</span>
         </div>
@@ -137,11 +122,6 @@
         <div class="sec-head">
           <div>
             <h2 id="t-equip"><span class="step-no">4</span>설비 등록</h2>
-            <p class="why">
-              위험유형은 나중에 이해도 검증 문항이 만들어지는 기준이 됩니다.
-              실제로 그 설비에 있는 위험만 고르세요.
-              이미 등록한 설비는 <a href="#list">등록 설비 확인·수정</a>에서 고칩니다.
-            </p>
           </div>
           <span class="badge badge-neutral" id="b-equip"><span aria-hidden="true">○</span> 미설정</span>
         </div>
@@ -236,10 +216,6 @@
         <div class="sec-head">
           <div>
             <h2 id="t-list">등록 설비 확인·수정</h2>
-            <p class="why">
-              <span class="ai-mark">AI 조사</span> 표시가 AI 가 공개 자료로 확인한 부분입니다.
-              항목마다 <b>승인</b>(AI 대로 반영) · <b>수정</b>(메모를 달아 다시 조사) · <b>삭제</b>(이 AI 결과 버리기)를 고르세요.
-            </p>
           </div>
         </div>
         <div class="edit-slot" id="equip-edit-slot" hidden>
@@ -253,10 +229,6 @@
         <div class="sec-head">
           <div>
             <h2 id="t-worker"><span class="step-no">5</span>노동자 등록</h2>
-            <p class="why">
-              <b>외국인등록번호와 여권번호는 받지 않습니다.</b>
-              사업장 안에서만 쓰는 식별번호와 언어, 소속 공정만 기록합니다.
-            </p>
           </div>
           <span class="badge badge-neutral" id="b-worker"><span aria-hidden="true">○</span> 미설정</span>
         </div>

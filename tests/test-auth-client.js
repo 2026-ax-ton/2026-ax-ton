@@ -137,7 +137,7 @@ const USER = {
 
     eq('★ 교육이 멈추지 않는다 — 이 기기 계정으로 들어간다', t.nav[t.nav.length - 1], 'worker/home.html');
     ok('★ 어느 길로 들어왔는지 숨기지 않는다', !t.$('login-mode').hidden);
-    has('목업이라고 적는다', t.$('login-mode').textContent, '목업');
+    has('이 기기 계정으로 확인했다고 적는다', t.$('login-mode').textContent, '이 기기에 저장된 계정');
     eq('그때는 토큰이 없다', t.win.sessionStorage.getItem('safety.token.v1'), null);
     ok('이 기기 모드라 세션은 여기에 남는다', !!t.win.Store.session.load().userId);
   }
@@ -160,7 +160,7 @@ const USER = {
     t.$('form-login').dispatchEvent(new t.win.Event('submit'));
     await tick();
     eq('★ DB가 아플 때도 교육은 계속된다', t.nav[t.nav.length - 1], 'worker/home.html');
-    has('목업으로 확인했다고 적는다', t.$('login-mode').textContent, '목업');
+    has('이 기기 계정으로 확인했다고 적는다', t.$('login-mode').textContent, '이 기기에 저장된 계정');
   }
 
   /* =================================================================
@@ -260,7 +260,7 @@ const USER = {
     const t = boot('signup.html');      // fetch 없음 = 로컬 모드
     t.run('assets/signup.js');
     ok('★ 로컬 모드에서는 가입 코드를 묻지 않는다 (서버가 없다)', t.$('field-code').hidden);
-    has('그때는 목업이라고 적는다', t.$('join-note').textContent, '목업');
+    has('그때는 이 기기에만 저장된다고 적는다', t.$('join-note').textContent, '이 기기에만');
   }
 
   /* =================================================================

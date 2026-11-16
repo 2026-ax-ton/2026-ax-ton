@@ -55,6 +55,61 @@ var UI = (function () {
     return node;
   }
 
+  /* 🆕 2026-11-16 Safelang 로고 (사용자가 준 시안 — 돛단배 + safelang.)
+     그림은 좌표만 든 인라인 SVG — 제3자 요청 0건, innerHTML 없이 createElementNS 로 만든다.
+     [data-brand] 칸(로그인)과 관리자 머리띠가 같은 것을 쓴다 — 로고가 두 벌이면 한쪽만 바뀐다. */
+  var BRAND_SHAPES = [
+    ['path', { d: 'M27 7q5-3 10 0', fill: 'none', stroke: '#795cf2', 'stroke-width': '2.6', 'stroke-linecap': 'round' }],
+    ['path', { d: 'M31 11V50H13Z', fill: '#161b26' }],
+    ['path', { d: 'M31 30V36H22.5Z M31 41V47H16.5Z', fill: '#d6cdfb' }],
+    ['path', { d: 'M33 11c11 0 18 9 18 22H33Z', fill: '#795cf2' }],
+    ['path', { d: 'M33 33H55q3 0 1 3l-6 4q-2 1-5 1H33Z', fill: '#161b26' }],
+    ['rect', { x: '10', y: '49', width: '22', height: '6', rx: '3', fill: '#161b26' }],
+    ['path', { d: 'M41 41V50q0 6-6 6h-2', fill: 'none', stroke: '#795cf2', 'stroke-width': '2.6', 'stroke-linecap': 'round' }],
+    ['line', { x1: '32', y1: '9', x2: '32', y2: '57', stroke: '#c9cdd4', 'stroke-width': '1.4' }]
+  ];
+
+  function brandMark() {
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '6 4 54 54');
+    svg.setAttribute('class', 'brand-mark');
+    svg.setAttribute('aria-hidden', 'true');
+    BRAND_SHAPES.forEach(function (s) {
+      var n = document.createElementNS(NS, s[0]);
+      Object.keys(s[1]).forEach(function (k) { n.setAttribute(k, s[1][k]); });
+      svg.appendChild(n);
+    });
+    return svg;
+  }
+
+  function brand(className) {
+    var box = el('span', 'brand' + (className ? ' ' + className : ''));
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', 'Safelang');
+    box.appendChild(brandMark());
+    var word = el('span', 'brand-word', 'safelang');
+    word.setAttribute('aria-hidden', 'true');
+    word.appendChild(el('span', 'brand-dot', '.'));
+    box.appendChild(word);
+    return box;
+  }
+
+  function fillBrands() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-brand]'), function (n) {
+      n.textContent = '';
+      n.appendChild(brand(n.getAttribute('data-brand') || ''));
+    });
+    // HTML 에 이름만 적어 둔 아이콘 칸 (<span data-ico="file">) 을 그림으로
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ico]'), function (n) {
+      setIcon(n, n.getAttribute('data-ico'));
+    });
+  }
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillBrands);
+    else fillBrands();
+  }
+
   /* 상태 배지 — 아이콘 + 글자 + 색.
      흑백으로 봐도 뜻이 남아야 한다 (SCREEN §4 · PRD §9.4)
 
@@ -250,6 +305,13 @@ var UI = (function () {
       ico.setAttribute('aria-hidden', 'true');
       chipNode.appendChild(ico);
       chipNode.appendChild(document.createTextNode(' ' + Store.role(user.role).label));
+    }
+    var head = document.querySelector('.adminbar');
+    if (head && !head.querySelector('.brand')) {
+      var home = el('a', 'brand-link');
+      home.href = user.role === 'operator' ? 'library.html' : 'dashboard.html';
+      home.appendChild(brand('on-dark'));
+      head.insertBefore(home, head.firstChild);
     }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
@@ -1067,6 +1129,7 @@ var UI = (function () {
 
   return {
     syncBadge: syncBadge,
+    brand: brand,
     $: $, $$: $$, el: el,
     badge: badge, badgeText: badgeText, okBadge: okBadge, waitBadge: waitBadge,
     stopBadge: stopBadge, neutralBadge: neutralBadge, phraseBadge: phraseBadge,

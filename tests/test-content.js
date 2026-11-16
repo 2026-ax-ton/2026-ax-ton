@@ -29,8 +29,6 @@ const checkAll = (win, root, name, values) => {
   const doc = t.win.document;
   ok('오류 없이 뜬다', t.errors.length === 0, t.errors.join(' | '));
 
-  has('AI 가 문구를 새로 쓰지 않는다고 적는다',
-    text(doc.querySelector('.ai-note')), 'AI 는 안전 문구를 새로 쓰지 않습니다');
 
   // 등록한 언어 3개(km, id, vi)만 나온다 — Store.LANGUAGES 는 6개
   const langs = t.$('pick-lang').querySelectorAll('input[name="lang"]');
@@ -365,7 +363,7 @@ const checkAll = (win, root, name, values) => {
 
   const box = t.$('q-i18n');
   eq('고른 언어 수만큼 번역 칸', box.querySelectorAll('.i18n-box').length, 2);
-  has('언어 이름이 칸에 적힌다', text(box), '크메르어');
+  has('언어 이름이 칸에 적힌다', text(box), '캄보디아어');
   has('비워 두면 어떻게 되는지 적는다', text(box), '번역 준비 중');
   eq('한국어 번역 칸은 만들지 않는다 — 원문이 한국어다', t.$('q-i18n-ko-prompt'), null);
 
@@ -637,8 +635,8 @@ const quizItems = (t) => [...t.$('quiz-list').children];
 
   eq('★ 고치는 중이라고 크게 적는다', t.$('edit-banner').hidden, false);
   has('어느 교육인지 적는다', text(t.$('edit-who')), '프레스');
-  has('★ 맨 뒤에만 붙는다고 미리 알린다', text(t.$('edit-banner')), '맨 뒤에만');
-  has('★ 왜 그런지도 적는다', text(t.$('edit-banner')), '어긋나지 않게');
+
+
 
   /* ★ 초안 단계들은 감춘다 — 지금 무엇을 만드는 중인지가 섞이면 안 된다 */
   const step1 = t.$('t-step1').closest('.card');

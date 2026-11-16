@@ -175,7 +175,7 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
     });
 
   has('문서가 .ai-note 를 언급', t, '.ai-note');
-  ok('.ai-note 가 관리자 화면에 실제로 있다', adminHtml.includes('ai-note'));
+  /* 2026-11-16 사용자 결정 — 관리자 화면의 설명 문단(.why·.lead·.ai-note·메모 칸)을 뺐다 */
   ok('worker.css 에 [P2] 구역이 있다', workerCss.includes('[P2]'));
   ok('admin.css 에 [P3] 구역이 있다', adminCss.includes('[P3]'));
   ok('admin.css 에 [P4] 구역이 있다', adminCss.includes('[P4]'));
@@ -262,10 +262,9 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
     .filter((f) => fs.statSync(path.join(ROOT, 'src', f + '.js')).size < 5000);
   ok('★ 껍데기로 남은 화면이 없다', shells.length === 0, shells.join(', '));
 
-  const todos = ['worker/home', 'worker/report', 'worker/talk', 'worker/my',
-    'admin/dashboard', 'admin/content', 'admin/proof', 'admin/library']
+  const todos = ['worker/home', 'worker/report', 'worker/talk', 'worker/my']
     .filter((f) => !read('src/' + f + '.html').includes('여기부터 채우시면 됩니다'));
-  ok('★ 여덟 화면에 "여기부터" 칸이 다 있다', todos.length === 0, todos.join(', '));
+  ok('★ 노동자 네 화면에 "여기부터" 칸이 다 있다', todos.length === 0, todos.join(', '));
 
   /* ★ 칸이 있는지만 보면 B5 가 고친 어긋남을 다시 놓친다.
        칸 안에 "이미 끝난 것" 이 적혀 있어도 위 검사는 통과한다.
