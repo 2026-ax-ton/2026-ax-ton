@@ -205,4 +205,46 @@ function pickKind(t, kind) {
     !/minMinutes\s*=\s*\{/.test(src) && /Curriculum\.TRAININGS/.test(src));
 }
 
+/* ===================================================================
+   🆕 FR-AD-04-23 · AC-AD-04-10 — 특별교육 대상으로 표시한 설비를 고르면
+   ⚠ 안내가 뜨고, 특별교육이면 대상 작업이 미리 골라진다. 교육 종류는 바꾸지 않는다
+   =================================================================== */
+{
+  const mark = (win) => win.Store.setup.update((s) => {
+    s.equipments.forEach((e) => { if (e.id === 'e-press3') e.specialWork = [11]; });
+  });
+  const t = boot('admin/content.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/content.js', before: mark });
+  t.$('draft-equip').value = 'e-press3';
+  change(t.win, t.$('draft-equip'));
+  const note = () => text(t.$('edu-equip-note'));
+  ok('★ 표시한 설비를 고르면 ⚠ 안내가 뜬다', !!t.$('edu-equip-note'));
+  has('안내에 작업 번호와 이름이 있다', note(), '11.');
+  has('★ 다른 교육 종류면 「특별교육을 하면 채용 시·변경 시 교육을 한 것으로 본다」를 알린다', note(), '한 것으로 봅니다');
+  ok('★★ 교육 종류를 마음대로 특별교육으로 바꾸지 않는다', !t.win.document.querySelector('input[name="edu-kind"]:checked'));
+  ok('안내는 아이콘과 글자 — 색만으로 알리지 않는다', !!t.$('edu-equip-note').querySelector('svg, .ico'));
+
+  pickKind(t, 'special');
+  eq('★★ 특별교육을 고르면 대상 작업이 그 설비 번호로 미리 골라진다', t.$('edu-special').value, '11');
+  has('미리 골랐다고 알린다', note(), '미리 골랐습니다');
+
+  t.$('edu-special').value = '13';
+  change(t.win, t.$('edu-special'));
+  eq('★ 담당자가 바꾼 작업은 그대로 둔다', t.$('edu-special').value, '13');
+  has('표시와 다르면 다르다고 알린다', note(), '다릅니다');
+
+  /* 표시 없는 설비로 바꾸면 안내가 사라진다 */
+  t.$('draft-equip').value = 'e-booth1';
+  change(t.win, t.$('draft-equip'));
+  ok('표시 없는 설비면 안내가 없다', !t.$('edu-equip-note'));
+
+  /* AI 로 만들기도 같은 칸 */
+  const ag = boot('admin/autogen.html#eq=e-press3', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js', before: mark });
+  ok('★ AI 로 만들기에서도 표시한 설비면 안내가 뜬다', !!ag.$('edu-equip-note'));
+  pickKind(ag, 'special');
+  eq('AI 로 만들기에서도 대상 작업이 미리 골라진다', ag.$('edu-special').value, '11');
+  eq('저장되는 칸은 그대로다 (specialJob 만, 설비 표시는 따로 저장하지 않는다)',
+    Object.keys(ag.win.EduKind.fields({ kind: 'special', specialNo: 11, industry: 'manufacturing', equipSpecial: 11 })).join(','),
+    'eduKind,industry,specialJob');
+}
+
 report('교육 종류·업종 0단계 칸과 법정 안내 (C06 D-039)');

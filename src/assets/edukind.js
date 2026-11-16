@@ -140,6 +140,39 @@ var EduKind = (function () {
     };
   }
 
+  /** 🆕 FR-AD-04-23 — 고른 설비가 특별교육 대상으로 표시돼 있으면(PRD-AD-01 FR-09, setup.equipments[].specialWork)
+   *  그 작업 번호를 기억해 두고, 교육 종류가 특별교육이고 아직 작업을 안 골랐으면 미리 고른다.
+   *  ★ 교육 종류는 바꾸지 않는다 — 표시된 설비라도 채용 시 교육을 할 수 있다. 막지 않고 알리기만 한다.
+   *  ★ 담당자가 이미 고른 작업은 덮지 않는다. 저장되는 칸이 아니다(fields() 가 내보내지 않는다). */
+  function setEquipment(state, eq) {
+    var no = eq && Array.isArray(eq.specialWork) && eq.specialWork.length ? Number(eq.specialWork[0]) || 0 : 0;
+    state.equipSpecial = no;
+    if (no && state.kind === 'special' && !state.specialNo) state.specialNo = no;
+    return no;
+  }
+
+  /** 설비 표시 안내 한 줄 (노란 ⚠ — 아이콘 + 글, 색만으로 알리지 않는다). 표시가 없으면 null */
+  function equipNote(state) {
+    var no = state && state.equipSpecial;
+    if (!no) return null;
+    var job = specialJob(no);
+    var name = no + '. ' + (job ? job.title : '특별교육 대상 작업');
+    var text;
+    if (state.kind === 'special') {
+      text = Number(state.specialNo) === no
+        ? '이 설비는 특별교육 대상(' + name + ')으로 표시돼 있어 대상 작업을 미리 골랐습니다. 다르면 바꾸세요.'
+        : '이 설비는 특별교육 대상(' + name + ')으로 표시돼 있습니다. 지금 고른 작업과 다릅니다.';
+    } else {
+      text = '이 설비는 특별교육 대상(' + name + ')입니다. 특별교육을 하면 채용 시·작업내용 변경 시 교육을 한 것으로 봅니다.';
+    }
+    var p = UI.el('p', 'edu-equip-note');
+    p.id = 'edu-equip-note';
+    p.setAttribute('role', 'note');
+    p.appendChild(UI.iconBox('alert', 'ico'));
+    p.appendChild(UI.el('span', null, text));
+    return p;
+  }
+
   /** 고를 것을 다 골랐는가 — 특별교육이면 대상 작업까지 */
   function ready(state) {
     var t = training(state && state.kind);
@@ -251,6 +284,7 @@ var EduKind = (function () {
       chip.querySelector('input').addEventListener('change', function () {
         state.kind = t.id;
         if (t.id !== 'special') state.specialNo = 0;
+        else if (!state.specialNo && state.equipSpecial) state.specialNo = state.equipSpecial;   // FR-AD-04-23
         redraw();
       });
       kindPick.appendChild(chip);
@@ -289,6 +323,8 @@ var EduKind = (function () {
       host.appendChild(jobField);
     }
 
+    var note = equipNote(state);
+    if (note) host.appendChild(note);
     host.appendChild(guideBox(state));
   }
 
@@ -305,6 +341,7 @@ var EduKind = (function () {
     label: label,
     fields: fields,
     ready: ready,
+    setEquipment: setEquipment,
     guideBox: guideBox,
     render: render
   };
