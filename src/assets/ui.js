@@ -819,6 +819,14 @@ var UI = (function () {
       navigator.serviceWorker.register(swPath()).catch(function () {
         /* 등록이 안 돼도 화면은 그대로 돌아야 한다. 오프라인만 못 쓸 뿐이다. */
       });
+      /* 🆕 2026-11-16 새 판이 자리를 잡으면 한 번 새로 고친다 (sw.js skipWaiting 과 짝).
+         처음 방문(원래 담긴 판이 없음)에는 새로 고치지 않는다 — 고칠 옛 화면이 없다 */
+      var had = !!navigator.serviceWorker.controller, reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!had || reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
       return true;
     } catch (e) {
       return false;

@@ -28,7 +28,7 @@
 /* ★ 화면을 고쳐 배포할 때마다 이 값을 올린다.
    안 올리면 옛 화면이 그대로 남아, 고쳤는데 안 고쳐진 것으로 보인다.
    Service Worker 에서 가장 흔한 사고가 이것이다. */
-var VERSION = 'v30';
+var VERSION = 'v31';
 var CACHE = 'safety-' + VERSION;
 
 /* 미리 담을 화면 파일 전부.
@@ -99,11 +99,14 @@ self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(CACHE).then(function (cache) {
       return cache.addAll(PRECACHE);
+    }).then(function () {
+      return self.skipWaiting();
     })
   );
-  /* ★ skipWaiting() 을 부르지 않는다.
-     보고 있는 중에 파일이 새 것으로 갈리면 옛 HTML 이 새 JS 를 부르는
-     반쪽 화면이 된다. 새 판은 탭을 닫았다 열 때 들어온다. */
+  /* ★ 2026-11-16 결정 변경 — 새 판을 바로 쓴다 (skipWaiting).
+     옛 방식(탭을 전부 닫아야 새 판)은 배포해도 「안 바뀌었다」로 보여 사용자가 두 번 헷갈렸다.
+     반쪽 화면은 ui.js 가 막는다 — 새 판이 자리를 잡는 순간(controllerchange) 화면을 한 번 새로 고친다.
+     화면 파일은 처음 뜰 때 전부 실리므로, 그 사이에 옛 HTML 이 새 JS 를 부르는 일은 없다 */
 });
 
 self.addEventListener('activate', function (e) {

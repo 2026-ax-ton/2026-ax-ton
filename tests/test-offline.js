@@ -79,8 +79,11 @@ const ui = fs.readFileSync(path.join(SRC, 'assets/ui.js'), 'utf8');
 
   has('판이 바뀌면 옛 캐시를 지운다', sw, 'caches.delete');
   has('캐시 이름에 판 번호가 붙는다', sw, 'VERSION');
-  ok('★ skipWaiting 을 부르지 않는다 (보던 중에 파일이 갈리면 반쪽 화면이 된다)',
-    !/self\.skipWaiting\s*\(/.test(sw));
+  /* 2026-11-16 결정 변경 — 새 판은 바로 쓰고, 열린 화면은 한 번 새로 고친다 (배포해도 옛 화면이 남던 문제) */
+  ok('★ 새 판을 바로 쓴다 (skipWaiting)', /self\.skipWaiting\s*\(/.test(sw));
+  const uiSrc = require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'assets', 'ui.js'), 'utf8');
+  ok('★★ 짝 — 새 판이 자리 잡으면 화면을 한 번 새로 고친다 (반쪽 화면 방지)',
+    /controllerchange[\s\S]{0,200}location\.reload\(\)/.test(uiSrc));
   ok('남의 캐시는 지우지 않는다', sw.indexOf("indexOf('safety-') === 0") !== -1);
 }
 
