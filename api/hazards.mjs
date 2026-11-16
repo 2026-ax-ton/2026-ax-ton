@@ -49,9 +49,9 @@ const MAX_TEXT = 4000;
    AI_MODEL_HAZARDS 는 상위 모델로 올릴 때만 넣는다 (D-028 상향 조건). */
 const MODEL_ENVS = ['AI_MODEL_HAZARDS', 'AI_MODEL_PHOTO', 'AI_MODEL_TRANSLATE'];
 
-/* 사진은 번역보다 비싸서 하루 통을 따로 쓴다 (`_shared.takeDailyCallFor`, 2026-11-07).
+/* 사진은 번역보다 비싸서 하루 통을 따로 쓴다 (`_shared.takeDailyCallFor`, 2026-11-07 · 🆕 11-16 DB 로 센다).
    값은 Gemini 예산 월 5,000원(A04 6-1) 안에서 넉넉히 잡은 것이다.
-   ★ 이 울타리는 인스턴스 메모리라 근사치다 — 단단한 상한은 `takeDailyCall`(DB)이 쥔다 */
+   ★ 2026-11-16 부터 `ai_usage_bucket` 한 줄에서 센다 (서버가 꺼져도 0 으로 돌아가지 않는다). 전체 상한은 `takeDailyCall` */
 const DEFAULT_PHOTO_DAILY_LIMIT = 60;
 
 /* 실패 안내 — 손 흐름(도해에서 직접 고르기)으로 이어진다는 것을 함께 말한다 (FR-11) */
@@ -128,7 +128,7 @@ async function run(request) {
 
   /* 사진 통 먼저 — 사진이 그날의 번역 예산을 먹지 않게 (A02 §5.6) */
   const photoLimit = Number(process.env.AI_PHOTO_DAILY_LIMIT) || DEFAULT_PHOTO_DAILY_LIMIT;
-  if (!takeDailyCallFor('photo', photoLimit)) {
+  if (!(await takeDailyCallFor('photo', photoLimit))) {
     log({ route: 'hazards', ms: Date.now() - started, status: 429, err: 'limit', bucket: 'photo' });
     return fail(429, 'limit', MESSAGES.limit, cors);
   }

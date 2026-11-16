@@ -104,3 +104,14 @@ create table if not exists ai_usage (
   day   date primary key,
   used  int not null default 0
 );
+
+-- ── 9. AI 하루 사용 횟수 — 쓰임새별 (2026-11-16, A02 §5.6) ───────────────
+-- ★ 사진 분석은 번역보다 비싸 하루 통을 따로 쓴다 (bucket 'photo').
+--   예전에는 인스턴스 메모리로 세서 서버가 꺼지면 0 으로 돌아갔다 → 쓰임새도 DB 한 줄에서 센다.
+-- ★ ai_usage(전체 상한)는 그대로 둔다 — 이 표는 더하기만 한다 (api/_shared.mjs takeDailyCallFor).
+create table if not exists ai_usage_bucket (
+  day     date not null,
+  bucket  text not null,
+  used    int not null default 0,
+  primary key (day, bucket)
+);
