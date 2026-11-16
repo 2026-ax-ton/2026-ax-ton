@@ -1011,3 +1011,7 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 .special-note .what { display: block; margin-top: 3px; }
 .special-note .when { display: block; margin-top: 3px; font-size: .9em; color: var(--ink-3); }
 .special-note .pick { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-height: var(--tap-min); }
+
+/* 🆕 FR-AD-04-23 — 0단계: 고른 설비가 특별교육 대상으로 표시돼 있다는 안내 (설비 등록의 .special-note 와 같은 노란 ⚠) */
+.edu-equip-note { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); border: 1px solid var(--warn-line); color: #6b5200; font-weight: 700; }
+.edu-equip-note .ico { width: 20px; height: 20px; flex: 0 0 auto; margin-top: 1px; color: var(--warn); }

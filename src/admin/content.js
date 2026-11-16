@@ -1508,6 +1508,7 @@
         function (e) { return e.name; });
       if (!draft.equipmentId) draft.equipmentId = $('draft-equip').value;
       $('draft-equip').value = draft.equipmentId;
+      syncEduEquip();
 
       buildLangPicker();
       buildPhrasePicker();
@@ -1572,6 +1573,16 @@
       eduKindDrawn = true;
     }
     badgeEduKind();
+  }
+
+  /* 🆕 FR-AD-04-23 — 고른 설비의 특별교육 표시를 0단계에 알린다. 바뀌었을 때만 다시 그린다 */
+  function syncEduEquip() {
+    var beforeEq = eduKind.equipSpecial || 0, beforeNo = eduKind.specialNo;
+    EduKind.setEquipment(eduKind, equipmentOf(draft.equipmentId));
+    if ((eduKind.equipSpecial || 0) === beforeEq && eduKind.specialNo === beforeNo) return;
+    eduKindDrawn = false;
+    renderEduKind();
+    applyEduKindTitle();
   }
 
   function badgeEduKind() {

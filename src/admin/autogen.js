@@ -162,6 +162,8 @@
   function showSpec() {
     var e = Store.findBy(equipments(), 'id', $('ag-equip').value) || null;
     state = emptyState(e);
+    EduKind.setEquipment(eduKind, e);    // 🆕 FR-AD-04-23 — 특별교육 대상 표시를 0단계에 알린다
+    drawEduKind();
     ['sec-items', 'sec-material', 'sec-quiz', 'sec-approve'].forEach(function (id) { $(id).hidden = true; });
     $('ag-figure').hidden = true;
     $('ag-photo-status').textContent = '';
@@ -1088,7 +1090,7 @@
 
   /* ── 🆕 0단계 — 어떤 교육, 어떤 업종 ─────────────────────────────── */
 
-  (function drawEduKind() {
+  function drawEduKind() {
     var host = $('edu-kind-box');
     if (!host) return;
     EduKind.render(host, eduKind, function () {
@@ -1097,9 +1099,10 @@
       if (e && $('ag-title').getAttribute('data-auto') !== 'no') {
         $('ag-title').value = EduKind.titlePrefix(eduKind) + e.name + ' 안전교육';
       }
-      if (state.research) renderApprove();
+      if (state && state.research) renderApprove();
     });
-  })();
+  }
+  drawEduKind();
 
   /* ── 연결 ──────────────────────────────────────────────────────── */
 
