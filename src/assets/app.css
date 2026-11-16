@@ -734,3 +734,75 @@ html[data-env="dev"] .todo > h2::before {
 .login-body .lang-btn.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
 .login-body .qr-note { margin: 0; background: var(--brand-soft); color: var(--brand-deep); }
 .login-body .qr-note[hidden] { display: none; }   /* display:flex 가 hidden 을 덮는다 */
+
+/* ===================================================================
+   🆕 2026-11-16 로그인 시안 v2 (Stitch) — 코랄 · 언어 2열 카드 · 근로자 로그인
+   ★ .login-v2 안에서만 바뀐다. 회원가입·담당자 화면은 그대로.
+   ★ 채운 코랄 바탕 위 흰 글자는 시안의 #F0646E 대신 #D9505A 로 한 단계 짙게 —
+     흰 글자와 대비를 맞춘다 (버튼 글자 18px 굵게).
+   =================================================================== */
+.login-v2 {
+  --lv2-coral: #F0646E;
+  --lv2-coral-fill: #D9505A;
+  --lv2-coral-soft: #FFF0F1;
+  --lv2-ink: #191F28;
+  --lv2-ink-2: #4E5968;
+  --lv2-ink-3: #8B95A1;
+  --lv2-line: #E5E8EB;
+  --lv2-input: #D1D6DB;
+  background: #F8F9FD;
+  color: #333D4B;
+}
+.login-v2 .login-main { max-width: 430px; padding: 18px 16px 28px; gap: 14px; }
+.login-v2 .lv2-brand { display: flex; align-items: center; gap: 10px; }
+.login-v2 .lv2-logo { width: 40px; height: 40px; border-radius: 12px; background: var(--lv2-coral-fill); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+.login-v2 .lv2-logo .ico { width: 24px; height: 24px; }
+.login-v2 .lv2-name { font-size: 1.3em; font-weight: 800; letter-spacing: -.01em; color: var(--lv2-ink); }
+
+.login-v2 .lv2-sec-title { margin: 0 0 8px 2px; font-size: 15px; font-weight: 700; color: var(--lv2-ink); }
+.login-v2 .lv2-sec-sub { font-size: 11px; font-weight: 600; color: var(--lv2-ink-3); }
+.login-v2 .lang-gate { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.login-v2 .lang-cell { position: relative; display: block; }
+.login-v2 .lang-btn {
+  width: 100%; min-height: 60px; padding: 9px 44px 9px 12px;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px;
+  text-align: left; border-radius: 14px; border: 1px solid var(--lv2-line);
+  background: #fff; color: var(--lv2-ink); box-shadow: 0 1px 2px rgba(25,31,40,.05);
+  line-height: 1.35; cursor: pointer;
+}
+.login-v2 .lang-btn:hover { border-color: var(--lv2-coral); }
+.login-v2 .lang-btn .lang-native { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.login-v2 .lang-btn .lang-ko { font-size: 11px; font-weight: 500; color: var(--lv2-ink-3); }
+.login-v2 .lang-btn.on { background: var(--lv2-coral-fill); border: 2px solid var(--lv2-coral-fill); color: #fff; }
+.login-v2 .lang-btn.on .lang-ko { color: rgba(255,255,255,.85); }
+.login-v2 .lang-check { position: absolute; top: 10px; left: 10px; width: 16px; height: 16px; border-radius: 50%; background: #fff; color: var(--lv2-coral-fill); display: inline-flex; align-items: center; justify-content: center; }
+.login-v2 .lang-check svg { width: 12px; height: 12px; }
+.login-v2 .lang-btn.on .lang-native { padding-left: 20px; }
+.login-v2 .lang-cell .btn-audio { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; min-height: 0; border-radius: 50%; background: var(--lv2-coral-soft); color: var(--lv2-coral-fill); border: 0; }
+.login-v2 .lang-btn.on + .btn-audio { background: rgba(255,255,255,.9); }
+/* 크메르·네팔·태국 글자는 위아래가 길다 — 줄 간격을 넉넉히 */
+.login-v2 .lang-btn .lang-native:lang(km), .login-v2 .lang-btn .lang-native:lang(ne), .login-v2 .lang-btn .lang-native:lang(th) { line-height: 1.6; }
+
+.login-v2 .login-card { border-radius: 18px; padding: 18px; border: 1px solid var(--lv2-line); box-shadow: 0 1px 3px rgba(25,31,40,.06); }
+.login-v2 .login-card h1 { font-size: 17px; font-weight: 700; margin: 0 0 12px; letter-spacing: -.01em; color: var(--lv2-ink); }
+.login-v2 .field { margin-bottom: 12px; }
+.login-v2 .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--lv2-ink); }
+.login-v2 .lv2-has-lead input { padding-left: 46px; min-height: 52px; border: 1px solid var(--lv2-input); border-radius: 12px; font-weight: 700; color: var(--lv2-ink); background: #fff; }
+.login-v2 .lv2-has-lead input::placeholder { font-weight: 400; color: var(--lv2-ink-3); }
+.login-v2 .lv2-has-lead input:focus { outline: none; border-color: var(--lv2-coral); box-shadow: 0 0 0 3px rgba(240,100,110,.2); }
+.login-v2 .lv2-lead { position: absolute; left: 14px; width: 20px; height: 20px; color: var(--lv2-ink-3); pointer-events: none; }
+.login-v2 .login-eye[aria-pressed="true"] { color: var(--lv2-coral-fill); background: var(--lv2-coral-soft); }
+.login-v2 .login-go { min-height: 60px; margin-top: 6px; border-radius: 14px; background: var(--lv2-coral-fill); border-color: var(--lv2-coral-fill); color: #fff; font-size: 18px; font-weight: 800; box-shadow: none; }
+.login-v2 .login-go:hover, .login-v2 .login-go:active { background: #C93B47; }
+
+.login-v2 .lv2-foot { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+.login-v2 .lv2-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--lv2-ink-2); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.login-v2 .lv2-link .ico { width: 16px; height: 16px; color: var(--lv2-ink-3); }
+.login-v2 .lv2-link:hover { color: var(--lv2-coral-fill); }
+.login-v2 .lv2-sep { color: var(--lv2-input); }
+
+.login-v2 .login-demo-wrap { border-top: 1px dashed var(--lv2-line); padding-top: 8px; }
+.login-v2 .login-demo-wrap > summary { cursor: pointer; color: var(--lv2-ink-3); font-size: 12px; padding: 8px 0; text-align: center; list-style: none; }
+.login-v2 .login-demo-wrap > summary::-webkit-details-marker { display: none; }
+.login-v2 .login-foot { font-size: 11px; line-height: 1.6; }
+.login-v2 .qr-note { background: var(--lv2-coral-soft); color: #C93B47; }

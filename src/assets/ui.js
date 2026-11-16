@@ -211,7 +211,14 @@ var UI = (function () {
       Store.LANGUAGES.forEach(function (l) {
         var cell = el('span', 'lang-cell');
 
-        var btn = el('button', 'lang-btn' + (l.code === current ? ' on' : ''), l.native);
+        /* 🆕 2026-11-16 로그인 시안 — 모국어 글자를 크게, 한국어 이름을 작게 (담당자가 옆에서 도와줄 때 읽는다).
+           고른 언어에는 체크 그림. 한국어 칸은 이름이 같으므로 작은 줄을 붙이지 않는다. */
+        var btn = el('button', 'lang-btn' + (l.code === current ? ' on' : ''));
+        if (l.code === current) btn.appendChild(iconBox('check', 'lang-check'));
+        var nat = el('span', 'lang-native', l.native);
+        nat.setAttribute('lang', l.code);
+        btn.appendChild(nat);
+        if (l.name !== l.native) btn.appendChild(el('span', 'lang-ko', l.name));
         btn.type = 'button';
         btn.setAttribute('aria-pressed', l.code === current ? 'true' : 'false');
         btn.addEventListener('click', function () {
@@ -275,6 +282,20 @@ var UI = (function () {
     }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
+
+    /* 🆕 2026-11-16 공통 디자인 — 노동자 화면 머리띠 맨 앞에 로고(방패).
+       화면 6개 html 을 일일이 고치지 않게 여기서 한 번에 붙인다. */
+    var bar = document.querySelector('.workerbar');
+    if (bar) {
+      var logo = bar.querySelector('.hv2-logo');
+      if (!logo) {
+        logo = el('span', 'hv2-logo');
+        logo.setAttribute('data-icon', 'shield');
+        bar.insertBefore(logo, bar.firstChild);
+      }
+      logo.setAttribute('aria-hidden', 'true');
+      setIcon(logo, 'shield');
+    }
   }
 
   /* 하단 탭에서 지금 페이지에 표시를 준다.
