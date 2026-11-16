@@ -13,13 +13,18 @@
 <script src="../assets/i18n.js"></script>
 <script>Auth.require('worker');</script>
 </head>
-<body class="has-tabbar">
+<body class="has-tabbar home-v2">
 
-<header class="workerbar apphead">
+<!-- 🆕 2026-11-16 홈 새 디자인 (Stitch 시안 「Vibrant Industrial Safety」).
+     순서: 지금 할 일(교육 1개) → 내 진행 상황 → 바로가기 → 오늘의 안전 문구.
+     ★ 시안의 작업 타이머·휴식 시간·포인트·알림 종은 실제 기능이 없어 넣지 않았다 —
+       화면이 거짓말을 하면 안 된다. -->
+<header class="workerbar apphead hv2-head">
   <div class="who">
     <strong id="head-site"></strong>
     <span id="head-sub"></span>
   </div>
+  <a class="hv2-me" href="my.html" data-i18n-aria="nav.my" aria-label="마이"><span class="ico" data-icon="person" aria-hidden="true"></span></a>
   <button class="btn-sm" type="button" id="btn-logout" data-i18n="action.logout">로그아웃</button>
 </header>
 
@@ -31,10 +36,62 @@
 
   <p class="voicenote" id="voicenote" hidden></p>
 
-  <!-- 1. 오늘의 안전 문구 — 교육에 들어가지 않아도 한 번은 눈과 귀에 닿는다.
+  <!-- 0. 담당자가 다시 들으라고 한 교육 (D2).
+       ★ 지금 해야 할 일이 있으면 그것부터 보여야 한다 — 맨 위.
+       ★ 담당자가 남긴 말은 한국어다. 그 사실을 화면에 적는다. -->
+  <section class="card order-card" id="order-card" aria-labelledby="t-order" hidden>
+    <h2 id="t-order" class="card-title" data-i18n="home.retryOrder">다시 들어 주세요</h2>
+    <div class="order-list" id="order-list"></div>
+  </section>
+
+  <!-- 1. 오늘 할 교육 — 가장 급한 교육 하나. 수강 → 검증 → 완료 3단계.
+       글자를 읽지 않고도 지금 어디까지 왔는지 알 수 있어야 한다. -->
+  <section class="card hv2-task" aria-labelledby="t-progress">
+    <div class="hv2-task-top">
+      <h2 id="t-progress" class="hv2-kicker" data-i18n="home.todayTask">오늘 할 교육</h2>
+      <span class="hv2-meta" id="task-meta" hidden></span>
+    </div>
+    <div class="hv2-task-body">
+      <span class="hv2-pict" id="task-pict" aria-hidden="true"><span class="ico" data-icon="clipboard"></span></span>
+      <p class="hv2-title" id="task-title"></p>
+    </div>
+
+    <p class="stage-say" id="stage-say"></p>
+
+    <ol class="stage-track" id="stage-track">
+      <li data-step="learn"><span class="ico" aria-hidden="true">🎧</span><span class="name" data-i18n="home.stepLearn">듣기</span></li>
+      <li data-step="quiz"><span class="ico" aria-hidden="true">👆</span><span class="name" data-i18n="home.stepQuiz">확인</span></li>
+      <li data-step="done"><span class="ico" aria-hidden="true">✅</span><span class="name" data-i18n="state.done">완료</span></li>
+    </ol>
+
+    <div class="big-actions" id="stage-actions"></div>
+
+    <!-- ★ 기획에서 온 문장 (SCREEN 기능3·4 · 목업 02-home).
+         들었다는 것만으로 교육을 마쳤다고 기록하지 않는다. -->
+    <p class="muted policy-note">
+      <b data-i18n="home.mustPass">이해도 검증을 통과해야 교육이 완료됩니다.</b>
+      <span data-i18n="home.notJustAttend">수강만으로는 완료로 기록되지 않습니다.</span>
+    </p>
+  </section>
+
+  <!-- 2. 내 진행 상황 — 받을 교육 중 몇 개를 통과했는가.
+       ★ 받을 교육이 없으면 통째로 감춘다 ("0개 중 0개" 를 지어내지 않는다). -->
+  <section class="card hv2-prog" id="prog-card" aria-labelledby="t-myprog" hidden>
+    <div class="hv2-prog-top">
+      <h2 id="t-myprog" class="hv2-kicker" data-i18n="home.myProgress">내 진행 상황</h2>
+      <span class="hv2-prog-num" id="prog-num"></span>
+    </div>
+    <div class="hv2-bar" aria-hidden="true"><span id="prog-bar"></span></div>
+    <p class="hv2-prog-say" id="prog-say"></p>
+  </section>
+
+  <!-- 3. 바로가기 4갈래 — 픽토그램 + 글자 + 배지 + 음성 -->
+  <nav class="bigmenu" id="bigmenu" aria-label="주요 메뉴"></nav>
+
+  <!-- 4. 오늘의 안전 문구 — 교육에 들어가지 않아도 한 번은 눈과 귀에 닿는다.
        ★ 검수 완료된 문구만 여기 올라온다. -->
   <section class="today" id="today" aria-labelledby="today-title">
-    <h2 class="sr-only" id="today-title" data-i18n="home.todayPhrase">오늘의 안전 문구</h2>
+    <h2 class="hv2-kicker" id="today-title" data-i18n="home.todayPhrase">오늘의 안전 문구</h2>
     <p class="pict" id="today-pict" aria-hidden="true">⚠</p>
     <p class="translated" id="today-text"></p>
     <p class="original" id="today-ko"></p>
@@ -43,80 +100,33 @@
     <p class="original" id="today-note"></p>
     <div class="listen" id="today-listen"></div>
 
-    <!-- 오역 신고 (H1 · FR-WK-01-06). ★ 신고자를 저장하지 않는다 — 누르는 데
-         로그인 외의 정보가 더 필요 없다. 누르면 그 언어만 바로 중지된다. -->
-    <div class="btn-row" id="today-report"></div>
-
-    <!-- 문구 넘겨 보기 (C5).
-         ★ 볼 것이 하나뿐이면 JS 가 통째로 감춘다 — 눌러도 아무 일이 없는
-           버튼은 글을 못 읽는 사람에게 그냥 고장이다. -->
+    <!-- 문구 넘겨 보기 (C5). 볼 것이 하나뿐이면 JS 가 통째로 감춘다. -->
     <div class="today-nav" id="today-nav" hidden>
       <button class="btn-round" type="button" id="today-prev" data-i18n-aria="home.prevPhrase" aria-label="이전 안전 문구">◀</button>
       <p class="today-pos" id="today-pos" aria-live="polite"></p>
       <button class="btn-round" type="button" id="today-next" data-i18n-aria="home.nextPhrase" aria-label="다음 안전 문구">▶</button>
     </div>
+
+    <!-- 오역 신고 (H1 · FR-WK-01-06). ★ 신고자를 저장하지 않는다. -->
+    <div class="btn-row" id="today-report"></div>
+
+    <!-- 번역이 이상하면 알려 달라 — 접어 둔다 (문구 바로 아래가 제자리) -->
+    <details class="hv2-more" aria-labelledby="t-badtrans">
+      <summary id="t-badtrans" data-i18n="home.badTrans">말이 이상하면 알려 주세요</summary>
+      <p class="muted">
+        안전 문구의 번역이 이상하거나 뜻이 반대로 보이면 관리자에게 알려 주세요.
+        확인될 때까지 그 문구는 쓰이지 않습니다. 알려 주신 분이 누구인지는 기록하지 않습니다.
+      </p>
+      <p class="muted">
+        <span data-i18n="home.unreviewedMarked">검수되지 않은 번역은 화면에 따로 표시됩니다.</span>
+        <b data-i18n="home.unreviewedNotUsed">안전 지시로 쓰지 않습니다.</b>
+      </p>
+      <div class="listen" id="badtrans-listen"></div>
+    </details>
   </section>
 
-  <!-- 1-1. 담당자가 다시 들으라고 한 교육 (D2).
-       ★ 여기가 가장 위에 온다. 지금 해야 할 일이 있으면 그것부터 보여야 한다.
-       ★ 담당자가 남긴 말은 한국어다. 그 사실을 화면에 적는다 —
-         못 읽는 말을 아무 표시 없이 두면 그냥 못 본 것이 된다. -->
-  <section class="card order-card" id="order-card" aria-labelledby="t-order" hidden>
-    <h2 id="t-order" class="card-title" data-i18n="home.retryOrder">다시 들어 주세요</h2>
-    <div class="order-list" id="order-list"></div>
-  </section>
-
-  <!-- 2. 이번 교육 상태 — 수강 → 검증 → 완료 3단계.
-       글자를 읽지 않고도 지금 어디까지 왔는지 알 수 있어야 한다. -->
-  <section class="card" aria-labelledby="t-progress">
-    <h2 id="t-progress" class="card-title" data-i18n="home.myCourses">내 교육</h2>
-
-    <!-- ★ 기획에서 온 문장 (SCREEN 기능3·4 · 목업 02-home).
-         이 제품이 서 있는 자리가 이 두 줄이다 — 서명은 참석의 증거일 뿐이고,
-         들었다는 것만으로 교육을 마쳤다고 기록하지 않는다.
-         빼면 이 화면은 그냥 진도표가 된다. -->
-    <p class="muted policy-note">
-      <b data-i18n="home.mustPass">이해도 검증을 통과해야 교육이 완료됩니다.</b>
-      <span data-i18n="home.notJustAttend">수강만으로는 완료로 기록되지 않습니다.</span>
-    </p>
-
-    <ol class="stage-track" id="stage-track">
-      <li data-step="learn"><span class="ico" aria-hidden="true">🎧</span><span class="name" data-i18n="home.stepLearn">듣기</span></li>
-      <li data-step="quiz"><span class="ico" aria-hidden="true">👆</span><span class="name" data-i18n="home.stepQuiz">확인</span></li>
-      <li data-step="done"><span class="ico" aria-hidden="true">✅</span><span class="name" data-i18n="state.done">완료</span></li>
-    </ol>
-
-    <p class="stage-say" id="stage-say"></p>
-    <div class="big-actions" id="stage-actions"></div>
-  </section>
-
-  <!-- 3. 메뉴 4갈래 — 픽토그램 + 글자 + 음성 -->
-  <nav class="bigmenu" id="bigmenu" aria-label="주요 메뉴"></nav>
-
-  <!-- 3-1. 오프라인으로 열린다는 표시 (E1).
-       ★ 목업(02-home)에 있던 "오프라인 가능" 배지다. B4 에서는 일부러 옮기지
-         않았다 — 그때는 실제로 오프라인으로 돌지 않았고, 화면이 거짓말을 하면
-         안 되기 때문이다. 이제 sw.js 가 화면을 담으므로 붙인다.
-       ★ 다만 고정 문구로 박지 않는다. 정말로 담겼을 때만 JS 가 그린다
-         (UI.offlineReady). file:// 로 열면 안 뜨고, 그게 맞다. -->
+  <!-- 오프라인으로 열린다는 표시 (E1). ★ 정말로 담겼을 때만 JS 가 그린다. -->
   <p class="offline-ok" id="offline-ok" hidden></p>
-
-  <!-- 4. 번역이 이상하면 알려 달라 — 오역을 가장 먼저 발견하는 사람이 노동자다 -->
-  <section class="card" aria-labelledby="t-badtrans">
-    <h2 id="t-badtrans" class="card-title" data-i18n="home.badTrans">말이 이상하면 알려 주세요</h2>
-    <p class="muted">
-      안전 문구의 번역이 이상하거나 뜻이 반대로 보이면 관리자에게 알려 주세요.
-      확인될 때까지 그 문구는 쓰이지 않습니다. 알려 주신 분이 누구인지는 기록하지 않습니다.
-    </p>
-    <!-- ★ 기획에서 온 문장 (목업 02-home).
-         검수를 안 지난 말이 그냥 섞여 있는 것이 아니라 따로 표시되고
-         안전 지시로 쓰이지 않는다는 것을, 노동자 쪽 화면에서도 말한다. -->
-    <p class="muted">
-      <span data-i18n="home.unreviewedMarked">검수되지 않은 번역은 화면에 따로 표시됩니다.</span>
-      <b data-i18n="home.unreviewedNotUsed">안전 지시로 쓰지 않습니다.</b>
-    </p>
-    <div class="listen" id="badtrans-listen"></div>
-  </section>
 
   <!-- 여기부터 채우면 됩니다 -->
   <section class="todo">
