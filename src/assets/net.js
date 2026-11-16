@@ -167,9 +167,19 @@ var Net = (function () {
     return caches.open(MEDIA_CACHE).catch(function () { return null; });
   }
 
+  var pending = {};   // 받는 중인 그림 — 같은 그림을 동시에 두 번 묻지 않는다 (퀴즈 첫 문항 + 미리 받기)
+
   /** 그림 하나 — data URL 을 돌려준다. 못 받으면 '' (던지지 않는다) */
   function media(ref, opts) {
     if (!isMediaRef(ref)) return Promise.resolve('');
+    if (!pending[ref]) {
+      pending[ref] = fetchMedia(ref, opts);
+      pending[ref].then(function () { delete pending[ref]; });
+    }
+    return pending[ref];
+  }
+
+  function fetchMedia(ref, opts) {
     var key = mediaKey(ref);
     return openMedia().then(function (cache) {
       var hit = cache ? cache.match(key).catch(function () { return null; }) : Promise.resolve(null);
@@ -200,6 +210,12 @@ var Net = (function () {
     });
   }
 
+  /** 로그아웃 때 — 이 기기에 담아 둔 사업장 그림(공장 내부 사진)을 지운다 (공용 폰) */
+  function clearMedia() {
+    if (typeof caches === 'undefined' || !caches || !caches.delete) return Promise.resolve(false);
+    return caches.delete(MEDIA_CACHE).catch(function () { return false; });
+  }
+
   /** 여러 그림을 미리 받아 담아 둔다 (끊기기 전에) — 끝까지 기다릴 필요는 없다 */
   function prefetchMedia(values, opts) {
     var refs = (Array.isArray(values) ? values : []).filter(isMediaRef);
@@ -211,6 +227,7 @@ var Net = (function () {
     media: media,
     mediaInto: mediaInto,
     prefetchMedia: prefetchMedia,
+    clearMedia: clearMedia,
     post: post,
     request: request,
     available: available,

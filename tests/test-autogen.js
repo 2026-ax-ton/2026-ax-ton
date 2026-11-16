@@ -199,6 +199,11 @@ function fakeQuestions(body) {
   ok('보류를 풀면 다시 켜진다', $('btn-approve').disabled === false);
 
   click(win, $('btn-approve'));
+  /* 🆕 그림을 올리는 사이 화면이 다시 그려져도 버튼이 켜지지 않는다 — 두 번 발급 막기 */
+  click(win, $('btn-hold'));
+  click(win, $('btn-hold'));
+  ok('★★ 그림을 올리는 중에는 다시 그려도 발급 버튼이 꺼져 있다', $('btn-approve').disabled === true);
+  click(win, $('btn-approve'));
   await ticks();
   const courses = S.courses.load();
   const c = courses[courses.length - 1];

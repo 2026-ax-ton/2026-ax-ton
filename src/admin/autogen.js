@@ -1005,7 +1005,7 @@
     });
     var langs = (setup().languages || []).filter(function (c) { return c !== 'ko'; });
     $('ag-lang-note').textContent = langs.length ? '문항 문장은 아직 한국어로만 나갑니다 (음성으로 읽어 줍니다).' : '';
-    $('btn-approve').disabled = !all.every(function (s) { return s.done; });
+    $('btn-approve').disabled = issuing || !all.every(function (s) { return s.done; });
   }
 
   function renderAll() {
@@ -1076,7 +1076,9 @@
     var jobs = [];
     var moved = 0, kept = 0;
     function up(name, data, set) {
-      if (typeof data !== 'string' || data.indexOf('data:image/jpeg') !== 0) return;
+      if (typeof data !== 'string' || data.indexOf('data:image/') !== 0) return;
+      /* 저장소는 JPEG 만 받는다 — PNG 등은 교육 안에 남고, 남은 장수로 센다 */
+      if (data.indexOf('data:image/jpeg') !== 0) { kept += 1; return; }
       jobs.push(Net.post('/api/scans', { op: 'media-put', courseId: course.id, name: name, data: data }, { token: token, timeoutMs: 30000 })
         .then(function (r) {
           if (r.ok && r.data && Net.isMediaRef(r.data.ref)) { set(r.data.ref); moved += 1; } else { kept += 1; }
@@ -1091,24 +1093,52 @@
     return Promise.all(jobs).then(function () { return { moved: moved, kept: kept }; });
   }
 
+  /** 저장소로 갈 JPEG 를 짧은 주소로 바꿔 본 사본 — 올린 뒤의 크기로 상한을 본다 (그림 때문에 막히지 않게) */
+  function asUploaded(course) {
+    var c = JSON.parse(JSON.stringify(course));
+    function swap(v, name) { return typeof v === 'string' && v.indexOf('data:image/jpeg') === 0 ? 'media:' + c.id + '/' + name + '.jpg' : v; }
+    c.photo = swap(c.photo, 'photo');
+    (c.quiz || []).forEach(function (q, qi) {
+      if (Array.isArray(q.pics)) q.pics = q.pics.map(function (p, i) { return swap(p, 'q' + qi + '-' + i); });
+    });
+    return c;
+  }
+
+  var issuing = false;   // 그림을 올리는 동안 — 버튼이 다시 켜져 두 번 발급되지 않게
+
   function approve() {
+    if (issuing) return;
     if (!steps().every(function (s) { return s.done; })) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
     var course = buildCourse();
     if (!course) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
-    /* 상한은 서버도 본다 — 여기서 막아야 담당자가 발급 뒤에 실패를 보지 않는다 (C06 D-048) */
-    var tooBig = Limits.courseSizeProblem(course);
+    var e = state.equipment;   // 올리는 사이 다른 설비를 골라도 이 교육의 설비로 닫는다
+    var online = typeof Net !== 'undefined' && Net.onHttps && Net.onHttps();
+    /* 상한은 서버도 본다 — 여기서 막아야 담당자가 발급 뒤에 실패를 보지 않는다 (C06 D-048).
+       서버가 있으면 JPEG 는 저장소로 가므로 올린 뒤의 모양으로 잰다 */
+    var tooBig = Limits.courseSizeProblem(online ? asUploaded(course) : course);
     if (tooBig) { UI.toast(tooBig + '.'); renderApprove(); return; }
     /* 서버가 없는 자리(file:// · 검사)는 예전처럼 곧바로 저장한다 — 올릴 곳이 없다 */
-    if (!(typeof Net !== 'undefined' && Net.onHttps && Net.onHttps())) { save(course, null); return; }
+    if (!online) { save(course, null, e); return; }
+    issuing = true;
     $('btn-approve').disabled = true;
     $('ag-research-status').textContent = '그림을 저장소에 올리는 중입니다…';
-    uploadMedia(course).then(function (m) { save(course, m); });
+    uploadMedia(course).then(function (m) {
+      issuing = false;
+      /* 못 올린 그림이 남았으면 실제 모양으로 다시 잰다 — 넘으면 서버 동기화가 거절한다 */
+      var still = m.kept ? Limits.courseSizeProblem(course) : '';
+      if (still) {
+        $('ag-research-status').textContent = '';
+        UI.toast(still + '. 그림 ' + m.kept + '장을 저장소에 올리지 못했습니다. 잠시 뒤 다시 발급해 주세요.');
+        renderApprove();
+        return;
+      }
+      save(course, m, e);
+    });
   }
 
-  function save(course, media) {
-    var e = state.equipment;
+  function save(course, media, e) {
     var result = Store.courses.update(function (list) { list.push(course); });
-    if (!result.ok) { $('btn-approve').disabled = false; UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
+    if (!result.ok) { renderApprove(); UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
     UI.toast('발급했습니다. 「' + course.title + '」이 노동자 수강 화면에 나타납니다.'
       + (media && media.kept ? ' (그림 ' + media.kept + '장은 저장소에 올리지 못해 교육 안에 그대로 넣었습니다)' : ''));
     state = emptyState(e);

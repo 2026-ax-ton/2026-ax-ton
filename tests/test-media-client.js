@@ -20,6 +20,7 @@ function makeEnv(online) {
   const calls = [];
   const stores = new Map();
   const caches = {
+    delete: async (name) => stores.delete(name),
     open: async (name) => {
       if (!stores.has(name)) stores.set(name, new Map());
       const m = stores.get(name);
@@ -79,6 +80,16 @@ function makeEnv(online) {
   const before = calls.length;
   await Net.prefetchMedia(['media:c1/q0-0.jpg', '', null, 'data:image/jpeg;base64,AA', 'media:c1/q1-0.jpg'], { token: 't' });
   eq('미리 받기는 주소 모양인 것만 묻는다 (캐시에 있는 것은 안 묻는다)', calls.length - before, 1);
+
+  /* 🆕 같은 그림을 동시에 부르면 서버에는 한 번만 묻는다 (퀴즈 첫 문항 + 미리 받기) */
+  const b2 = calls.length;
+  const [x1, x2] = await Promise.all([Net.media('media:c1/q2-0.jpg', { token: 't' }), Net.media('media:c1/q2-0.jpg', { token: 't' })]);
+  eq('★ 동시에 두 번 불러도 서버에는 한 번', calls.length - b2, 1);
+  ok('둘 다 같은 답을 받는다', x1 === x2);
+
+  /* 🆕 로그아웃 — 이 기기에 담은 사업장 그림을 지운다 (공용 폰) */
+  await Net.clearMedia();
+  ok('★★ 로그아웃하면 그림 캐시가 사라진다', !stores.has('media-v1'));
 
   report('교육 그림 받기 (net.js media)');
 })();

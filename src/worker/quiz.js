@@ -284,8 +284,18 @@
     if (photo) {
       var img = UI.el('img');
       img.alt = '';
-      Net.mediaInto(img, run.course.photo, { token: Auth.token() });
       figure.appendChild(img);
+      /* 🆕 받은 적 없는 그림을 끊긴 곳에서 열면 — 그 사람 언어로 끊김을 알리고, 다시 연결되면 저절로 받는다.
+         ★ 설비 도해로 바꾸지 않는다 — 정답 좌표는 사진 기준이라 도해 위에서는 채점이 틀어진다 */
+      Net.mediaInto(img, run.course.photo, { token: Auth.token() }).then(function (shown) {
+        if (shown || !figure.parentNode) return;
+        var note = UI.el('p', 'quiz-media-note', T('sync.offline'));
+        figure.parentNode.insertBefore(note, figure.nextSibling);
+        window.addEventListener('online', function retry() {
+          window.removeEventListener('online', retry);
+          Net.mediaInto(img, run.course.photo, { token: Auth.token() }).then(function (ok) { if (ok && note.parentNode) note.parentNode.removeChild(note); });
+        });
+      });
     } else {
       var name = Diagrams.nameFor(run.equipment);
       figure.appendChild(Diagrams.svg(name));
