@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로그인 — Safelang</title>
+<meta name="description" content="Safelang — 역할에 따라 노동자 화면과 담당자·운영자 화면으로 갈라집니다.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style-admin.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="login-body login-v2">
+
+<!-- 🆕 2026-11-16 로그인 화면을 Stitch 시안(코랄 · 언어 2열 카드 · 근로자 로그인)으로 바꿨다.
+     ★ 시안의 English · 「기타 언어」 · 바코드 스캔 · 고객지원 링크는 넣지 않았다 —
+       지원하지 않는 언어와 없는 기능을 화면에 두면 눌러도 아무 일이 없는 버튼이 된다.
+       언어는 계획한 5개(크메르·인니·베트남·네팔·태국) + 한국어(Store.LANGUAGES).
+     ★ 시안의 외부 글꼴(Google Fonts)·Tailwind CDN 은 쓰지 않는다 — 외부 요청 0건 (C05). -->
+<main class="login-main">
+
+  <header class="lv2-brand">
+    <span class="lv2-logo"><span class="ico" data-icon="shield" aria-hidden="true"></span></span>
+    <span class="lv2-name">SAFE-LANG</span>
+  </header>
+
+  <!-- 언어 선택 — 로그인 전이라 이 기기에 둔다 (H9 · FR-CM-01-08).
+       글을 못 읽어도 모국어 글자와 음성으로 자기 언어를 찾을 수 있다. -->
+  <section class="lv2-lang" aria-labelledby="t-lang">
+    <p class="lv2-sec-title" id="t-lang">교육 언어 선택 <span class="lv2-sec-sub">(기본: 한국어)</span></p>
+    <div class="lang-gate" id="lang-gate"></div>
+  </section>
+
+  <!-- QR 로 들어왔으면 로그인 뒤 어디로 가는지 미리 알린다 (H9 · FR-CM-01-09) -->
+  <p class="qr-note" id="qr-note" hidden></p>
+
+  <p class="blocked" id="blocked" hidden>
+    이 브라우저에서는 저장소를 쓸 수 없습니다. 로그인 상태가 유지되지 않습니다.
+    시크릿 모드이거나 사이트 데이터가 차단된 상태인지 확인해 주세요.
+  </p>
+
+  <section class="login-card" aria-labelledby="t-login">
+    <h1 id="t-login" data-i18n="login.workerTitle">근로자 로그인</h1>
+
+    <form id="form-login" autocomplete="off">
+      <div class="field">
+        <label for="login-id" data-i18n="login.id">식별번호</label>
+        <div class="login-input lv2-has-lead">
+          <span class="lv2-lead ico" data-icon="person" aria-hidden="true"></span>
+          <input id="login-id" type="text" placeholder="예: W-4821-07" data-i18n-ph="login.idPh" autocomplete="username">
+        </div>
+      </div>
+      <div class="field">
+        <label for="login-pw" data-i18n="login.pw">비밀번호</label>
+        <div class="login-input lv2-has-lead">
+          <span class="lv2-lead ico" data-icon="shield" aria-hidden="true"></span>
+          <input id="login-pw" type="password" placeholder="••••" autocomplete="current-password">
+          <button class="login-eye" type="button" id="btn-pw-eye" aria-label="비밀번호 보기" aria-pressed="false"><span class="ico" data-icon="eye" aria-hidden="true"></span></button>
+        </div>
+      </div>
+
+      <p class="loginerror" id="login-error" hidden></p>
+
+      <!-- 지금 어느 길로 들어가는지 적는다. 색만으로 가르지 않는다 (C05 T-7) -->
+      <p class="why" id="login-mode" hidden></p>
+
+      <button class="btn btn-primary login-go" type="submit" id="btn-login">
+        <span data-i18n="login.submit">시작하기</span> <span aria-hidden="true">→</span>
+      </button>
+    </form>
+  </section>
+
+  <nav class="lv2-foot" aria-label="다른 로그인">
+    <button type="button" class="lv2-link" id="btn-admin-mode" aria-pressed="false">
+      <span class="ico" data-icon="tools" aria-hidden="true"></span><span id="admin-mode-label">안전관리자 · 반장 로그인</span>
+    </button>
+    <span class="lv2-sep" aria-hidden="true">|</span>
+    <a class="lv2-link" href="signup.html" data-i18n="login.signupTitle">회원가입</a>
+  </nav>
+
+  <!-- 개발·시연용. 서버가 없으면 계정이 이 브라우저에만 있으므로,
+       처음 여는 사람이 빈 화면에서 막히지 않게 통로를 하나 둔다.
+       🆕 2026-11-16 노동자에게는 접어 둔다 (시안에 없는 칸). -->
+  <details class="login-demo-wrap" id="demo-wrap">
+    <summary>시연용 계정</summary>
+    <section class="login-card login-demo" aria-labelledby="t-demo">
+      <div class="sec-head">
+        <div>
+          <h2 id="t-demo">시연용 계정</h2>
+          <p class="why">
+            서버가 없어 계정도 이 브라우저 안에만 있습니다.
+            아래 버튼을 누르면 예시 사업장과 계정이 한 번에 만들어집니다.
+          </p>
+        </div>
+        <span class="badge badge-wait"><span aria-hidden="true">●</span> 목업</span>
+      </div>
+
+      <p class="why" id="seed-auto" hidden>
+        이 브라우저에는 저장된 것이 없어서 <b>예시 데이터를 자동으로 채웠습니다.</b>
+        쓰던 데이터가 있으면 덮어쓰지 않습니다.
+      </p>
+
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn-sm go" type="button" id="btn-seed">예시 데이터 채우기</button>
+        <button class="btn-sm danger" type="button" id="btn-reset">전체 초기화</button>
+      </div>
+
+      <ul class="demo-accounts" id="demo-accounts"></ul>
+
+      <p class="muted" style="margin-top:10px">
+        비밀번호는 전부 <b>1234</b> 입니다.
+        서버가 없으면 어차피 브라우저에 그대로 남으므로, 감추지 않고 목업이라고 밝힙니다.
+        초기화한 뒤 새로고침하면 예시 데이터가 다시 채워집니다.
+      </p>
+    </section>
+  </details>
+
+  <p class="login-foot">위치·근태를 기록하지 않고, 개인 점수를 인사·평가 목적으로 내보내지 않습니다.</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="assets/store.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/i18n.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/seed.js"></script>
+<script src="assets/net.js"></script>
+<script src="assets/login.js"></script>
+</body>
+</html>

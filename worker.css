@@ -1,0 +1,1898 @@
+/* ===================================================================
+   worker.css — 노동자 화면 전용 스타일
+
+   담당: 노동자 팀 2명 공용
+
+   ★ 여기에 쓰는 이유: assets/app.css 는 네 명이 함께 쓰는 파일이라
+     둘이 동시에 고치면 충돌합니다. 노동자 화면에만 필요한 것은 여기 씁니다.
+     두 트랙이 똑같이 필요한 것이 생기면 그때 팀에 말하고 app.css 로 올립니다.
+
+   이 트랙이 지켜야 하는 규칙 (SCREEN §4 · PRD §9.1 §9.4)
+     · 터치 타깃 최소 60×60px — 장갑 낀 손으로 조작합니다 (--tap-min)
+     · 문해력을 전제하지 않습니다 — 모든 안내에 음성을 병행합니다
+     · 색상만으로 상태를 구분하지 않습니다 — 아이콘 + 글자 + 색
+     · 저사양 안드로이드를 지원합니다 — 애니메이션과 블러를 최소화합니다
+
+   구역 나눔 — 같은 파일을 둘이 고치므로 자기 구역에만 씁니다.
+     [P1] 음성 안내 · 기능3 수강 · 기능4 검증          ← 지금 이 파일의 아래 전부
+     [P2] 홈 · 신고 · 소통 · 마이                       ← 맨 아래에 새 구역을 만들어 쓰세요
+   =================================================================== */
+
+
+/* ===================================================================
+   ★ 노동자 트랙의 색 (2026-08-30)
+
+   style.css 의 :root 기본값은 보라(담당자·운영자)다. 이 파일은 노동자
+   화면에서만 실리므로, 여기서 덮어쓰면 노동자 화면 전체가 빨강이 된다.
+   화면 CSS 는 그대로 var(--brand) 만 쓰면 된다.
+
+   같은 폰을 돌려 쓰기 때문에 "지금 누구 화면인가" 가 한눈에 보여야 한다.
+   머리띠 색이 보라면 담당자, 빨강이면 노동자다.
+
+   ★ 위험 빨강(--stop)과 겹치지 않게 잡았다 —
+     --stop 은 짙은 진홍(#8f1420), 여기 브랜드는 그보다 밝고 따뜻한
+     산호빛이다. 배지는 원래 아이콘 + 글자 + 색 3중이지만, 안전 화면에서
+     "주 색"과 "위험 색"이 같아 보이면 위험 표시가 묻힌다.
+   =================================================================== */
+
+/* 🆕 2026-11-15 Figma 「본선 · 00 방향 보드」 작업자 앱(코랄 트랙).
+   배너는 코랄 #FF6556 → #FF8272 위에 먹색 글자(약 6:1). 흰 글자는 대비가 모자라 쓰지 않는다.
+   --brand 는 글자로도 쓰여서 흰 바탕 4.5:1 을 넘는 짙은 코랄로 둔다 — 밝은 코랄은 배너·장식에만 */
+:root {
+  --brand: #d63b2f;         /* 흰 글자·흰 바탕 모두 4.6:1 */
+  --brand-ink: #ffffff;
+  --brand-strong: #b02e24;
+  --brand-deep: #9a2a1f;
+  --brand-soft: #ffedea;    /* Figma 「주색 연함」 */
+  --brand-line: #ffc9c1;
+  --brand-vivid: #ff6556;   /* Figma 배너 · 장식 — 글자를 얹지 않는다 */
+  --brand-vivid-2: #ff8272;
+  --brand-focus: #ff6556;
+  --brand-glow: rgba(255, 101, 86, .28);
+  --brand-tint: #fffaf9;
+
+  --banner: #ff6556;
+  --banner-end: #ff8272;
+  --banner-ink: #191f28;    /* 코랄 배너 위 먹색 글자 */
+  --banner-ink-2: rgba(25, 31, 40, .78);
+}
+
+
+/* ===================================================================
+   [P1] 여기부터
+   =================================================================== */
+
+/* -------------------------------------------------------------------
+   음성 안내 줄 — 그 언어 음성이 기기에 없을 때 왜 한국어로 들리는지 적는다.
+   조용히 실패하면 글자를 못 읽는 사람은 아무것도 못 받은 채 넘어간다.
+   ------------------------------------------------------------------- */
+
+.voicenote {
+  margin: 0 0 var(--gap);
+  padding: 10px 12px;
+  border: 1px solid var(--warn-line);
+  border-left: 5px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: .84em;
+  font-weight: 600;
+}
+
+.voicenote[hidden] { display: none; }
+
+/* -------------------------------------------------------------------
+   기능3 · 교육 목록
+   ------------------------------------------------------------------- */
+
+.course-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.course-card {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+/* 카드 전체가 누를 수 있는 자리다. 아이콘만 눌리면 장갑 낀 손으로 못 맞춘다 */
+.course-open {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* ★ 바로 아래 자식만 (2026-08-30 에 `.course-open .ico` → `> .ico` 로 좁힘).
+   그냥 두면 이 칸 안에 들어온 배지의 아이콘까지 52px 짜리 분홍 상자가 됐다 —
+   "✓ 완료" 의 체크가 글자보다 커지고 배지 밖으로 삐져나왔다. */
+.course-open > .ico {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--brand-soft);
+  color: var(--brand-deep);
+  font-size: 28px;
+}
+
+.course-open .body { flex: 1 1 auto; min-width: 0; }
+
+.course-open .body strong {
+  display: block;
+  font-size: 1.05em;
+  overflow-wrap: anywhere;
+}
+
+.course-open .body .meta {
+  margin: 2px 0 0;
+  font-size: .8em;
+  color: var(--ink-3);
+}
+
+/* app.css 의 .tags 는 .item 안에서만 걸린다. 여기 목록은 .item 이 아니라 다시 쓴다 */
+.course-open .body .tags {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.course-open:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
+
+/* -------------------------------------------------------------------
+   기능3 · 수강 진행 — 문구 한 장씩
+   ------------------------------------------------------------------- */
+
+.step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+.step-count { font-size: .9em; font-weight: 800; color: var(--ink-2); }
+
+.step-dots { display: flex; align-items: center; gap: 6px; }
+
+.step-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+/* 지난 장은 채우고 지금 장은 테두리를 준다 — 색만으로 구분하지 않는다 */
+.step-dots span[data-state="done"] { background: var(--brand); }
+
+.step-dots span[data-state="now"] {
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  border: 3px solid var(--brand);
+}
+
+.phrase-card {
+  padding: 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+/* 픽토그램이 먼저 보인다. 글자를 못 읽어도 무엇에 대한 얘기인지는 알 수 있게 */
+.phrase-card .pict {
+  font-size: 72px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.phrase-card .translated {
+  margin: 0;
+  font-size: 1.45em;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.phrase-card .original {
+  margin: 10px 0 0;
+  font-size: .86em;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.phrase-card .listen {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.phrase-card .listen .label {
+  font-size: .84em;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.step-nav {
+  margin-top: var(--gap);
+  display: flex;
+  gap: var(--gap);
+}
+
+.step-nav .btn {
+  flex: 1 1 0;
+  min-height: var(--tap-min);
+  justify-content: center;
+}
+
+.step-nav .btn.wide { flex: 2 1 0; }
+
+/* -------------------------------------------------------------------
+   기능4 · 이해도 검증 — 문항 머리
+   ------------------------------------------------------------------- */
+
+.quiz-head {
+  display: flex;
+  flex-wrap: wrap;               /* 번역 배지가 아래 줄로 내려간다 */
+  align-items: center;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+/* 이 문항이 내 언어로 온전히 안 나올 때의 배지 자리.
+   문구 옆에 끼우면 문항이 좁아지므로 한 줄 아래에 통째로 둔다. */
+.prompt-note {
+  flex: 1 1 100%;
+}
+
+.quiz-kind {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  font-size: 28px;
+}
+
+.quiz-prompt {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.15em;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* -------------------------------------------------------------------
+   기능4 · hotspot — 설비 도해 위에서 위험 지점 짚기
+
+   도해는 viewBox="0 0 100 100" 으로 그린다. 좌표계가 곧 퍼센트라
+   화면 크기가 달라져도 정답 자리가 그대로 맞는다.
+   ------------------------------------------------------------------- */
+
+.quiz-figure {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink-2);
+  touch-action: manipulation;
+}
+
+/* aspect-ratio 를 모르는 구형 웹뷰용 대체 — 패딩으로 정사각형을 만든다 */
+@supports not (aspect-ratio: 1 / 1) {
+  .quiz-figure { height: 0; padding-top: 100%; }
+  .quiz-figure > svg { position: absolute; top: 0; left: 0; }
+}
+
+.quiz-figure > svg { display: block; width: 100%; height: 100%; }
+
+/* 이름 붙은 위험 구역. 좌표는 퍼센트라 화면 크기가 바뀌어도 같은 자리다 */
+.zone {
+  position: absolute;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 3px dashed transparent;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.zone:hover, .zone:focus-visible {
+  border-color: #b98a00;
+  background: rgba(217, 164, 6, .14);
+}
+
+.zone:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
+
+/* 누른 자리 표시 — 아이콘 + 색 두 겹. 색을 지워도 맞고 틀림이 남는다 */
+.zone[data-mark]::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.zone[data-mark="ok"] {
+  border-style: solid;
+  border-color: var(--ok);
+  background: rgba(28, 107, 58, .14);
+}
+
+.zone[data-mark="ok"]::after {
+  content: "\2713";
+  background: var(--ok);
+  color: #fff;
+}
+
+.zone[data-mark="no"] {
+  border-style: solid;
+  border-color: var(--stop);
+  background: rgba(163, 34, 24, .14);
+}
+
+.zone[data-mark="no"]::after {
+  content: "\2715";
+  background: var(--stop);
+  color: #fff;
+}
+
+/* 구역이 정의되지 않은 교육에서는 도해 아무 곳이나 누를 수 있다.
+   그때 누른 지점을 표시하는 점 */
+.tapmark {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-radius: 50%;
+  border: 3px solid var(--brand);
+  background: rgba(16, 82, 155, .18);
+  pointer-events: none;
+}
+
+.zonehint {
+  margin: 10px 0 0;
+  font-size: .82em;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------
+   기능4 · choice — 올바른 작업 고르기
+   ------------------------------------------------------------------- */
+
+.choice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.choice-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.choice-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 1.02em;
+  font-weight: 600;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice-btn .no {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-weight: 800;
+  font-size: .9em;
+}
+
+.choice-btn .text { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+
+/* 그림 보기 — 번호 옆에 그림을 크게 (글자 없이 고른다) */
+.choice-btn.has-pic { align-items: flex-start; padding: 8px; }
+.choice-btn .pic { flex: 1 1 auto; min-width: 0; width: 100%; max-width: 420px; height: auto; display: block; border-radius: calc(var(--radius) - 4px); }
+
+.choice-btn:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
+
+.choice-btn[data-mark="ok"] { border-color: var(--ok); background: var(--ok-soft); }
+.choice-btn[data-mark="ok"] .no { background: var(--ok); color: #fff; border-color: var(--ok); }
+.choice-btn[data-mark="no"] { border-color: var(--stop); background: var(--stop-soft); }
+.choice-btn[data-mark="no"] .no { background: var(--stop); color: #fff; border-color: var(--stop); }
+
+/* -------------------------------------------------------------------
+   기능4 · match — 작업과 보호구 연결하기
+
+   드래그를 쓰지 않는다. 장갑 낀 손으로는 왼쪽 하나 누르고
+   오른쪽 하나 누르는 편이 정확하다.
+   ------------------------------------------------------------------- */
+
+.match-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.match-col-head {
+  display: flex;
+  gap: var(--gap);
+  font-size: .8em;
+  font-weight: 800;
+  color: var(--ink-3);
+}
+
+.match-col-head span { flex: 1 1 0; }
+
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.match-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.match-btn:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
+.match-btn[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); }
+.match-btn[data-mark="ok"] { border-color: var(--ok); background: var(--ok-soft); }
+.match-btn[data-mark="no"] { border-color: var(--stop); background: var(--stop-soft); }
+
+/* 이어졌다는 표시 — 짝 번호를 글자로 같이 준다. 선만 그으면 색약에서 안 보인다 */
+.match-btn .pairno {
+  flex: 0 0 auto;
+  min-width: 26px;
+  height: 26px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: .78em;
+  font-weight: 800;
+}
+
+.match-btn[data-pair] .pairno { display: flex; }
+
+.match-linked {
+  flex: 0 0 auto;
+  width: 22px;
+  text-align: center;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+
+/* -------------------------------------------------------------------
+   결과 학습 — 누른 것이 실제로 어떤 사고가 되는지 바로 말한다.
+   맞았는지 틀렸는지만 알려 주면 다음에 또 같은 선택을 한다.
+   ------------------------------------------------------------------- */
+
+.consequence {
+  margin: var(--gap) 0 0;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--warn-line);
+  border-left: 5px solid var(--warn);
+  background: var(--warn-soft);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+}
+
+.consequence .pict { flex: 0 0 auto; font-size: 30px; line-height: 1.2; }
+
+.consequence p {
+  margin: 0;
+  font-size: .95em;
+  font-weight: 600;
+  color: var(--warn);
+  overflow-wrap: anywhere;
+}
+
+.consequence[hidden] { display: none; }
+
+/* -------------------------------------------------------------------
+   기능4 · 결과 화면
+   ------------------------------------------------------------------- */
+
+.result-panel {
+  padding: 20px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: center;
+}
+
+.result-panel .pict { font-size: 64px; line-height: 1.1; }
+
+.result-panel h2 { margin: 8px 0 4px; font-size: 1.3em; }
+
+.result-panel .score {
+  margin: 0;
+  font-size: 2.4em;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.result-panel .scorenote { margin: 4px 0 0; font-size: .84em; color: var(--ink-2); }
+
+.result-panel.pass { border-color: var(--ok-line); background: var(--ok-soft); }
+.result-panel.pass .score { color: var(--ok); }
+.result-panel.fail { border-color: var(--stop-line); background: var(--stop-soft); }
+.result-panel.fail .score { color: var(--stop); }
+
+/* 미통과 화면에서 가장 중요한 한 줄.
+   미통과는 노동자의 실패가 아니라 교육의 실패로 기록한다 (SCREEN 기능4) */
+.not-your-fault {
+  margin: var(--gap) 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--brand);
+  font-size: .95em;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+}
+
+.result-review {
+  list-style: none;
+  margin: var(--gap) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.result-review li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.result-review .body { flex: 1 1 auto; min-width: 0; }
+.result-review .body strong { display: block; font-size: .95em; overflow-wrap: anywhere; }
+.result-review .body .meta { margin: 2px 0 0; font-size: .8em; color: var(--ink-3); }
+
+/* -------------------------------------------------------------------
+   공통 — 큰 버튼 줄. 노동자 화면의 주요 조작은 전부 60px 이상이다.
+   ------------------------------------------------------------------- */
+
+.big-actions {
+  margin-top: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.big-actions .btn {
+  min-height: var(--tap-min);
+  justify-content: center;
+}
+
+.pair-actions {
+  margin-top: var(--gap);
+  display: flex;
+  gap: 10px;
+}
+
+.pair-actions .btn {
+  flex: 1 1 0;
+  min-height: var(--tap-min);
+  justify-content: center;
+}
+
+/* 도해와 문항은 화면을 넓게 쓴다. 관리자 화면과 달리 한 번에 하나만 본다. */
+.quiz-stage, .learn-stage { max-width: 560px; margin: 0 auto; }
+
+/* 진행 중에는 하단 탭을 눌러 나가기 쉽다. 나가도 기록은 남지만
+   "지금 뭘 하는 중"인지는 분명히 해 둔다. */
+.doing-now {
+  margin: 0 0 var(--gap);
+  font-size: .84em;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+
+/* ===================================================================
+   [P2] 홈 · 신고 · 소통 · 마이
+
+   P1 구역과 섞이지 않게 여기 아래에만 씁니다.
+   =================================================================== */
+
+/* -------------------------------------------------------------------
+   홈 — 오늘의 안전 문구 배너
+   교육에 들어가지 않아도 한 번은 눈과 귀에 닿는 자리다.
+   ------------------------------------------------------------------- */
+
+.today {
+  padding: 20px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);   /* Figma: 주색은 카드 바탕에 쓰지 않는다 */
+  border: 1px solid var(--line);
+  text-align: center;
+  margin-bottom: var(--gap);
+}
+
+.today .pict { font-size: 64px; line-height: 1.1; margin: 0 0 6px; }
+
+.today .translated {
+  margin: 0;
+  font-size: 1.3em;
+  font-weight: 800;
+  line-height: 1.45;
+  color: #123f6d;
+  overflow-wrap: anywhere;
+}
+
+.today .original {
+  margin: 8px 0 0;
+  font-size: .82em;
+  color: #3f6690;
+  overflow-wrap: anywhere;
+}
+
+.today.empty-today {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.today.empty-today .translated { color: var(--ink-2); font-size: 1.05em; font-weight: 700; }
+
+.today .listen {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.today .listen .label { font-size: .84em; font-weight: 700; color: var(--brand); }
+
+/* -------------------------------------------------------------------
+   홈 — 수강 → 검증 → 완료 3단계
+
+   글자를 읽지 않고도 지금 어디까지 왔는지 알 수 있어야 한다.
+   색만으로 구분하지 않는다 — 아이콘과 테두리 모양이 함께 바뀐다.
+   ------------------------------------------------------------------- */
+
+.stage-track {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.stage-track li {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink-3);
+}
+
+.stage-track li .ico { font-size: 28px; line-height: 1; filter: grayscale(1); opacity: .45; }
+.stage-track li .name { font-size: .8em; font-weight: 700; }
+
+/* 지금 할 차례 — 굵은 테두리와 브랜드 색 */
+.stage-track li[data-state="now"] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.stage-track li[data-state="now"] .ico { filter: none; opacity: 1; }
+
+/* 끝난 것 */
+.stage-track li[data-state="done"] {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.stage-track li[data-state="done"] .ico { filter: none; opacity: 1; }
+
+.stage-say {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .95em;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.inline-audio { flex: 0 0 auto; }
+
+/* -------------------------------------------------------------------
+   홈 — 메뉴 4갈래
+   ------------------------------------------------------------------- */
+
+/* 말로 알리기 (음성 신고).
+   ★ 터치 타깃 60px 을 지킨다 — 장갑 낀 손으로 누른다.
+   ★ 듣는 중은 색만으로 구분하지 않는다. 버튼 글자가 "다 말했습니다" 로
+     바뀌고 상태 줄에 "듣고 있습니다" 가 함께 뜬다. */
+.voice-report {
+  margin: 0 0 var(--gap);
+}
+
+.btn-voice {
+  width: 100%;
+  min-height: var(--tap-min);
+  background: var(--surface);
+  border: 2px solid var(--brand);
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.btn-voice.is-listening {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.voice-state {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: .85em;
+  font-weight: 700;
+  line-height: 1.6;
+  background: #eef1f4;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+.voice-state.is-live { background: var(--brand-soft); color: var(--brand); border-color: var(--brand-line); }
+.voice-state.is-ok   { background: var(--ok-soft);   color: var(--ok);    border-color: var(--ok-line); }
+.voice-state.is-warn { background: var(--warn-soft); color: var(--warn);  border-color: var(--warn-line); }
+.voice-state[hidden] { display: none; }
+
+.voice-privacy,
+.voice-net { margin: 8px 0 0; }
+
+/* 오프라인으로 열린다는 표시 (E1) — 담겼을 때만 JS 가 그린다.
+   메뉴 아래 한 줄이다. 메뉴 한 칸에 붙이면 그 칸만 오프라인으로 읽힌다. */
+.offline-ok {
+  margin: calc(var(--gap) * -1 + 4px) 0 var(--gap);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: .82em;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.offline-ok[hidden] { display: none; }
+
+.bigmenu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+.bigmenu-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+
+  /* ★ 격자 칸은 기본이 min-width: auto 다. 안에 든 배지가 한 줄로 버티면
+     칸이 제 몫보다 넓어지고, 화면이 통째로 옆으로 밀린다 (2026-08-30).
+     0 으로 내려 칸이 줄어들 수 있게 한다. */
+  min-width: 0;
+}
+
+.bigmenu-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap-min);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ★ 여기도 바로 아래 자식만. 배지 아이콘까지 34px 이 되면 안 된다 */
+.bigmenu-link > .ico { font-size: 34px; line-height: 1; }
+
+.bigmenu-link .name {
+  font-size: .84em;
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* 배지는 원래 한 줄로 버틴다(.badge 의 white-space: nowrap).
+   좁은 칸 안에서는 줄을 바꾸게 둔다 — "2개 중 1개 남음" 처럼 긴 것이 있다.
+   버티게 두면 칸이 넓어지는 것으로 끝나지 않고 화면이 밀린다. */
+.bigmenu-link .badge {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.bigmenu-link:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; border-radius: 10px; }
+
+/* ★ 두 칸으로 나눌지 말지 (2026-08-30 에 360px → 460px 로 올림)
+
+   한 칸에는 음성 버튼 60px + 그림 + 이름 + 배지가 들어간다.
+   폭이 460px 보다 좁으면 두 칸으로 나눴을 때 한 칸이 170px 언저리가 되고,
+   그 안에서 배지가 세 줄로 접힌다. 장갑 낀 손으로 누르는 자리다.
+
+   흔한 폰이 320~430px 이므로 폰에서는 전부 한 칸이 된다.
+   메뉴가 네 개뿐이라 한 칸으로 세워도 길지 않다. */
+@media (max-width: 460px) {
+  .bigmenu { grid-template-columns: 1fr; }
+}
+
+/* -------------------------------------------------------------------
+   기능8 신고 — 익명 고지가 이 화면에서 가장 중요한 문장이다
+   ------------------------------------------------------------------- */
+
+.anon-note {
+  padding: 18px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 2px solid var(--brand);
+  text-align: center;
+  margin-bottom: var(--gap);
+}
+
+.anon-note .pict { font-size: 48px; line-height: 1.1; margin: 0 0 4px; }
+
+.anon-note h2 {
+  margin: 0 0 6px;
+  font-size: 1.15em;
+  font-weight: 800;
+  color: var(--brand);
+}
+
+.anon-note p {
+  margin: 0;
+  font-size: .92em;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.anon-note .listen {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.anon-note .listen .label { font-size: .84em; font-weight: 700; color: var(--brand); }
+
+/* 신고 화면의 그림 고르기는 더 크게 — 장갑 낀 손으로 급히 누른다 */
+.picker.big .chip {
+  min-height: 76px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.picker.big .chip .ico { font-size: 30px; }
+.picker.big .chip .sub { font-size: .72em; }
+
+/* 접수됐습니다 */
+.done-panel { text-align: center; }
+.done-panel .pict { font-size: 64px; line-height: 1.1; margin: 0; }
+.done-panel h2 { margin: 6px 0 14px; font-size: 1.25em; }
+
+.done-panel .ticket-label {
+  margin: 0;
+  font-size: .78em;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.done-panel .ticket {
+  margin: 2px 0 10px;
+  font-size: 1.9em;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--brand);
+}
+
+.done-panel .listen {
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.done-panel .listen .label { font-size: .84em; font-weight: 700; color: var(--brand); }
+
+/* 신고 목록 */
+.report-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.report-item > .ico {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 24px;
+}
+
+.report-item .body { flex: 1 1 auto; min-width: 0; }
+.report-item .body strong { display: block; font-size: .95em; overflow-wrap: anywhere; }
+.report-item .body .memo { margin: 3px 0 0; font-size: .84em; color: var(--ink-2); overflow-wrap: anywhere; }
+.report-item .body .meta { margin: 3px 0 0; font-size: .76em; color: var(--ink-3); }
+
+/* -------------------------------------------------------------------
+   기능7 소통 — 게시판
+   ------------------------------------------------------------------- */
+
+.post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.post-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.post-open {
+  width: 100%;
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.post-open:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; border-radius: var(--radius); }
+
+.post-open .body { flex: 1 1 auto; min-width: 0; }
+.post-open .body strong { display: block; font-size: 1em; overflow-wrap: anywhere; }
+.post-open .body .meta { margin: 3px 0 0; font-size: .76em; color: var(--ink-3); }
+
+.comment-count {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 46px;
+  padding: 6px 0;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.comment-count .n { font-size: 1.1em; font-weight: 800; color: var(--brand); line-height: 1.1; }
+.comment-count .l { font-size: .68em; color: var(--ink-3); }
+
+.post-head { margin-bottom: 10px; }
+.post-head h2 { margin: 0; font-size: 1.2em; overflow-wrap: anywhere; }
+.post-head .meta { margin: 4px 0 0; font-size: .78em; color: var(--ink-3); }
+
+.post-body {
+  margin: 0;
+  font-size: .98em;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.post-body:empty { display: none; }
+
+.comment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-item {
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+
+.comment-item .meta { margin: 0 0 3px; font-size: .74em; color: var(--ink-3); }
+.comment-item .body { margin: 0; font-size: .92em; line-height: 1.6; overflow-wrap: anywhere; }
+
+/* -------------------------------------------------------------------
+   마이페이지 — 수강 증빙 인쇄
+
+   기능5 와 같은 방식이다. 증빙을 저장하지 않고 기록을 그대로 그린다.
+   못 들은 교육을 빼고 뽑는 경로를 만들지 않는다.
+   ------------------------------------------------------------------- */
+
+.proof {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: var(--gap);
+  font-size: .9em;
+  line-height: 1.6;
+}
+
+.proof-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.proof-kicker {
+  margin: 0;
+  font-size: .76em;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--ink-3);
+}
+
+.proof-head h2 { margin: 4px 0 0; font-size: 1.35em; }
+.proof-issued { font-size: .76em; color: var(--ink-3); text-align: right; }
+
+.proof h3 {
+  margin: 20px 0 8px;
+  font-size: .95em;
+  font-weight: 800;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.proof-meta { width: 100%; border-collapse: collapse; margin-top: 12px; }
+
+.proof-meta th,
+.proof-meta td {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  font-size: .92em;
+}
+
+.proof-meta th {
+  width: 32%;
+  background: #f6f8fa;
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.proof-meta td { overflow-wrap: anywhere; }
+
+/* 미통과·미수강 줄을 옅게 만들지 않는다. 흐리게 두는 것도 숨기는 것이다. */
+.proof-table tbody tr[data-state="fail"] td { background: #fdf4f5; }
+.proof-table tbody tr[data-state="none"] td,
+.proof-table tbody tr[data-state="noquiz"] td { background: #fafbfc; }
+
+.proof-foot {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: .78em;
+  line-height: 1.7;
+  color: var(--ink-3);
+}
+
+/* 화면에서는 증빙을 접어 둔다 — 인쇄할 때만 필요하다 */
+.page > .proof { display: none; }
+
+@media print {
+  .noprint,
+  .todo,
+  .tabbar,
+  .workerbar,
+  .pagehead,
+  .card,
+  .anon-note,
+  .anon-line,
+  .today,
+  .bigmenu,
+  .blocked,
+  .toast { display: none !important; }
+
+  html, body { background: #fff; color: #000; }
+
+  .page { padding: 0; display: block; }
+
+  /* 화면에서 접어 뒀던 증빙만 펼친다 */
+  .page > .proof {
+    display: block;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    font-size: 10.5pt;
+  }
+
+  .tablewrap { overflow: visible; border: 0; border-radius: 0; }
+
+  table.data,
+  .proof-meta { page-break-inside: auto; }
+
+  table.data tr,
+  .proof-meta tr { page-break-inside: avoid; }
+
+  table.data thead { display: table-header-group; }
+
+  table.data th,
+  table.data td { border: 1px solid #999; padding: 5px 7px; }
+
+  .proof h3 { page-break-after: avoid; }
+
+  /* 배지는 색이 빠져도 아이콘과 글자로 뜻이 남는다 */
+  .badge {
+    border-color: #666 !important;
+    background: none !important;
+    color: #000 !important;
+  }
+
+  .proof-table tbody tr td { background: none !important; }
+
+  a[href]::after { content: ""; }
+}
+
+/* -------------------------------------------------------------------
+   문항별 복기 (C4) — 미통과한 교육 카드 안에 붙는다
+
+   ★ 성적표처럼 보이면 안 된다. 빨간 테두리로 가두지 않고,
+     왼쪽 선 하나로 "이 교육에 딸린 것" 이라는 것만 표시한다.
+   ------------------------------------------------------------------- */
+
+.stuck {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--stop);
+  border-radius: 0 10px 10px 0;
+  background: var(--stop-soft);
+}
+
+.stuck-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.stuck-title { font-size: .95em; font-weight: 800; color: var(--ink); }
+
+/* 장갑 낀 손으로 누른다 — 노동자 화면의 누르는 곳은 전부 60px */
+.stuck .say {
+  min-height: var(--tap-min);
+  padding: 0 14px;
+  background: var(--surface);
+}
+
+.stuck-list { list-style: none; margin: 0; padding: 0; }
+
+.stuck-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.stuck-list li + li { border-top: 1px solid #f0d8db; }
+
+.stuck-list .ico { font-size: 1.6em; flex: 0 0 auto; }
+.stuck-list .body { flex: 1 1 auto; min-width: 0; }
+.stuck-list .body strong { display: block; font-size: .98em; }
+
+.stuck-list .body .meta {
+  margin: 2px 0 0;
+  font-size: .88em;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.stuck-why {
+  margin: 8px 0 0;
+  font-size: .85em;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* -------------------------------------------------------------------
+   내 글 수정·삭제 (C3)
+
+   ★ 감춘 글에 뜨는 안내는 경고가 아니다. 못 하는 이유를 말해 주는 것이다.
+     빨갛게 칠하면 뭔가 잘못한 것처럼 읽힌다 — 익명은 잘못이 아니다.
+   ------------------------------------------------------------------- */
+
+.mine-actions:empty { display: none; }
+.mine-actions { margin: 10px 0 0; }
+
+.mine-actions .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 장갑 낀 손으로 누른다 */
+.mine-actions .btn-sm {
+  min-height: var(--tap-min);
+  padding: 0 16px;
+}
+
+/* ★ 소통 화면의 한 줄 안내 (2026-08-30 에 .anon-note → .anon-line 으로 갈랐다)
+
+   예전에는 이것도 .anon-note 였다. 그런데 신고 화면(기능8)의 익명 고지도
+   같은 이름을 쓰고 있었다. 이 규칙이 파일 뒤에 있어서 앞의 것을 덮었고,
+   **신고 화면에서 가장 중요한 문장이 네 칸짜리 가로줄로 찌그러져 있었다** —
+   폰에서는 "이름을 / 남기 / 지 / 않습 / 니다" 처럼 한 글자씩 접혔다.
+
+   이름이 같으면 언젠가 한쪽이 다른 쪽을 덮는다. 그래서 이름을 갈랐다.
+     .anon-note — 신고 화면의 큰 익명 고지 (가운데 정렬 세로 쌓기)
+     .anon-line — 소통 화면의 한 줄 안내 (아이콘 + 글 가로 배치) */
+.anon-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: .9em;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.anon-line .ico { font-size: 1.2em; flex: 0 0 auto; }
+
+/* 되돌릴 수 없는 것이라 이쪽은 경고가 맞다 */
+.anon-warn {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-left: 4px solid var(--stop);
+  border-radius: 0 10px 10px 0;
+  background: var(--stop-soft);
+  font-size: .9em;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.anon-warn[hidden] { display: none; }
+
+/* -------------------------------------------------------------------
+   오늘의 안전 문구 넘겨 보기 (C5)
+
+   ★ 장갑 낀 손으로 누른다. 좌우 버튼은 60px 정사각형이다.
+     볼 것이 하나뿐이면 JS 가 통째로 감춘다 — 반응 없는 버튼은 고장이다.
+   ------------------------------------------------------------------- */
+
+.today-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.today-nav[hidden] { display: none; }
+
+.btn-round {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3em;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.btn-round:active { background: #eef2f6; }
+.btn-round:focus-visible { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
+
+.today-pos {
+  margin: 0;
+  min-width: 64px;
+  text-align: center;
+  font-size: .9em;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+/* -------------------------------------------------------------------
+   글자 크기 고르는 칸 (B3)
+
+   ★ 칸에 적힌 "가" 가 실제로 그 크기다.
+     "작게 / 보통 / 크게" 라는 글자를 읽어야 고를 수 있으면,
+     글자가 안 보여서 여기 온 사람에게는 아무 도움이 안 된다.
+   ★ em 이 아니라 px 을 쓴다 — 지금 고른 크기에 따라 미리보기가 같이
+     커지면 세 칸의 차이가 안 보인다.
+   ------------------------------------------------------------------- */
+
+.font-demo > span:not(.sub):not(.mark) { line-height: 1.1; }
+
+.font-demo-small  > span:not(.sub):not(.mark) { font-size: 14px; }
+.font-demo-normal > span:not(.sub):not(.mark) { font-size: 18px; }
+.font-demo-large  > span:not(.sub):not(.mark) { font-size: 26px; }
+
+.font-demo .sub { font-size: 13px; }
+
+/* -------------------------------------------------------------------
+   관리자 답글 구분 (C7)
+
+   ★ 공식 답변과 동료 의견이 섞이면 안 된다.
+     색만으로 구분하지 않는다 — 왼쪽 선 + "공식 답변" 배지(아이콘+글자+색)
+     세 가지가 함께 간다. 흑백으로 봐도 뜻이 남는다.
+   ------------------------------------------------------------------- */
+
+.comment-item[data-official="yes"] {
+  border-left: 4px solid var(--ok, #1f7a4d);
+  border-radius: 0 10px 10px 0;
+  background: #f4faf6;
+  padding-left: 10px;
+}
+
+.comment-item[data-official="yes"] .meta { font-weight: 700; }
+
+/* 담당자로 들어왔다는 안내 */
+.admin-here {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--admin-accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--admin-accent-soft);
+  font-size: .9em;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.admin-here[hidden] { display: none; }
+
+/* 돌아갈 길. 담당자에게는 아래 탭바가 없으므로 이것이 유일한 출구다. */
+.admin-here .back-link {
+  display: inline-block;
+  margin-top: 8px;
+  min-height: 40px;
+  line-height: 40px;
+  font-weight: 700;
+  color: var(--admin-accent);
+}
+
+/* 탭바를 감출 수 있어야 한다.
+   style-admin.css 가 .tabbar 에 display:grid 를 주고 있어서
+   hidden 속성만으로는 안 사라진다. */
+.tabbar[hidden] { display: none; }
+
+/* -------------------------------------------------------------------
+   재교육 지시 (D2) — 담당자가 "이것 다시 들어 주세요" 라고 남긴 것
+
+   ★ 화면 맨 위에 온다. 지금 해야 할 일이 있으면 그것부터 보여야 한다.
+   ★ 색만으로 구분하지 않는다 — 🔁 그림 + 제목 + 왼쪽 선이 함께 간다.
+   ------------------------------------------------------------------- */
+
+.order-card {
+  border-left: 6px solid var(--warn, #b26a00);
+  background: #fff9ef;
+}
+
+.order-item + .order-item {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.order-item .pict {
+  margin: 0 0 4px;
+  font-size: 2em;
+  line-height: 1;
+}
+
+.order-item .order-title {
+  margin: 0 0 6px;
+  font-size: 1.08em;
+  font-weight: 800;
+}
+
+/* 담당자가 남긴 말. 한국어라 못 읽을 수 있다 —
+   그래서 바로 아래 order-lang 배지가 그 사실을 적는다. */
+.order-item .order-note {
+  margin: 0 0 6px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.order-item .order-lang { margin: 0 0 8px; }
+
+/* -------------------------------------------------------------------
+   넓은 화면에서의 노동자 화면 (D3)
+
+   ★ 노동자 화면은 폰이 본체입니다. 여기서 레이아웃을 두 벌로 만들지
+     않습니다 — 큰 버튼과 큰 글자가 가로로 늘어나면 오히려 읽기 어렵고,
+     터치 타깃 60px 과 글자 크기 조절(B3)이 여기에 얽혀 있습니다.
+
+   ★ 대신 폰 너비로 가운데 모읍니다. 담당자가 PC 로 노동자 화면을
+     확인할 때 실제로 보이는 모양과 같아야 합니다.
+   ------------------------------------------------------------------- */
+
+@media (min-width: 900px) {
+  .page { max-width: 560px; }
+
+  .tabbar.fixed {
+    left: 50%;
+    right: auto;
+    width: 100%;
+    max-width: 560px;
+    transform: translateX(-50%);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    border-radius: 14px 14px 0 0;
+  }
+}
+
+/* ── 서버와 끊겼을 때 뜨는 한 줄 (T12 · A02 §14.5) ─────────────────────
+   ★ 노동자 화면은 **글을 못 읽는 사람**이 쓴다. 그래서 글자만 두지 않고
+     아이콘을 함께 놓고, 글자도 그 사람 언어로 나간다 (i18n sync.offline).
+   ★ 화면을 비우지 않는다 — 들을 교육은 캐시에 이미 있다. */
+.syncbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 2px solid #d9a441;
+  border-radius: 10px;
+  background: #fdf6e7;
+  color: #6b4a06;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.syncbar .ico { flex: 0 0 auto; }
+
+/* 🆕 사진 문항 (PRD-AD-08 S6) — 사진 비율 그대로. 퍼센트 좌표가 사진 위 같은 자리를 가리키게
+   상자 높이를 사진이 정한다 (정사각형 aspect-ratio 를 끈다) */
+.quiz-figure.photo { aspect-ratio: auto; height: auto; padding-top: 0; }
+.quiz-figure.photo > img { display: block; width: 100%; height: auto; pointer-events: none; }
+
+/* ===================================================================
+   🆕 2026-11-11 노동자 화면 개선 — 사진 위치 고르기 · 음성 전환 · 언어 바꾸기
+   =================================================================== */
+/* 고른 자리 표시 — 하나만, 누를 때마다 옮겨 간다. 퍼센트 좌표라 화면 크기가 바뀌어도 같은 자리 */
+.quiz-figure .tapmark { width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 5px solid #1565c0; border-radius: 50%;
+  background: rgba(21, 101, 192, .18); box-shadow: 0 0 0 3px #fff; pointer-events: none; }
+.quiz-figure .tapmark[data-mark="ok"] { border-color: #2e7d32; background: rgba(46, 125, 50, .2); }
+.quiz-figure .tapmark[data-mark="no"] { border-color: #c62828; background: rgba(198, 40, 40, .18); }
+/* 제출 뒤에만 그리는 정답 자리 (틀렸을 때) — 제출 전에는 화면 어디에도 없다 */
+.quiz-figure .answer-ring { position: absolute; transform: translate(-50%, -50%); border: 5px dashed #2e7d32;
+  border-radius: 50%; pointer-events: none; box-shadow: 0 0 0 3px #fff; }
+.quiz-figure .zone[data-selected="yes"] { outline: 5px solid #1565c0; outline-offset: -5px; background: rgba(21, 101, 192, .15); }
+.hotspot-actions { display: flex; gap: 12px; }
+.hotspot-actions .btn { flex: 1 1 0; min-height: var(--tap-min, 60px); }
+.hotspot-actions .btn[disabled] { opacity: .45; }
+/* 음성 버튼 — 읽는 중이면 「그만 듣기」(■) 모양 + 진한 테두리 (색만으로 구분하지 않는다) */
+.btn-audio.is-playing { outline: 4px solid currentColor; outline-offset: 2px; }
+/* 머리의 언어 바꾸기 */
+.lang-switch { min-height: 44px; max-width: 9em; font: inherit; border-radius: 8px; padding: 4px 6px; }
+
+/* ===================================================================
+   🆕 2026-11-15 Figma 본선 「00 대표 화면 1 — WK-03 이해도 검증 (폰)」
+   위: 코랄 배너(교육 이름) · 진행 막대 · 문제(24 Bold) · 그림 카드 · 아래: [문제 듣기] 넓은 버튼
+   답한 뒤: 결과 시트(맞으면 초록, 틀리면 분홍) + 먹색 [다음 문제]
+   ★ DOM 은 그대로 두고 순서만 바꾼다 — 검사·음성 흐름이 같은 칸을 본다
+   =================================================================== */
+#view-quiz { display: flex; flex-direction: column; gap: 12px; }
+#view-quiz[hidden] { display: none; }
+#view-quiz .quiz-head { display: contents; }
+#view-quiz .doing-now { order: 1; }
+#view-quiz .step-head { order: 2; }
+#view-quiz .step-once { order: 3; }
+#view-quiz .quiz-kind { order: 4; }
+#view-quiz .quiz-prompt { order: 5; }
+#view-quiz .prompt-note { order: 6; }
+#view-quiz #quiz-body { order: 7; }
+#view-quiz #prompt-audio { order: 8; }
+#view-quiz .consequence { order: 9; }
+#view-quiz .big-actions { order: 10; }
+
+/* 배너 — 머리띠에서 이어지는 코랄 덩어리, 먹색 큰 글자 */
+#view-quiz .doing-now {
+  margin: 0;
+  padding: 18px 20px 22px;
+  background: linear-gradient(100deg, var(--banner) 0%, var(--banner-end) 100%);
+  color: var(--banner-ink);
+  font-size: 28px;
+  line-height: 1.35;
+  font-weight: 800;
+  border-radius: 24px;
+}
+
+/* 진행 막대 — 점 대신 칸 막대. 글자(문제 2 / 5)가 뜻을 나른다 */
+#view-quiz .step-head { margin: 0; }
+#view-quiz .step-dots { flex: 1 1 auto; gap: 4px; order: 0; }
+#view-quiz .step-count { order: 1; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+#view-quiz .step-dots span { flex: 1 1 0; width: auto; height: 6px; border: 0; border-radius: 3px; background: var(--line); }
+#view-quiz .step-dots span[data-state="done"] { background: var(--brand-vivid); }
+#view-quiz .step-dots span[data-state="now"] { width: auto; height: 10px; border: 0; background: var(--brand-vivid); }
+
+#view-quiz .quiz-kind { width: 44px; height: 44px; font-size: 24px; background: var(--warn-soft); color: var(--warn); border-radius: 12px; }
+#view-quiz .quiz-prompt { font-size: 24px; line-height: 1.35; font-weight: 800; letter-spacing: -.01em; }
+
+/* 그림 카드 */
+#view-quiz .quiz-figure { border-radius: 20px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-1); }
+#view-quiz .zonehint { font-size: 15px; color: var(--ink-2); }
+
+/* [문제 듣기] — 아래 넓은 버튼 (주색 연함 바탕) */
+#view-quiz #prompt-audio { display: block; }
+#view-quiz #prompt-audio .btn-audio,
+#view-quiz #prompt-audio button { width: 100%; min-height: 64px; border-radius: 16px; background: var(--brand-soft); color: var(--brand-deep); border: 0; font-size: 18px; font-weight: 700; justify-content: center; }
+
+/* 결과 시트 — 아이콘 + 글 + 색. 맞음/틀림을 색만으로 가르지 않는다(아이콘이 다르다) */
+#view-quiz .consequence { margin: 0; padding: 18px; border-radius: 24px; border: 0; border-left: 0; background: var(--stop-soft); }
+#view-quiz .consequence[data-correct="yes"] { background: var(--ok-soft); }
+#view-quiz .consequence p { color: var(--ink); font-size: 18px; line-height: 1.5; font-weight: 700; }
+#view-quiz .consequence .pict { color: var(--stop); }
+#view-quiz .consequence[data-correct="yes"] .pict { color: var(--ok); }
+#view-quiz .big-actions .btn-primary { min-height: 64px; border-radius: 16px; font-size: 20px; }
+
+
+/* ===================================================================
+   [P2] 🆕 2026-11-16 홈 새 디자인 (Stitch 시안 「Vibrant Industrial Safety」)
+
+   로그인 화면(app.css .login-v2)과 같은 말투 — 연한 바탕, 흰 카드,
+   둥근 모서리, 코랄 하나로 "지금 누를 곳" 을 가리킨다.
+   ★ 홈 화면에만 걸린다 (body.home-v2). 다른 노동자 화면은 그대로다.
+   ★ 글꼴은 그대로 (외부 글꼴을 부르지 않는다 — 오프라인 · 외부 요청 0건).
+   =================================================================== */
+
+/* 색 · 머리띠 · 카드 · 버튼 · 탭바는 아래 「노동자 화면 공통 디자인」 으로 올렸다.
+   여기에는 홈에만 있는 것(오늘 할 교육 · 진행 상황 · 바로가기 목록)만 남는다. */
+
+.home-v2 .hv2-me {
+  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #F2F4F6; color: var(--hv2-ink-2); text-decoration: none;
+}
+.home-v2 .hv2-me .ico { width: 22px; height: 22px; }
+.home-v2 .hv2-kicker {
+  margin: 0; font-size: 15px; font-weight: 800; color: var(--hv2-ink);
+}
+
+/* 1. 오늘 할 교육 — 이 화면의 주인공 */
+.home-v2 .hv2-task { padding: 18px 16px 16px; }
+.home-v2 .hv2-task-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.home-v2 .hv2-meta {
+  flex: 0 0 auto; padding: 4px 10px; border-radius: 999px;
+  background: var(--hv2-soft); color: #B23A44; font-size: 12px; font-weight: 700;
+}
+.home-v2 .hv2-meta[hidden] { display: none; }
+.home-v2 .hv2-task-body { display: flex; align-items: center; gap: 14px; }
+.home-v2 .hv2-pict {
+  flex: 0 0 auto; width: 64px; height: 64px; border-radius: 18px;
+  background: var(--hv2-soft); color: var(--hv2-fill);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.home-v2 .hv2-pict .ico, .home-v2 .hv2-pict svg { width: 36px; height: 36px; font-size: 36px; }
+.home-v2 .hv2-title {
+  margin: 0; font-size: 1.3em; font-weight: 800; line-height: 1.35; color: var(--hv2-ink);
+  overflow-wrap: anywhere;
+}
+.home-v2 .hv2-title:empty { display: none; }
+.home-v2 .hv2-task .stage-say {
+  margin: 10px 0 12px; font-size: .92em; color: var(--hv2-ink-2); line-height: 1.5;
+}
+
+/* 3단계 — 얇은 알약 셋. 색만이 아니라 아이콘 · 테두리도 함께 바뀐다 */
+.home-v2 .stage-track { gap: 6px; margin: 0 0 14px; }
+.home-v2 .stage-track li {
+  flex-direction: row; justify-content: center; gap: 6px;
+  min-height: 40px; padding: 6px 4px; border-radius: 12px;
+  border: 1px solid var(--hv2-line); background: #fff;
+}
+.home-v2 .stage-track li .ico { font-size: 18px; width: 18px; height: 18px; }
+.home-v2 .stage-track li[data-state="now"] { border: 2px solid var(--hv2-coral); background: var(--hv2-soft); color: #B23A44; }
+.home-v2 .stage-track li[data-state="done"] { border-color: #BFE3DA; background: #EEF8F5; color: #1C6B57; }
+
+/* 지금 시작하기 — 큰 코랄 버튼 하나 */
+.home-v2 #stage-actions { display: block; }
+.home-v2 #stage-actions .btn,
+.home-v2 .order-card .big-actions .btn {
+  width: 100%; min-height: 60px; border-radius: 16px;
+  background: var(--hv2-fill); border-color: var(--hv2-fill); color: #fff;
+  font-size: 18px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.home-v2 #stage-actions .btn::after { content: "\2192"; font-weight: 700; }
+.home-v2 .hv2-task .policy-note { margin: 12px 0 0; font-size: .8em; line-height: 1.5; color: var(--hv2-ink-3); }
+.home-v2 .hv2-task .policy-note b { color: var(--hv2-ink-2); }
+
+/* 0. 다시 들으라는 지시 — 코랄 띠 */
+.home-v2 .order-card { border-left: 5px solid var(--hv2-coral); }
+
+/* 2. 내 진행 상황 */
+.home-v2 .hv2-prog { padding: 16px; }
+.home-v2 .hv2-prog[hidden] { display: none; }
+.home-v2 .hv2-prog-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.home-v2 .hv2-prog-num { font-size: 1.25em; font-weight: 800; color: var(--hv2-fill); font-variant-numeric: tabular-nums; }
+.home-v2 .hv2-bar { height: 10px; border-radius: 999px; background: #F2F4F6; overflow: hidden; }
+.home-v2 .hv2-bar span { display: block; height: 100%; border-radius: 999px; background: var(--hv2-coral); }
+.home-v2 .hv2-prog-say { margin: 10px 0 0; }
+
+/* 3. 바로가기 — 한 줄짜리 카드 목록 (그림 · 이름 · 배지 · 음성) */
+.home-v2 .bigmenu { grid-template-columns: 1fr; gap: 10px; }
+.home-v2 .bigmenu-cell {
+  padding: 8px 8px 8px 12px; border-radius: 18px; border-color: var(--hv2-line);
+  box-shadow: 0 2px 10px rgba(25, 31, 40, .04);
+}
+.home-v2 .bigmenu-link {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) 16px;
+  grid-template-rows: auto auto; column-gap: 12px; row-gap: 4px;
+  align-items: center; justify-items: start; text-align: left;
+}
+.home-v2 .bigmenu-link > .ico {
+  grid-column: 1; grid-row: 1 / span 2;
+  font-size: 24px; width: 48px; height: 48px; padding: 12px; box-sizing: border-box;
+  border-radius: 14px; background: #F2F4F6; color: var(--hv2-ink-2);
+}
+.home-v2 .bigmenu-link .name { grid-column: 2; grid-row: 1; font-size: 1em; font-weight: 800; color: var(--hv2-ink); text-align: left; }
+.home-v2 .bigmenu-link .badge { grid-column: 2; grid-row: 2; text-align: left; }
+.home-v2 .bigmenu-link .name:last-of-type:only-of-type { grid-row: 1 / span 2; }
+.home-v2 .bigmenu-link::after { content: "\203A"; grid-column: 3; grid-row: 1 / span 2; font-size: 24px; color: #B0B8C1; }
+/* 위험한 곳 알리기 — 코랄로 강조 (시안 그대로) */
+.home-v2 .bigmenu-cell.is-report { background: var(--hv2-soft); border-color: #FFD5D9; }
+.home-v2 .bigmenu-cell.is-report .bigmenu-link > .ico { background: var(--hv2-fill); color: #fff; }
+
+/* 4. 오늘의 안전 문구 — 덜 크게. 홈의 주인공은 "오늘 할 교육" 이다 */
+.home-v2 .today { padding: 16px; text-align: left; }
+.home-v2 .today .hv2-kicker { margin-bottom: 10px; }
+.home-v2 .today .pict { font-size: 36px; margin: 0 0 4px; color: var(--hv2-fill); }
+.home-v2 .today .pict svg { width: 36px; height: 36px; }
+.home-v2 .hv2-me svg { width: 22px; height: 22px; }
+.home-v2 .today .translated { font-size: 1.12em; color: var(--hv2-ink); }
+.home-v2 .today .original { color: var(--hv2-ink-3); }
+.home-v2 .today .listen { justify-content: flex-start; }
+.home-v2 .today .listen .label { color: #B23A44; }
+.home-v2 .today #today-report { margin-top: 10px; }
+.home-v2 .hv2-more { margin-top: 12px; border-top: 1px solid var(--hv2-line); padding-top: 10px; }
+.home-v2 .hv2-more summary {
+  min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-size: .9em; font-weight: 700; color: var(--hv2-ink-2);
+}
+.home-v2 .hv2-more .muted { font-size: .84em; line-height: 1.55; }
+
+
+/* ===================================================================
+   [공통] 🆕 2026-11-16 노동자 화면 공통 디자인 (Stitch 시안 → 앱 전체)
+
+   ★ 이 구역 하나가 노동자 화면 6개(홈 · 교육 · 이해 확인 · 신고 · 소통 · 마이)의
+     겉모양을 정한다. 색이나 모서리를 바꾸고 싶으면 **맨 위 :root 값만** 고치면 된다.
+   ★ worker.css 는 노동자 화면에서만 실린다 — 로그인 · 관리자 화면에는 안 걸린다.
+   ★ 기능 · 글자 · 음성 버튼은 그대로다. 겉모양만 바꾼다.
+   =================================================================== */
+
+:root {
+  /* ── 디자인 값 (여기만 고치면 전부 바뀐다) ── */
+  --hv2-coral: #F0646E;     /* 장식 · 막대 · 테두리 (글자를 얹지 않는다) */
+  --hv2-fill: #CC4550;      /* 버튼 바탕 · 강조 글자 — 흰 글자/흰 바탕 모두 4.6:1 */
+  --hv2-soft: #FFF0F1;      /* 연한 코랄 바탕 */
+  --hv2-ink: #191F28;
+  --hv2-ink-2: #4E5968;
+  --hv2-ink-3: #6B7684;
+  --hv2-line: #E5E8EB;
+  --hv2-bg: #F8F9FD;        /* 화면 바탕 */
+  --hv2-card-radius: 20px;
+  --hv2-btn-radius: 16px;
+  --hv2-shadow: 0 2px 10px rgba(25, 31, 40, .05);
+
+  /* ── 기존 화면들이 쓰던 이름을 위 값에 잇는다 ── */
+  --brand: var(--hv2-fill);
+  --brand-strong: #A93540;
+  --brand-deep: #8F2C36;
+  --brand-soft: var(--hv2-soft);
+  --brand-line: #FFD5D9;
+  --brand-vivid: var(--hv2-coral);
+  --brand-vivid-2: #F58A91;
+  --brand-focus: var(--hv2-coral);
+  --brand-glow: rgba(240, 100, 110, .28);
+  --brand-tint: #FFF8F8;
+  --banner: var(--hv2-coral);
+  --banner-end: #F58A91;
+  --btn-main: var(--hv2-fill);          /* 검정 버튼 → 코랄 버튼 */
+  --btn-main-strong: #A93540;
+  --btn-main-ink: #ffffff;
+  --bg: var(--hv2-bg);
+  --radius: var(--hv2-card-radius);
+}
+
+body.has-tabbar { background: var(--hv2-bg); }
+
+/* 머리띠 — 흰 바탕 · 로고 · 현장 이름 · (언어) · 로그아웃.
+   코랄 띠 대신 로고 색으로 "노동자 화면" 임을 알린다. */
+.workerbar {
+  background: #fff;
+  color: var(--hv2-ink);
+  border-bottom: 1px solid var(--hv2-line);
+  gap: 10px;
+}
+.workerbar .hv2-logo {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 11px;
+  background: var(--hv2-fill); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.workerbar .hv2-logo svg, .workerbar .hv2-logo .ico { width: 22px; height: 22px; }
+.workerbar .who strong { color: var(--hv2-ink); }
+.workerbar .who span { color: var(--hv2-ink-3); }
+.workerbar .btn-sm { background: #fff; color: var(--hv2-ink-2); border-color: var(--hv2-line); border-radius: 12px; }
+.workerbar .btn-sm:hover { background: #F2F4F6; color: var(--hv2-ink); border-color: var(--hv2-line); }
+.workerbar .lang-switch {
+  border: 1px solid var(--hv2-line); border-radius: 12px; background: #F8F9FA;
+  color: var(--hv2-ink); padding: 4px 8px; font-weight: 600;
+}
+
+/* 화면 제목 */
+.page h1 { color: var(--hv2-ink); font-weight: 800; letter-spacing: -.01em; }
+
+/* 카드 — 흰 바탕 · 큰 모서리 · 옅은 그림자 */
+.page .card,
+.page .today {
+  background: #fff;
+  border: 1px solid var(--hv2-line);
+  border-radius: var(--hv2-card-radius);
+  box-shadow: var(--hv2-shadow);
+}
+
+/* 주 버튼 — 코랄 · 둥근 모서리 · 장갑 손가락 크기 */
+.page .btn-primary {
+  border-radius: var(--hv2-btn-radius);
+  min-height: var(--tap-min);
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(204, 69, 80, .22);
+}
+.page .btn:not(.btn-primary) { border-radius: var(--hv2-btn-radius); }
+
+/* 하단 탭 — 흰 바탕 · 지금 자리를 코랄로 */
+.tabbar.fixed { background: #fff; border-top: 1px solid var(--hv2-line); }
+.tabbar a[aria-current="page"],
+.tabbar a[aria-current="page"] .ico { color: var(--hv2-fill); }
+/* 언어 고르기가 있는 화면(교육 · 이해 확인)에서도 머리띠가 두 줄로 깨지지 않게 */
+.workerbar .btn-sm { white-space: nowrap; flex: 0 0 auto; }
+.workerbar .who span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.workerbar .lang-switch { flex: 0 1 auto; min-width: 0; max-width: 7.5em; }

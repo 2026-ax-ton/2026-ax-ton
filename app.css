@@ -1,0 +1,808 @@
+/* ===================================================================
+   app.css — 기능1 화면에서 새로 필요한 것만
+
+   style.css(토큰·버튼·배지·폼) + style-admin.css(adminbar·sec-head·kpi·btn-sm)
+   위에 얹는다. 두 파일에 이미 있는 것은 다시 만들지 않는다.
+
+   기존 프로토타입의 .stage / .phone / .app 목업 껍데기는 쓰지 않는다.
+   그건 "설계도로 읽히게" 만든 장치였고, 여기는 실제로 배포되는 화면이다.
+   =================================================================== */
+
+html { font-size: var(--font-base); }
+
+body {
+  background: var(--bg);
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------------------------
+   페이지 골격
+   ------------------------------------------------------------------- */
+
+.apphead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 16px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.pagehead h1 {
+  margin: 0;
+  font-size: 1.55em;
+  font-weight: 800;
+  letter-spacing: -.035em;   /* 시안의 굵은 한글 제목 — 자간을 좁혀 덩어리로 읽히게 */
+  line-height: 1.3;
+}
+.pagehead .lead {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  font-size: .88em;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+
+/* 데스크톱에서만 본문 / 요약 2단. 좁으면 요약이 아래로 내려간다 */
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+.col-main,
+.col-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .setup-grid { grid-template-columns: minmax(0, 1fr) 330px; }
+  .col-side { position: sticky; top: 84px; }
+}
+
+/* 단계 번호 — 순서가 있는 설정이라는 걸 눈으로 알린다 */
+.step-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  border: 1px solid var(--brand-line);
+  font-size: .72em;
+  font-weight: 800;
+  vertical-align: 2px;
+}
+
+/* -------------------------------------------------------------------
+   선택 칩 — 언어 / 위험유형 / 픽토그램
+
+   체크박스를 감춘 label 이다. :has() 없이 :checked + span 으로 칠해서
+   구형 안드로이드 웹뷰에서도 상태가 보이게 한다 (PRD §9.1 저사양 지원).
+   색만으로 구분하지 않도록 선택 시 ✓ 를 함께 띄운다.
+   ------------------------------------------------------------------- */
+
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.picker .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: var(--tap-min);
+  padding: 8px 14px;
+  border: 1px solid #c8d0d8;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: .9em;
+  font-weight: 700;
+  color: var(--ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+.picker .chip .ico { font-size: 1.15em; line-height: 1; }
+.picker .chip .sub {
+  font-size: .78em;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.picker .chip .mark {
+  font-size: .85em;
+  font-weight: 800;
+  visibility: hidden;
+}
+
+.picker input:checked + .chip {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+.picker input:checked + .chip .sub { color: var(--brand); }
+
+/* 회원가입의 역할 고르기 — 고른 순간 그 트랙의 색을 보여 준다.
+   노동자는 빨강, 담당자·운영자는 보라. 로그인한 뒤 머리띠 색이 무엇일지
+   여기서 미리 알려 주는 셈이다.
+   ★ 이 화면에는 worker.css 가 실리지 않으므로 빨강을 값으로 직접 쓴다.
+     바꿀 일이 생기면 worker/worker.css 맨 위의 :root 와 같이 고친다. */
+#pick-role input[value="worker"]:checked + .chip {
+  border-color: #c0392c;
+  background: #fdeeeb;
+  color: #8c2a20;
+  box-shadow: inset 0 0 0 1px #c0392c;
+}
+#pick-role input[value="worker"]:checked + .chip .sub { color: #8c2a20; }
+.picker input:checked + .chip .mark { visibility: visible; }
+.picker input:focus-visible + .chip { outline: 3px solid var(--brand-focus); outline-offset: 2px; }
+
+/* 픽토그램만 고르는 좁은 형태 */
+.picker.icons .chip {
+  width: var(--tap-min);
+  min-width: var(--tap-min);
+  justify-content: center;
+  padding: 0;
+  font-size: 1.4em;
+}
+.picker.icons .chip .mark { display: none; }
+
+/* -------------------------------------------------------------------
+   등록 목록
+   ------------------------------------------------------------------- */
+
+.item-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.item > .ico {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #eef1f4;
+  border: 1px solid var(--line);
+  font-size: 21px;
+}
+.item .body { flex: 1 1 auto; min-width: 0; }
+.item .body strong {
+  display: block;
+  font-size: .95em;
+  font-weight: 800;
+}
+.item .body .meta {
+  margin: 3px 0 0;
+  font-size: .76em;
+  color: var(--ink-3);
+}
+.item .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.item .btn-row { flex: 0 0 auto; }
+
+/* 빈 상태 — 무엇을 하면 되는지 한 줄로 말한다 */
+.empty {
+  margin: 0;
+  padding: 18px 14px;
+  border: 1px dashed #c8d0d8;
+  border-radius: 12px;
+  background: #fbfcfd;
+  font-size: .84em;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+/* 선행 조건이 안 채워진 폼 — 잠그고 이유를 적는다 */
+.lockmsg {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--warn-line);
+  border-radius: 12px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: .84em;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+fieldset.formset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+fieldset.formset[disabled] { opacity: .5; }
+
+/* 짧은 입력 두 칸 묶기 */
+.field-pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 12px;
+}
+@media (min-width: 560px) {
+  .field-pair { grid-template-columns: 1fr 1fr; }
+}
+
+/* -------------------------------------------------------------------
+   설정 완료 요약 (우측)
+   ------------------------------------------------------------------- */
+
+.checklist {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.checklist li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: .88em;
+  font-weight: 700;
+}
+.checklist li:last-child { border-bottom: 0; }
+.checklist li .what { color: var(--ink-2); min-width: 0; }
+.checklist li[data-done="yes"] .what { color: var(--ink); }
+
+/* 저장 위치 안내 — 로컬 저장소라는 성질을 화면에서 숨기지 않는다 */
+.storagenote {
+  font-size: .78em;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin: 0;
+}
+.storagenote code {
+  background: #eef1f4;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-size: .95em;
+}
+
+/* 저장이 막힌 환경(시크릿 모드 등)에서만 뜬다 */
+.blocked {
+  margin: 0 0 var(--gap);
+  padding: 13px;
+  border: 1px solid var(--stop-line);
+  border-radius: 12px;
+  background: var(--stop-soft);
+  color: var(--stop);
+  font-size: .85em;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* 인터넷이 끊겼을 때만 뜬다 (E1).
+   .blocked 와 같은 모양이되 색은 "중지" 가 아니라 "기다림" 이다 —
+   끊긴 것은 고장이 아니고, 담겨 있으면 그대로 이어지기 때문이다.
+   아이콘(📴) + 글자(오프라인) + 색 3중이라 흑백으로 봐도 뜻이 남는다. */
+.offline-note {
+  margin: 0 0 var(--gap);
+  padding: 13px;
+  border: 1px solid var(--warn-line);
+  border-radius: 12px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: .85em;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* 저장 직후 잠깐 뜨는 알림 — 저장됐다는 사실이 보여야 한다 */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 50;
+  max-width: calc(100vw - 32px);
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--admin-ink);
+  color: #fff;
+  font-size: .86em;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
+}
+.toast[hidden] { display: none; }
+
+/* JSON 주고받기 */
+.jsonbox {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px 12px;
+  border: 1px solid #c8d0d8;
+  border-radius: 12px;
+  background: var(--surface);
+  font-family: ui-monospace, Consolas, "D2Coding", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  resize: vertical;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===================================================================
+   로그인 · 회원가입 (index.html / signup.html)
+
+   여기서 역할이 갈린다. 데스크톱에서는 왼쪽 짙은 패널에 제품이 무엇인지,
+   오른쪽 흰 패널에 입력을 둔다 — 구매 결정자에게 범위를 먼저 밝히는 구성이다.
+   =================================================================== */
+
+/* 로그인은 두 트랙이 함께 쓰는 유일한 화면이다.
+   짙은 보라를 바탕으로 두되, 오른쪽 아래에 노동자 트랙의 빨강을 아주 옅게
+   깔아 "이 제품에는 두 쪽이 있다" 를 색으로 먼저 말한다. */
+.gate-body {
+  background:
+    radial-gradient(1100px 620px at 108% 112%, rgba(192, 57, 44, .38) 0%, rgba(192, 57, 44, 0) 60%),
+    linear-gradient(155deg, var(--admin-ink) 0%, #241c3d 100%);
+  background-attachment: fixed;
+}
+
+.gate {
+  min-height: 100vh;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+@media (min-width: 900px) {
+  .gate { grid-template-columns: 1fr 420px; align-items: stretch; }
+}
+
+.gate-narrow { max-width: 640px; grid-template-columns: 1fr; }
+@media (min-width: 900px) {
+  .gate-narrow { grid-template-columns: 1fr; }
+}
+
+.gate-hero {
+  padding: 40px 24px 32px;
+  color: #fff;
+}
+
+/* 로그인 전 언어 선택 (H9 · FR-CM-01-08) — 장갑 낀 손 기준 60px, 노동자 화면과 같다 */
+.lang-gate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.lang-cell { display: flex; align-items: center; gap: 4px; }
+.lang-btn {
+  min-height: var(--tap-min);
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font-size: .92em;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lang-btn.on {
+  background: #fff;
+  color: var(--admin-ink);
+  border-color: #fff;
+}
+
+/* QR 로 들어왔다는 안내 (H9 · FR-CM-01-09) */
+.qr-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: .9em;
+  font-weight: 700;
+}
+.gate-kicker {
+  margin: 0 0 10px;
+  font-size: .78em;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--brand-vivid-2);
+}
+.gate-hero h1 {
+  margin: 0;
+  font-size: 1.75em;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -.03em;
+}
+.gate-lead {
+  margin: 16px 0 0;
+  max-width: 52ch;
+  font-size: .88em;
+  line-height: 1.8;
+  color: #c1b8d8;
+}
+
+/* 합니다 / 하지 않습니다 — 범위를 먼저 밝힌다 */
+.gate-scope {
+  margin: 26px 0 0;
+  display: grid;
+  gap: 6px;
+}
+.gate-scope dt {
+  font-size: .8em;
+  font-weight: 800;
+  color: #fff;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-line);
+}
+.gate-scope dt:first-child { border-top: 0; padding-top: 0; }
+.gate-scope dd {
+  margin: 0 0 8px;
+  font-size: .82em;
+  line-height: 1.7;
+  color: #a99fc4;
+}
+
+.gate-panel {
+  background: var(--surface);
+  padding: 24px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+@media (min-width: 900px) {
+  .gate-panel { padding: 40px 28px; }
+}
+
+/* 로그인 실패 안내 — 색만으로 알리지 않도록 아이콘 글자를 함께 둔다 */
+.loginerror {
+  margin: 0 0 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--stop-line);
+  border-radius: 12px;
+  background: var(--stop-soft);
+  color: var(--stop);
+  font-size: .85em;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.loginerror::before { content: '! '; font-weight: 800; }
+.loginerror[hidden] { display: none; }
+
+/* 시연 계정 목록 */
+.demo-accounts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.demo-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+}
+.demo-account .body { flex: 1 1 auto; min-width: 0; }
+.demo-account .body strong {
+  display: block;
+  font-size: .88em;
+  font-weight: 800;
+  word-break: break-all;
+}
+.demo-account .body .meta { margin: 2px 0 0; font-size: .74em; color: var(--ink-3); }
+
+/* ===================================================================
+   하단 탭바 — 링크로 쓴다
+
+   style-admin.css 는 .tabbar button 만 칠한다. 페이지가 나뉘어 있어
+   실제 이동은 <a> 여야 하므로, 같은 모양을 링크에도 준다.
+   =================================================================== */
+
+.tabbar a {
+  min-height: var(--tap-min);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: .68em;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.tabbar a .ico { font-size: 20px; }
+/* 지금 보고 있는 탭 — 색만으로 알리지 않는다. 옅은 알약 바탕을 함께 깐다 */
+/* 그 역할이 못 여는 탭은 감춘다 (UI.markCurrentTab).
+   display:flex 가 hidden 속성을 이기므로 여기서 한 줄 더 적는다 — .toast[hidden] 과 같은 이유 */
+.tabbar a[hidden] { display: none; }
+.tabbar a[aria-current="page"] { color: var(--brand); }
+.tabbar a[aria-current="page"] .ico {
+  background: var(--brand-soft);
+  border-radius: 999px;
+  padding: 3px 12px;
+  box-sizing: content-box;
+}
+
+/* 화면 아래에 붙인다. 데스크톱에서도 같은 자리에 두어
+   두 기기에서 메뉴 위치가 달라지지 않게 한다. */
+.tabbar.fixed {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 30;
+  padding-bottom: 6px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, .06);
+}
+body.has-tabbar .page { padding-bottom: 100px; }
+
+/* ===================================================================
+   아직 만들지 않은 화면 — 껍데기 안내 (★ 개발 자리에서만 보인다)
+
+   빈 화면에 아무것도 없으면 "고장 났나?" 로 읽힌다.
+   무엇이 들어올 자리인지 적어 둔다.
+
+   ★★ 2026-08-30 — 배포 주소에서는 감춘다.
+
+   이 칸은 개발자에게 하는 말이다. 시연 중에 화면 맨 아래에 뜨면
+   보는 사람은 "아직 안 만든 화면" 으로 읽는다. 그렇다고 지우면
+   무엇이 남았는지를 잃는다 (tests/test-docs.js 가 여덟 화면에 이 칸이
+   있는지, 안에 적힌 항목이 낡지 않았는지 지금도 본다).
+
+   그래서 지우지 않고 자리에 따라 감춘다.
+
+     감추는 것이 기본값이다. store.js 가 <head> 에서 지금 어디인지 보고
+     개발 자리면 <html data-env="dev"> 를 붙이고, 그때만 다시 보인다.
+     ★ 스크립트가 멈춰도 배포 주소에서는 안 보인다 —
+       실패해도 시연이 안전한 쪽으로 기울여 뒀다.
+
+     보이는 곳 : file:// · localhost · 브랜치 미리보기(-git- 이 든 주소)
+     안 보이는 곳 : 배포 주소 (2026-ax-ton.vercel.app)
+
+   자세한 것은 docs/09-handover.md §8.2-3.
+   =================================================================== */
+
+.todo { display: none; }
+
+html[data-env="dev"] .todo {
+  display: block;
+  border: 1px dashed #c8d0d8;
+  border-radius: var(--radius);
+  background: #fbfcfd;
+  padding: 22px 18px;
+}
+
+/* 개발 자리에서만 보이는 칸이라는 것을 칸 자신이 말한다.
+   그래야 "배포에서도 이게 보이나?" 를 두 번 걱정하지 않는다. */
+html[data-env="dev"] .todo > h2::before {
+  content: '개발 화면에서만 보입니다 · ';
+  font-size: .78em;
+  font-weight: 800;
+  letter-spacing: .02em;
+  color: var(--ink-3);
+}
+
+.todo h2 {
+  margin: 0 0 6px;
+  font-size: 1.05em;
+  font-weight: 800;
+}
+.todo .why {
+  margin: 0 0 14px;
+  font-size: .85em;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 60ch;
+}
+.todo dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  font-size: .82em;
+}
+.todo dt { font-weight: 800; color: var(--ink-3); white-space: nowrap; }
+.todo dd { margin: 0; color: var(--ink-2); }
+.todo dd code {
+  background: #eef1f4;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-size: .95em;
+}
+
+/* 노동자 화면 머리띠 — 관리자 화면(짙은 회색)과 색이 달라야 한다.
+   같은 폰을 돌려 쓸 때 지금 누구 화면인지 헷갈리면 안 된다. */
+.workerbar {
+  flex: 0 0 auto;
+  background: linear-gradient(100deg, var(--banner) 0%, var(--banner-end) 100%);
+  color: var(--banner-ink);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.workerbar .who { min-width: 0; flex: 1 1 auto; }
+.workerbar .who strong {
+  display: block;
+  font-size: .95em;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.workerbar .who span { font-size: .74em; color: var(--banner-ink-2); }
+.workerbar .btn-sm { background: rgba(255, 255, 255, .35); color: var(--banner-ink); border-color: rgba(25, 31, 40, .18); }
+.workerbar .btn-sm:hover { background: rgba(255, 255, 255, .6); color: var(--banner-ink); border-color: var(--banner-ink); }
+
+/* ===================================================================
+   🆕 2026-11-15 로그인 화면 — 시안(밝은 회색 바탕 + 가운데 흰 카드), 이름은 Safelang
+   언어 선택(H9)·QR 안내·시연 계정은 그대로 둔다. 회원가입(signup.html)은 옛 .gate 를 계속 쓴다
+   =================================================================== */
+.login-body { background: var(--bg); min-height: 100vh; }
+.login-strip { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.login-strip-brand { display: inline-flex; align-items: center; gap: 6px; font-size: .85em; font-weight: 700; color: var(--ink-2); }
+.login-strip-brand .ico { width: 18px; height: 18px; color: var(--brand); }
+.login-main { max-width: 488px; margin: 0 auto; padding: 32px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
+.login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 36px 32px 28px; box-shadow: var(--shadow-1); }
+@media (max-width: 480px) { .login-card { padding: 28px 20px 24px; border-radius: 22px; } }
+.login-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.login-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 1.1em; font-weight: 800; color: var(--ink); }
+.login-logo-mark { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: var(--brand); color: #fff; }
+.login-logo-mark .ico { width: 22px; height: 22px; }
+.login-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-deep); font-size: .78em; font-weight: 600; }
+.login-chip .ico { width: 15px; height: 15px; }
+.login-card h1 { margin: 0 0 10px; font-size: 1.6em; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.login-lead { margin: 0 0 24px; color: var(--ink-2); line-height: 1.6; }
+.login-input { position: relative; display: flex; align-items: center; }
+.login-input input { width: 100%; min-height: 52px; padding-right: 52px; border-radius: 12px; }
+.login-input > .ico { position: absolute; right: 16px; width: 20px; height: 20px; color: var(--ink-3); pointer-events: none; }
+.login-eye { position: absolute; right: 4px; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--ink-2); border-radius: 10px; cursor: pointer; }
+.login-eye .ico { width: 22px; height: 22px; }
+.login-eye[aria-pressed="true"] { color: var(--brand); background: var(--brand-soft); }
+.login-go { width: 100%; min-height: var(--tap-min); margin-top: 8px; border-radius: 14px; background: var(--brand); color: var(--brand-ink); font-size: 1.05em; box-shadow: 0 4px 12px var(--brand-glow); }   /* 시안: 로그인만 주색 버튼 */
+.login-go:hover { background: var(--brand-strong); }
+.login-note { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; padding: 14px 16px; border-radius: 12px; background: var(--bg); color: var(--ink-2); font-size: .85em; line-height: 1.6; }
+.login-note .ico { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; color: var(--brand); }
+.login-signup { display: flex; align-items: center; justify-content: center; min-height: var(--tap-min); color: var(--ink-2); text-decoration: none; }
+.login-signup b { margin-left: 6px; color: var(--brand); }
+.login-demo h2 { margin: 0 0 6px; font-size: 1.05em; }
+.login-foot { margin: 8px 0 0; text-align: center; color: var(--ink-3); font-size: .82em; }
+/* 언어 선택·QR 안내 — 옛 화면은 짙은 바탕이라 흰 글자였다. 밝은 바탕에 맞춘다 */
+.login-body .lang-gate { margin: 0; justify-content: center; }
+.login-body .lang-btn { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.login-body .lang-btn.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.login-body .qr-note { margin: 0; background: var(--brand-soft); color: var(--brand-deep); }
+.login-body .qr-note[hidden] { display: none; }   /* display:flex 가 hidden 을 덮는다 */
+
+/* ===================================================================
+   🆕 2026-11-16 로그인 시안 v2 (Stitch) — 코랄 · 언어 2열 카드 · 근로자 로그인
+   ★ .login-v2 안에서만 바뀐다. 회원가입·담당자 화면은 그대로.
+   ★ 채운 코랄 바탕 위 흰 글자는 시안의 #F0646E 대신 #D9505A 로 한 단계 짙게 —
+     흰 글자와 대비를 맞춘다 (버튼 글자 18px 굵게).
+   =================================================================== */
+.login-v2 {
+  --lv2-coral: #F0646E;
+  --lv2-coral-fill: #D9505A;
+  --lv2-coral-soft: #FFF0F1;
+  --lv2-ink: #191F28;
+  --lv2-ink-2: #4E5968;
+  --lv2-ink-3: #8B95A1;
+  --lv2-line: #E5E8EB;
+  --lv2-input: #D1D6DB;
+  background: #F8F9FD;
+  color: #333D4B;
+}
+.login-v2 .login-main { max-width: 430px; padding: 18px 16px 28px; gap: 14px; }
+.login-v2 .lv2-brand { display: flex; align-items: center; gap: 10px; }
+.login-v2 .lv2-logo { width: 40px; height: 40px; border-radius: 12px; background: var(--lv2-coral-fill); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+.login-v2 .lv2-logo .ico { width: 24px; height: 24px; }
+.login-v2 .lv2-name { font-size: 1.3em; font-weight: 800; letter-spacing: -.01em; color: var(--lv2-ink); }
+
+.login-v2 .lv2-sec-title { margin: 0 0 8px 2px; font-size: 15px; font-weight: 700; color: var(--lv2-ink); }
+.login-v2 .lv2-sec-sub { font-size: 11px; font-weight: 600; color: var(--lv2-ink-3); }
+.login-v2 .lang-gate { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.login-v2 .lang-cell { position: relative; display: block; }
+.login-v2 .lang-btn {
+  width: 100%; min-height: 60px; padding: 9px 44px 9px 12px;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px;
+  text-align: left; border-radius: 14px; border: 1px solid var(--lv2-line);
+  background: #fff; color: var(--lv2-ink); box-shadow: 0 1px 2px rgba(25,31,40,.05);
+  line-height: 1.35; cursor: pointer;
+}
+.login-v2 .lang-btn:hover { border-color: var(--lv2-coral); }
+.login-v2 .lang-btn .lang-native { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.login-v2 .lang-btn .lang-ko { font-size: 11px; font-weight: 500; color: var(--lv2-ink-3); }
+.login-v2 .lang-btn.on { background: var(--lv2-coral-fill); border: 2px solid var(--lv2-coral-fill); color: #fff; }
+.login-v2 .lang-btn.on .lang-ko { color: rgba(255,255,255,.85); }
+.login-v2 .lang-check { position: absolute; top: 10px; left: 10px; width: 16px; height: 16px; border-radius: 50%; background: #fff; color: var(--lv2-coral-fill); display: inline-flex; align-items: center; justify-content: center; }
+.login-v2 .lang-check svg { width: 12px; height: 12px; }
+.login-v2 .lang-btn.on .lang-native { padding-left: 20px; }
+.login-v2 .lang-cell .btn-audio { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; min-height: 0; border-radius: 50%; background: var(--lv2-coral-soft); color: var(--lv2-coral-fill); border: 0; }
+.login-v2 .lang-btn.on + .btn-audio { background: rgba(255,255,255,.9); }
+/* 크메르·네팔·태국 글자는 위아래가 길다 — 줄 간격을 넉넉히 */
+.login-v2 .lang-btn .lang-native:lang(km), .login-v2 .lang-btn .lang-native:lang(ne), .login-v2 .lang-btn .lang-native:lang(th) { line-height: 1.6; }
+
+.login-v2 .login-card { border-radius: 18px; padding: 18px; border: 1px solid var(--lv2-line); box-shadow: 0 1px 3px rgba(25,31,40,.06); }
+.login-v2 .login-card h1 { font-size: 17px; font-weight: 700; margin: 0 0 12px; letter-spacing: -.01em; color: var(--lv2-ink); }
+.login-v2 .field { margin-bottom: 12px; }
+.login-v2 .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--lv2-ink); }
+.login-v2 .lv2-has-lead input { padding-left: 46px; min-height: 52px; border: 1px solid var(--lv2-input); border-radius: 12px; font-weight: 700; color: var(--lv2-ink); background: #fff; }
+.login-v2 .lv2-has-lead input::placeholder { font-weight: 400; color: var(--lv2-ink-3); }
+.login-v2 .lv2-has-lead input:focus { outline: none; border-color: var(--lv2-coral); box-shadow: 0 0 0 3px rgba(240,100,110,.2); }
+.login-v2 .lv2-lead { position: absolute; left: 14px; width: 20px; height: 20px; color: var(--lv2-ink-3); pointer-events: none; }
+.login-v2 .login-eye[aria-pressed="true"] { color: var(--lv2-coral-fill); background: var(--lv2-coral-soft); }
+.login-v2 .login-go { min-height: 60px; margin-top: 6px; border-radius: 14px; background: var(--lv2-coral-fill); border-color: var(--lv2-coral-fill); color: #fff; font-size: 18px; font-weight: 800; box-shadow: none; }
+.login-v2 .login-go:hover, .login-v2 .login-go:active { background: #C93B47; }
+
+.login-v2 .lv2-foot { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+.login-v2 .lv2-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--lv2-ink-2); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.login-v2 .lv2-link .ico { width: 16px; height: 16px; color: var(--lv2-ink-3); }
+.login-v2 .lv2-link:hover { color: var(--lv2-coral-fill); }
+.login-v2 .lv2-sep { color: var(--lv2-input); }
+
+.login-v2 .login-demo-wrap { border-top: 1px dashed var(--lv2-line); padding-top: 8px; }
+.login-v2 .login-demo-wrap > summary { cursor: pointer; color: var(--lv2-ink-3); font-size: 12px; padding: 8px 0; text-align: center; list-style: none; }
+.login-v2 .login-demo-wrap > summary::-webkit-details-marker { display: none; }
+.login-v2 .login-foot { font-size: 11px; line-height: 1.6; }
+.login-v2 .qr-note { background: var(--lv2-coral-soft); color: #C93B47; }
