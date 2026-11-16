@@ -70,6 +70,24 @@ eq('사진을 받는다', g.data && g.data.data, JPG);
 eq('★ 남의 사업장 사진은 404', (await call({ op: 'get', path: 'scans/wpA/e1/s1/0-3-1.jpg' }, OTHER)).status, 404);
 eq('★ .. 경로는 404', (await call({ op: 'get', path: 'scans/wpA/../wpB/x.jpg' }, ADMIN)).status, 404);
 
+/* 🆕 2026-11-16 교육 그림 (media-put · media-get) — 교육 데이터 밖으로 */
+{
+  const mp = await call({ op: 'media-put', courseId: 'c1', name: 'q0-1', data: JPG }, ADMIN);
+  eq('★ 교육 그림을 올리면 사업장이 없는 주소(media:)를 준다', mp.data && mp.data.ref, 'media:c1/q0-1.jpg');
+  ok('★ 저장 경로는 토큰의 사업장 아래', store.has('media/wpA/c1/q0-1.jpg'));
+  eq('★★ 노동자는 그림을 올릴 수 없다', (await call({ op: 'media-put', courseId: 'c1', name: 'x', data: JPG }, WORKER)).status, 403);
+  eq('PNG 는 받지 않는다', (await call({ op: 'media-put', courseId: 'c1', name: 'x', data: 'data:image/png;base64,AAAA' }, ADMIN)).status, 400);
+  eq('★ 경로를 넘보는 교육 id 는 막는다', (await call({ op: 'media-put', courseId: '../c', name: 'x', data: JPG }, ADMIN)).status, 400);
+  const big = 'data:image/jpeg;base64,' + Buffer.alloc(300 * 1024, 1).toString('base64');
+  eq('너무 큰 그림은 413', (await call({ op: 'media-put', courseId: 'c1', name: 'big', data: big }, ADMIN)).status, 413);
+
+  eq('★★ 노동자도 자기 사업장 교육 그림은 받는다', (await call({ op: 'media-get', ref: 'media:c1/q0-1.jpg' }, WORKER)).data.data, JPG);
+  eq('담당자도 받는다', (await call({ op: 'media-get', ref: 'media:c1/q0-1.jpg' }, ADMIN)).data.data, JPG);
+  eq('★★ 다른 사업장은 같은 주소로도 404', (await call({ op: 'media-get', ref: 'media:c1/q0-1.jpg' }, OTHER)).status, 404);
+  eq('★ 주소 모양이 다르면 404 (경로를 넘볼 수 없다)', (await call({ op: 'media-get', ref: 'media:../wpB/c1/x.jpg' }, WORKER)).status, 404);
+  eq('★★ 노동자는 촬영 사진(scans)은 여전히 못 받는다', (await call({ op: 'get', path: 'scans/wpA/e1/s1/0-3-1.jpg' }, WORKER)).status, 403);
+}
+
 scans.setBlobForTest({ list: async () => { throw new Error('boom secret'); } });
 const bad = await call({ op: 'list', equipmentId: 'e1' }, ADMIN);
 eq('저장소가 아프면 502 storage (DB 오류로 뭉개지 않는다)', bad.status + ' ' + (bad.data && bad.data.error), '502 storage');

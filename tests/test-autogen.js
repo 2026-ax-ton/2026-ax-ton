@@ -88,6 +88,10 @@ function fakeQuestions(body) {
       });
       return Promise.resolve({ ok: true, status: 200, data: { equipment: body.equipment, lang: body.lang, i18n, failed: [] } });
     }
+    /* 🆕 교육 그림을 저장소에 올린다 (media-put) — 주소(media:)를 돌려준다 */
+    if (path === '/api/scans' && body.op === 'media-put') {
+      return Promise.resolve({ ok: true, status: 200, data: { ok: true, ref: 'media:' + body.courseId + '/' + body.name + '.jpg' } });
+    }
     return Promise.resolve({ ok: false, status: 404, data: {} });
   };
 
@@ -195,6 +199,7 @@ function fakeQuestions(body) {
   ok('보류를 풀면 다시 켜진다', $('btn-approve').disabled === false);
 
   click(win, $('btn-approve'));
+  await ticks();
   const courses = S.courses.load();
   const c = courses[courses.length - 1];
   eq('★★ 승인하면 한 건 저장', courses.length, JSON.parse(before).length + 1);
@@ -203,7 +208,11 @@ function fakeQuestions(body) {
   ok('★★ 위험요소 스냅샷 — 모두 이 설비 · 문항의 hazardId 가 다 들어 있다',
     c.hazards.every((h) => h.equipmentId === 'e-press3') && c.quiz.every((q) => c.hazards.some((h) => h.id === q.hazardId)));
   ok('★★ 발급본 문구에 도장 문구가 없다', c.phraseIds.indexOf('ph-4') === -1 && c.phraseIds.length > 0);
-  eq('사진 문항이 있으면 설비 사진을 싣는다', c.photo, PHOTO);
+  /* 🆕 2026-11-16 — 그림은 저장소로, 교육에는 주소만 */
+  const puts = calls.filter((x) => x.path === '/api/scans' && x.body.op === 'media-put');
+  eq('★★ 사진 문항이 있으면 설비 사진을 저장소에 올리고 주소(media:)를 싣는다', c.photo, 'media:' + c.id + '/photo.jpg');
+  ok('★ 올린 것은 줄인 설비 사진 그 자체다 (JPEG)', puts.some((x) => x.body.name === 'photo' && x.body.data.indexOf('data:image/jpeg') === 0));
+  ok('★★ 교육 데이터에 그림 원본(data:image)이 남지 않는다', !JSON.stringify(c).includes('data:image/'));
   eq('규칙 판을 남긴다', c.rulesVersion, '2026-11-11');
   eq('★ 판정 기록 (뺌 1 · 고침 1)', c.aiDraft.review.wrong + '|' + c.aiDraft.review.edited, '1|1');
   eq('AI 작성 문항 수 기록', c.aiDraft.aiWritten, 1);

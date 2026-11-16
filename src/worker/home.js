@@ -562,9 +562,22 @@
     var main = document.querySelector('main');
     if (bar && main) main.insertBefore(bar, main.firstChild);
 
-    Store.sync.onChange(function () { render(); });
+    Store.sync.onChange(function () { render(); prefetchMedia(); });
     Store.sync.pull();
   }
 
+  /* 🆕 2026-11-16 내 교육의 저장소 그림(media:)을 이 기기에 미리 담아 둔다 —
+     설비 앞(신호 없는 곳)에서 퀴즈를 열어도 그림이 보이게. 이미 담긴 것은 다시 받지 않는다 */
+  function prefetchMedia() {
+    if (typeof Net === 'undefined' || !Net.prefetchMedia) return;
+    var refs = [];
+    myCourses().forEach(function (c) {
+      refs.push(c.photo);
+      (c.quiz || []).forEach(function (q) { (Array.isArray(q.pics) ? q.pics : []).forEach(function (p) { refs.push(p); }); });
+    });
+    Net.prefetchMedia(refs, { token: Auth.token() });
+  }
+
   render();
+  prefetchMedia();
 })();

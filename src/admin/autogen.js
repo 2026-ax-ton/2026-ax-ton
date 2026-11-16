@@ -1066,17 +1066,51 @@
     return course;
   }
 
+  /** 🆕 2026-11-16 — 교육 안의 그림(설비 사진·보기 그림)을 파일 저장소에 올리고 'media:…' 주소로 바꾼다.
+   *  동기화 한 덩어리 상한(512KB)을 그림이 먹지 않게 — 교육에는 글과 주소만 남는다.
+   *  ★ 서버가 없거나(file://) 올리기에 실패한 그림은 **그대로 둔다** — 크기 상한(D-048) 안이면 예전처럼 발급된다.
+   *    발급을 막지 않는다. 몇 장을 못 올렸는지는 알린다 */
+  function uploadMedia(course) {
+    if (!(typeof Net !== 'undefined' && Net.onHttps && Net.onHttps())) return Promise.resolve({ moved: 0, kept: 0 });
+    var token = typeof Auth !== 'undefined' && Auth.token ? Auth.token() : '';
+    var jobs = [];
+    var moved = 0, kept = 0;
+    function up(name, data, set) {
+      if (typeof data !== 'string' || data.indexOf('data:image/jpeg') !== 0) return;
+      jobs.push(Net.post('/api/scans', { op: 'media-put', courseId: course.id, name: name, data: data }, { token: token, timeoutMs: 30000 })
+        .then(function (r) {
+          if (r.ok && r.data && Net.isMediaRef(r.data.ref)) { set(r.data.ref); moved += 1; } else { kept += 1; }
+        }));
+    }
+    up('photo', course.photo, function (ref) { course.photo = ref; });
+    (course.quiz || []).forEach(function (q, qi) {
+      (Array.isArray(q.pics) ? q.pics : []).forEach(function (pic, i) {
+        up('q' + qi + '-' + i, pic, function (ref) { q.pics[i] = ref; });
+      });
+    });
+    return Promise.all(jobs).then(function () { return { moved: moved, kept: kept }; });
+  }
+
   function approve() {
     if (!steps().every(function (s) { return s.done; })) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
-    var e = state.equipment;
     var course = buildCourse();
     if (!course) { UI.toast('아직 채우지 않은 단계가 있습니다.'); return; }
     /* 상한은 서버도 본다 — 여기서 막아야 담당자가 발급 뒤에 실패를 보지 않는다 (C06 D-048) */
     var tooBig = Limits.courseSizeProblem(course);
     if (tooBig) { UI.toast(tooBig + '.'); renderApprove(); return; }
+    /* 서버가 없는 자리(file:// · 검사)는 예전처럼 곧바로 저장한다 — 올릴 곳이 없다 */
+    if (!(typeof Net !== 'undefined' && Net.onHttps && Net.onHttps())) { save(course, null); return; }
+    $('btn-approve').disabled = true;
+    $('ag-research-status').textContent = '그림을 저장소에 올리는 중입니다…';
+    uploadMedia(course).then(function (m) { save(course, m); });
+  }
+
+  function save(course, media) {
+    var e = state.equipment;
     var result = Store.courses.update(function (list) { list.push(course); });
-    if (!result.ok) { UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
-    UI.toast('발급했습니다. 「' + course.title + '」이 노동자 수강 화면에 나타납니다.');
+    if (!result.ok) { $('btn-approve').disabled = false; UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
+    UI.toast('발급했습니다. 「' + course.title + '」이 노동자 수강 화면에 나타납니다.'
+      + (media && media.kept ? ' (그림 ' + media.kept + '장은 저장소에 올리지 못해 교육 안에 그대로 넣었습니다)' : ''));
     state = emptyState(e);
     ['sec-items', 'sec-material', 'sec-quiz', 'sec-approve'].forEach(function (id) { $(id).hidden = true; });
     $('ag-figure').hidden = true;
