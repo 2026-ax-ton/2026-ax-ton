@@ -36,11 +36,11 @@ const checkAll = (win, root, name, values) => {
   const langs = t.$('pick-lang').querySelectorAll('input[name="lang"]');
   eq('★ 등록한 언어 3개만 나온다', langs.length, 3);
   const codes = [...langs].map((i) => i.value).sort();
-  eq('km · id · vi', codes.join(','), 'id,km,vi');
+  eq('km · id · vi', codes.join(','), 'km,ne,vi');
 
   /* ★ 검수를 지난 문구만 선택지에 오른다.
 
-     판정은 언어별이다. ph-3 은 인도네시아어만 중지됐고 크메르어로는 쓸 수 있으므로
+     판정은 언어별이다. ph-3 은 네팔어만 중지됐고 크메르어로는 쓸 수 있으므로
      선택지에 남는다 — 여기서 빼면 크메르어 노동자도 그 안전 지시를 못 받는다.
      어느 언어에서 빠지는지는 아래 "그 언어에서 나가지 않는 조합" 경고가 적는다.
      ph-5 는 검수 대기라 어느 언어로도 못 쓴다 — 선택지에 없다. */
@@ -268,7 +268,7 @@ const checkAll = (win, root, name, values) => {
     .find((r) => text(r).includes('프레스 3호기'));
   ok('교육이 목록에 있다', !!row);
   /* c-press 는 문구 4개(ph-1,2,3,6)다. 이 검사가 ph-1 을 문구 전체 중지로 만들었고,
-     ph-3 은 인도네시아어만 중지다 —
+     ph-3 은 네팔어만 중지다 —
      모든 언어에서 나가는 것은 2개, 일부 언어에서만 빠진 것이 1개. */
   has('쓸 수 있는 문구가 줄었다고 보여 준다', text(row), '문구 2 / 4');
   has('중지된 문구가 있다고 알린다', text(row), '1개 중지됨');
@@ -361,7 +361,7 @@ const checkAll = (win, root, name, values) => {
   t.$('draft-equip').value = 'e-panel';
   change(t.win, t.$('draft-equip'));
   input(t.win, t.$('draft-title'), '번역 검사용 교육');
-  checkAll(t.win, t.$('pick-lang'), 'lang', ['km', 'id']);
+  checkAll(t.win, t.$('pick-lang'), 'lang', ['km', 'ne']);
 
   const box = t.$('q-i18n');
   eq('고른 언어 수만큼 번역 칸', box.querySelectorAll('.i18n-box').length, 2);

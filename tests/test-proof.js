@@ -32,7 +32,7 @@ const inBlock = (t, sel, i) => block(t, i).querySelector(sel);
   const meta = text(inBlock(t, '.proof-meta tbody'));
   has('교육명', text(inBlock(t, '.proof-course-title')), '프레스 3호기 안전교육');
   has('공정과 설비', meta, '프레스 · 프레스 3호기');
-  has('교육 언어', meta, '크메르어 · 인도네시아어 · 베트남어');
+  has('교육 언어', meta, '크메르어 · 네팔어 · 베트남어');
   has('실시 기간이 기록에서 나온다', meta, '2026');
   has('대상 인원', meta, '1명');
 
@@ -44,10 +44,10 @@ const inBlock = (t, sel, i) => block(t, i).querySelector(sel);
   eq('안전 문구 4줄', inBlock(t, '.proof-phrases').children.length, 4);
   has('문구 내용이 그대로', text(inBlock(t, '.proof-phrases')), '프레스가 멈춰도 손을 넣지 마십시오');
 
-  /* ★ ph-3 은 인도네시아어 번역이 중지돼 그 언어 노동자에게는 전달되지 않았다.
+  /* ★ ph-3 은 네팔어 번역이 중지돼 그 언어 노동자에게는 전달되지 않았다.
        증빙에 그 사실을 적는다 — 무엇이 전달되지 않았는지가 이 문서의 내용이다. */
   has('어느 언어에 전달되지 않았는지 적는다',
-    text(inBlock(t, '.proof-phrases')), '인도네시아어 노동자에게는 전달되지 않았습니다');
+    text(inBlock(t, '.proof-phrases')), '네팔어 노동자에게는 전달되지 않았습니다');
 
   // 문항 3개
   eq('문항 3줄', inBlock(t, '.proof-quiz').children.length, 3);
@@ -276,7 +276,7 @@ const inBlock = (t, sel, i) => block(t, i).querySelector(sel);
   // 문항 문구는 한국어 — 감독기관에 내는 한국어 문서다
   has('문항 문구는 한국어로 적는다', text(lines[0]), '손이 끼일 수 있는 곳');
 
-  // q1, q2 는 크메르어·인도네시아어 번역이 있다
+  // q1, q2 는 크메르어·네팔어 번역이 있다
   has('제공 언어를 적는다', text(lines[0]), '제공 언어');
   has('한국어를 먼저 적는다', text(lines[0]), '한국어');
   has('크메르어로도 제공됐다고 적는다', text(lines[0]), '크메르어');

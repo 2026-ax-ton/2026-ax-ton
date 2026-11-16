@@ -18,7 +18,7 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
   has('제목 — 설비 이름(고유명사) + 내 언어', text(cards[0].querySelector('strong')), '프레스 3호기 · ' + t.win.I18N.t('learn.course', 'km'));
   ok('★ 담당자가 쓴 한국어 제목 「안전교육」이 섞이지 않는다', text(cards[0].querySelector('strong')).indexOf('안전교육') === -1);
   /* c-press 는 문구 4개(ph-1,2,3,6). 이 노동자는 크메르어이고 넷 다 크메르어로
-     쓸 수 있다 — ph-3 은 인도네시아어만 중지됐고 크메르어는 검수 완료다. */
+     쓸 수 있다 — ph-3 은 네팔어만 중지됐고 크메르어는 검수 완료다. */
   has('내 언어로 쓸 수 있는 문구 4개', text(cards[0].querySelector('.meta')), t.win.I18N.t('learn.phraseCount', 'km').replace('{n}', '4'));
   // 예시 데이터에서 이 노동자는 c-press 를 이미 통과했다 → 완료로 보이는 것이 정상
   has('이미 통과한 교육은 완료 배지', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.done', 'km'));
@@ -48,10 +48,10 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
   eq('이제 이전 버튼이 열린다', t.$('btn-prev').disabled, false);
 
   next();
-  /* ★ 세 번째가 ph-3 이다 — 인도네시아어에서는 중지된 문구인데
+  /* ★ 세 번째가 ph-3 이다 — 네팔어에서는 중지된 문구인데
        크메르어 노동자에게는 그대로 나온다. 이것이 언어별 판정의 이유다. */
   has('세 번째 장', text(t.$('step-count')), '3 / 4');
-  has('★ 인도네시아어만 중지된 문구가 크메르어로는 나온다',
+  has('★ 네팔어만 중지된 문구가 크메르어로는 나온다',
     text(t.$('phrase-card')), 'ទោះម៉ាស៊ីនឈប់');
 
   next();
@@ -76,8 +76,8 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 }
 
 /* =================================================================
-   2. 인도네시아어 · 도장 공정 (W-4821-11)
-      ph-6 은 인도네시아어 번역이 없다 → 숨기지 않고 표시해야 한다
+   2. 네팔어 · 도장 공정 (W-4821-11)
+      ph-6 은 네팔어 번역이 없다 → 숨기지 않고 표시해야 한다
    ================================================================= */
 {
   const t = boot('worker/learn.html', { login: 'W-4821-11', page: 'worker/learn.js' });
@@ -85,18 +85,18 @@ const text = (n) => (n ? n.textContent.trim().replace(/\s+/g, ' ') : '');
 
   const cards = doc.querySelectorAll('#course-list .course-card');
   eq('도장 공정에는 교육 1개', cards.length, 1);
-  has('도장 부스 교육', text(cards[0].querySelector('strong')), '도장 부스 1 · ' + t.win.I18N.t('learn.course', 'id'));
-  has('미통과 상태이므로 검증이 남았다', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.quizLeft', 'id'));
+  has('도장 부스 교육', text(cards[0].querySelector('strong')), '도장 부스 1 · ' + t.win.I18N.t('learn.course', 'ne'));
+  has('미통과 상태이므로 검증이 남았다', text(cards[0].querySelector('.tags')), t.win.I18N.t('state.quizLeft', 'ne'));
 
   cards[0].querySelector('.course-open').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
-  /* ★★ ph-6 은 인도네시아어 번역이 없다 — 한국어로 띄우지 않고 뺀다. 그래서 1장 */
+  /* ★★ ph-6 은 네팔어 번역이 없다 — 한국어로 띄우지 않고 뺀다. 그래서 1장 */
   has('★★ 번역 없는 문구는 빼서 1장', text(t.$('step-count')), '1 / 1');
 
   // 1장 = ph-4 (id 번역 있음)
-  eq('인도네시아어 번역', text(t.$('phrase-card').querySelector('.translated')), 'Kenakan masker gas');
+  eq('네팔어 번역', text(t.$('phrase-card').querySelector('.translated')), 'ग्यास मास्क लगाउनुहोस्');
 
   ok('★★ 한국어 문구(비상정지 버튼…)가 섞이지 않는다', text(t.$('phrase-card')).indexOf('비상정지') === -1);
-  has('마지막 장 버튼', text(t.$('btn-next')), t.win.I18N.t('learn.heard', 'id'));
+  has('마지막 장 버튼', text(t.$('btn-next')), t.win.I18N.t('learn.heard', 'ne'));
 }
 
 /* =================================================================

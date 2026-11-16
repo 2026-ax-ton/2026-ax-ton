@@ -101,8 +101,8 @@ function open(page, opts = {}) {
   ok('★ 신고자를 저장하지 않는다', !('workerId' in flag) && !('userId' in flag) && !('by' in flag));
   eq('어느 언어의 신고인지 남는다', flag.lang, 'km');
   ok('★ 접수 즉시 그 언어만 중지된다', after1.translations.km.status === 'stopped');
-  ok('다른 언어(인도네시아어)는 그대로 쓸 수 있다',
-    !after1.translations.id || after1.translations.id.status !== 'stopped');
+  ok('다른 언어(네팔어)는 그대로 쓸 수 있다',
+    !after1.translations.ne || after1.translations.ne.status !== 'stopped');
 
   has('★ 접수했다고 알려 준다 (내 언어로)', text(t.$('toast')), t.win.I18N.t('home.reportSent', 'km'));
 
@@ -442,7 +442,7 @@ function open(page, opts = {}) {
   ok('언어 고르는 칸이 있다', !!box);
 
   const chips = [...box.querySelectorAll('input[name="mylang"]')];
-  eq('언어 6개가 다 나온다', chips.length, 6);
+  eq('언어 5개가 다 나온다 (4개 + 한국어)', chips.length, 5);
   eq('★ 지금 내 언어가 골라져 있다',
     chips.filter((c) => c.checked).map((c) => c.value).join(','), 'km');
 
@@ -1017,7 +1017,7 @@ const asAdmin = (opts = {}) =>
      그냥 못 본 것이 된다.
    ================================================================= */
 
-/* seed 의 or-1 은 W-4821-11(도장·인도네시아어) 에게 내려진 지시다 */
+/* seed 의 or-1 은 W-4821-11(도장·네팔어) 에게 내려진 지시다 */
 const asWorker11 = (opts = {}) => open('home', Object.assign({ login: 'W-4821-11' }, opts));
 
 {
@@ -1031,7 +1031,7 @@ const asWorker11 = (opts = {}) => open('home', Object.assign({ login: 'W-4821-11
   has('담당자가 남긴 말이 보인다', text(item), '환기팬');
 
   /* ★ 한국어라는 것을 적는다 */
-  has('★ 한국어로 남긴 말이라고 적는다', text(item), t.win.I18N.t('home.koreanNote', 'id'));
+  has('★ 한국어로 남긴 말이라고 적는다', text(item), t.win.I18N.t('home.koreanNote', 'ne'));
 
   /* 글자를 한 자도 안 읽어도 무슨 일인지 알 수 있어야 한다 */
   ok('★ 소리로 들을 수 있다', !!item.querySelector('.btn-audio'));
