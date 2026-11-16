@@ -1,0 +1,28 @@
+# PR이 닫히거나 머지되면 그 미리보기용 Neon DB 브랜치를 지운다.
+#
+# 왜 있나 (2026-11-16 사고)
+#   Vercel-Managed Neon 연동은 git 브랜치를 지워도 Neon 브랜치를 자동으로
+#   지우지 않는다 — Vercel 배포가 보존 기간(기본 6개월) 안에 남아 있는 동안은
+#   그 배포에 딸린 Neon 브랜치도 같이 남는다. 머지된 PR이 쌓이면 Neon 브랜치
+#   개수 한도를 넘어 새 배포가 전부 "Branch limit reached"로 실패한다
+#   (develop·PR #12 양쪽이 이렇게 막혔다 — 그때는 Neon 콘솔에서 손으로 지웠다).
+#
+# 이 워크플로는 Vercel의 보존 정책과 상관없이, PR이 닫히는 즉시 지운다.
+name: Neon 미리보기 브랜치 정리
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  delete-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: preview/${{ github.head_ref }}
+          api_key: ${{ secrets.NEON_API_KEY }}
