@@ -983,35 +983,56 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 #eq-cards .item .body { flex: 1 1 240px; }
 #eq-cards .item > .btn, #eq-cards .item > .btn-sm { flex: 0 0 auto; width: auto; }
 
-/* 설비 촬영 (scan.html, 시제품) — 카메라 위에 안내를 겹쳐 그린다 */
-.scan-stage { position: relative; width: 100%; max-width: 720px; margin: 8px auto; background: #000; border-radius: 10px; overflow: hidden; }
+/* 설비 촬영 (scan.html, 시제품) — 카메라 위에 안내를 겹쳐 그린다.
+   2026-11-16 다듬음: 위·아래 어둠 띠(글이 밝은 화면에서도 읽히게) · 반투명 알약 칩 · 위쪽 = 몇 바퀴째 · 아래 = 안내·장수·멈추기 */
+.scan-steps { list-style: none; margin: 4px 0 14px; padding: 0; display: grid; gap: 10px; }
+.scan-steps li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line, #e5e7eb); border-radius: 14px; background: var(--surface, #fff); }
+.scan-steps .n { flex: 0 0 auto; display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: var(--brand-ink, #fff); font-weight: 800; font-size: 14px; }
+.scan-steps .n svg { width: 16px; height: 16px; }
+.scan-steps b { display: block; font-size: 16px; }
+.scan-steps li > span:last-child { color: var(--ink-3, #6b7280); font-size: 14px; }
+.scan-steps li > span:last-child b { color: var(--ink, #111); }
+.scan-stage { position: relative; width: 100%; max-width: 720px; margin: 8px auto; background: #000; border-radius: 16px; overflow: hidden; }
 .scan-stage[hidden] { display: none; }
 .scan-stage video { display: block; width: 100%; height: auto; }
 .scan-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.scan-warn { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-radius: 999px; background: rgba(0,0,0,.72); color: #fff; font-weight: 700; max-width: 92%; }
+/* 위·아래 어둠 띠 — 카메라 화면이 밝아도 흰 글이 읽힌다 */
+.scan-stage::before, .scan-stage::after { content: ''; position: absolute; left: 0; right: 0; pointer-events: none; z-index: 1; }
+.scan-stage::before { top: 0; height: 140px; background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,0)); }
+.scan-stage::after { bottom: 0; height: 220px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.6)); }
+.scan-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(17,17,17,.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: #fff; font-weight: 700; font-size: 15px; line-height: 1.2; }
+.scan-chip:empty { display: none; }
+.scan-chip .step { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; background: #fff; color: #111; font-size: 13px; font-weight: 800; }
+.scan-top { position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; align-items: center; padding: max(16px, env(safe-area-inset-top)) 16px 0; padding-right: 96px; }   /* 오른쪽은 진행 링 자리 (캔버스) */
+.scan-bottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 0 16px max(20px, env(safe-area-inset-bottom)); }
+.scan-warn { display: flex; gap: 8px; align-items: center; justify-content: center; max-width: 100%; padding: 10px 16px; border-radius: 999px; background: rgba(17,17,17,.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: #fff; font-weight: 600; font-size: 15px; text-align: center; }
 .scan-warn[hidden] { display: none; }
-.scan-warn .ico { width: 22px; height: 22px; flex: 0 0 auto; }
-.scan-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; }
-.scan-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; border: 1px solid var(--line, #ccc); }
+.scan-warn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
+.scan-controls { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 64px; }
+.scan-count { position: absolute; left: 0; }
+.scan-stop { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: auto; min-width: 150px; min-height: 60px; padding: 0 30px; border: 0; border-radius: 999px; background: #fff; color: #111; font-weight: 800; font-size: 17px; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+.scan-stop .ico { width: 20px; height: 20px; color: #dc2626; }
+.scan-debug { position: absolute; right: 0; color: rgba(255,255,255,.8); font-size: 12px; }
+.scan-debug summary { cursor: pointer; padding: 8px 10px; border-radius: 999px; background: rgba(17,17,17,.5); list-style: none; }
+.scan-debug summary::-webkit-details-marker { display: none; }
+.scan-debug .scan-meter { position: absolute; right: 0; bottom: 44px; width: min(280px, 80vw); margin: 0; padding: 8px 10px; border-radius: 10px; background: rgba(17,17,17,.8); color: #fff; line-height: 1.5; }
+.scan-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.scan-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; border: 1px solid var(--line, #ccc); }
 #btn-scan-start[hidden], #btn-scan-stop[hidden], #btn-equip-scan[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
 /* 설비 목록·수정 폼의 [둘레 촬영] — 글자 링크가 아니라 누르는 버튼으로 보이게 (2026-11-15) */
 .equip-scan-btn { display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; margin-top: 8px; min-height: var(--tap-min, 60px); padding: 8px 14px; border-radius: 10px; background: var(--brand); color: var(--brand-ink, #fff); font-weight: 700; text-decoration: none; }
 .equip-scan-btn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
 .equip-scan-btn[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
-/* 촬영 중 — 카메라가 휴대폰 화면 전체를 덮고, 안내·숫자·멈추기를 그 위에 둔다 (2026-11-15) */
+/* 촬영 중 — 카메라가 휴대폰 화면 전체를 덮는다 (2026-11-15) */
 html.scan-on, html.scan-on body { overflow: hidden; }
 .scan-stage.full { position: fixed; inset: 0; z-index: 1000; max-width: none; margin: 0; border-radius: 0; }
 .scan-stage.full video { width: 100%; height: 100%; object-fit: cover; }
-.scan-stage .scan-meter { position: absolute; left: 10px; top: 10px; margin: 0; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; max-width: 60%; }
-.scan-stage.full .scan-warn { bottom: 104px; left: 16px; right: 16px; transform: none; width: fit-content; max-width: none; margin: 0 auto; justify-content: center; }   /* left:50% 이면 폭이 반으로 줄어 네 줄로 꺾인다 */
-/* 위쪽 띠 — 자세 교정: 무엇이 문제인지(굵게) + 어떻게 고치는지. 주황 바탕 + 경고 아이콘 + 글 (색만으로 구분하지 않는다) */
-.scan-coach { position: absolute; left: 10px; right: 10px; top: 10px; display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 12px; background: rgba(180,83,9,.94); color: #fff; z-index: 2; }
+/* 자세 교정 띠 — 무엇이 문제인지(굵게) + 어떻게 고치는지. 주황 줄 + 경고 아이콘 + 글 (색만으로 구분하지 않는다) */
+.scan-coach { position: absolute; left: 16px; right: 16px; top: calc(max(16px, env(safe-area-inset-top)) + 74px); z-index: 2; display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-left: 4px solid #f59e0b; border-radius: 14px; background: rgba(17,17,17,.72); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: #fff; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
 .scan-coach[hidden] { display: none; }
-.scan-coach .ico { width: 26px; height: 26px; flex: 0 0 auto; }
+.scan-coach .ico { width: 26px; height: 26px; flex: 0 0 auto; color: #fbbf24; }
 .scan-coach b { display: block; font-size: 17px; }
-.scan-coach b + span { font-size: 14px; }
-.scan-stage .scan-meter { top: auto; bottom: 168px; }   /* 숫자는 아래 안내 위로 — 위쪽은 자세 교정 자리 */
-.scan-stop { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: auto; padding: 0 36px; min-height: 60px; min-width: 140px; border-radius: 999px; background: #fff; color: #111; font-weight: 700; }
+.scan-coach b + span { font-size: 14px; color: rgba(255,255,255,.85); }
 
 /* 특별교육 대상 안내 — 설비 이름에 낱말이 걸리면 뜬다 (PRD-AD-01 FR-08).
    ★ 판정이 아니라 안내다. 노란색은 「막는 것」이 아니라 「확인해 달라」는 뜻이다 —

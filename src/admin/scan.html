@@ -44,20 +44,35 @@
 
   <section class="card" aria-labelledby="t-cam">
     <h2 id="t-cam">촬영</h2>
+    <!-- 두 바퀴 — 무엇을 할지 한눈에 (번호 + 글, 색만으로 나누지 않는다) -->
+    <ol class="scan-steps">
+      <li><span class="n" aria-hidden="true">1</span><span><b>허리 높이에서 한 바퀴</b>기계를 화면 틀 안에 두고 천천히 돕니다</span></li>
+      <li><span class="n" aria-hidden="true">2</span><span><b>팔을 들고 한 바퀴 더</b>위에서 내려다보며 천천히 돕니다</span></li>
+      <li><span class="n done" aria-hidden="true"></span><span><b>알아서 올라갑니다</b>다 찍으면 사업장 전용 저장소로 갑니다</span></li>
+    </ol>
     <p class="meta" id="scan-status">[촬영 시작]을 누르면 카메라와 방향 센서를 켭니다.</p>
     <div class="scan-stage" id="scan-stage" hidden>
       <video id="scan-video" playsinline muted autoplay></video>
       <canvas id="scan-overlay" aria-hidden="true"></canvas>
       <!-- 촬영 중에는 이 칸이 화면 전체를 덮는다 — 안내·숫자·멈추기가 카메라 위에 있어야 한다 -->
+      <div class="scan-top">
+        <span class="scan-chip" id="scan-pass"></span>
+      </div>
       <div class="scan-coach" id="scan-coach" role="alert" hidden>
         <span class="ico" id="scan-coach-ico" aria-hidden="true"></span>
         <span><b id="scan-coach-what"></b><span id="scan-coach-fix"></span></span>
       </div>
-      <p class="scan-meter" id="scan-meter"></p>
-      <div class="scan-warn" id="scan-warn" role="status" aria-live="polite" hidden>
-        <span class="ico" id="scan-warn-ico" aria-hidden="true"></span><span id="scan-warn-text"></span>
+      <div class="scan-bottom">
+        <div class="scan-warn" id="scan-warn" role="status" aria-live="polite" hidden>
+          <span class="ico" id="scan-warn-ico" aria-hidden="true"></span><span id="scan-warn-text"></span>
+        </div>
+        <div class="scan-controls">
+          <span class="scan-chip scan-count" id="scan-count"></span>
+          <button class="btn scan-stop" type="button" id="btn-scan-stop" hidden><span class="ico" id="scan-stop-ico" aria-hidden="true"></span>멈추기</button>
+          <!-- 측정값 — 기준(SHARP_MIN 등)을 맞출 때만 펼쳐 본다 -->
+          <details class="scan-debug"><summary>측정값</summary><p class="scan-meter" id="scan-meter"></p></details>
+        </div>
       </div>
-      <button class="btn scan-stop" type="button" id="btn-scan-stop" hidden>멈추기</button>
     </div>
     <div class="big-actions">
       <button class="btn btn-primary" type="button" id="btn-scan-start">촬영 시작</button>
