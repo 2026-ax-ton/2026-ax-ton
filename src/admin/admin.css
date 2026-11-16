@@ -1068,3 +1068,90 @@ body.dash-figma .bar-item[data-level="ok"]  .bar-fill { background: var(--ok); }
 .review-memo { display: grid; gap: 6px; margin-top: 8px; }
 .review-memo textarea { width: 100%; box-sizing: border-box; }
 #scan-photo-note[hidden] { display: none; }
+
+/* ===================================================================
+   🆕 2026-11-16 설비 촬영 — Figma 「설비 촬영」 시안 배치 (번호 카드 4장)
+   =================================================================== */
+.scan-page { max-width: 880px; }
+.scan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.scan-head h1 { display: flex; align-items: center; gap: 10px; margin: 0; }
+.scan-card-sec { border-radius: 22px; padding: 24px 28px; }
+.scan-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.scan-sec-head h2 { margin: 0; display: flex; align-items: center; }
+
+/* 1. 휴대폰으로 열기 */
+.scan-phone { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; align-items: center; }
+.scan-qr-wrap { background: var(--bg, #f2f4f6); border-radius: 16px; padding: 18px; text-align: center; }
+.scan-qr-wrap .qr-box { background: #fff; border-radius: 12px; padding: 12px; display: inline-block; }
+.scan-qr-wrap .qr-box svg { width: 140px; height: 140px; }
+.scan-qr-wrap .meta { margin: 8px 0 0; }
+.scan-url-box { background: var(--bg, #f2f4f6); border-radius: 14px; padding: 14px; display: grid; gap: 8px; }
+.scan-url-row { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.scan-url-row code { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--brand-deep); font-size: .85em; }
+.scan-url-row .btn-sm { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.scan-phone-hint { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.scan-phone-hint .ico, .scan-url-row .ico { width: 16px; height: 16px; }
+
+/* 2. 촬영 — 꺼져 있을 때도 자리를 보인다 */
+.scan-live { font-size: .85em; font-weight: 700; color: var(--ink-3); }
+.scan-live.on { color: #15803d; }
+.scan-stage { max-width: none; min-height: 340px; border-radius: 18px; background: #1b1f27; }
+.scan-stage:not(.live) video, .scan-stage:not(.live) canvas, .scan-stage:not(.live) .scan-meter { display: none; }
+.scan-idle { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0; color: #c9ced6; font-weight: 700; text-align: center; padding: 0 20px; }
+.scan-stage.live .scan-idle { display: none; }
+.scan-level {
+  position: absolute; left: 16px; right: 16px; top: 14px; z-index: 2;
+  display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px;
+  background: rgba(0, 0, 0, .62); color: #fff; font-size: .85em;
+}
+.scan-level .ico { width: 18px; height: 18px; }
+.scan-level-bar { flex: 1 1 auto; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .25); overflow: hidden; max-width: 160px; margin-left: auto; }
+.scan-level-bar span { display: block; height: 100%; width: 0; background: #22c55e; transition: width .2s; }
+.scan-level-bar span.bad { background: #f59e0b; }
+.scan-coach { top: 64px; }
+.scan-privacy {
+  position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 2; margin: 0;
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+  background: #fff7e0; color: #8a5a00; font-size: .85em; font-weight: 600;
+}
+.scan-privacy .ico { width: 18px; height: 18px; flex: 0 0 auto; }
+.scan-stage .scan-warn { bottom: 64px; }
+.scan-stage.full .scan-privacy { bottom: 96px; }
+.scan-stage.full .scan-warn { bottom: 150px; }
+.scan-stage.full .scan-meter { bottom: 210px; }
+.scan-actions { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 12px; margin-top: 16px; }
+.scan-actions .btn { min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.scan-actions .btn .ico { width: 20px; height: 20px; }
+#btn-scan-start { background: var(--ink, #191f28); border-color: var(--ink, #191f28); color: #fff; }
+#btn-scan-stop2:disabled { opacity: .5; }
+
+/* 3. 찍은 사진 — 카드 */
+.scan-thumbs { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.scan-shot { margin: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.scan-shot .scan-thumb { border: 0; border-radius: 0; display: block; }
+.scan-shot figcaption { display: grid; gap: 2px; padding: 10px 12px; }
+.scan-shot figcaption small { color: var(--ink-3); }
+.scan-store-note { display: flex; align-items: center; gap: 8px; margin: 16px 0 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg, #f2f4f6); font-size: .88em; }
+.scan-store-note .ico { width: 18px; height: 18px; flex: 0 0 auto; }
+.scan-upload { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--ink, #191f28); border-color: var(--ink, #191f28); color: #fff; }
+.scan-upload .ico { width: 20px; height: 20px; }
+
+/* 4. 올린 촬영 */
+.scan-uploads { list-style: none; margin: 0; padding: 0; }
+.scan-uploads .item { display: flex; align-items: center; gap: 12px; padding: 14px 4px; border-top: 1px solid var(--line); }
+.scan-uploads .item .ico { width: 36px; height: 36px; padding: 7px; border-radius: 10px; background: #e7f6ec; color: #15803d; box-sizing: border-box; }
+.scan-uploads .item .body { flex: 1 1 auto; }
+.scan-foot { text-align: right; margin: 14px 0 0; }
+.scan-foot a { color: var(--brand); font-weight: 700; }
+#scan-back-wrap { text-align: center; }
+
+@media (max-width: 640px) {
+  .scan-phone { grid-template-columns: 1fr; }
+  .scan-card-sec { padding: 18px 16px; }
+  .scan-actions { grid-template-columns: 1fr; }
+}
+.scan-url-wrap { min-width: 0; }
+#scan-back-wrap a { color: #fff; }
+#btn-scan-stop2 { background: var(--bg, #f2f4f6); border-color: var(--line); color: var(--ink, #191f28); }
+.scan-url-box, .scan-url-row { min-width: 0; overflow: hidden; }
+.scan-url-row code { display: block; width: 0; flex: 1 1 auto; }

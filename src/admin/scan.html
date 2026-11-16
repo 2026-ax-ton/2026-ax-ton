@@ -23,31 +23,52 @@
   <button class="btn-sm" type="button" id="btn-logout">로그아웃</button>
 </header>
 
-<main class="page">
+<main class="page page-single scan-page">
 
-  <div class="pagehead">
+  <!-- 🆕 2026-11-16 Figma 「설비 촬영」 시안 배치 — 번호 붙은 카드 4장 (휴대폰으로 열기 · 촬영 · 찍은 사진 · 올린 촬영).
+       시안의 확인되지 않은 문구(인증 토큰 · 암호화 서명 · 법 조항 · 「위험 마킹 정상」 같은 판정)는 넣지 않았다 -->
+  <div class="pagehead scan-head">
     <h1>설비 촬영 <span class="badge badge-neutral">시제품</span></h1>
-    <p class="lead"><b id="scan-equip">설비</b> 둘레를 휴대폰으로 천천히 두 바퀴 찍습니다. 화면 안내와 음성을 따라 하면 됩니다.</p>
+    <a class="btn-sm" href="setup.html#list">← 설비 목록으로</a>
   </div>
+  <p class="lead"><b id="scan-equip">설비</b> 둘레를 휴대폰으로 천천히 두 바퀴 찍습니다. 화면 안내와 음성을 따라 하면 됩니다.</p>
 
   <p class="blocked" id="blocked" hidden>
     이 브라우저에서는 저장소를 쓸 수 없습니다. 입력해도 새로고침하면 사라집니다.
   </p>
 
-  <!-- PC 에서 열었으면 폰으로 넘기는 QR -->
-  <section class="card" id="sec-phone" aria-labelledby="t-phone">
-    <h2 id="t-phone">휴대폰으로 열기</h2>
-    <p class="why">휴대폰 카메라로 이 QR 을 찍으면 이 화면이 휴대폰에서 열립니다 (같은 계정으로 로그인).</p>
-    <div class="qr-box" id="scan-qr"></div>
-    <p class="meta" id="scan-url"></p>
+  <!-- 1. PC 에서 열었으면 폰으로 넘기는 QR -->
+  <section class="card scan-card-sec" id="sec-phone" aria-labelledby="t-phone">
+    <div class="scan-sec-head"><h2 id="t-phone"><span class="step-no">1</span>휴대폰으로 열기</h2></div>
+    <div class="scan-phone">
+      <div class="scan-qr-wrap"><div class="qr-box" id="scan-qr"></div><p class="meta">휴대폰 카메라로 찍으세요</p></div>
+      <div class="scan-url-wrap">
+        <div class="scan-url-box">
+          <span class="meta">이 촬영 화면 주소</span>
+          <div class="scan-url-row"><code id="scan-url"></code><button class="btn-sm" type="button" id="btn-copy-url"><span class="ico" data-ico="clipboard" aria-hidden="true"></span>복사</button></div>
+        </div>
+        <p class="meta scan-phone-hint"><span class="ico" data-ico="camera" aria-hidden="true"></span>휴대폰 카메라로 QR 을 찍으면 이 촬영 화면이 휴대폰에서 열립니다 (같은 계정으로 로그인).</p>
+      </div>
+    </div>
   </section>
 
-  <section class="card" aria-labelledby="t-cam">
-    <h2 id="t-cam">촬영</h2>
+  <!-- 2. 촬영 -->
+  <section class="card scan-card-sec" aria-labelledby="t-cam">
+    <div class="scan-sec-head">
+      <h2 id="t-cam"><span class="step-no">2</span>촬영</h2>
+      <span class="scan-live" id="scan-live">카메라 꺼짐</span>
+    </div>
     <p class="meta" id="scan-status">[촬영 시작]을 누르면 카메라와 방향 센서를 켭니다.</p>
-    <div class="scan-stage" id="scan-stage" hidden>
+    <div class="scan-stage" id="scan-stage">
       <video id="scan-video" playsinline muted autoplay></video>
       <canvas id="scan-overlay" aria-hidden="true"></canvas>
+      <p class="scan-idle" id="scan-idle">[촬영 시작]을 누르면 여기에 카메라가 켜집니다</p>
+      <!-- 수평 자세 센서 — 좌우 기울기로 안정도를 보인다 (센서가 없으면 「센서 없음」) -->
+      <div class="scan-level" id="scan-level">
+        <span class="ico" data-ico="repeat" aria-hidden="true"></span><span>수평 자세 센서</span>
+        <span class="scan-level-bar"><span id="scan-level-fill"></span></span>
+        <b id="scan-level-text">센서 대기</b>
+      </div>
       <!-- 촬영 중에는 이 칸이 화면 전체를 덮는다 — 안내·숫자·멈추기가 카메라 위에 있어야 한다 -->
       <div class="scan-coach" id="scan-coach" role="alert" hidden>
         <span class="ico" id="scan-coach-ico" aria-hidden="true"></span>
@@ -57,32 +78,39 @@
       <div class="scan-warn" id="scan-warn" role="status" aria-live="polite" hidden>
         <span class="ico" id="scan-warn-ico" aria-hidden="true"></span><span id="scan-warn-text"></span>
       </div>
+      <p class="scan-privacy"><span class="ico" data-ico="alert" aria-hidden="true"></span>[주의] 사람 얼굴이나 식별 가능한 개인정보가 화면에 들어가지 않게 찍어 주세요.</p>
       <button class="btn scan-stop" type="button" id="btn-scan-stop" hidden>멈추기</button>
     </div>
-    <div class="big-actions">
+    <div class="scan-actions">
       <button class="btn btn-primary" type="button" id="btn-scan-start">촬영 시작</button>
+      <button class="btn" type="button" id="btn-scan-stop2" disabled><span class="ico" data-ico="stop" aria-hidden="true"></span>멈추기</button>
     </div>
   </section>
 
-  <section class="card" id="sec-result" aria-labelledby="t-result" hidden>
-    <h2 id="t-result">찍은 사진</h2>
-    <p class="meta" id="scan-summary"></p>
+  <!-- 3. 찍은 사진 -->
+  <section class="card scan-card-sec" id="sec-result" aria-labelledby="t-result" hidden>
+    <div class="scan-sec-head">
+      <h2 id="t-result"><span class="step-no">3</span>찍은 사진</h2>
+      <span class="meta" id="scan-summary"></span>
+    </div>
     <p class="lockmsg" id="scan-photo-note" role="status" hidden></p>
     <div class="scan-thumbs" id="scan-thumbs"></div>
-    <p class="why">두 바퀴를 다 찍으면 사업장 전용 비공개 저장소에 <b>알아서 올라갑니다</b> (밖에서 주소로 열 수 없습니다). 중간에 멈췄거나 올리기에 실패했으면 [서버에 올리기]를 누르세요.</p>
-    <div class="big-actions">
-      <button class="btn btn-primary" type="button" id="btn-scan-upload">서버에 올리기</button>
-    </div>
+    <p class="scan-store-note"><span class="ico" data-ico="shield" aria-hidden="true"></span>두 바퀴를 다 찍으면 사업장 전용 비공개 저장소에 <b>알아서 올라갑니다</b> (밖에서 주소로 열 수 없습니다). 중간에 멈췄거나 실패했으면 아래 버튼을 누르세요.</p>
+    <button class="btn btn-primary scan-upload" type="button" id="btn-scan-upload"><span class="ico" data-ico="send" aria-hidden="true"></span>서버에 올리기</button>
     <p class="meta" id="scan-upload-status" role="status" aria-live="polite"></p>
   </section>
 
-  <section class="card" id="sec-uploaded" aria-labelledby="t-uploaded" hidden>
-    <h2 id="t-uploaded">올린 촬영</h2>
-    <p class="why">이 설비에 올린 촬영 묶음입니다. 휴대폰에서 올리면 PC 의 이 화면에도 나옵니다 (새로고침).</p>
-    <ul class="item-list" id="scan-list"></ul>
+  <!-- 4. 올린 촬영 -->
+  <section class="card scan-card-sec" id="sec-uploaded" aria-labelledby="t-uploaded" hidden>
+    <div class="scan-sec-head">
+      <h2 id="t-uploaded"><span class="step-no">4</span>올린 촬영</h2>
+      <span class="meta" id="scan-list-count"></span>
+    </div>
+    <ul class="scan-uploads" id="scan-list"></ul>
+    <p class="scan-foot"><a href="setup.html#list" id="scan-back">설비로 돌아가기 (AI 검수 · 승인) →</a></p>
   </section>
 
-  <p><a class="btn btn-primary" href="setup.html#list" id="scan-back">설비로 돌아가기 (AI 검수 · 승인)</a></p>
+  <p class="scan-foot" id="scan-back-wrap"><a class="btn btn-primary" href="setup.html#list">설비로 돌아가기 (AI 검수 · 승인)</a></p>
 
 </main>
 

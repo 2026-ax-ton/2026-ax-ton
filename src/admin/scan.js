@@ -116,6 +116,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
   var C = M.C;
   UI.fillAdminBar(Auth.current());
   UI.warnIfBlocked();
+  UI.$$('[data-ico]').forEach(function (n) { UI.setIcon(n, n.getAttribute('data-ico')); });
 
   var SHOT_MS = 500;
   var SAY_GAP_MS = 4000;          // 같은 경고를 다시 말하기까지
@@ -148,6 +149,11 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     if (img) $('scan-qr').appendChild(img);
     else $('scan-qr').appendChild(UI.el('p', 'empty', '주소가 너무 길어 QR 로 만들지 못했습니다.'));
     $('scan-url').textContent = location.href;
+    $('btn-copy-url').addEventListener('click', function () {
+      var done = function () { UI.toast('주소를 복사했습니다.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done, function () { UI.toast('복사하지 못했습니다. 주소를 길게 눌러 복사하세요.'); });
+      else UI.toast('이 브라우저는 복사를 지원하지 않습니다. 주소를 길게 눌러 복사하세요.');
+    });
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       $('scan-url').textContent += ' — 이 PC 주소라 휴대폰에서는 열리지 않습니다. 배포 주소에서 쓰세요.';
     }
@@ -180,6 +186,14 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     $('scan-coach-fix').textContent = WARN[key][2];
     var now = Date.now();
     if (lastSay.key !== key || now - lastSay.at > SAY_GAP_MS) { say(WARN[key][1] + '. ' + WARN[key][2]); lastSay = { key: key, at: now }; }
+  }
+
+  /** 수평 자세 센서 띠 — 좌우 기울기 0° = 100%, 40° 이상 = 0% (센서가 없으면 「센서 없음」) */
+  function level() {
+    var pct = sensor.seen ? Math.max(0, Math.round(100 - Math.abs(sensor.gamma) * 2.5)) : 0;
+    $('scan-level-fill').style.width = pct + '%';
+    $('scan-level-fill').className = pct >= 85 ? 'ok' : 'bad';
+    $('scan-level-text').textContent = sensor.seen ? pct + '% ' + (pct >= 85 ? '안정' : '기울어짐') : '센서 없음';
   }
 
   function onOrient(e) {
@@ -254,6 +268,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     $('scan-meter').textContent = '밝기 ' + Math.round(st.mean) + ' · 선명도 ' + Math.round(st.sharp) + ' (기준 ' + C.SHARP_MIN + ')' +
       ' · 회전 ' + Math.round(sensor.speed) + '°/s' + (sensor.beta != null ? ' · 앞뒤 ' + Math.round(sensor.beta) + '° 좌우 ' + Math.round(sensor.gamma) + '°' : '') + ' · 방향 센서 ' + (sensor.seen ? '켜짐' : '없음 — 찍은 장수로 채움') +
       ' · 사진 ' + shots + '장';
+    level();
     warn(bad);
     draw();
     if (bad) return;
@@ -269,7 +284,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     c.toBlob(function (blob) {
       if (!blob || !timer) return;          // 멈춘 뒤 늦게 온 사진은 버린다
       var segs = passes[pass];
-      if (!M.keep(segs[seg], { blob: blob, sharp: sharp, at: Date.now() })) return;
+      if (!M.keep(segs[seg], { blob: blob, sharp: sharp, at: Date.now(), w: c.width, h: c.height, pass: pass, seg: seg })) return;
       shots = passes.reduce(function (n, p) { return n + p.reduce(function (m, l) { return m + l.length; }, 0); }, 0);
       if (!sensor.seen) fallbackSeg = (fallbackSeg + 1) % C.SEGMENTS;
       if (M.coverage(segs) >= C.DONE_RATIO) nextPass();
@@ -304,8 +319,11 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     }).then(function (s) {
       stream = s;
       video.srcObject = s;
-      $('scan-stage').hidden = false;
-      $('scan-stage').classList.add('full');                 // 카메라가 화면 전체를 덮는다
+      $('scan-stage').classList.add('live');
+      $('scan-stage').classList.add('full');
+      $('scan-live').textContent = '● 실시간 카메라 켜짐';
+      $('scan-live').classList.add('on');
+      $('btn-scan-stop2').disabled = false;                 // 카메라가 화면 전체를 덮는다
       document.documentElement.classList.add('scan-on');     // 뒤 페이지가 스크롤되지 않게
       $('btn-scan-start').hidden = true;
       $('btn-scan-stop').hidden = false;
@@ -326,8 +344,11 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
     stream = null;
     warn('');
-    $('scan-stage').hidden = true;
+    $('scan-stage').classList.remove('live');
     $('scan-stage').classList.remove('full');
+    $('scan-live').textContent = '카메라 꺼짐';
+    $('scan-live').classList.remove('on');
+    $('btn-scan-stop2').disabled = true;
     document.documentElement.classList.remove('scan-on');
     $('btn-scan-stop').hidden = true;
     $('btn-scan-start').hidden = false;
@@ -374,14 +395,20 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     var box = $('scan-thumbs');
     box.textContent = '';
     var parts = passes.map(function (segs, i) { return PASSES[i].name + ' ' + Math.round(M.coverage(segs) * 100) + '%'; });
-    $('scan-summary').textContent = '사진 ' + shots + '장 · 한 바퀴 채움 ' + parts.join(' · ');
+    $('scan-summary').textContent = '흔들리지 않은 사진 ' + shots + '장 · 한 바퀴 채움 ' + parts.join(' · ');
     passes.forEach(function (segs) {
       segs.forEach(function (list) {
         list.forEach(function (shot) {
+          var card = UI.el('figure', 'scan-shot');
           var im = UI.el('img', 'scan-thumb');
           im.src = URL.createObjectURL(shot.blob);
           im.alt = '';
-          box.appendChild(im);
+          card.appendChild(im);
+          var cap = UI.el('figcaption');
+          cap.appendChild(UI.el('b', null, (PASSES[shot.pass] || PASSES[0]).name + ' 바퀴 · ' + Math.round((shot.seg || 0) * 360 / C.SEGMENTS) + '° 방향'));
+          cap.appendChild(UI.el('small', null, (shot.w || '?') + ' × ' + (shot.h || '?') + ' · 선명도 ' + Math.round(shot.sharp)));
+          card.appendChild(cap);
+          box.appendChild(card);
         });
       });
     });
@@ -398,6 +425,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     start();
   });
   $('btn-scan-stop').addEventListener('click', stop);
+  $('btn-scan-stop2').addEventListener('click', stop);
 
   /* ── 서버에 올리기 (/api/scans → Vercel Blob 비공개) — https 배포에서만 (net.js 가 막는다) ── */
 
@@ -442,7 +470,12 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       var list = (r.ok && r.data && r.data.scans) || [];
       if (!r.ok) box.appendChild(UI.el('li', 'meta', (r.data && r.data.message) || '목록을 불러오지 못했습니다.'));
       else if (!list.length) box.appendChild(UI.el('li', 'meta', '아직 올린 촬영이 없습니다.'));
-      list.forEach(function (s) { box.appendChild(UI.itemRow('camera', UI.formatDate(s.at), '사진 ' + s.count + '장 · 묶음 ' + s.scanId)); });
+      list.forEach(function (s) {
+        var li = UI.itemRow('check-circle', '촬영 묶음 ' + s.scanId, UI.formatDate(s.at) + ' 올림 · 사진 ' + s.count + '장');
+        li.appendChild(UI.okBadge('서버 보관'));
+        box.appendChild(li);
+      });
+      $('scan-list-count').textContent = list.length ? '최근 ' + list.length + '건' : '';
       $('sec-uploaded').hidden = false;
     });
   }
