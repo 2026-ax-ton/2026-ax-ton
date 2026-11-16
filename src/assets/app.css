@@ -524,32 +524,6 @@ fieldset.formset[disabled] { opacity: .5; }
 .loginerror::before { content: '! '; font-weight: 800; }
 .loginerror[hidden] { display: none; }
 
-/* 시연 계정 목록 */
-.demo-accounts {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 6px;
-}
-.demo-account {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 11px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 11px;
-}
-.demo-account .body { flex: 1 1 auto; min-width: 0; }
-.demo-account .body strong {
-  display: block;
-  font-size: .88em;
-  font-weight: 800;
-  word-break: break-all;
-}
-.demo-account .body .meta { margin: 2px 0 0; font-size: .74em; color: var(--ink-3); }
-
 /* ===================================================================
    하단 탭바 — 링크로 쓴다
 
@@ -723,7 +697,6 @@ html[data-env="dev"] .todo > h2::before {
 .login-note .ico { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; color: var(--brand); }
 .login-signup { display: flex; align-items: center; justify-content: center; min-height: var(--tap-min); color: var(--ink-2); text-decoration: none; }
 .login-signup b { margin-left: 6px; color: var(--brand); }
-.login-demo h2 { margin: 0 0 6px; font-size: 1.05em; }
 .login-foot { margin: 8px 0 0; text-align: center; color: var(--ink-3); font-size: .82em; }
 /* 언어 선택·QR 안내 — 옛 화면은 짙은 바탕이라 흰 글자였다. 밝은 바탕에 맞춘다 */
 .login-body .lang-gate { margin: 0; justify-content: center; }

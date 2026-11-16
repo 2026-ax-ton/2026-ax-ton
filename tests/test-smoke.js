@@ -218,9 +218,7 @@ PAGES.forEach(([html, js, login]) => {
 
   ok('index.html 오류 0건', t.errors.length === 0, t.errors.join(' | '));
   eq('★ 첫 방문이면 계정이 채워진다', t.win.Store.accounts.load().length, 6);
-  eq('시연 계정 목록에 6개가 그려진다',
-    t.$('demo-accounts').querySelectorAll('li.demo-account').length, 6);
-  eq('★ 채웠으면 채웠다고 화면에 적는다', t.$('seed-auto').hidden, false);
+  ok('시연 계정 목록은 화면에 없다', !t.$('demo-accounts') && !t.$('btn-seed') && !t.$('btn-reset'));
   ok('아직 로그인 화면에 머문다 (자동으로 넘어가지 않는다)',
     t.nav.length === 0, t.nav.join(' | '));
 
@@ -240,7 +238,6 @@ PAGES.forEach(([html, js, login]) => {
   });
 
   eq('★ 쓰던 데이터를 덮어쓰지 않는다', t.win.Store.setup.load().site.name, '한빛금속');
-  eq('덮어쓰지 않았으면 채웠다고 말하지도 않는다', t.$('seed-auto').hidden, true);
   eq('계정은 그대로 6개', t.win.Store.accounts.load().length, 6);
 }
 
