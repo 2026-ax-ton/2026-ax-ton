@@ -12,14 +12,17 @@
 - PR #12(특별교육 대상 설비 → 교육 0단계 작업 미리 고르기) 리뷰 후 develop 머지 → `sw.js` v30 → `main` 배포
 - PR #13(사진 분석 하루 통을 DB에서 센다) 리뷰 후 머지 — base 브랜치가 안 지워져 있어 develop에 한 번 더 병합해 맞췄다
 - `legaltag.js`의 개별 사항 태그를 특별교육 **39종 전부**로 넓혔다 — 대표 12종(`Curriculum.SPECIAL`)만 읽던 것을, 나머지 27종(`SPECIAL_LATER`, 이름만 있음)도 `작업번호-순번`으로 태그를 만들어 읽게 고쳤다. 「아직 자료가 없어 고를 수 없습니다」 안내 제거
+- 팀에 안 들어가 있던 yesol `team-share` 커밋 7개(J7-1 문구 수정 · 설비 촬영 화면 개선 4건 · Figma 디자인 2건)를 develop에 머지 — 사용자가 "전체 다 지금 처리" 결정. `admin.css`·`sw.js` 충돌만 나서 둘 다 양쪽 내용을 그대로 합쳤다(선택지 제거 아님). `sw.js` **v31**
 
 **막혔던 것 / 어떻게 풀었는지**
 - Vercel 미리보기 배포가 develop·PR 양쪽에서 "Branch limit reached"로 실패 — 원인은 PR이 아니라 **Neon DB 브랜치 한도 초과**였다. 머지·삭제된 git 브랜치의 Neon 브랜치가 자동으로 안 지워지고 쌓인 탓. 콘솔에서 stale 브랜치 2개(`feature/Subin-prd-2`·`feature/yesol-docs`) 지우고 해결. 재발 방지(Neon-Vercel 연동의 자동 삭제 옵션)는 아직 안 켜짐 — 다음에 할 일
 - `legaltag.js`의 `specialLabel()`이 `Curriculum.find()`로 이름을 찾았는데, 27종 쪽 태그는 `curriculum.js`에 없고 `legaltag.js`가 그 자리에서 만든 것이라 못 찾았다 → `Curriculum.find` 대신 이 파일 자체의 `jobs()`에서 찾게 바꿨다
+- `admin.css` 충돌 — 양쪽이 같은 줄(`#btn-scan-start[hidden], #btn-scan-stop[hidden] {…}`)을 서로 다르게 넓혔다. 두 선택자를 합쳐 한 줄로 만들고 나머지(내 쪽 `.special-note`·`.edu-equip-note`, yesol 쪽 `.equip-scan-btn`·`.scan-stage.full`·`.scan-coach`·`.dash-figma`)는 전부 그대로 둘 다 살렸다
 
 **다음에 할 것**
 - Neon-Vercel 자동 브랜치 정리 옵션 켜기 (계정 설정)
-- 미머지 커밋 3건(J7-1 문구 수정·설비 촬영 화면 개선·Figma) 반영 여부 결정
+- `main` 배포 — 이번 세션 merge(PR #12·#13·yesol team-share, v31)가 아직 운영에 안 올라감
+- 앱 이름이 Figma 반영으로 "Safelang"이 됐다 — `docs/08-overview.md` 등 사람이 읽는 문서에 이름이 바뀐 걸 반영해야 하는지 확인 필요
 - iOS·두 기기 실물 확인 일정
 
 ## 2026-11-15 (6) — 세션을 닫는다. 검사 52묶음 3,631건 전부 통과
