@@ -1,0 +1,831 @@
+{
+  "kind": "safety-ai-run",
+  "version": 1,
+  "at": "2026-11-10T08:15:06.039Z",
+  "provider": "openai",
+  "model": "gpt-5-mini",
+  "equipment": {
+    "name": "횡형 사출성형기",
+    "maker": "Woojin Plaimm",
+    "model": "TB-G5",
+    "year": null
+  },
+  "research": {
+    "overview": "Woojin Plaimm TB-G5(수평형·하이브리드·토글식) 사출성형기에서 공식 문서(제시된 2023-교육혁신실-859 항목)를 제외한 추가로 검색으로 확인된 위험부위·위험유형·위험설명과 근거자료 정리.",
+    "limits": [
+      "확인한 것: Woojin Plaimm 공식 제품소개(TB-G5 카탈로그·제품페이지), KOSHA MIIS(사출성형기 종합정보), OSHA eTool, HSE 및 Cornell 자료(고압유체 주입 위험), 한국 사업장 사고·보도자료를 교차확인함. 막힌 지점: TB-G5 정비매뉴얼(서비스매뉴얼)·전기회로도(배선도)·유압회로도·부품별 작업허가서(PM proced",
+      "확인한 문헌: 우진플라임 TB-G5 카탈로그·옵션 리스트(제조사) 및 Woojin Plaimm 공식 제품페이지(카탈로그 링크), OSHA eTool(횡형 사출기 기계가드·로봇·유압 인터록·LOTO 권고), 산업용 안전 자료(어큐뮬레이터/고압 경고 기호 설명) 등을 조사함. TB-G5의 상세 정비매뉴얼(유압회로도·전기회로도·모델별 기본장착 가드 사진)은 공개"
+    ],
+    "docNumbers": [],
+    "general": false,
+    "items": [
+      {
+        "id": "o1",
+        "part": "금형 사이 (제품 취출)",
+        "hazard": "pinch",
+        "risk": "제품을 꺼내다 금형 사이에 손이 끼인다",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 위험요인",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "위험요인",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o2",
+        "part": "이젝터와 금형 사이",
+        "hazard": "pinch",
+        "risk": "점검 중 이젝터와 금형 사이에 신체가 끼인다",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 위험요인",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "위험요인",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o3",
+        "part": "분쇄기",
+        "hazard": "pinch",
+        "risk": "분쇄기 스크랩을 제거하다 손가락이 감긴다",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 위험요인",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "위험요인",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o4",
+        "part": "안전문 연동장치",
+        "hazard": "pinch",
+        "risk": "안전문 연동장치(리미트 스위치)를 무효화하고 작업하다 끼인다 (실제 사고)",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 사고사례",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "사고사례",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o5",
+        "part": "가열 실린더 히터",
+        "hazard": "fire",
+        "risk": "히터 방호덮개가 없으면 고온부에 화상",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 안전점검표",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "안전점검표",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o6",
+        "part": "노즐 충전부",
+        "hazard": "shock",
+        "risk": "노즐 충전부에 절연캡이 없으면 감전",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 안전점검표",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "안전점검표",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o7",
+        "part": "수리·점검 (전원)",
+        "hazard": "pinch",
+        "risk": "전원 차단·잠금·「작업중」 표시 없이 점검하면 갑자기 움직여 끼인다",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 안전점검표",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "안전점검표",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "o8",
+        "part": "비상정지 버튼",
+        "hazard": "pinch",
+        "risk": "비상정지 버튼이 작동하지 않으면 사고를 멈출 수 없다",
+        "sources": [
+          {
+            "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료) 안전점검표",
+            "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf",
+            "host": "esafetykorea.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "2023-교육혁신실-859",
+          "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+          "section": "안전점검표",
+          "publisher": "고용노동부·안전보건공단",
+          "year": 2023
+        },
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r1",
+        "part": "유압회로(호스·피팅)",
+        "partEn": "hydraulic hoses  fittings",
+        "hazard": "unknown",
+        "risk": "고압의 유압유 누출이 피부에 고압 주입되어 심각한 조직손상(절단·절제)·화상·출혈을 초래할 수 있다.",
+        "sources": [
+          {
+            "title": "Hydraulic injection injury - HSE",
+            "url": "https://www.hse.gov.uk/safetybulletins/hydraulic-injection-injury.htm",
+            "host": "hse.gov.uk",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "Preventing High-Pressure Injection Injury (Cornell eCommons)",
+            "url": "https://ecommons.cornell.edu/bitstream/1813/74273/1/Brown48_HIGH_pressure_injection_injury_article_as_pamphlet_01142019.pdf",
+            "host": "ecommons.cornell.edu",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "피팅 접속부와 호스 마모부를 근거리(측면)에서; 호스 클램프·라벨(압력표시) 정면샷",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "위험유형을 정하지 못함"
+        ],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Injection_moulding",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY 3.0 · engineerguy",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r2",
+        "part": "토글·클램핑 메커니즘(토글링크·피벗부)",
+        "partEn": "toggle mechanism  pivot points",
+        "hazard": "pinch",
+        "risk": "토글과 피벗 사이·토글 작동 중 발생하는 상대운동에서 신체가 끼이거나 압착되어 골절·절단 등의 중상위험이 있다.",
+        "sources": [
+          {
+            "title": "WOOJIN PLAIMM TB-G5 (제품소개 페이지)",
+            "url": "https://www.woojinplaimm.kr/page/product_new/product.php?me_code=2020&pd_id=5",
+            "host": "woojinplaimm.kr",
+            "tier": 1,
+            "kind": "manual"
+          },
+          {
+            "title": "사출성형기 (KOSHA MIIS) - 수평형 사출성형기 주요 위험요인 및 방호조치",
+            "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+            "host": "miis.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "토글 링크와 피벗부를 정면·측면에서; 가동·정지 상태 비교용 전경샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=w0k1a_s6GWk",
+          "host": "youtube.com",
+          "alt": "Toogle Mechanism",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r3",
+        "part": "금형 고정볼트·슬라이드 웨지(교환·조정 시)",
+        "partEn": "mold clamping bolts and slide wedges",
+        "hazard": "pinch",
+        "risk": "금형 장착·해체 중 볼트·슬라이드가 이탈·낙하하거나 조임·풀림 과정에서 손가락 끼임과 타박상이 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "공정 또는 작업명: 사출·취출 및 금형 교체 (사업장 작업안내)",
+            "url": "https://gycci.korcham.net/file/dext5uploaddata/2023/2023%20%EC%83%88%EB%A1%9C%EC%9A%B4%20%EC%95%84%EC%97%85%20%EC%95%88%EB%82%B4%EC%84%9C%20(etc).pdf",
+            "host": "gycci.korcham.net",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "WOOJIN PLAIMM TB-G5 (제품소개 페이지)",
+            "url": "https://www.woojinplaimm.kr/page/product_new/product.php?me_code=2020&pd_id=5",
+            "host": "woojinplaimm.kr",
+            "tier": 1,
+            "kind": "manual"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "금형 고정볼트·너트 및 볼트 체결부 정면; 볼트 길이·잠금장치 동작 각도 샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=PWM4JLdTaq4",
+          "host": "youtube.com",
+          "alt": "Change a mold: tutorial for quick injection mold installation",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r4",
+        "part": "금형 취급(인양·이동) — 크레인·리프팅 기구",
+        "partEn": "mold lifting  handling",
+        "hazard": "fall",
+        "risk": "금형 인양·이동 시 슬링·포인트 파손 또는 부적절한 고정으로 금형이 낙하하여 작업자 충격·압사 사고가 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "사출·취출 및 금형 교체 (공정안내)",
+            "url": "https://gycci.korcham.net/file/dext5uploaddata/2023/2023%20%EC%83%88%EB%A1%9C%EC%9A%B4%20%EC%95%84%EC%97%85%20%EC%95%88%EB%82%B4%EC%84%9C%20(etc).pdf",
+            "host": "gycci.korcham.net",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "WOOJIN PLAIMM TB-G5 (카탈로그/제품소개)",
+            "url": "https://woojinplaimm.com/page/prcenter/catalogue.php?lang_code=ENG",
+            "host": "woojinplaimm.com",
+            "tier": 1,
+            "kind": "manual"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "금형 인양볼트(리프팅아이)와 슬링 체결부 상부 정면 및 전체 외관샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r5",
+        "part": "축방향 코어·액추에이터(유압·공압 코어풀러)",
+        "partEn": "core pullers / actuators",
+        "hazard": "pinch",
+        "risk": "코어가 동작할 때 돌출부와 금형 사이에 손이 끼이거나 잡히는 사고가 발생할 수 있다(정지상태에서 잔류압으로 작동할 가능성 포함).",
+        "sources": [
+          {
+            "title": "WOOJIN PLAIMM TB-G5 카탈로그(옵션 목록에 코어·안전장치 표기)",
+            "url": "https://www.vantomachines.com/brands/WOOJIN%20PLAIMM/WOOJIN%20PLAIMM%20A5%20Series%20IMM.pdf",
+            "host": "vantomachines.com",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "사출성형기 (KOSHA MIIS) - 주요 방호조치",
+            "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+            "host": "miis.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "코어풀러 실린더와 코어가 삽입되는 면 전·측면 샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=BLAQvRUq3IQ",
+          "host": "youtube.com",
+          "alt": "Why an Arc Core-Pull Mechanism Was Used for a 90° Pipe Connector Mold",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r6",
+        "part": "제어반·배전반(아크플래시·감전 위험)",
+        "partEn": "electrical control panel  distribution",
+        "hazard": "shock",
+        "risk": "배전반·제어반 내부 점검·수리 중에 아크플래시 또는 감전으로 인한 화상·사망 위험이 있으며 부적절한 차단으로 설비가 재기동될 수 있다.",
+        "sources": [
+          {
+            "title": "OSHA eTool - Horizontal Injection Molding Machines (Electrical hazards, machine guarding)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "사출성형기 (KOSHA MIIS) - 안전수칙(전원 차단·잠금·표시)",
+            "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+            "host": "miis.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "제어반 도어 열림 상태의 전면샷(잠금·라벨 등 표시 포함) 및 제어케이블 진입부 샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r7",
+        "part": "원료(호퍼) 작업대·상부 플랫폼(추락·낙하물)",
+        "partEn": "hopper  platform",
+        "hazard": "fall",
+        "risk": "호퍼·호퍼로더 상에서 작업하거나 청소 시 추락 위험이 있고 투입 중 흘린 원료(펠릿)로 바닥이 미끄러져 추락·전도 사고가 발생한다.",
+        "sources": [
+          {
+            "title": "사출성형기 (KOSHA MIIS) - 주요 위험요인: 호퍼 원료 투입·작업자 낙하",
+            "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+            "host": "miis.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "OSHA eTool - Horizontal Injection Molding Machines (Work at height / housekeeping)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "호퍼 상부 작업 플랫폼 전경(난간·계단·출입구 각도 포함) 및 바닥 펠릿 흩어진 상태 근거리샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+          "host": "miis.kosha.or.kr",
+          "alt": "추락 / 원료를 호퍼에 투입하던 중 사출기 위에서 미끄러져 떨어짐",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r8",
+        "part": "용융수지 가열·분출·스플래시(금형·노즐 이외의 분출)",
+        "partEn": "molten plastic splashes / hot parts",
+        "hazard": "fire",
+        "risk": "노즐·게이트 이외에서 용융수지가 튀거나 분출되어 화상·의복 점화(국소 화재)를 일으킬 수 있다.",
+        "sources": [
+          {
+            "title": "OSHA eTool - Horizontal Injection Molding Machines (Molten plastic burn and guarding)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "사출성형기 (KOSHA MIIS) - 고온부(노즐·배럴) 방호 권고",
+            "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+            "host": "miis.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "노즐 주변 및 금형 게이트부를 정면에서; 노즐-스프루 주변의 방호덮개 상태 샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r9",
+        "part": "용융수지 가공 시 발생 가스·분진(환기·유해가스)",
+        "partEn": "fume  particulate emissions",
+        "hazard": "chemical",
+        "risk": "용융된 수지의 가열·분해로 유해가스(예: 아세트알데히드·모노머·분진)가 발생하여 흡입 시 호흡기·전신 이상을 일으킬 수 있다.",
+        "sources": [
+          {
+            "title": "Injection molding machine (OSHA eTool) - emissions and operator training",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "Injection moulding — health risks from emissions (Wikipedia summary with refs)",
+            "url": "https://en.wikipedia.org/wiki/Injection_molding",
+            "host": "en.wikipedia.org",
+            "tier": 3,
+            "kind": "web"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "배출구(흡기·환기구) 전면샷 및 제어기 근처 공기흐름·덕트 연결부 샷",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines/safety-tour-view-3",
+          "host": "osha.gov",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r10",
+        "part": "축적된 유압·전기적 잔류에너지(축압기·배선)",
+        "partEn": "stored energy (accumulators / residual c",
+        "hazard": "unknown",
+        "risk": "축압기·유압 잔류압력 또는 전기 잔류전류로 인해 차단·잠금 없이 작업 시 갑작스러운 축·슬라이드 이동이 발생하여 끼임·타박상 사고가 난다.",
+        "sources": [
+          {
+            "title": "Preventing High-Pressure Injection Injury (Cornell eCommons)",
+            "url": "https://ecommons.cornell.edu/bitstream/1813/74273/1/Brown48_HIGH_pressure_injection_injury_article_as_pamphlet_01142019.pdf",
+            "host": "ecommons.cornell.edu",
+            "tier": 3,
+            "kind": "journal"
+          },
+          {
+            "title": "사출성형기 (KOSHA MIIS) - 방호조치 및 잔류에너지 위험 언급",
+            "url": "https://miis.kosha.or.kr/webm/nav.do?jspName=KDMS_001_IM_machine",
+            "host": "miis.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "유압축압기(있을 경우)·축압기 밸브와 배관, 안전밸브 라벨 근접샷",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "위험유형을 정하지 못함"
+        ],
+        "image": {
+          "page": "https://woojinplaimm.com/page/prcenter/catalogue.php?lang_code=en",
+          "host": "woojinplaimm.com",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r11",
+        "part": "토글 링크(클램핑 기구)·토클레버 노출부",
+        "partEn": "toggle linkage",
+        "hazard": "pinch",
+        "risk": "토글식 클램핑 기구의 레버·링크가 노출되어 유지·점검 중 또는 금형 장착·탈거 시 링크 사이에 손·팔이 끼거나 이동 플레이트의 복합운동에 의해 급격한 체결력이 발생한다.",
+        "sources": [
+          {
+            "title": "Option List TB-G5",
+            "url": "https://www.k-online.de/vis-content/event-k2025/exh-k2025.3004127/K-2025-WOOJIN-PLAIMM-Co.-Ltd-Paper-k2025.3004127-ksZw5z1IRwilXvcV3uS8CQ.pdf",
+            "host": "k-online.de",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "TB G5 Catalogue (Woojin Plaimm product page)",
+            "url": "https://woojinplaimm.com/page/prcenter/catalogue.php?lang_code=ENG",
+            "host": "woojinplaimm.com",
+            "tier": 1,
+            "kind": "manual"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "제조사 문서에는 토글식 기구의 옵션·보호장치(예: 안전도어, safety device) 언급이 있으나(매뉴얼·카탈로그), OSHA 등 실무 자료는 토글·링크류는 고정가드·인터록·락아웃 필요를 강조하며 현장에서는 인터록 우회 사례가 보고된다.",
+        "needsPhoto": "토글 링크 정면·측면(링크 간격·가드 부착 상태)",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/File:Principe_moulage_injection_polymere.svg",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY-SA 3.0 · Cdang , Brendan Rockey, University of Alberta Industrial Design",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r12",
+        "part": "유압 서브시스템(축압기/어큐뮬레이터 및 릴리프 회로)",
+        "partEn": "hydraulic accumulator / relief circuit",
+        "hazard": "pinch",
+        "risk": "유압 계통의 축압기(어큐뮬레이터)나 압력 잔류로 인해 전원 차단·밸브 해제 없이도 실린더가 급작스럽게 작동하여 클램프·플레이트가 이동해 근로자가 끼임을 당할 수 있다.",
+        "sources": [
+          {
+            "title": "TB-G5 Catalogue (Option List mentions 'Core Pressure release Circuit')",
+            "url": "https://www.k-online.de/vis-content/event-k2025/exh-k2025.3004127/K-2025-WOOJIN-PLAIMM-Co.-Ltd-Paper-k2025.3004127-ksZw5z1IRwilXvcV3uS8CQ.pdf",
+            "host": "k-online.de",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "Injection molding machine hazards — OSHA eTool (Hydraulic interlock and residual energy)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "Safety Symbols Typical to Injection Molding Machines (high-pressure/accumulator hazards)",
+            "url": "https://matritehightech.ro/HRUM-EN-v18_Web.pdf",
+            "host": "matritehightech.ro",
+            "tier": 3,
+            "kind": "web"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "제조사 옵션리스트는 'Core Pressure release Circuit' 등 압력 해제 회로를 옵션으로 기재하나, 산업안전 자료(OSHA 등)는 장비에 어큐뮬레이터·잔류압력이 있을 수 있음을 전제로 잠금·방전 절차를 엄격히 요구함—제조사 문서가 기본 장착 여부를 일관되게 표시하지 않음.",
+        "needsPhoto": "유압유 탱크·릴리프 밸브·어큐뮬레이터(있다면) 전면·밸브 명판이 보이는 각도",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=hn8_Z-e9Ndo",
+          "host": "youtube.com",
+          "alt": "Use of Hydraulic Accumulator",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r13",
+        "part": "로봇/픽업 장치(부착형 테이크아웃) 및 자동화 주변장치",
+        "partEn": "take-out robot / automation cell",
+        "hazard": "pinch",
+        "risk": "금형 옆에 설치된 테이크아웃 로봇·컨베이어·치퍼 등이 사출 사이클과 동기화되어 동작할 때 작업자가 로봇 작업영역에 진입하거나 인터록을 우회·무효화하면 충돌·추격으로 끼임·충격이 발생한다.",
+        "sources": [
+          {
+            "title": "OSHA eTool - Horizontal Injection Molding Machines (robot and guarding guidance)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "Human-Robot Collaboration Safety for Injection Molding (Yushin / industry guidance)",
+            "url": "https://yushinamerica.com/feeds/blog/safest-collaborative-robots-human-robot-manufacturing",
+            "host": "yushinamerica.com",
+            "tier": 3,
+            "kind": "journal"
+          },
+          {
+            "title": "Woojin Plaimm 'WABOT' and TB-G5 brochure listing robot/take-out options",
+            "url": "https://woojinplaimm.com/page/prcenter/catalogue.php?lang_code=ENG",
+            "host": "woojinplaimm.com",
+            "tier": 1,
+            "kind": "manual"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "제조사·업체 자료는 로봇 적용·옵션 장착을 전제로 설치지침을 제시하지만, OSHA 및 로봇 안전 지침은 인터록·프로그램 불일치·가드 우회에 따른 사고 위험을 별도로 경고함; 일부 문헌은 셀 설계 책임을 OEM에 두기도 함.",
+        "needsPhoto": "금형 정면에서 본 로봇 진입 경로·가드 게이트(열린/닫힌 상태) 전경",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://yushinamerica.com/feeds/blog/safest-collaborative-robots-human-robot-manufacturing",
+          "host": "yushinamerica.com",
+          "alt": "Collaborative Robots in Injection Molding: Where They Fit and Where Dedicated Automation Is Stronger",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r14",
+        "part": "사출유닛 스크류·피스톤 회전부(호퍼·피더 주변)",
+        "partEn": "screw and feed throat",
+        "hazard": "pinch",
+        "risk": "호퍼·충전부 주변에서 스크류 회전이나 충진·충전 장치(자동 피더) 접근 시 그리드·호퍼 가드가 없거나 제거된 상태면 회전부에 손이 말려들어가 끼임·절단 위험이 있다.",
+        "sources": [
+          {
+            "title": "OSHA eTool - Manual feed of plastics materials (feed throat hazards)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "Injection Molding Machine: Parts, Sizing, Upkeep (safety note on guarding and interlocks)",
+            "url": "https://www.advancedchemsolutions.com/en/knowledge/machinery/injection-molding-machine/",
+            "host": "advancedchemsolutions.com",
+            "tier": 3,
+            "kind": "web"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "제조사 카탈로그은 호퍼·냉각·공기블로우 옵션을 기술하나, 일부 장비 공급·현장 글에서는 생산 편의상 호퍼 가드·그릴을 제거해 사용하는 사례가 보고되어 작동 중 회전부 접근 위험이 발생한다고 경고함.",
+        "needsPhoto": "호퍼·충전부 전면(그릴/가드 유무) 및 호퍼-배출부 연결부 각도",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://www.advancedchemsolutions.com/en/knowledge/machinery/injection-molding-machine/",
+          "host": "advancedchemsolutions.com",
+          "alt": "Injection screw with its check ring and nozzle tip on a workbench",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r15",
+        "part": "전기·제어반(컨트롤러·서보·배전반) 및 전원 서지/아크 가능 지점",
+        "partEn": "electrical control panel / power distrib",
+        "hazard": "shock",
+        "risk": "제어반 내부 접점·서지·부적절한 차단기·절연 불량 또는 유지보수 중 전원 연결 상태로 인해 감전·아크(화재)·제어오작동으로 설비가 비의도적으로 작동하여 끼임·화상 등이 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "TB-G5 'Standard' and 'General' options listing (Safety device for electric & hydraulic)",
+            "url": "https://www.k-online.de/vis-content/event-k2025/exh-k2025.3004127/K-2025-WOOJIN-PLAIMM-Co.-Ltd-Paper-k2025.3004127-ksZw5z1IRwilXvcV3uS8CQ.pdf",
+            "host": "k-online.de",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "OSHA eTool / Machine guarding and lockout/tagout guidance (electrical hazards and LOTO)",
+            "url": "https://www.osha.gov/etools/machine-guarding/plastics-machinery/horizontal-injection-molding-machines",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "제조사 문서는 'safety device (for electric & hydraulic)'를 표기하나 세부 전기보호(아크 방지·서지 보호·회로도)의 기본 제공 범위는 문서마다 달라 현장 설치 전 배전반 사양 확인이 필요하다고 산업안전 자료는 지적함.",
+        "needsPhoto": "제어반 전면(문 열림 전)·명판·주요 차단기 레이블(패널 안쪽 사진 불필요)",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Injection_moulding_machines",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      }
+    ],
+    "dropped": {
+      "shape": 0,
+      "over": 0
+    },
+    "sourceCount": 13,
+    "thin": false,
+    "officialDocs": [
+      {
+        "code": "2023-교육혁신실-859",
+        "title": "OPS 사출성형기 작업안전 (고용노동부·안전보건공단 근로자용 교육자료)",
+        "publisher": "고용노동부·안전보건공단",
+        "year": 2023,
+        "url": "https://esafetykorea.or.kr/js/smarteditor2-2.8.2.3/files/20240228090646_170907880643465de79166a246_Name=%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%5B2023-%EA%B5%90%EC%9C%A1%ED%98%81%EC%8B%A0%EC%8B%A4-859%5D%20%EC%82%AC%EC%B6%9C%EC%84%B1%ED%98%95%EA%B8%B0_OPS_%EA%B7%BC%EB%A1%9C%EC%9E%90.pdf"
+      }
+    ],
+    "noOfficial": false,
+    "images": 12,
+    "model": "gpt-5-mini"
+  },
+  "guided": null,
+  "photo": null,
+  "ms": {
+    "research": 58787
+  },
+  "groundingCount": 72
+}

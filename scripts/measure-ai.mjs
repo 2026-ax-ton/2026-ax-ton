@@ -72,7 +72,7 @@ const PHRASES = [
   '밀폐 공간에 혼자 들어가지 마십시오',
 ];
 
-const LANGS = ['km', 'id', 'vi', 'ne', 'th'];
+const LANGS = ['km', 'vi', 'ne', 'th'];
 const NAMES = { km: '크메르어', id: '인도네시아어', vi: '베트남어', ne: '네팔어', th: '태국어' };
 const MAX_RETRY = 2;   // agent.js 와 같다
 

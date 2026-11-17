@@ -8,7 +8,10 @@ const empty = () => Array.from({ length: C.SEGMENTS }, () => []);
 
 ok('오류 없이 뜬다', t.errors.length === 0, t.errors.join(' | '));
 ok('고른 설비 이름이 보인다', t.$('scan-equip').textContent.length > 0 && !/고르지 않음/.test(t.$('scan-equip').textContent), t.$('scan-equip').textContent);
-eq('촬영 전에는 카메라 칸이 숨어 있다', t.$('scan-stage').hidden, true);
+/* 2026-11-16 Figma 시안 — 카메라 칸은 늘 자리를 보이고, 켜기 전에는 안내만 */
+ok('촬영 전에는 카메라가 꺼진 상태 (live 아님) · 안내가 보인다', !t.$('scan-stage').classList.contains('live') && !!t.$('scan-idle'));
+has('개인정보 주의 띠', t.$('scan-stage').textContent, '사람 얼굴');
+eq('촬영 전에는 멈추기를 못 누른다', t.$('btn-scan-stop2').disabled, true);
 
 /* 카메라를 못 켜는 곳 — 조용히 실패하지 않고 이유를 말한다 */
 t.$('btn-scan-start').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
