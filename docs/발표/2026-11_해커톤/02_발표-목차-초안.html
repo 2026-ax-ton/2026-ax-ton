@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>발표 목차 초안 — 해커톤 11/28</title>
+<style>
+:root{--bg:#13161d;--fg:#e7e9ee;--muted:#98a1b2;--line:#2a3040;--card:#1a1e28;
+--accent:#6aa9ff;--red:#ff9aa2;--amber:#f2d478;--green:#7fe3a4;--chip:#1f2430;
+--purple:#d3aef5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);line-height:1.65;font-size:16px;
+font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 16px 70px}
+header{border-bottom:2px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-size:1.5rem;margin:0 0 6px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:.86rem}
+p.sub{margin:0}
+h2{font-size:1.1rem;margin:34px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:.98rem;margin:20px 0 6px}
+.lead{background:var(--chip);border:1px solid var(--line);border-left:3px solid var(--accent);
+border-radius:0 10px 10px 0;padding:13px 15px;margin:14px 0;font-size:.93rem}
+.warn{background:#241416;border:1px solid #5a2630;border-left:3px solid var(--red);
+border-radius:0 10px 10px 0;padding:13px 15px;margin:14px 0;font-size:.93rem}
+.note{background:#15211a;border:1px solid #2a5a3e;border-left:3px solid var(--green);
+border-radius:0 10px 10px 0;padding:13px 15px;margin:14px 0;font-size:.93rem}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.9rem}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--chip);font-weight:600;white-space:nowrap}
+.scroll{overflow-x:auto}
+code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:.87em;
+font-family:Consolas,Menlo,monospace}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .55rem;
+border-radius:999px;white-space:nowrap;border:1px solid}
+.b-ok{background:#10281a;color:var(--green);border-color:#2a7a4a}
+.b-mat{background:#2a2412;color:var(--amber);border-color:#6d5a1e}
+.b-wait{background:#2a1418;color:var(--red);border-color:#7a2a36}
+.b-dec{background:#2a2135;color:var(--purple);border-color:#6c4b93}
+.slide{background:var(--card);border:1px solid var(--line);border-radius:10px;
+padding:14px 16px;margin:12px 0}
+.slide .head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+.slide .no{font-family:Consolas,Menlo,monospace;color:var(--accent);font-weight:700}
+.slide .ttl{font-weight:700;font-size:1.02rem}
+.slide .sec{color:var(--muted);font-size:.84rem;margin-left:auto}
+.slide .say{margin:8px 0 0;padding-left:1.1em}
+.slide .say li{margin:4px 0;font-size:.92rem}
+.meta{color:var(--muted);font-size:.84rem;margin-top:8px;padding-top:7px;
+border-top:1px dashed var(--line)}
+.num{font-size:1.45rem;font-weight:700;color:var(--accent);display:block;line-height:1.2}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card .cap{font-size:.78rem;color:var(--muted);display:block;margin-top:4px}
+footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--line);
+color:var(--muted);font-size:.84rem}
+a{color:var(--accent)}
+ul.tight{margin:8px 0;padding-left:1.3em}
+ul.tight li{margin:4px 0}
+b.key{color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>발표 목차 초안 — 해커톤 11/28</h1>
+  <p class="sub">SAFE-LANG · 팀 청일점 · 작성 변소윤 · 기준일 <b>2026-11-17(월)</b><br>
+  대회 공지(11/03 개정) · 심사 세부 질문 12개 · <b>2026-11-17 창업 멘토링(마지막) 지적</b>을 모두 반영</p>
+</header>
+
+<div class="lead">
+  <b>이 문서는 「무엇을 몇 번째 장에서 말할 것인가」까지만 정한다.</b>
+  장표 디자인과 문장은 다음 단계다. <b>팀 피드백을 받을 대상이 이 문서</b>이고,
+  흐름이 확정되면 장별 내용 초안으로 넘어간다.
+</div>
+
+<!-- ===== 시간 ===== -->
+<h2>1. 시간 — 7분을 어떻게 쓰나</h2>
+
+<div class="cards">
+  <div class="card"><span class="num">420초</span><span class="cap">발표 7분 (전부 포함)</span></div>
+  <div class="card"><span class="num">120초</span><span class="cap">시연 영상</span></div>
+  <div class="card"><span class="num">290초</span><span class="cap">말하는 시간</span></div>
+  <div class="card"><span class="num">10초</span><span class="cap">화면 전환 여유</span></div>
+  <div class="card"><span class="num">12장</span><span class="cap">본 장표 (영상 장 포함)</span></div>
+</div>
+
+<div class="warn">
+  <b>7분이 지나면 즉시 끊긴다.</b> 연장이 없으므로 <b>중요한 내용을 뒤에 두지 않는다.</b>
+  12장 중 <b>마지막 2장(역할·한계)은 잘려도 치명적이지 않은 순서</b>로 뒤에 뒀다.
+  반대로 검증(8)과 지불 고객(9)은 배점이 크고 설명이 필요해 가운데에 뒀다.
+</div>
+
+<!-- ===== 흐름 ===== -->
+<h2>2. 흐름 — 멘토가 요구한 순서</h2>
+
+<p class="sub">2026-11-17 창업 멘토링: <b>「고객 문제 → 서비스 기능 → 수익 구조」로 이어지는 논리 구성」</b></p>
+
+<div class="scroll"><table>
+<tr><th>구간</th><th>장</th><th>무엇을 하는 구간인가</th></tr>
+<tr><td><b>고객 문제</b></td><td>2 · 3</td><td>숫자로 크기를 보이고, 현장 증언으로 「교육은 했는데 이해는 확인 못 한다」를 보인다</td></tr>
+<tr><td><b>해결과 기능</b></td><td>4 · 5 · 6 · 7</td><td>흐름 한 장 → <b>영상으로 실제 동작</b> → 방금 본 것의 설계 의도 → 어떻게 만들었나</td></tr>
+<tr><td><b>검증</b></td><td>8</td><td>했고, <b>그 결과로 무엇을 바꿨는지</b>까지</td></tr>
+<tr><td><b>수익 구조</b></td><td>9 · 10</td><td>누가 왜 돈을 내는지 → 얼마를 어떻게 받고 어떻게 유지되는지</td></tr>
+<tr><td>마무리</td><td>11 · 12</td><td>역할과 과정 · 한계와 다음</td></tr>
+</table></div>
+
+<!-- ===== 장별 ===== -->
+<h2>3. 장별 구성</h2>
+
+<p class="sub"><b class="key">굵게 표시한 것이 장표에서 볼드 처리할 내용</b>이다 (멘토 지적 — 스크립트 없이 발표하기 위해).
+볼드만 따라 읽어도 발표가 되게 쓴다.</p>
+
+<div class="slide">
+  <div class="head"><span class="no">01</span><span class="ttl">표지</span><span class="sec">10초</span></div>
+  <ul class="say">
+    <li><b class="key">SAFE-LANG</b> · 팀 청일점 · 한국기술교육대학교</li>
+    <li>한 줄 정의 — <b class="key">서명은 참석의 증거일 뿐 이해의 증거가 아닙니다</b></li>
+  </ul>
+  <div class="meta">심사 — 전달력 ① · 제품명은 <b>SAFE-LANG 으로 통일</b> (멘토링 기록의 「세이프렌」 아님)</div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">02</span><span class="ttl">문제 — 얼마나 큰가</span><span class="sec">30초</span></div>
+  <ul class="say">
+    <li>국내 외국인 취업자 <b class="key">110만 9천 명</b>, 그중 <b class="key">78.9% 가 50인 미만 사업장</b></li>
+    <li>외국인 산업재해자 <b class="key">9,872명</b> · 사망사고 위험은 전체의 <b class="key">약 1.4배</b></li>
+    <li><b class="key">2027년 1월 8일</b>부터 외국인 기초안전보건교육 의무화</li>
+  </ul>
+  <div class="meta">심사 — 문제이해 ① · 출처는 장표 아래 작은 글씨 (S02 N-02·04·06·10·20, 전부 ✅ 판정)</div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">03</span><span class="ttl">문제의 진짜 지점 — 현장은 이렇다</span><span class="sec">30초</span></div>
+  <ul class="say">
+    <li>정부 조사 — E-9 취업교육 만족 <b class="key">30.4%</b>, 불만 1위가 <b class="key">「한국어 실력이 낮아 받아들이지 못함」 42.8%</b></li>
+    <li>대행기관 실무자 — 외국인 사업장 <b class="key">10곳 중 8곳이 한국어로만</b> 교육</li>
+    <li>남는 기록은 <b class="key">서명과 교육일지뿐</b> — 이해를 확인하는 단계가 없다</li>
+    <li><b class="key">「교육과 업무가 거의 동시에 진행되는 경우가 존재하는 것도 현실입니다」</b></li>
+  </ul>
+  <div class="meta">심사 — 문제이해 ① · 검증 ① (인터뷰를 여기서 처음 꺼낸다) · 인용은 원문 그대로</div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">04</span><span class="ttl">해결 — 한 장으로 보는 흐름</span><span class="sec">25초</span></div>
+  <ul class="say">
+    <li>설비 등록 → <b class="key">AI 분석·문항 초안</b> → <b class="key">사람 검수·승인</b> → 모국어 수강 → <b class="key">이해도 검증</b> → 증빙</li>
+    <li><b class="key">법정 교육을 대체하지 않는다.</b> 사업장이 직접 하는 <b class="key">자체교육의 실시 도구</b>다</li>
+  </ul>
+  <div class="meta">심사 — 문제이해 ② (문제에서 해결로 가는 논리) · ⚠️ 포지셔닝 주의: 2027년 기초교육은 공단·등록기관이 한다</div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">05</span><span class="ttl">[영상 시연]</span><span class="sec">120초 · 말하기 0</span></div>
+  <ul class="say">
+    <li>장표에 <b class="key">[영상 시연] 표기</b> 또는 <b class="key">장표 안에 영상 삽입</b> (공지 요건, 둘 중 하나 필수)</li>
+    <li>컷 — AI 번역·검수 / 모국어 수강 / 그림 문제로 이해 확인 / 두 기기 동기화</li>
+  </ul>
+  <div class="meta">심사 — 전달력 ② · 완성도 ① · <b>영상 삽입 방식이 무대에서 더 안전</b>(창 전환 없음)</div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">06</span><span class="ttl">방금 보신 것 — 왜 이렇게 만들었나</span><span class="sec">30초</span></div>
+  <ul class="say">
+    <li><b class="key">글자를 한 자도 읽지 않고 끝까지 갈 수 있다</b> — 모든 안내에 음성 병행</li>
+    <li><b class="key">터치 영역 60px</b> — 장갑 낀 손으로 조작한다</li>
+    <li><b class="key">색만으로 상태를 구분하지 않는다</b> — 아이콘 + 글자 + 색</li>
+    <li><b class="key">AI 는 제안까지, 승인은 사람이</b> — 역번역으로 뜻이 뒤집혔는지 대조한다</li>
+  </ul>
+  <div class="meta">심사 — <b>완성도 ② (UX/UI)</b> · 이전 장표에 없던 자리다. 전부 이유가 있는 결정이라 설명하면 바로 점수가 된다</div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">07</span><span class="ttl">어떻게 만들었나</span><span class="sec">25초</span></div>
+  <ul class="say">
+    <li>Claude Code 로 개발 · <b class="key">결정을 기록하며 만들었다</b> (결정기록 · 개발일지 · PR)</li>
+    <li>과정 이야기 1~2개 — 예: <b class="key">가짜 응답 검사는 전부 통과했는데 실제로 돌리니 결함 6가지가 나왔다</b></li>
+    <li>검사 건수·화면 수·배포 버전 <span class="badge b-wait">확정본 대기</span></li>
+  </ul>
+  <div class="meta">심사 — 팀워크 ① (AI 도구로 만들어 간 과정) · 완성도 ① · <b>숫자는 마지막에 채운다</b></div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">08</span><span class="ttl">검증 — 했고, 그래서 바꿨다</span><span class="sec">35초</span></div>
+  <ul class="say">
+    <li><b class="key">인터뷰 4건</b> — 이주노동자 3명 대면 + 안전관리 대행기관 1명 서면</li>
+    <li>제시한 <b class="key">기능 8개 전부 「꼭 필요」</b> · 종합 의견 「큰 도움이 된다」</li>
+    <li><b class="key">가격 가정이 깨졌다</b> — 적정가가 연 10~30만 원으로 나왔다</li>
+    <li>그래서 <b class="key">가격이 아니라 「누가 내는가」를 바꿨다</b> → 다음 장</li>
+  </ul>
+  <div class="meta">심사 — <b>검증 ①② 둘 다.</b> 건수만 말하면 절반만 답한 것이 된다 · 노동자 인터뷰 기록 <span class="badge b-wait">받는 중</span></div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">09</span><span class="ttl">누가 돈을 내나 — 지불 고객 4곳</span><span class="sec">35초</span></div>
+  <ul class="say">
+    <li>고객마다 <b class="key">「문제 → 우리 기능 → 돈 내는 이유」</b>를 한 줄씩</li>
+    <li>사업주·안전관리자 — 사고 시 <b class="key">서명만으로는 의무 이행을 입증하기 어렵다</b> → 이해 기록</li>
+    <li>지자체 주무관 — <b class="key">지자체 합동평가에 산재예방 지표가 있고 5개 시도가 미달성</b> → 이수율·이해도 숫자</li>
+    <li>원청 — 협력사 안전관리를 <b class="key">협력사별 수치로 보고</b>해야 한다</li>
+    <li>산단 관리기관 — <b class="key">공공기관 경영평가 산재예방 배점이 0.5 → 2.5점</b>으로 올랐다</li>
+  </ul>
+  <div class="meta">심사 — BM ① · <b>멘토가 요구한 「4개 지불 고객 연결고리」 장이 여기다</b></div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">10</span><span class="ttl">수익 구조 · 확장 · 지속</span><span class="sec">35초</span></div>
+  <ul class="say">
+    <li><b class="key">노동자는 무료.</b> 교육 책임이 있는 쪽이 1년 단위로 낸다</li>
+    <li><b class="key">인당 단위 요금제</b> + 규모별 할인 <span class="badge b-dec">팀결정</span></li>
+    <li>운영 원가 — AI 처리 비용 <b class="key">월 ₩41</b> (2026-11-16 실측, 공개 시연 전 사용량 기준)</li>
+    <li>확장 — <b class="key">대행기관 1곳이 사업장 30개소를 관리한다</b> · 산단 단위 일괄 · 제조 → 건설</li>
+    <li>지속 — <b class="key">이용 기록이 지불 고객의 성과 보고로 돌아가 다음 해 계약이 갱신된다</b></li>
+  </ul>
+  <div class="meta">심사 — BM ①(확장) · BM ②(지속 운영) · 요금 수준과 시장 규모 <span class="badge b-wait">재검토 중</span></div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">11</span><span class="ttl">역할과 과정</span><span class="sec">20초</span></div>
+  <ul class="say">
+    <li>네 사람 — 창업 · 개발 · 디자인 · 발표자료</li>
+    <li>각자 <b class="key">한 일 3개</b> <span class="badge b-wait">받는 중</span></li>
+  </ul>
+  <div class="meta">심사 — 팀워크 ② · ⚠️ 아이디어톤 장표와 역할 배정이 다르다. <b>그대로 쓰면 틀린 정보가 나간다</b></div>
+</div>
+
+<div class="slide">
+  <div class="head"><span class="no">12</span><span class="ttl">한계와 다음</span><span class="sec">15초</span></div>
+  <ul class="say">
+    <li><b class="key">원어민 검수자를 아직 확보하지 못했다</b></li>
+    <li><b class="key">실사용 데이터가 없다</b> — 인터뷰와 예시 데이터로 확인한 범위다</li>
+    <li>다음 — 검증 확대 · 설비 사진 기반 위험 지점 인식 실측</li>
+  </ul>
+  <div class="meta">이 발표의 태도 — <b>안 되는 것을 안 된다고 적는다.</b> 한계를 먼저 말하면 나머지 말의 신뢰가 올라간다</div>
+</div>
+
+<!-- ===== 별첨 ===== -->
+<h2>4. 별첨 — 발표 7분에 들어가지 않는 장</h2>
+
+<div class="note">
+  멘토 지적 — <b>현장 기술 문제에 대비해 영상 백업과 핵심 페이지 캡처를 준비할 것.</b>
+</div>
+
+<div class="scroll"><table>
+<tr><th>별첨</th><th>무엇</th><th>언제 쓰나</th></tr>
+<tr><td>A-1 ~ A-5</td><td><b>핵심 화면 캡처</b> — 설비 등록 / AI 번역·검수 / 모국어 수강 / 그림 문제 / 담당자 대시보드·증빙</td><td><b>영상이 재생되지 않을 때</b> 이 장들을 넘기며 설명한다</td></tr>
+<tr><td>A-6</td><td>숫자 한 장 — 검사 건수·화면 수·실측값</td><td>질의응답에서 숫자를 물을 때</td></tr>
+<tr><td>A-7</td><td>예상 질문 대비 메모</td><td>질의응답 3분</td></tr>
+</table></div>
+
+<!-- ===== 심사 매핑 ===== -->
+<h2>5. 심사 세부 질문 12개 — 답이 다 붙었는지 확인</h2>
+
+<p class="sub"><b>답이 안 붙는 질문이 곧 비는 점수다.</b> 아래 표에 빈칸이 없어야 한다.</p>
+
+<div class="scroll"><table>
+<tr><th>배점</th><th>세부 질문</th><th>답하는 장</th></tr>
+<tr><td rowspan="2">완성도 25</td><td>① AI 활용 서비스가 실제로 작동하는 수준인가</td><td><b>5</b>(영상) · 7</td></tr>
+<tr><td>② 핵심 기능 완성도와 <b>UX/UI</b></td><td><b>6</b></td></tr>
+<tr><td rowspan="2">BM 20</td><td>① 기대 효과가 구체적이고 <b>다른 지역·대상으로 확장</b> 가능한가</td><td><b>9</b> · <b>10</b></td></tr>
+<tr><td>② <b>지속적으로 운영할 수 있는 구조</b>인가</td><td><b>10</b></td></tr>
+<tr><td rowspan="2">문제이해 15</td><td>① 페인포인트를 정확히 파악했는가</td><td><b>2</b> · <b>3</b></td></tr>
+<tr><td>② 문제에서 해결책까지 논리적으로 연결되는가</td><td><b>4</b> (전체 흐름이 받친다)</td></tr>
+<tr><td rowspan="2">검증 15</td><td>① 인터뷰·MVP 테스트를 <b>실제로</b> 했는가</td><td><b>8</b> · 3</td></tr>
+<tr><td>② <b>결과를 바탕으로 개선</b>했는가</td><td><b>8 → 9·10</b></td></tr>
+<tr><td rowspan="2">전달력 15</td><td>① 발표 흐름과 논리 구성이 명확한가</td><td>2절의 구간 흐름 전체</td></tr>
+<tr><td>② <b>시연</b>으로 완성도 있게 보여주었는가</td><td><b>5</b> + 별첨 A-1~A-5</td></tr>
+<tr><td rowspan="2">팀워크 10</td><td>① <b>AI 도구로 결과물을 만들어 간 성장 과정</b></td><td><b>7</b></td></tr>
+<tr><td>② 팀원 간 역할 분담과 역량</td><td><b>11</b></td></tr>
+</table></div>
+
+<div class="note"><b>12개 전부 답이 붙었다.</b> 비는 질문 없음.</div>
+
+<!-- ===== 멘토 체크 ===== -->
+<h2>6. 멘토 지적이 반영됐는지</h2>
+
+<div class="scroll"><table>
+<tr><th>2026-11-17 멘토 지적</th><th>어디에</th></tr>
+<tr><td>고객 문제 → 서비스 기능 → 수익 구조 논리 구성</td><td>2절 구간 흐름 — 2·3 → 4~7 → 9·10</td></tr>
+<tr><td>4개 지불 고객 각각의 문제와 서비스 연결고리 페이지</td><td><b>9장</b></td></tr>
+<tr><td>비즈니스 모델 페이지 추가</td><td><b>10장</b></td></tr>
+<tr><td>슬라이드 중요 내용 볼드 처리 (스크립트 없이 발표)</td><td>3절의 <b class="key">굵은 글씨</b>가 그대로 볼드 대상</td></tr>
+<tr><td>영상 백업 + 핵심 페이지 별첨</td><td><b>4절 별첨 A-1~A-5</b></td></tr>
+<tr><td>인당 단위 요금제 · 규모별 할인</td><td>10장 <span class="badge b-dec">팀결정</span></td></tr>
+<tr><td>지역별 단계적 영업 전략</td><td>10장 확장 <span class="badge b-dec">1차 지역 결정 필요</span></td></tr>
+<tr><td>TAM/SAM/SOM 재검토</td><td>10장 <span class="badge b-wait">재검토 중</span> — 결과가 오면 넣는다</td></tr>
+<tr><td>시연 방식 확정</td><td><b>영상 시연 유지</b> (공지상 점수 차등 없음)</td></tr>
+<tr><td>이주노동자 인터뷰로 가설 검증</td><td><b>8장</b></td></tr>
+<tr><td>고객별 KPI (사업주 비용 절감 · 주무관 사고 감소 · 노동자 모국어 수요)</td><td>9장 각 줄의 「돈 내는 이유」</td></tr>
+</table></div>
+
+<!-- ===== 팀에 묻는 것 ===== -->
+<h2>7. 팀에 묻는 것 — 이 목차로 가도 될까요</h2>
+
+<div class="lead">
+  <b>흐름에 대한 의견을 먼저 받고 싶습니다.</b> 장표 디자인과 문장은 그다음입니다.
+</div>
+
+<h3>① 흐름이 맞습니까</h3>
+<ul class="tight">
+  <li>문제(2·3) → 해결·시연(4~7) → <b>검증(8)</b> → 수익(9·10) → 마무리(11·12)</li>
+  <li><b>검증을 수익 앞에 둔 이유</b> — 「인터뷰에서 가격 가정이 깨졌다」가 9·10장의 전제가 되기 때문입니다. 순서를 바꾸면 9장이 근거 없이 시작됩니다</li>
+</ul>
+
+<h3>② 빠진 장이 있습니까</h3>
+<p class="sub">심사 12개 질문에는 전부 답이 붙었습니다. 그 밖에 넣어야 할 것이 있으면 알려 주세요.
+다만 <b>한 장을 넣으면 다른 장에서 시간을 빼야 합니다</b> (지금 여유가 10초뿐입니다).</p>
+
+<h3>③ 정해 주셔야 하는 것</h3>
+<div class="scroll"><table>
+<tr><th>무엇</th><th>왜 지금 필요한가</th></tr>
+<tr><td><b>영상 길이</b> (지금은 2분 기준)</td><td>1분 30초로 줄이면 말하는 시간이 30초 늘어 장을 하나 더 넣을 수 있습니다</td></tr>
+<tr><td><b>발표자 1명 · 시연자 1명</b></td><td>무대 좌석이 둘뿐입니다. 대본의 말하는 사람이 정해져야 씁니다</td></tr>
+<tr><td><b>요금 수준과 단위</b></td><td>10장에 들어갑니다. 멘토는 인당 단위 상향을 권했습니다</td></tr>
+<tr><td><b>1차 영업 지역</b></td><td>멘토는 안산 산업단지, 「고객 분석」 보고서는 천안 인근 충남·충북입니다</td></tr>
+</table></div>
+
+<h3>④ 받아야 채울 수 있는 것</h3>
+<ul class="tight">
+  <li><b>노동자 3명 인터뷰 기록</b> — 8장. 검증 15점이 걸려 있습니다</li>
+  <li><b>팀원별 한 일 3개</b> — 11장</li>
+  <li><b>개발 최종 숫자</b> — 7장 (마지막에 채웁니다)</li>
+  <li><b>기존 PPT 원본 PPTX</b> — 디자인을 이어 쓰려면 필요합니다</li>
+  <li><b>TAM/SAM/SOM 재검토 결과</b> — 10장</li>
+</ul>
+
+<footer>
+<b>함께 보는 자료</b>
+<table>
+<tr><td>공식 조건·심사 기준</td><td><code>참고자료/01_대회규정/공지-확정사항과-심사기준.md</code></td></tr>
+<tr><td>고려사항 61건</td><td><code>00_발표-고려사항-목록.html</code></td></tr>
+<tr><td>문서 관리 규칙·값 추적표</td><td><code>01_문서-관리규칙.md</code></td></tr>
+<tr><td>멘토링 3차 결과</td><td><code>docs/infos/05_멘토링/2026-11-17_사업3차/S10_…md</code></td></tr>
+<tr><td>시연 영상 대본</td><td><code>01-데모-촬영-대본.md</code></td></tr>
+</table>
+
+<b>변경 기록</b>
+<table>
+<tr><th>날짜</th><th>내용</th></tr>
+<tr><td>2026-11-17</td><td>최초 작성. 공지 조건·심사 12개 질문·창업 멘토링 지적을 모두 반영해 12장 + 별첨으로 구성하고, 시간을 290초(말하기)로 맞췄다</td></tr>
+</table>
+</footer>
+
+</div>
+</body>
+</html>
