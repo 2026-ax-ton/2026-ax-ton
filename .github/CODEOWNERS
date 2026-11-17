@@ -2,66 +2,50 @@
 #
 # 이 파일이 하는 일은 **막는 것이 아니라 알리는 것**이다.
 # 여기 적힌 사람은 그 파일이 들어간 PR 에 자동으로 리뷰 요청을 받는다.
-# 승인 없이도 머지된다 (승인자 0명 — 개발자가 한 명이라 1명을 걸면 본인 PR 이 막힌다).
+# **승인은 필요 없다** (승인자 0명) — 검사(`run-all`)만 통과하면 본인이 머지한다.
 #
-# 왜 필요한가 (2026-11-17 사고)
-#   yesol 과 smilesy 가 **서로 모르는 채** 같은 화면(로그인·홈·대시보드)을
-#   각자 새로 만들고 있었다. 아무도 잘못하지 않았는데 한쪽 작업이 묻힐 뻔했다.
-#   사람이 매번 「지금 뭐 고쳐요?」 하고 묻지 않아도 GitHub 이 대신 알리게 한다.
+# 🆕 2026-11-17 — **기본 담당을 개발(yesol)로 넘겼다.**
+#   전까지 기본값이 `* @byeonsoyun` 이라 **모든 PR 에 byeonsoyun 리뷰 요청이 갔고**,
+#   GitHub 화면에 「리뷰 요청됨」이 떠서 **허락을 기다려야 하는 것처럼 보였다**.
+#   막는 설정은 아니었지만 오해를 샀다 — 2026-11-16 역할 분담(창업 수빈 ·
+#   개발 예솔 · 디자인 박소윤 · PPT 변소윤)에 맞춰 다시 적는다.
 #
 # 규칙: **아래로 갈수록 이긴다** (마지막에 맞는 줄 하나만 적용된다).
 
-# ── 기본값 — 못 정한 것은 개발자에게 ─────────────────────────────
-*                               @byeonsoyun
+# ── 기본값 — 개발 전반 ─────────────────────────────────────────
+*                               @yesoool2824
 
 # ── 문서 ──────────────────────────────────────────────────────
-/docs/                          @byeonsoyun
-/docs/devlog/yesol.md           @yesoool2824
-/docs/documentations/30_제품정의/  @ehowl7107 @byeonsoyun
+/docs/                          @yesoool2824
+/docs/devlog/byeonsoyun.md      @byeonsoyun
+/docs/documentations/10_사업화/   @ehowl7107
+/docs/documentations/30_제품정의/  @ehowl7107 @yesoool2824
+/docs/발표/                      @byeonsoyun @ehowl7107
 
-# ── 서버·DB·검사·배포 — 개발자 ─────────────────────────────────
-/api/                           @byeonsoyun
-/db/                            @byeonsoyun
-/tests/                         @byeonsoyun
-/scripts/                       @byeonsoyun
-/.github/                       @byeonsoyun
-
-# ── yesol 영역 — AI 기능 (설비 조사 · 문항 자동 생성 · 촬영) ────────
-/api/research.mjs               @yesoool2824 @byeonsoyun
-/api/_research.mjs              @yesoool2824 @byeonsoyun
-/api/questions.mjs              @yesoool2824 @byeonsoyun
-/api/_questions.mjs             @yesoool2824 @byeonsoyun
-/api/hazards.mjs                @yesoool2824 @byeonsoyun
-/api/_hazards.mjs               @yesoool2824 @byeonsoyun
-/api/photos.mjs                 @yesoool2824 @byeonsoyun
-/api/scans.mjs                  @yesoool2824 @byeonsoyun
-/src/admin/autogen.html         @yesoool2824
-/src/admin/autogen.js           @yesoool2824
-/src/admin/scan.html            @yesoool2824
-/src/admin/scan.js              @yesoool2824
-/src/admin/setup.html           @yesoool2824 @byeonsoyun
-/src/admin/setup.js             @yesoool2824 @byeonsoyun
+# ── 서버·DB·배포 ──────────────────────────────────────────────
+/api/                           @yesoool2824
+/db/                            @yesoool2824
+/scripts/                       @yesoool2824
 /research/                      @yesoool2824
 
-# ── smilesy 영역 — 노동자 화면 디자인 ───────────────────────────
-/src/worker/worker.css          @smilesy0603 @byeonsoyun
-/src/worker/home.html           @smilesy0603 @byeonsoyun
-/src/worker/learn.html          @smilesy0603 @byeonsoyun
-/src/worker/quiz.html           @smilesy0603 @byeonsoyun
-/src/worker/report.html         @smilesy0603 @byeonsoyun
-/src/worker/talk.html           @smilesy0603 @byeonsoyun
-/src/worker/my.html             @smilesy0603 @byeonsoyun
+# ── 검사와 저장소 규칙 — 제품 원칙이 여기 걸려 있다 ──────────────
+#    (`run-all` 이 신고 익명성·미이수자 숨김 금지 같은 것을 지킨다)
+/tests/                         @yesoool2824 @byeonsoyun
+/.github/                       @yesoool2824 @byeonsoyun
+
+# ── 디자인 — 노동자 화면 ───────────────────────────────────────
+/src/worker/                    @smilesy0603 @yesoool2824
 
 # ── ★ 공용 핵심 — 한 명이 고치면 화면 11개가 전부 영향을 받는다 ──────
-#    여기는 **누가 고치든 개발자에게 알린다.** 2026-11-17 충돌 57개 중
-#    가장 아팠던 자리가 전부 이 목록 안이었다 (ui.js · store.js · index.html).
-/src/assets/ui.js               @byeonsoyun
-/src/assets/store.js            @byeonsoyun
-/src/assets/auth.js             @byeonsoyun
-/src/assets/net.js              @byeonsoyun
-/src/assets/i18n.js             @byeonsoyun
-/src/assets/app.css             @byeonsoyun
-/src/assets/login.js            @byeonsoyun
-/src/sw.js                      @byeonsoyun
-/src/index.html                 @byeonsoyun
-/src/signup.html                @byeonsoyun
+#    여기만 변소윤도 **알림**을 받는다. 허락이 아니라, 제품 뼈대가 바뀌면
+#    발표 자료(PPT) 내용도 같이 고쳐야 하기 때문이다 (제출 11/23).
+/src/assets/ui.js               @yesoool2824 @byeonsoyun
+/src/assets/store.js            @yesoool2824 @byeonsoyun
+/src/assets/auth.js             @yesoool2824 @byeonsoyun
+/src/assets/net.js              @yesoool2824 @byeonsoyun
+/src/assets/i18n.js             @yesoool2824 @byeonsoyun
+/src/assets/app.css             @yesoool2824 @byeonsoyun
+/src/assets/login.js            @yesoool2824 @byeonsoyun
+/src/sw.js                      @yesoool2824 @byeonsoyun
+/src/index.html                 @yesoool2824 @byeonsoyun
+/src/signup.html                @yesoool2824 @byeonsoyun
