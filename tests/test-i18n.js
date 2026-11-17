@@ -17,7 +17,7 @@ const src = fs.readFileSync(path.join(SRC, 'assets/i18n.js'), 'utf8');
 const win = boot('worker/home.html', { login: 'W-4821-07', page: 'worker/home.js' }).win;
 const I18N = win.I18N;
 const KEYS = Object.keys(I18N.DICT);
-const LANGS = ['km', 'id', 'vi', 'ne', 'th'];
+const LANGS = ['km', 'vi', 'ne', 'th'];
 
 /* =================================================================
    1. ★★ 사전에 안전 지시가 섞이지 않았는가
@@ -124,11 +124,11 @@ const LANGS = ['km', 'id', 'vi', 'ne', 'th'];
   /* 다른 언어 사용자에게는 그 언어로 — 언어가 정말 사람마다 갈리는지 */
   const idb = boot('worker/home.html', { login: 'W-4821-11', page: 'worker/home.js' });
   const idTabs = idb.win.document.querySelectorAll('.tabbar a');
-  ok('★ 인도네시아어 사용자에게는 인도네시아어로 (언어가 사람마다 갈린다)',
-    idTabs[0].textContent.indexOf(I18N.DICT['nav.home'].id) !== -1,
+  ok('★ 네팔어 사용자에게는 네팔어로 (언어가 사람마다 갈린다)',
+    idTabs[0].textContent.indexOf(I18N.DICT['nav.home'].ne) !== -1,
     idTabs[0].textContent);
   eq('그 사람의 문서 언어도 따라 바뀐다',
-    idb.win.document.documentElement.getAttribute('lang'), 'id');
+    idb.win.document.documentElement.getAttribute('lang'), 'ne');
 }
 
 /* =================================================================

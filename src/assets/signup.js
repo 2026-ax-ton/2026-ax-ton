@@ -169,7 +169,7 @@
         return;
       }
       if (r.code === 'offline') {
-        showError('서버에 닿지 못해 이 기기에만 만들었습니다 (목업).');
+        showError('서버에 닿지 못해 이 기기에만 만들었습니다.');
         joinHere(input);
         return;
       }

@@ -383,5 +383,47 @@ console.log = (...a) => { logs.push(a.join(' ')); };
   eq('★ 서버와 화면의 설비 종류 목록이 같다', ids.join(), O.EQUIPMENT_KINDS.join());
 }
 
+/* 🆕 2026-11-16 등록 정보 검수 (verify) — 설비 화면이 등록·수정 직후 부른다 */
+{
+  const V = {
+    equipment: { id: 'e1', kind: 'press', name: '프레스 9호기', maker: 'Hwacheon', model: 'HPC-110' },
+    verify: {
+      claims: [
+        { key: 'kind', field: '설비 종류', value: '프레스' },
+        { key: 'maker', field: '제조사', value: 'Hwacheon', note: '화천기계가 맞는지 다시' },
+        { key: 'hazard:0', field: '위험유형', value: '끼임' },
+        { key: 'hazard:1', field: '위험유형', value: '익사' },
+      ],
+      allowed: ['끼임', '소음', '익사', '감전'],
+    },
+  };
+  fakeModel({
+    checks: [
+      { key: 'kind', verdict: 'ok', reason: '공식 문서', sources: [{ title: 'KOSHA', url: 'https://kosha.or.kr/a' }] },
+      { key: 'maker', verdict: 'wrong', suggest: '화천기계', reason: '메모 확인', sources: [{ title: '가짜', url: 'https://made-up.example/x' }] },
+      { key: 'hazard:1', verdict: 'wrong', reason: '물 작업 없음', sources: [{ title: '법령', url: 'https://law.go.kr/b' }] },
+      { key: 'evil', verdict: 'ok', sources: [] },
+    ],
+    missing: [
+      { hazard: '소음', reason: '프레스 소음', sources: [{ title: 'KOSHA', url: 'https://kosha.or.kr/n' }] },
+      { hazard: '우주방사선', reason: '목록 밖', sources: [{ title: 'KOSHA', url: 'https://kosha.or.kr/n' }] },
+      { hazard: '감전', reason: '근거 없음', sources: [] },
+    ],
+  });
+  calls.length = 0;
+  const r = await call(V);
+  const c = (k) => r.data.verify.checks.find((x) => x.key === k);
+  eq('검수는 질문 하나', calls.length, 1);
+  has('★ 담당자 메모가 지시문에 들어간다', String(calls[0].init.body), '화천기계가 맞는지 다시');
+  eq('확인된 출처가 있는 ok', c('kind').verdict, 'ok');
+  eq('★★ 출처가 검색 근거에 없으면 wrong 이라도 「확인 못 함」', c('maker').verdict + '|' + c('maker').suggest, 'unknown|');
+  eq('관계없는 위험유형 → wrong', c('hazard:1').verdict, 'wrong');
+  eq('★ AI 가 답하지 않은 항목도 빠지지 않는다 (unknown)', c('hazard:0').verdict, 'unknown');
+  eq('★ 보내지 않은 key 는 버린다', r.data.verify.checks.length, 4);
+  eq('★★ 추가 제안은 분류 목록 안 + 확인된 출처가 있는 것만', r.data.verify.missing.map((m) => m.label).join(), '소음');
+  eq('항목이 없으면 400', (await call({ equipment: V.equipment, verify: { claims: [] } })).status, 400);
+  eq('★ 노동자는 못 부른다', (await call(V, WORKER)).status, 403);
+}
+
 console.log = realLog;
 report('설비 리서치 — /api/research (PRD-AD-08 S2)');

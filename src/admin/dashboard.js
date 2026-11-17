@@ -161,46 +161,109 @@
      1. 이수 현황 — 작게
      ----------------------------------------------------------------- */
 
-  function renderStatus(pairs) {
-    var box = $('status-tiles');
-    box.textContent = '';
+  /* 🆕 2026-11-16 시안 — 사람 단위로 센다 (한 사람이 교육 여럿이면 전부 통과해야 이수 완료).
+     ★ 대상자는 audienceOf 그대로 — 누구도 빼지 않는다. 미이수 = 미응시 + 불합격. */
+  var WEAK_LINE = 25;     // 오답률 이 % 이상이면 재교육 권고 (시안)
 
-    var count = function (key) {
-      return pairs.filter(function (p) { return p.state.key === key; }).length;
-    };
-
-    // 최초 통과율 — 다시 풀어 통과한 것은 세지 않는다.
-    // 100% 면 문항이 쉬운 것이라 지표 실패로 본다 (목표 70~85%).
-    var tried = pairs.filter(function (p) {
-      return p.state.key === 'pass' || p.state.key === 'fail';
+  function peopleOf(pairs) {
+    var by = {};
+    pairs.forEach(function (p) {
+      var k = p.worker.id;
+      if (!by[k]) by[k] = [];
+      by[k].push(p.state.key);
     });
+    var out = { total: 0, done: 0, failed: 0, notTaken: 0 };
+    Object.keys(by).forEach(function (k) {
+      var keys = by[k];
+      out.total += 1;
+      if (keys.every(function (x) { return x === 'pass'; })) out.done += 1;
+      else if (keys.indexOf('fail') !== -1) out.failed += 1;
+      else out.notTaken += 1;
+    });
+    return out;
+  }
+
+  /* 범위 안 교육 중 가장 가까운 (아직 안 지난) 기한 */
+  function nearestDue() {
+    var now = Date.now(), best = null;
+    coursesInRange().forEach(function (c) {
+      var t = c.dueAt ? new Date(c.dueAt).getTime() : NaN;
+      if (!isNaN(t) && t >= now && (best === null || t < best)) best = t;
+    });
+    return best;
+  }
+
+  function tile(box, o) {
+    var cell = UI.el('div', 'kpi' + (o.alert ? ' alert' : ''));
+    var top = UI.el('div', 'kpi-top');
+    top.appendChild(UI.el('dt', null, o.label));
+    if (o.badge) top.appendChild(o.badge);
+    cell.appendChild(top);
+    var dd = UI.el('dd', o.tone || null, String(o.value));
+    dd.appendChild(UI.el('small', null, o.unit));
+    cell.appendChild(dd);
+    if (o.hint) cell.appendChild(UI.el('p', 'hint' + (o.hintTone ? ' ' + o.hintTone : ''), o.hint));
+    box.appendChild(cell);
+  }
+
+  function renderStatus(pairs) {
+    var n = peopleOf(pairs);
+    var rate = n.total ? Math.round((n.done / n.total) * 1000) / 10 : null;
+    var miss = n.failed + n.notTaken;
+    var weak = weakItems().filter(function (w) { return 100 - w.rate >= WEAK_LINE; }).length;
+
+    /* 왼쪽 — 이수율 고리 (CSS conic-gradient, 그림 파일 없음) */
+    var left = $('status-rate');
+    left.textContent = '';
+    left.appendChild(UI.el('div', 'dv-rate-head', '전체 이수율'));
+    var row = UI.el('div', 'dv-rate-row');
+    var ring = UI.el('div', 'dv-ring');
+    ring.style.setProperty('--p', String(rate || 0));
+    ring.setAttribute('role', 'img');
+    ring.setAttribute('aria-label', '이수율 ' + (rate === null ? '없음' : rate + '%'));
+    ring.appendChild(UI.el('span', null, rate === null ? '-' : Math.round(rate) + '%'));
+    row.appendChild(ring);
+    var big = UI.el('div', 'dv-rate-num');
+    var num = UI.el('strong', null, rate === null ? '-' : String(rate));
+    num.appendChild(UI.el('small', null, '%'));
+    big.appendChild(num);
+    big.appendChild(UI.el('span', null, '총 ' + n.total + '명 중 ' + n.done + '명 완료'));
+    row.appendChild(big);
+    left.appendChild(row);
+    var due = nearestDue();
+    var foot = UI.el('div', 'dv-rate-foot');
+    foot.appendChild(UI.el('span', null, '남은 기한'));
+    foot.appendChild(UI.el('span', null, due === null ? '기한 없음'
+      : 'D-' + Math.ceil((due - Date.now()) / 86400000) + ' (' + new Date(due).toISOString().slice(0, 10).replace(/-/g, '.') + ' 마감)'));
+    left.appendChild(foot);
+
+    /* 최초 통과율 — 다시 풀어 통과한 것은 세지 않는다. 100% 면 문항이 쉬운 것 (목표 70~85%) */
+    var tried = pairs.filter(function (p) { return p.state.key === 'pass' || p.state.key === 'fail'; });
     var firstPass = tried.filter(function (p) {
       var q = p.state.row.quiz;
       return q.firstPassed !== undefined ? q.firstPassed : q.passed;
     }).length;
-    var rate = tried.length ? Math.round((firstPass / tried.length) * 100) : null;
+    var fp = tried.length ? Math.round((firstPass / tried.length) * 100) : null;
+    var fpRow = UI.el('div', 'dv-rate-foot' + (fp === 100 ? ' alert' : ''));
+    fpRow.id = 'first-pass';
+    fpRow.appendChild(UI.el('span', null, '최초 통과율'));
+    fpRow.appendChild(UI.el('span', null, fp === null ? '검증 기록 없음'
+      : fp + '% · ' + (fp === 100 ? '100% 는 문항이 쉬운 것입니다'
+        : (fp < 70 ? '목표 70~85% 보다 낮음' : '목표 범위 70~85%'))));
+    left.appendChild(fpRow);
 
-    var tiles = [
-      { label: '이수', value: count('pass'), unit: '건' },
-      { label: '미통과', value: count('fail'), unit: '건', alert: count('fail') > 0 },
-      { label: '미수강', value: count('none') + count('noquiz'), unit: '건',
-        alert: (count('none') + count('noquiz')) > 0 },
-      { label: '최초 통과율', value: rate === null ? '-' : rate, unit: rate === null ? '' : '%',
-        hint: rate === null ? '검증 기록 없음'
-          : (rate === 100 ? '100% 는 문항이 쉬운 것입니다'
-            : (rate < 70 ? '목표 70~85% 보다 낮습니다' : '목표 범위 70~85%')),
-        alert: rate === 100 }
-    ];
-
-    tiles.forEach(function (t) {
-      var cell = UI.el('div', 'kpi' + (t.alert ? ' alert' : ''));
-      cell.appendChild(UI.el('dt', null, t.label));
-      var dd = UI.el('dd', null, String(t.value));
-      if (t.unit) dd.appendChild(UI.el('small', null, t.unit));
-      cell.appendChild(dd);
-      if (t.hint) cell.appendChild(UI.el('p', 'hint', t.hint));
-      box.appendChild(cell);
-    });
+    /* 오른쪽 — 타일 넷 */
+    var box = $('status-tiles');
+    box.textContent = '';
+    tile(box, { label: '총 대상자', value: n.total, unit: '명', hint: '등록 인원 기준' });
+    tile(box, { label: '이수 완료', value: n.done, unit: '명',
+      badge: rate === null ? null : UI.okBadge(rate + '%'), hint: '이해도 검증 통과', hintTone: 'ok' });
+    tile(box, { label: '미이수', value: miss, unit: '명', tone: miss ? 'stop' : null, alert: miss > 0,
+      badge: miss ? UI.stopBadge('주의') : null,
+      hint: '미응시 ' + n.notTaken + '명 · 불합격 ' + n.failed + '명' });
+    tile(box, { label: '취약 항목 발견', value: weak, unit: '건', tone: weak ? 'warn' : null,
+      badge: weak ? UI.waitBadge('오답률 ' + WEAK_LINE + '%↑') : null,
+      hint: weak ? '재교육 권고 문항 감지됨' : '권고 대상 없음' });
   }
 
   /* -----------------------------------------------------------------
@@ -258,9 +321,10 @@
 
   /* 색만으로 구분하지 않는다 — 등급 글자를 함께 준다 */
   function grade(rate) {
-    if (rate < 60) return { level: 'low', word: '낮음' };
-    if (rate < 80) return { level: 'mid', word: '보통' };
-    return { level: 'ok', word: '양호' };
+    var wrong = 100 - rate;
+    if (wrong >= 40) return { level: 'low', word: '이해도 낮음' };
+    if (wrong >= WEAK_LINE) return { level: 'mid', word: '이해도 보통' };
+    return { level: 'ok', word: '이해도 양호' };
   }
 
   function renderWeak() {
@@ -292,7 +356,7 @@
       head.appendChild(what);
 
       // 숫자 + 등급 글자. 색을 지워도 뜻이 남아야 한다.
-      head.appendChild(UI.el('span', 'num', item.rate + '% ' + g.word));
+      head.appendChild(UI.el('span', 'num', '오답률 ' + (100 - item.rate) + '% · ' + g.word));
       wrap.appendChild(head);
 
       /* ★ 인원이 적으면 숨기지 않고 알린다 (H7 · FR-AD-05-10, AC-AD-05-02).
@@ -305,18 +369,14 @@
 
       var track = UI.el('div', 'bar-track');
       var fill = UI.el('div', 'bar-fill');
-      fill.style.width = item.rate + '%';
+      fill.style.width = (100 - item.rate) + '%';
       track.appendChild(fill);
       wrap.appendChild(track);
 
       box.appendChild(wrap);
     });
 
-    var worst = items[0];
-    $('weak-hint').textContent = worst.rate < 80
-      ? '가장 낮은 항목은 ' + langName(worst.lang) + ' ' + worst.label + ' ' + worst.rate + '% 입니다. ' +
-        '그 언어의 설명을 다시 만드는 것부터 하시면 됩니다.'
-      : '지금은 모든 항목이 양호합니다. 다만 전원이 쉽게 통과하면 문항이 쉬운 것일 수 있습니다.';
+    $('weak-hint').textContent = '오답률 ' + WEAK_LINE + '% 이상인 항목은 재교육 권고 대상입니다.';
   }
 
   /* -----------------------------------------------------------------
@@ -372,8 +432,8 @@
   function openOrderForm(pair) {
     orderTarget = { workerId: pair.worker.id, courseId: pair.course.id };
 
-    $('order-who').textContent =
-      pair.worker.id + ' · ' + pair.course.title;
+    var proc = Store.findBy(setup().processes, 'id', pair.worker.processId);
+    $('order-who').textContent = pair.worker.id + (proc ? ' (' + proc.name + ' 공정)' : '') + ' · ' + pair.course.title;
 
     var topics = stuckTopics(pair);
     $('order-why').textContent = topics.length
@@ -450,7 +510,7 @@
       return cell;
     }
 
-    var btn = UI.el('button', 'btn-sm go', '재교육 지시');
+    var btn = UI.el('button', 'btn-sm' + (pair.state.key === 'fail' ? ' dark' : ''), '지시 작성');
     btn.type = 'button';
     btn.addEventListener('click', function () { openOrderForm(pair); });
     cell.appendChild(btn);
@@ -682,6 +742,7 @@
       // 기한 판정은 UI.dueBadge 한 곳에 있다 — 기능2 의 발급 목록이 같은 것을 쓴다
       tags.appendChild(UI.dueBadge(course.dueAt));
       if (done < mine.length) tags.appendChild(UI.waitBadge('남은 대상 ' + (mine.length - done) + '명'));
+      tags.appendChild(UI.el('span', 'dv-progress', '진행률 ' + (mine.length ? Math.round(done / mine.length * 100) : 0) + '%'));
       li.querySelector('.body').appendChild(tags);
 
       list.appendChild(li);

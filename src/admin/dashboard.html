@@ -25,86 +25,48 @@
 
 <main class="page">
 
-  <div class="pagehead">
-    <h1>담당자 대시보드</h1>
-    <p class="lead">이수율이 아니라 <b>어느 언어에서 무엇을 못 알아들었는지</b>를 봅니다.</p>
-  </div>
-
   <p class="blocked" id="blocked" hidden>
     이 브라우저에서는 저장소를 쓸 수 없습니다. 입력해도 새로고침하면 사라집니다.
   </p>
 
-  <!-- 0. AI 경계 — 이 화면의 숫자에는 AI 가 손대지 않는다 -->
-  <p class="ai-note off">
-    <span class="tag">AI 개입 없음</span>
-    <span>이 화면의 숫자는 노동자가 실제로 답한 기록을 그대로 센 것입니다.
-      추정하거나 보정하지 않습니다.</span>
-  </p>
+  <!-- 2026-11-16 시안(대시보드) — 설명 문장을 빼고, 제품 원칙 문장 셋만 ⓘ 한 줄로 남긴다 (SCREEN 기능6) -->
 
-  <!-- 1. 이수 현황 — 작게. 이 화면의 주인공이 아니다. -->
-  <section class="card" aria-labelledby="t-status">
-    <div class="sec-head">
+  <!-- 1. 이수 현황 -->
+  <section class="card dv-card" aria-labelledby="t-status">
+    <div class="dv-head">
       <div>
         <h2 id="t-status">이수 현황</h2>
-        <p class="why">전체 그림입니다. 무엇을 고쳐야 하는지는 아래 취약 항목에서 나옵니다.</p>
+        <p class="dv-sub" id="range-note"></p>
       </div>
-      <div class="btn-row" role="group" aria-label="기간 걸러 보기">
-        <button class="btn-sm" type="button" id="range-quarter">이번 분기</button>
-        <button class="btn-sm" type="button" id="range-year">올해</button>
-        <button class="btn-sm" type="button" id="range-all">전체</button>
-      </div>
-    </div>
-
-    <!-- ★ 무엇이 빠져 있는지 적는다. 조용히 줄이면 "전부 본 것" 으로 읽힌다. -->
-    <p class="range-note" id="range-note"></p>
-
-    <dl class="kpi-row small" id="status-tiles"></dl>
-  </section>
-
-  <!-- 2. ★ 이해도 취약 항목 — 이 화면에서 가장 큰 블록 -->
-  <section class="card feature" aria-labelledby="t-weak">
-    <div class="sec-head">
-      <div>
-        <h2 id="t-weak">이해도 취약 항목</h2>
-        <p class="why">
-          언어별로 어떤 위험을 못 알아들었는지입니다. 정답률이 낮은 것이 위에 옵니다.
-        </p>
+      <div class="dv-seg" role="group" aria-label="기간 걸러 보기">
+        <button type="button" id="range-quarter">이번 분기</button>
+        <button type="button" id="range-year">올해</button>
+        <button type="button" id="range-all">전체</button>
       </div>
     </div>
 
-    <!-- 화면에 반드시 있어야 하는 문장 (SCREEN 기능6) -->
-    <p class="policy-note">
-      이 목록은 노동자 평가가 아니라 <b>콘텐츠 개선 신호</b>입니다.
-      정답률이 낮은 항목은 그 언어의 설명을 다시 만들라는 뜻입니다.
-    </p>
-
-    <div class="bar-list" id="weak-bars"></div>
-
-    <p class="policy-note quiet" id="weak-hint"></p>
-
-    <!-- ★ 개선 루프를 화면에서 닫는다 (B4 — 목업 12 의 "콘텐츠 다시 만들기").
-         취약 항목을 보여 주고 끝내면 담당자는 숫자만 보고 나간다.
-         무엇을 고쳐야 하는지 알았으면 고치러 갈 길이 바로 있어야 한다. -->
-    <div class="btn-row">
-      <a class="btn btn-quiet" href="content.html">취약 항목 교육 다시 만들기</a>
+    <div class="dv-status">
+      <div class="dv-rate" id="status-rate"></div>
+      <dl class="dv-tiles" id="status-tiles"></dl>
     </div>
   </section>
 
-  <!-- 3. 조치 대상 -->
-  <section class="card" aria-labelledby="t-action">
-    <div class="sec-head">
-      <div>
-        <h2 id="t-action">조치가 필요한 사람</h2>
-        <p class="why">아직 이수하지 못한 사람입니다. 누가 잘못한 것이 아니라 다시 해야 할 일입니다.</p>
-      </div>
+  <!-- 2. 이해도 취약 항목 -->
+  <section class="card dv-card feature" aria-labelledby="t-weak">
+    <div class="dv-head">
+      <h2 id="t-weak">이해도 취약 항목</h2>
+      <a class="dv-link" href="content.html">취약 항목 교육 다시 만들기 ›</a>
     </div>
+    <div class="bar-list dv-bars" id="weak-bars"></div>
+    <p class="dv-foot" id="weak-hint"></p>
+    <p class="dv-foot">이 목록은 노동자 평가가 아니라 <b>콘텐츠 개선 신호</b>입니다.</p>
+  </section>
 
-    <p class="policy-note">
-      <b>미통과는 노동자의 실패가 아니라 교육의 실패로 기록됩니다.</b>
-      같은 항목에서 여러 사람이 막히면 사람이 아니라 그 설명을 고쳐야 합니다.
-    </p>
+  <!-- 3. 조치가 필요한 사람 -->
+  <section class="card dv-card" aria-labelledby="t-action">
+    <div class="dv-head"><h2 id="t-action">조치가 필요한 사람</h2></div>
 
-    <div class="tablewrap">
+    <div class="tablewrap dv-table">
       <table class="data">
         <thead>
           <tr>
@@ -120,111 +82,67 @@
       </table>
     </div>
 
-    <!-- 재교육 지시 (D2) — 위 표에서 사람을 고르면 여기가 열린다.
-         ★ 표 안에 입력칸을 넣으면 좁은 화면에서 표가 무너진다. -->
-    <div class="order-form" id="order-form" hidden>
-      <h3 class="sub" id="order-who"></h3>
-      <p class="why" id="order-why"></p>
-
+    <div class="order-form dv-order" id="order-form" hidden>
+      <div class="dv-order-head">
+        <h3 class="sub" id="order-who"></h3>
+        <p class="dv-order-why" id="order-why"></p>
+      </div>
       <div class="field">
         <label for="order-note">무엇을 다시 들으면 되는지 적어 주세요</label>
         <input type="text" id="order-note"
           placeholder="예) 환기팬이 멈췄을 때 무엇을 하는지 부분을 다시 들어 주세요">
       </div>
-
-      <!-- ★ 이 지시가 무엇이고 무엇이 아닌지. 없으면 조용히 인사 자료가 된다. -->
-      <p class="policy-note">
-        재교육 지시는 <b>"이 교육을 다시 듣게 한다"</b> 는 뜻이지
-        <b>"이 사람이 못했다"</b> 가 아닙니다.
-        지시 횟수를 세거나 사람을 줄 세우는 화면은 만들지 않습니다.
-      </p>
-
       <div class="btn-row">
         <button class="btn btn-primary" type="button" id="order-send">지시 보내기</button>
         <button class="btn btn-quiet" type="button" id="order-cancel">그만두기</button>
       </div>
     </div>
 
-    <p class="policy-note quiet">
-      개인별 점수의 인사·평가 목적 내보내기는 제공하지 않습니다.
-    </p>
+    <p class="dv-foot">미통과는 노동자의 실패가 아니라 교육의 실패로 기록됩니다. 개인별 점수의 인사·평가 목적 내보내기는 제공하지 않습니다.</p>
   </section>
 
-  <!-- 4. 위험요소 신고 큐 — 익명 -->
-  <section class="card" aria-labelledby="t-reports">
-    <div class="sec-head">
-      <div>
-        <h2 id="t-reports">위험요소 신고</h2>
-        <p class="why">
-          <b>신고는 익명입니다.</b> 누가 신고했는지는 저장하지 않습니다 —
-          익명성이 깨지면 신고가 멈추고, 재해를 미리 아는 방법도 함께 사라집니다.
-        </p>
-      </div>
+  <!-- 4. 위험요소 신고 — 익명 -->
+  <section class="card dv-card" aria-labelledby="t-reports">
+    <div class="dv-head">
+      <h2 id="t-reports">위험요소 신고</h2>
+      <span class="dv-sub">최근 접수순 · 익명</span>
     </div>
-    <div class="queue" id="report-queue"></div>
+    <div class="queue dv-queue" id="report-queue"></div>
   </section>
 
-  <!-- 4-1. 현장 소통 게시판 진입 (C7)
-       담당자가 답글을 달려면 들어갈 길이 있어야 한다.
-       주소를 직접 쳐야 하면 그 기능은 없는 것과 같다. -->
-  <section class="card" aria-labelledby="t-talk">
-    <div class="sec-head">
+  <!-- 4-1. 현장 소통 게시판 -->
+  <section class="card dv-card" aria-labelledby="t-talk">
+    <div class="dv-head">
       <div>
         <h2 id="t-talk">현장 소통 게시판</h2>
-        <p class="why">
-          노동자가 교육 밖의 것을 묻는 자리입니다. 여기 다는 답글은
-          <b>"공식 답변"</b> 으로 표시되고 <b>이름을 감출 수 없습니다</b> —
-          공식 답변과 동료의 짐작이 섞이면, 잘못된 짐작이 안전 지시처럼 돕니다.
-        </p>
+        <p class="dv-sub">외국인 근로자 및 현장 작업자와 안전 지침 및 건의사항을 공유합니다. 담당자 답글은 공식 답변으로 표시되고 이름을 감출 수 없습니다.</p>
       </div>
-    </div>
-    <div class="btn-row">
-      <a class="btn btn-quiet" href="../worker/talk.html">게시판 열기</a>
+      <a class="btn-sm dv-btn" href="../worker/talk.html"><span class="ico" data-ico="chat" aria-hidden="true"></span>게시판 열기</a>
     </div>
   </section>
 
-  <!-- 5. 다음 교육 -->
-  <section class="card" aria-labelledby="t-due">
-    <div class="sec-head">
-      <div>
-        <h2 id="t-due">교육별 실시 상황</h2>
-        <p class="why">마지막으로 실시된 날과 남은 대상자입니다.</p>
-      </div>
-    </div>
-    <ul class="item-list" id="due-list"></ul>
+  <!-- 5. 교육별 실시 상황 -->
+  <section class="card dv-card" aria-labelledby="t-due">
+    <div class="dv-head"><h2 id="t-due">교육별 실시 상황</h2></div>
+    <ul class="item-list dv-due" id="due-list"></ul>
   </section>
 
-  <!-- 6. 증빙 생성 진입 -->
-  <section class="card" aria-labelledby="t-go">
-    <div class="sec-head">
-      <div>
-        <h2 id="t-go">교육 증빙</h2>
-        <p class="why">지금까지의 기록을 법정 교육일지 서식으로 뽑습니다.</p>
-      </div>
+  <!-- 6. 교육 증빙 -->
+  <section class="card dv-card" aria-labelledby="t-go">
+    <div class="dv-head"><h2 id="t-go">교육 증빙</h2></div>
+    <div class="dv-go">
+      <a class="dv-go-card" href="proof.html">
+        <span class="dv-go-ico"><span class="ico" data-ico="file" aria-hidden="true"></span></span>
+        <span class="dv-go-body"><b>교육 증빙 만들기</b><small>법정 의무 이수 서류 및 참석 명단 생성</small></span>
+        <span class="dv-go-arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="dv-go-card" href="content.html">
+        <span class="dv-go-ico"><span class="ico" data-ico="doc-edit" aria-hidden="true"></span></span>
+        <span class="dv-go-body"><b>교육 콘텐츠 만들기</b><small>취약 공정 다국어 카드뉴스 및 퀴즈 구성</small></span>
+        <span class="dv-go-arrow" aria-hidden="true">›</span>
+      </a>
     </div>
-
-    <!-- ★ 기획에서 온 문장 (목업 12-admin-dashboard).
-         증빙이 왜 믿을 만한지가 이 두 가지에 걸려 있다 —
-         사본을 만들지 않아 고칠 경로가 없고, 못 한 사람을 뺄 수 없다. -->
-    <p class="policy-note">
-      수강 이력과 검증 결과를 그대로 문서로 만듭니다.
-      <b>생성된 기록은 수정할 수 없고</b>, 미이수자와 이해도 미달자를
-      문서에서 숨기는 경로는 없습니다.
-    </p>
-    <div class="btn-row">
-      <a class="btn btn-primary" href="proof.html">교육 증빙 만들기</a>
-      <a class="btn btn-quiet" href="content.html">교육 콘텐츠 만들기</a>
-    </div>
-  </section>
-
-  <!-- 여기부터 채우면 됩니다 -->
-  <section class="todo">
-    <h2>여기부터 채우시면 됩니다</h2>
-    <p class="why">아래는 골격에 넣지 않은 것들입니다. 지금 상태로도 숫자는 실제 기록에서 나옵니다.</p>
-    <dl>
-      <dt>QR 재발송</dt><dd>기능2 에서 만든 QR 을 조치 대상에게 다시 보내는 경로. QR 자체는 기능2 에 있습니다</dd>
-      <dt>내 파일</dt><dd><code>admin/dashboard.html</code> · <code>admin/dashboard.js</code> · <code>admin/admin.css</code></dd>
-    </dl>
+    <p class="dv-foot">생성된 기록은 수정할 수 없고, 미이수자와 이해도 미달자를 문서에서 숨기는 경로는 없습니다.</p>
   </section>
 
 </main>

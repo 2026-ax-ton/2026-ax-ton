@@ -22,8 +22,8 @@ function open(opts = {}) {
   has('①-2', all, '콘텐츠 개선 신호');
   has('② 미통과는 교육의 실패', all, '미통과는 노동자의 실패가 아니라 교육의 실패로 기록됩니다');
   has('③ 인사·평가 목적 내보내기 없음', all, '개인별 점수의 인사·평가 목적 내보내기는 제공하지 않습니다');
-  has('AI 개입 없음 고지', text(doc.querySelector('.ai-note')), 'AI 개입 없음');
-  has('추정하거나 보정하지 않는다', text(doc.querySelector('.ai-note')), '추정하거나 보정하지 않습니다');
+  /* 2026-11-16 사용자 결정 — 설명 문단(.ai-note 등)을 뺐다. 원칙 문장 셋은 ⓘ 한 줄로 남는다 */
+  ok('설명 문단이 없다', !doc.querySelector('.ai-note, .why, .lead, .todo'));
 }
 
 /* =================================================================
@@ -36,7 +36,6 @@ function open(opts = {}) {
   const statusCard = t.$('status-tiles').closest('.card');
   const weakCard = t.$('weak-bars').closest('.card');
 
-  ok('이수 현황 타일은 작은 모양', t.$('status-tiles').className.includes('small'));
   ok('★ 취약 항목이 강조 블록', weakCard.className.includes('feature'));
   ok('이수 현황은 강조 블록이 아니다', !statusCard.className.includes('feature'));
 
@@ -61,18 +60,18 @@ function open(opts = {}) {
   bars.forEach((b) => { byLabel[text(b.querySelector('.what'))] = b; });
   const labels = Object.keys(byLabel);
 
-  ok('인도네시아어 화재가 있다', labels.some((l) => l.includes('인도네시아어 · 화재')),
+  ok('네팔어 화재가 있다', labels.some((l) => l.includes('네팔어 · 화재')),
     JSON.stringify(labels));
-  ok('크메르어 끼임이 있다', labels.some((l) => l.includes('크메르어 · 끼임')),
+  ok('캄보디아어 끼임이 있다', labels.some((l) => l.includes('캄보디아어 · 끼임')),
     JSON.stringify(labels));
 
   // ★ 낮은 것이 맨 위
   const first = bars[0];
-  has('가장 낮은 항목이 맨 위 — 인도네시아어 화재', text(first.querySelector('.what')), '화재');
-  has('0%', text(first.querySelector('.num')), '0%');
+  has('가장 낮은 항목이 맨 위 — 네팔어 화재', text(first.querySelector('.what')), '화재');
+  has('오답률 100%', text(first.querySelector('.num')), '오답률 100%');
   eq('낮음 등급', first.getAttribute('data-level'), 'low');
   has('★ 색만이 아니라 등급 글자도 준다', text(first.querySelector('.num')), '낮음');
-  eq('막대 길이가 0%', first.querySelector('.bar-fill').style.width, '0%');
+  eq('막대 길이 = 오답률 100%', first.querySelector('.bar-fill').style.width, '100%');
   has('몇 문항 중 몇 개인지', text(first.querySelector('.what')), '0/1문항');
 
   /* ★ H7 — 언어×위험유형 막대마다 응답 인원(n명)을 보인다 (FR-AD-05-10).
@@ -88,8 +87,7 @@ function open(opts = {}) {
   has('양호 글자', text(good.querySelector('.num')), '양호');
 
   // 무엇부터 하면 되는지 말해 준다
-  has('가장 낮은 항목을 지목한다', text(t.$('weak-hint')), '인도네시아어');
-  has('무엇을 하라고 말한다', text(t.$('weak-hint')), '설명을 다시 만드는 것부터');
+  has('재교육 권고 기준을 적는다', text(t.$('weak-hint')), '오답률 25% 이상');
 }
 
 /* =================================================================
@@ -112,8 +110,8 @@ function open(opts = {}) {
   const bars = [...t.$('weak-bars').querySelectorAll('.bar-item')];
   const byLabel = {};
   bars.forEach((b) => { byLabel[text(b.querySelector('.what'))] = b; });
-  const pinchLabel = Object.keys(byLabel).find((l) => l.includes('크메르어 · 끼임'));
-  const shockLabel = Object.keys(byLabel).find((l) => l.includes('크메르어 · 감전'));
+  const pinchLabel = Object.keys(byLabel).find((l) => l.includes('캄보디아어 · 끼임'));
+  const shockLabel = Object.keys(byLabel).find((l) => l.includes('캄보디아어 · 감전'));
 
   has('★ 인원이 늘면 n명 표기도 따라 늘어난다', pinchLabel, '4명');
   ok('★ 4명이 되면 주의 문구가 사라진다 (그 항목만)',
@@ -133,10 +131,12 @@ function open(opts = {}) {
     tiles[text(k.querySelector('dt'))] = text(k);
   });
 
-  has('이수 1건', tiles['이수'], '1건');
-  has('미통과 1건', tiles['미통과'], '1건');
-  has('최초 통과율 50%', tiles['최초 통과율'], '50%');
-  has('목표 범위를 적는다', tiles['최초 통과율'], '70~85%');
+  has('총 대상자 2명', tiles['총 대상자'], '2명');
+  has('이수 완료 1명', tiles['이수 완료'], '1명');
+  has('미이수 1명 (불합격 1)', tiles['미이수'], '불합격 1명');
+  has('이수율 고리', text(t.$('status-rate')), '총 2명 중 1명 완료');
+  has('최초 통과율 50%', text(t.$('first-pass')), '50%');
+  has('목표 범위를 적는다', text(t.$('first-pass')), '70~85%');
 }
 
 /* =================================================================
@@ -152,9 +152,8 @@ function open(opts = {}) {
       });
     },
   });
-  const rate = [...t.$('status-tiles').querySelectorAll('.kpi')]
-    .find((k) => text(k.querySelector('dt')) === '최초 통과율');
-  has('100%', text(rate.querySelector('dd')), '100%');
+  const rate = t.$('first-pass');
+  has('100%', text(rate), '100%');
   has('★ 문항이 쉬운 것이라고 말한다', text(rate), '100% 는 문항이 쉬운 것입니다');
   ok('경고 모양', rate.className.includes('alert'));
 }
@@ -167,7 +166,7 @@ function open(opts = {}) {
   const rows = [...t.$('action-rows').querySelectorAll('tr')];
   eq('조치 대상 1명 (미통과)', rows.length, 1);
   has('식별번호', text(rows[0]), 'W-4821-11');
-  has('언어', text(rows[0]), '인도네시아어');
+  has('언어', text(rows[0]), '네팔어');
   has('교육', text(rows[0]), '도장 부스 1 안전교육');
   has('미통과 상태', text(rows[0]), '미통과');
   has('★ 어느 항목에서 막혔는지', text(rows[0]), '화재');
@@ -191,8 +190,7 @@ function open(opts = {}) {
   const queueText = text(t.$('report-queue'));
   ok('★ 노동자 식별번호가 신고 큐에 나오지 않는다',
     !/W-\d{4}-\d{2}/.test(queueText), queueText.slice(0, 200));
-  has('익명성이 깨지면 어떻게 되는지 적는다',
-    text(t.$('report-queue').closest('.card')), '익명성이 깨지면 신고가 멈추고');
+  has('익명이라고 머리에 적는다', text(t.$('report-queue').closest('.card')), '익명');
 
   /* --- 조치 상태 바꾸기 --- */
   const resolveBtn = [...items[0].querySelectorAll('.btn-sm')]
@@ -344,15 +342,15 @@ function lastYearISO() {
   click(t.win, t.$('range-all'));
   const allBars = bars();
   ok('전체에서는 두 교육의 항목이 다 나온다', allBars.length >= 3, JSON.stringify(allBars));
-  ok('작년 교육(도장·인도네시아어) 항목이 보인다',
-    allBars.join(' ').includes('인도네시아어'), JSON.stringify(allBars));
+  ok('작년 교육(도장·네팔어) 항목이 보인다',
+    allBars.join(' ').includes('네팔어'), JSON.stringify(allBars));
 
   click(t.win, t.$('range-quarter'));
   const qBars = bars();
   ok('★ 범위를 바꾸면 막대도 함께 바뀐다',
     qBars.length < allBars.length, JSON.stringify(allBars) + ' → ' + JSON.stringify(qBars));
   ok('★ 범위 밖 교육의 항목은 막대에서 빠진다',
-    !qBars.join(' ').includes('인도네시아어'), JSON.stringify(qBars));
+    !qBars.join(' ').includes('네팔어'), JSON.stringify(qBars));
 }
 
 {
@@ -372,8 +370,8 @@ function lastYearISO() {
   click(t.win, t.$('range-quarter'));
   const tiles = [...t.$('status-tiles').querySelectorAll('.kpi')]
     .map((k) => text(k.querySelector('dt')) + '=' + text(k.querySelector('dd'))).join(' ');
-  ok('★ 아무도 수강 안 해도 미수강자가 그대로 잡힌다', /미수강=[1-9]/.test(tiles), tiles);
-  ok('★ 이수는 0 이다 (숨겨서 100% 가 되지 않는다)', /이수=0/.test(tiles), tiles);
+  ok('★ 아무도 수강 안 해도 미수강자가 그대로 잡힌다', /미이수=[1-9]/.test(tiles), tiles);
+  ok('★ 이수는 0 이다 (숨겨서 100% 가 되지 않는다)', /이수 완료=0/.test(tiles), tiles);
 }
 
 {
@@ -480,12 +478,12 @@ const btnIn = (row, label) =>
 
   const row = actionRow(t, 'W-4821-11');      // 미통과인 사람
   ok('조치 대상에 그 사람이 있다', !!row);
-  ok('★ 행에서 바로 재교육을 지시할 수 있다', !!btnIn(row, '재교육 지시'), text(row));
+  ok('★ 행에서 바로 재교육을 지시할 수 있다', !!btnIn(row, '지시 작성'), text(row));
 
   /* 표 안에 입력칸을 넣지 않는다 — 좁은 화면에서 표가 무너진다 */
   eq('처음에는 입력칸이 닫혀 있다', t.$('order-form').hidden, true);
 
-  click(t.win, btnIn(row, '재교육 지시'));
+  click(t.win, btnIn(row, '지시 작성'));
   eq('누르면 입력칸이 열린다', t.$('order-form').hidden, false);
   has('누구에게 보내는지 적힌다', text(t.$('order-who')), 'W-4821-11');
   ok('무엇 때문인지 적힌다', text(t.$('order-why')).length > 0);
@@ -517,22 +515,20 @@ const btnIn = (row, label) =>
   /* 표에 상태가 뜨고, 거둘 수 있다 */
   const after = actionRow(t, 'W-4821-11');
   has('★ 지시했다는 것이 표에 남는다', text(after), '지시함');
-  ok('다시 지시 버튼을 또 주지 않는다', !btnIn(after, '재교육 지시'), text(after));
+  ok('다시 지시 버튼을 또 주지 않는다', !btnIn(after, '지시 작성'), text(after));
   ok('거둘 수 있다', !!btnIn(after, '거두기'));
 
   /* ★ 지시 횟수를 세지 않는다 — 그건 인사 평가 자료다 */
   const main = text(t.win.document.querySelector('main'));
   ok('★ "n회" 같은 누적 횟수를 화면에 세지 않는다',
     !/재교육\s*\d+\s*회|지시\s*\d+\s*회/.test(main), main.slice(0, 200));
-  has('★ 이 지시가 무엇이 아닌지 적는다', main, '"이 사람이 못했다" 가 아닙니다');
-  has('★ 줄 세우지 않는다고 적는다', main, '줄 세우는 화면은 만들지 않습니다');
 }
 
 {
   /* --- 거두기 — 지우지 않고 표시만 남긴다 --- */
   const t = open({ before(win) { win.Store.orders.save([]); } });
   const row = actionRow(t, 'W-4821-11');
-  click(t.win, btnIn(row, '재교육 지시'));
+  click(t.win, btnIn(row, '지시 작성'));
   t.$('order-note').value = '다시 들어 주세요';
   click(t.win, t.$('order-send'));
 
@@ -541,7 +537,7 @@ const btnIn = (row, label) =>
   const orders = t.win.Store.orders.load();
   eq('★ 지우지 않는다 — 냈다가 거둔 사실이 남는다', orders.length, 1);
   ok('거둔 시각이 찍힌다', !!(orders[0] && orders[0].canceledAt), JSON.stringify(orders));
-  ok('다시 지시할 수 있다', !!btnIn(actionRow(t, 'W-4821-11'), '재교육 지시'));
+  ok('다시 지시할 수 있다', !!btnIn(actionRow(t, 'W-4821-11'), '지시 작성'));
   has('거뒀다고 알린다', text(t.$('toast')), '거뒀습니다');
 }
 

@@ -56,8 +56,6 @@ var I18N = (function () {
        음성으로 고르게 한다 (UI.preloginLangPicker). */
     /* 🆕 2026-11-16 로그인 시안 — 노동자 기준으로 「식별번호」 「시작하기」. 담당자 모드에서는 login.js 가 한국어로 바꿔 적는다 */
     'login.id':      { ko: '식별번호', km: 'លេខ ID', id: 'Nomor ID', vi: 'Mã số ID', ne: 'आईडी नम्बर', th: 'รหัส ID' },
-    'login.idPh':    { ko: '예: W-4821-07', km: 'W-4821-07', id: 'W-4821-07', vi: 'W-4821-07', ne: 'W-4821-07', th: 'W-4821-07' },
-    'login.workerTitle': { ko: '근로자 로그인', km: 'ចូលប្រើសម្រាប់កម្មករ', id: 'Masuk pekerja', vi: 'Đăng nhập người lao động', ne: 'कामदार लगइन', th: 'เข้าสู่ระบบพนักงาน' },
     'login.pw':      { ko: '비밀번호', km: 'ពាក្យសម្ងាត់', id: 'Kata sandi', vi: 'Mật khẩu', ne: 'पासवर्ड', th: 'รหัสผ่าน' },
     'login.submit':  { ko: '시작하기', km: 'ចាប់ផ្តើម', id: 'Mulai', vi: 'Bắt đầu', ne: 'सुरु गर्नुहोस्', th: 'เริ่มต้น' },
     'login.signupTitle': { ko: '회원가입', km: 'ចុះឈ្មោះ', id: 'Daftar', vi: 'Đăng ký', ne: 'दर्ता गर्नुहोस्', th: 'สมัครสมาชิก' },

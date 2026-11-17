@@ -116,13 +116,14 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
   var C = M.C;
   UI.fillAdminBar(Auth.current());
   UI.warnIfBlocked();
+  UI.$$('[data-ico]').forEach(function (n) { UI.setIcon(n, n.getAttribute('data-ico')); });
 
   var SHOT_MS = 500;
   var SAY_GAP_MS = 4000;          // 같은 경고를 다시 말하기까지
   var MAX_EDGE = 1600;            // 남길 사진의 긴 변
   var PASSES = [
-    { name: '낮게', say: '허리 높이에서 기계를 화면 틀 안에 두고, 천천히 한 바퀴 도세요.', tip: '1바퀴 · 허리 높이 — 기계를 틀 안에 두고 천천히 도세요' },
-    { name: '높게', say: '이번에는 팔을 들어 위에서 내려다보며, 한 바퀴 더 도세요.', tip: '2바퀴 · 팔을 들고 — 위에서 내려다보며 천천히 도세요' }
+    { name: '낮게', label: '허리 높이', say: '허리 높이에서 기계를 화면 틀 안에 두고, 천천히 한 바퀴 도세요.', tip: '기계를 틀 안에 두고 천천히 도세요' },
+    { name: '높게', label: '팔을 들고', say: '이번에는 팔을 들어 위에서 내려다보며, 한 바퀴 더 도세요.', tip: '위에서 내려다보며 천천히 도세요' }
   ];
   /* 카메라 위쪽 띠 — 무엇이 문제인지 + 어떻게 고치는지 (글 + 아이콘 + 음성) */
   var WARN = {
@@ -148,6 +149,11 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     if (img) $('scan-qr').appendChild(img);
     else $('scan-qr').appendChild(UI.el('p', 'empty', '주소가 너무 길어 QR 로 만들지 못했습니다.'));
     $('scan-url').textContent = location.href;
+    $('btn-copy-url').addEventListener('click', function () {
+      var done = function () { UI.toast('주소를 복사했습니다.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done, function () { UI.toast('복사하지 못했습니다. 주소를 길게 눌러 복사하세요.'); });
+      else UI.toast('이 브라우저는 복사를 지원하지 않습니다. 주소를 길게 눌러 복사하세요.');
+    });
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       $('scan-url').textContent += ' — 이 PC 주소라 휴대폰에서는 열리지 않습니다. 배포 주소에서 쓰세요.';
     }
@@ -182,6 +188,14 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     if (lastSay.key !== key || now - lastSay.at > SAY_GAP_MS) { say(WARN[key][1] + '. ' + WARN[key][2]); lastSay = { key: key, at: now }; }
   }
 
+  /** 수평 자세 센서 띠 — 좌우 기울기 0° = 100%, 40° 이상 = 0% (센서가 없으면 「센서 없음」) */
+  function level() {
+    var pct = sensor.seen ? Math.max(0, Math.round(100 - Math.abs(sensor.gamma) * 2.5)) : 0;
+    $('scan-level-fill').style.width = pct + '%';
+    $('scan-level-fill').className = pct >= 85 ? 'ok' : 'bad';
+    $('scan-level-text').textContent = sensor.seen ? pct + '% ' + (pct >= 85 ? '안정' : '기울어짐') : '센서 없음';
+  }
+
   function onOrient(e) {
     if (e.alpha == null) return;
     sensor.seen = true;
@@ -194,48 +208,74 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     if (r) sensor.speed = Math.max(Math.abs(r.alpha || 0), Math.abs(r.beta || 0), Math.abs(r.gamma || 0));
   }
 
-  function draw() {
+  /* 화면 장식 아이콘 — 이모지 대신 선 아이콘 */
+  UI.setIcon($('scan-stop-ico'), 'stop');
+
+  /** 위쪽 칩 — 몇 바퀴째 · 어디서 */
+  function showPass() {
+    var chip = $('scan-pass');
+    chip.textContent = '';
+    chip.appendChild(UI.el('span', 'step', (pass + 1) + '/' + PASSES.length));
+    chip.appendChild(document.createTextNode(PASSES[pass].label + ' 한 바퀴'));
+  }
+
+  /** 카메라 위 안내 — 모서리 틀 · 수평 · 진행 링. bad 가 없으면 틀이 초록(찍는 중), 있으면 흰색(위쪽 띠가 이유를 글로 말한다) */
+  function draw(bad) {
     var w = overlay.width = video.clientWidth, h = overlay.height = video.clientHeight;
     var g = overlay.getContext('2d');
     g.clearRect(0, 0, w, h);
-    /* 모서리 틀 — 기계를 여기 넣는다 (문서 스캔 앱처럼 네 모서리만) */
-    var fx = w * 0.1, fy = h * 0.23, fw = w * 0.8, fh = h * 0.47,   /* 위: 자세 띠·진행 링 / 아래: 숫자·안내·멈추기 사이 */ L = Math.min(fw, fh) * 0.14;
-    g.strokeStyle = 'rgba(255,255,255,.9)';
-    g.lineWidth = 4;
+    var GOOD = '#22c55e', WARN_C = '#f59e0b';
+    g.shadowColor = 'rgba(0,0,0,.35)';
+    g.shadowBlur = 6;
     g.lineCap = 'round';
+    /* 모서리 틀 — 기계를 여기 넣는다 (문서 스캔 앱처럼 네 모서리만). 위: 칩·자세 띠 / 아래: 안내·멈추기 사이 */
+    var fx = w * 0.08, fy = h * 0.24, fw = w * 0.84, fh = h * 0.44, L = Math.min(fw, fh) * 0.16, r = Math.min(14, L / 2);
+    g.strokeStyle = bad ? 'rgba(255,255,255,.95)' : GOOD;
+    g.lineWidth = 5;
     [[fx, fy, 1, 1], [fx + fw, fy, -1, 1], [fx, fy + fh, 1, -1], [fx + fw, fy + fh, -1, -1]].forEach(function (c) {
-      g.beginPath(); g.moveTo(c[0] + c[2] * L, c[1]); g.lineTo(c[0], c[1]); g.lineTo(c[0], c[1] + c[3] * L); g.stroke();
+      g.beginPath();
+      g.moveTo(c[0] + c[2] * L, c[1]);
+      g.arcTo(c[0], c[1], c[0], c[1] + c[3] * L, r);
+      g.lineTo(c[0], c[1] + c[3] * L);
+      g.stroke();
     });
-    /* 수평선 — 기울면 주황, 바르면 초록 */
+    /* 수평 — 가운데 원 + 양쪽 선. 기울면 주황, 바르면 초록 */
     var tilt = sensor.seen ? sensor.gamma : 0;
+    var level = Math.abs(tilt) < 6;
     g.save();
     g.translate(w / 2, h / 2);
     g.rotate(-tilt * Math.PI / 180);
-    g.strokeStyle = Math.abs(tilt) < 6 ? '#22c55e' : '#f59e0b';
-    g.beginPath(); g.moveTo(-w * 0.3, 0); g.lineTo(w * 0.3, 0); g.stroke();
+    g.strokeStyle = level ? GOOD : WARN_C;
+    g.lineWidth = 2.5;
+    var half = Math.min(w * 0.22, 140), gap = 14;
+    g.beginPath(); g.moveTo(-half, 0); g.lineTo(-gap, 0); g.moveTo(gap, 0); g.lineTo(half, 0); g.stroke();
+    g.beginPath(); g.arc(0, 0, 6, 0, Math.PI * 2); g.stroke();
     g.restore();
-    /* 진행 링 — 오른쪽 위. 찬 칸은 초록, 지금 방향은 흰 바늘, 가장 빈 쪽은 주황 점 */
-    var segs = passes[pass], R = Math.min(w, h) * 0.085, cx = w - R - 18, cy = R + 92;   // 위쪽 띠(자세 교정) 바로 아래, 틀 위
+    /* 진행 링 — 오른쪽 위 칩 줄. 찬 칸 초록 · 빈 칸 옅은 흰색 · 지금 방향 흰 점 · 가장 빈 쪽 주황 점 */
+    var segs = passes[pass], R = 26, cx = w - R - 22, cy = 16 + R + 4;
     var step = Math.PI * 2 / C.SEGMENTS;
-    g.lineWidth = R * 0.32;
+    g.shadowBlur = 0;
+    g.fillStyle = 'rgba(17,17,17,.5)';
+    g.beginPath(); g.arc(cx, cy, R + 9, 0, Math.PI * 2); g.fill();
+    g.lineWidth = 6;
     for (var s = 0; s < C.SEGMENTS; s++) {
-      g.strokeStyle = segs[s].length ? '#22c55e' : 'rgba(0,0,0,.45)';
-      g.beginPath(); g.arc(cx, cy, R, -Math.PI / 2 + s * step + 0.03, -Math.PI / 2 + (s + 1) * step - 0.03); g.stroke();
+      g.strokeStyle = segs[s].length ? GOOD : 'rgba(255,255,255,.25)';
+      g.beginPath(); g.arc(cx, cy, R, -Math.PI / 2 + s * step + 0.06, -Math.PI / 2 + (s + 1) * step - 0.06); g.stroke();
     }
     var cur = sensor.seen ? M.segmentOf(sensor.alpha, C.SEGMENTS) : fallbackSeg;
     var a = -Math.PI / 2 + (cur + 0.5) * step;
-    g.strokeStyle = '#fff'; g.lineWidth = 3;
-    g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); g.stroke();
-    var gap = M.biggestGap(segs);
-    if (gap >= 0 && M.coverage(segs) > 0) {
-      var ga = -Math.PI / 2 + (gap + 0.5) * step;
-      g.fillStyle = '#f59e0b';
-      g.beginPath(); g.arc(cx + Math.cos(ga) * (R + R * 0.35), cy + Math.sin(ga) * (R + R * 0.35), 6, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#fff';
+    g.beginPath(); g.arc(cx + Math.cos(a) * R, cy + Math.sin(a) * R, 5, 0, Math.PI * 2); g.fill();
+    var gp = M.biggestGap(segs);
+    if (gp >= 0 && M.coverage(segs) > 0) {
+      var ga = -Math.PI / 2 + (gp + 0.5) * step;
+      g.fillStyle = WARN_C;
+      g.beginPath(); g.arc(cx + Math.cos(ga) * (R + 9), cy + Math.sin(ga) * (R + 9), 4, 0, Math.PI * 2); g.fill();
     }
     g.fillStyle = '#fff';
-    g.font = 'bold ' + Math.round(R * 0.5) + 'px sans-serif';
+    g.font = '800 15px system-ui, sans-serif';
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(String(pass + 1), cx, cy);
+    g.fillText(Math.round(M.coverage(segs) * 100) + '%', cx, cy + 1);
   }
 
   function tick() {
@@ -252,10 +292,11 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     var pose = sensor.seen ? M.posture(sensor.gamma, sensor.beta, pass) : '';
     if (pose && (!bad || bad === 'blur')) bad = pose;
     $('scan-meter').textContent = '밝기 ' + Math.round(st.mean) + ' · 선명도 ' + Math.round(st.sharp) + ' (기준 ' + C.SHARP_MIN + ')' +
-      ' · 회전 ' + Math.round(sensor.speed) + '°/s' + (sensor.beta != null ? ' · 앞뒤 ' + Math.round(sensor.beta) + '° 좌우 ' + Math.round(sensor.gamma) + '°' : '') + ' · 방향 센서 ' + (sensor.seen ? '켜짐' : '없음 — 찍은 장수로 채움') +
-      ' · 사진 ' + shots + '장';
+      ' · 회전 ' + Math.round(sensor.speed) + '°/s' + (sensor.beta != null ? ' · 앞뒤 ' + Math.round(sensor.beta) + '° 좌우 ' + Math.round(sensor.gamma) + '°' : '') + ' · 방향 센서 ' + (sensor.seen ? '켜짐' : '없음 — 찍은 장수로 채움');
+    $('scan-count').textContent = '사진 ' + shots + '장';
+    level();
     warn(bad);
-    draw();
+    draw(bad);
     if (bad) return;
     var seg = sensor.seen ? M.segmentOf(sensor.alpha, C.SEGMENTS) : fallbackSeg;
     grab(seg, st.sharp);
@@ -269,7 +310,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     c.toBlob(function (blob) {
       if (!blob || !timer) return;          // 멈춘 뒤 늦게 온 사진은 버린다
       var segs = passes[pass];
-      if (!M.keep(segs[seg], { blob: blob, sharp: sharp, at: Date.now() })) return;
+      if (!M.keep(segs[seg], { blob: blob, sharp: sharp, at: Date.now(), w: c.width, h: c.height, pass: pass, seg: seg })) return;
       shots = passes.reduce(function (n, p) { return n + p.reduce(function (m, l) { return m + l.length; }, 0); }, 0);
       if (!sensor.seen) fallbackSeg = (fallbackSeg + 1) % C.SEGMENTS;
       if (M.coverage(segs) >= C.DONE_RATIO) nextPass();
@@ -281,6 +322,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       pass += 1;
       fallbackSeg = 0;
       $('scan-status').textContent = (pass + 1) + '번째 바퀴 (' + PASSES[pass].name + ') — ' + PASSES[pass].say;
+      showPass();
       say(PASSES[pass].say);
     } else {
       say('다 찍었습니다. 서버에 올립니다.');
@@ -304,12 +346,17 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     }).then(function (s) {
       stream = s;
       video.srcObject = s;
-      $('scan-stage').hidden = false;
-      $('scan-stage').classList.add('full');                 // 카메라가 화면 전체를 덮는다
+      $('scan-stage').classList.add('live');
+      $('scan-stage').classList.add('full');
+      $('scan-live').textContent = '● 실시간 카메라 켜짐';
+      $('scan-live').classList.add('on');
+      $('btn-scan-stop2').disabled = false;                 // 카메라가 화면 전체를 덮는다
       document.documentElement.classList.add('scan-on');     // 뒤 페이지가 스크롤되지 않게
       $('btn-scan-start').hidden = true;
       $('btn-scan-stop').hidden = false;
       $('scan-status').textContent = '1번째 바퀴 (' + PASSES[0].name + ') — ' + PASSES[0].say;
+      showPass();
+      $('scan-count').textContent = '사진 ' + shots + '장';
       say(PASSES[0].say);
       timer = setInterval(tick, SHOT_MS);
       warn('');
@@ -326,27 +373,71 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
     stream = null;
     warn('');
-    $('scan-stage').hidden = true;
+    $('scan-stage').classList.remove('live');
     $('scan-stage').classList.remove('full');
+    $('scan-live').textContent = '카메라 꺼짐';
+    $('scan-live').classList.remove('on');
+    $('btn-scan-stop2').disabled = true;
     document.documentElement.classList.remove('scan-on');
     $('btn-scan-stop').hidden = true;
     $('btn-scan-start').hidden = false;
     $('btn-scan-start').textContent = '처음부터 다시 찍기';
     showResult();
+    savePhoto();
+  }
+
+  /* 🆕 2026-11-16 설비 화면의 [카메라로 찍기] — 가장 선명한 한 장을 설비 사진으로 (긴 변 640, setup.js 와 같은 값).
+     낮은 바퀴(정면)에서 먼저 고른다. 사진이 바뀌면 예전 AI 위치 분석은 그 사진의 것이 아니라 지운다 */
+  var PHOTO_MAX = 640, PHOTO_QUALITY = 0.7;
+  function bestShot() {
+    var best = null;
+    [passes[0], passes[1]].forEach(function (segs) {
+      if (best) return;
+      segs.forEach(function (list) { list.forEach(function (s) { if (!best || s.sharp > best.sharp) best = s; }); });
+    });
+    return best;
+  }
+  function savePhoto() {
+    var shot = eq && bestShot();
+    if (!shot) return;
+    var url = URL.createObjectURL(shot.blob), img = new Image();
+    img.onload = function () {
+      var k = Math.min(1, PHOTO_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      var data = c.toDataURL('image/jpeg', PHOTO_QUALITY);
+      Store.setup.update(function (s) {
+        var e = Store.findBy(s.equipments, 'id', eq.id);
+        if (!e) return;
+        if (e.photo !== data && e.analysis) e.analysis = null;
+        e.photo = data;
+      });
+      $('scan-photo-note').hidden = false;
+      $('scan-photo-note').textContent = '가장 선명한 한 장을 「' + eq.name + '」의 설비 사진으로 저장했습니다.';
+    };
+    img.src = url;
   }
 
   function showResult() {
     var box = $('scan-thumbs');
     box.textContent = '';
     var parts = passes.map(function (segs, i) { return PASSES[i].name + ' ' + Math.round(M.coverage(segs) * 100) + '%'; });
-    $('scan-summary').textContent = '사진 ' + shots + '장 · 한 바퀴 채움 ' + parts.join(' · ');
+    $('scan-summary').textContent = '흔들리지 않은 사진 ' + shots + '장 · 한 바퀴 채움 ' + parts.join(' · ');
     passes.forEach(function (segs) {
       segs.forEach(function (list) {
         list.forEach(function (shot) {
+          var card = UI.el('figure', 'scan-shot');
           var im = UI.el('img', 'scan-thumb');
           im.src = URL.createObjectURL(shot.blob);
           im.alt = '';
-          box.appendChild(im);
+          card.appendChild(im);
+          var cap = UI.el('figcaption');
+          cap.appendChild(UI.el('b', null, (PASSES[shot.pass] || PASSES[0]).name + ' 바퀴 · ' + Math.round((shot.seg || 0) * 360 / C.SEGMENTS) + '° 방향'));
+          cap.appendChild(UI.el('small', null, (shot.w || '?') + ' × ' + (shot.h || '?') + ' · 선명도 ' + Math.round(shot.sharp)));
+          card.appendChild(cap);
+          box.appendChild(card);
         });
       });
     });
@@ -363,6 +454,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
     start();
   });
   $('btn-scan-stop').addEventListener('click', stop);
+  $('btn-scan-stop2').addEventListener('click', stop);
 
   /* ── 서버에 올리기 (/api/scans → Vercel Blob 비공개) — https 배포에서만 (net.js 가 막는다) ── */
 
@@ -407,7 +499,12 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       var list = (r.ok && r.data && r.data.scans) || [];
       if (!r.ok) box.appendChild(UI.el('li', 'meta', (r.data && r.data.message) || '목록을 불러오지 못했습니다.'));
       else if (!list.length) box.appendChild(UI.el('li', 'meta', '아직 올린 촬영이 없습니다.'));
-      list.forEach(function (s) { box.appendChild(UI.itemRow('camera', UI.formatDate(s.at), '사진 ' + s.count + '장 · 묶음 ' + s.scanId)); });
+      list.forEach(function (s) {
+        var li = UI.itemRow('check-circle', '촬영 묶음 ' + s.scanId, UI.formatDate(s.at) + ' 올림 · 사진 ' + s.count + '장');
+        li.appendChild(UI.okBadge('서버 보관'));
+        box.appendChild(li);
+      });
+      $('scan-list-count').textContent = list.length ? '최근 ' + list.length + '건' : '';
       $('sec-uploaded').hidden = false;
     });
   }
