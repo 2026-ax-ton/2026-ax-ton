@@ -701,6 +701,27 @@ html[data-env="dev"] .todo > h2::before {
 .login-signup { display: flex; align-items: center; justify-content: center; min-height: var(--tap-min); color: var(--ink-2); text-decoration: none; }
 .login-signup b { margin-left: 6px; color: var(--brand); }
 .login-demo h2 { margin: 0 0 6px; font-size: 1.05em; }
+
+/* 시연용 계정 — 접어 두고, 펴야 보인다 (2026-11-17 되돌림).
+   ★ 노동자가 QR 로 들어오면 이 칸을 볼 일이 없어야 한다 — 그래서 details 로 접는다.
+     시연·촬영 때만 펴서 쓴다 (촬영 대본 §0). */
+.login-demo-wrap { max-width: 460px; margin: 10px auto 0; }
+.login-demo-wrap > summary {
+  cursor: pointer; list-style: none; text-align: center;
+  padding: 8px 0; font-size: .8em; color: var(--ink-3);
+}
+.login-demo-wrap > summary::-webkit-details-marker { display: none; }
+.login-demo-wrap > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+
+.demo-accounts { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.demo-account {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 11px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 11px;
+}
+.demo-account .body { flex: 1 1 auto; min-width: 0; }
+.demo-account .body strong { display: block; font-size: .88em; font-weight: 800; word-break: break-all; }
+.demo-account .body .meta { margin: 2px 0 0; font-size: .74em; color: var(--ink-3); }
 .login-foot { margin: 8px 0 0; text-align: center; color: var(--ink-3); font-size: .82em; }
 /* 언어 선택·QR 안내 — 옛 화면은 짙은 바탕이라 흰 글자였다. 밝은 바탕에 맞춘다 */
 .login-body .lang-gate { margin: 0; justify-content: center; }
