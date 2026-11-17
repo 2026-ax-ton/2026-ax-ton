@@ -210,6 +210,8 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
 
   /* 화면 장식 아이콘 — 이모지 대신 선 아이콘 */
   UI.setIcon($('scan-stop-ico'), 'stop');
+  /* 촬영 전 안내 셋째 줄 — 「알아서 올라갑니다」는 번호가 아니라 체크 표시다 */
+  UI.setIcon(document.querySelector('.scan-steps .n.done'), 'check');
 
   /** 위쪽 칩 — 몇 바퀴째 · 어디서 */
   function showPass() {

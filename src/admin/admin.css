@@ -983,6 +983,15 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 #eq-cards .item > .btn, #eq-cards .item > .btn-sm { flex: 0 0 auto; width: auto; }
 
 /* 설비 촬영 (scan.html, 시제품) — 카메라 위에 안내를 겹쳐 그린다 */
+/* 촬영 전 안내 — 두 바퀴에 무엇을 하는지 (번호 + 글, 색만으로 나누지 않는다).
+   🆕 2026-11-17 되돌림 — 11/17 합치기에서 빠져 있었다 (PR #18 `ab09b86` 의 칸). */
+.scan-steps { list-style: none; margin: 4px 0 14px; padding: 0; display: grid; gap: 10px; }
+.scan-steps li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.scan-steps .n { flex: 0 0 auto; display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-deep); font-weight: 800; font-size: 14px; }
+.scan-steps .n svg { width: 16px; height: 16px; }
+.scan-steps b { display: block; font-size: 16px; }
+.scan-steps li > span:last-child { color: var(--ink-3, #6b7280); font-size: 14px; }
+.scan-steps li > span:last-child b { color: var(--ink, #111); }
 .scan-stage { position: relative; width: 100%; max-width: 720px; margin: 8px auto; background: #000; border-radius: 10px; overflow: hidden; }
 .scan-stage[hidden] { display: none; }
 .scan-stage video { display: block; width: 100%; height: auto; }
