@@ -218,7 +218,13 @@ PAGES.forEach(([html, js, login]) => {
 
   ok('index.html 오류 0건', t.errors.length === 0, t.errors.join(' | '));
   eq('★ 첫 방문이면 계정이 채워진다', t.win.Store.accounts.load().length, 6);
-  ok('시연 계정 목록은 화면에 없다', !t.$('demo-accounts') && !t.$('btn-seed') && !t.$('btn-reset'));
+  /* 🆕 2026-11-17 되돌림 — 시연·촬영 때 계정을 찾고 초기화할 길이 필요하다 (촬영 대본 §0).
+     ★ 다만 **접어 둔다** — 노동자가 QR 로 들어오면 펴기 전까지 보이지 않는다 */
+  ok('★ 시연 계정 칸이 있다 (촬영·시연용)', !!t.$('demo-accounts') && !!t.$('btn-seed') && !!t.$('btn-reset'));
+  eq('★★ 접혀 있다 — 노동자에게 먼저 보이지 않는다', t.$('demo-wrap').hasAttribute('open'), false);
+  eq('시연 계정 목록에 6개가 그려진다',
+    t.$('demo-accounts').querySelectorAll('li.demo-account').length, 6);
+  eq('★ 채웠으면 채웠다고 화면에 적는다', t.$('seed-auto').hidden, false);
   ok('아직 로그인 화면에 머문다 (자동으로 넘어가지 않는다)',
     t.nav.length === 0, t.nav.join(' | '));
 

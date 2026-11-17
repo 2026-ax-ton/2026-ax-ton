@@ -70,6 +70,44 @@
     <a class="login-signup" href="signup.html">처음이세요? <b data-i18n="login.signupTitle">회원가입</b></a>
   </section>
 
+  <!-- 시연·촬영용. 서버가 없으면 계정이 이 브라우저 안에만 있어서, 처음 여는 사람이
+       빈 화면에서 막힌다. 그래서 통로를 하나 둔다 — 단 **접어 둔다**(노동자 화면 시안에 없는 칸).
+       🆕 2026-11-17 되돌림 — 11/16 에 뺐더니 시연 영상을 찍을 때 계정을 찾을 길도,
+       다시 찍으려 초기화할 길도 없어졌다 (촬영 대본 §0 이 이 칸을 쓴다). -->
+  <details class="login-demo-wrap" id="demo-wrap">
+    <summary>시연용 계정</summary>
+    <section class="login-card login-demo" aria-labelledby="t-demo">
+      <div class="sec-head">
+        <div>
+          <h2 id="t-demo">시연용 계정</h2>
+          <p class="why">
+            서버가 없어 계정도 이 브라우저 안에만 있습니다.
+            아래 버튼을 누르면 예시 사업장과 계정이 한 번에 만들어집니다.
+          </p>
+        </div>
+        <span class="badge badge-wait"><span aria-hidden="true">&#9679;</span> 목업</span>
+      </div>
+
+      <p class="why" id="seed-auto" hidden>
+        이 브라우저에는 저장된 것이 없어서 <b>예시 데이터를 자동으로 채웠습니다.</b>
+        쓰던 데이터가 있으면 덮어쓰지 않습니다.
+      </p>
+
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn-sm go" type="button" id="btn-seed">예시 데이터 채우기</button>
+        <button class="btn-sm danger" type="button" id="btn-reset">전체 초기화</button>
+      </div>
+
+      <ul class="demo-accounts" id="demo-accounts"></ul>
+
+      <p class="muted" style="margin-top:10px">
+        비밀번호는 전부 <b>1234</b> 입니다.
+        서버가 없으면 어차피 브라우저에 그대로 남으므로, 감추지 않고 목업이라고 밝힙니다.
+        초기화한 뒤 새로고침하면 예시 데이터가 다시 채워집니다.
+      </p>
+    </section>
+  </details>
+
   <p class="login-foot">Safelang © 2026</p>
 </main>
 
