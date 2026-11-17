@@ -26,7 +26,7 @@ var Seed = (function () {
     { userId: 'W-4821-07', pw: '1234', role: 'worker',
       name: '', title: '', siteName: '대성정밀', lang: 'km', processId: 'p-press' },
     { userId: 'W-4821-11', pw: '1234', role: 'worker',
-      name: '', title: '', siteName: '대성정밀', lang: 'id', processId: 'p-paint' },
+      name: '', title: '', siteName: '대성정밀', lang: 'ne', processId: 'p-paint' },
     /* 베트남어 · 아직 아무것도 안 들은 사람.
        ★ '글자를 한 자도 안 읽고 끝까지' 를 확인하려면 백지에서 시작하는
          사람이 있어야 한다. 07·11 은 이미 기록이 있어서 그 확인이 안 된다. */
@@ -52,7 +52,7 @@ var Seed = (function () {
 
   var SETUP = {
     site: { name: '대성정밀', sizeBand: '10~49인' },
-    languages: ['km', 'id', 'vi'],
+    languages: ['km', 'ne', 'vi'],
     processes: [
       { id: 'p-press',    name: '프레스', icon: '⚙' },
       { id: 'p-paint',    name: '도장',   icon: '🔥' },
@@ -69,7 +69,7 @@ var Seed = (function () {
     ],
     workers: [
       { id: 'W-4821-07', lang: 'km', processId: 'p-press' },
-      { id: 'W-4821-11', lang: 'id', processId: 'p-paint' },
+      { id: 'W-4821-11', lang: 'ne', processId: 'p-paint' },
       { id: 'W-4821-03', lang: 'vi', processId: 'p-assembly' },
       { id: 'W-4821-31', lang: 'ko', processId: 'p-assembly' }
     ]
@@ -83,18 +83,18 @@ var Seed = (function () {
       ko: '프레스가 멈춰도 손을 넣지 마십시오',
       translations: {
         km: { text: 'កុំដាក់ដៃចូល', back: '프레스가 멈춰도 손을 넣지 마십시오' },
-        id: { text: 'Jangan masukkan tangan', back: '손을 넣지 마십시오' },
+        ne: { text: 'हात नहाल्नुहोस्', back: '손을 넣지 마십시오' },
         vi: { text: 'Không cho tay vào', back: '손을 넣지 마십시오' }
       } },
     { id: 'ph-2', category: '프레스', status: 'reviewed',
       ko: '작업 전 전원을 차단하십시오',
       translations: {
         km: { text: 'កាត់ចរន្តអគ្គិសនី', back: '작업 전 전원을 차단하십시오' },
-        id: { text: 'Matikan daya sebelum bekerja', back: '작업 전 전원을 끄십시오' },
+        ne: { text: 'काम गर्नु अघि बिजुली बन्द गर्नुहोस्', back: '작업 전 전원을 끄십시오' },
         vi: { text: 'Tắt nguồn trước khi làm việc', back: '작업 전 전원을 끄십시오' }
       } },
-    /* ★ ph-3 은 인도네시아어 번역만 뜻이 뒤집혔다 ("넣지 마십시오" → "넣어도 됩니다").
-         그래서 인도네시아어만 중지하고 한국어 원문과 크메르어는 계속 쓴다.
+    /* ★ ph-3 은 네팔어 번역만 뜻이 뒤집혔다 ("넣지 마십시오" → "넣어도 됩니다").
+         그래서 네팔어만 중지하고 한국어 원문과 크메르어는 계속 쓴다.
          문구 전체를 내리면 크메르어 노동자도 이 안전 지시를 못 듣는다 —
          그것은 오역보다 나은 상태가 아니다.
          flags[].lang 이 어느 언어의 신고인지를 남긴다. */
@@ -103,23 +103,23 @@ var Seed = (function () {
       translations: {
         km: { text: 'ទោះម៉ាស៊ីនឈប់ ក៏កុំដាក់ដៃចូល',
               back: '프레스가 멈춰도 손을 넣지 마십시오', status: 'reviewed' },
-        id: { text: 'Jika mesin mati, boleh masukkan tangan',
+        ne: { text: 'मेसिन बन्द भए हात हाल्न सकिन्छ',
               back: '프레스가 꺼지면 손을 넣어도 됩니다', status: 'stopped' }
       },
       flags: [
-        { note: '인도네시아어 번역이 정반대입니다. 손을 넣어도 된다고 읽힙니다.',
-          lang: 'id', at: '2026-08-12T02:10:00.000Z', resolvedAt: null }
+        { note: '네팔어 번역이 정반대입니다. 손을 넣어도 된다고 읽힙니다.',
+          lang: 'ne', at: '2026-08-12T02:10:00.000Z', resolvedAt: null }
       ] },
     { id: 'ph-4', category: '도장', status: 'reviewed',
       ko: '도장 작업 시 방독마스크를 착용하십시오',
       translations: {
         km: { text: 'ពាក់ម៉ាស់ការពារឧស្ម័ន', back: '방독마스크를 착용하십시오' },
-        id: { text: 'Kenakan masker gas', back: '방독마스크를 착용하십시오' }
+        ne: { text: 'ग्यास मास्क लगाउनुहोस्', back: '방독마스크를 착용하십시오' }
       } },
     { id: 'ph-5', category: '도장', status: 'waiting',
       ko: '환기팬이 돌지 않으면 작업을 시작하지 마십시오',
       translations: {
-        id: { text: 'Jangan mulai jika kipas mati', back: '팬이 꺼져 있으면 시작하지 마십시오' }
+        ne: { text: 'पंखा बन्द भए काम सुरु नगर्नुहोस्', back: '팬이 꺼져 있으면 시작하지 마십시오' }
       } },
     { id: 'ph-6', category: '공통', status: 'reviewed',
       ko: '비상정지 버튼은 설비 오른쪽 아래에 있습니다',
@@ -195,7 +195,7 @@ var Seed = (function () {
        answer 가 options 의 인덱스라서 번역 배열의 길이가 다르면 정답이 어긋난다. */
   var COURSES = [
     { id: 'c-press', title: '프레스 3호기 안전교육', equipmentId: 'e-press3',
-      languages: ['km', 'id', 'vi'], phraseIds: ['ph-1', 'ph-2', 'ph-3', 'ph-6'],
+      languages: ['km', 'ne', 'vi'], phraseIds: ['ph-1', 'ph-2', 'ph-3', 'ph-6'],
       approved: true, createdAt: '2026-08-01T02:00:00.000Z',
       /* 프레스만 기한이 있고 도장 부스는 없다 — 대시보드 한 화면에서
          D-day 와 "기한 미정" 이 함께 보여야 기한이 선택이라는 것이 드러난다. */
@@ -206,7 +206,7 @@ var Seed = (function () {
           answer: { x: 52, y: 44, r: 14 },
           i18n: {
             km: { prompt: 'សូមចុចកន្លែងដែលដៃអាចជាប់ក្នុងម៉ាស៊ីននេះ' },
-            id: { prompt: 'Tekan bagian yang dapat menjepit tangan pada mesin ini' },
+            ne: { prompt: 'यो मेसिनमा हात च्यापिन सक्ने ठाउँ थिच्नुहोस्' },
             vi: { prompt: 'Hãy chạm vào chỗ có thể kẹp tay trên máy này' }
           } },
         { id: 'q2', type: 'choice', hazard: 'pinch',
@@ -232,17 +232,30 @@ var Seed = (function () {
                 'ពេលជាន់ដោយជើង ដុំដែកអាចធ្លាក់មកលើជើង។'
               ]
             },
-            id: {
-              prompt: 'Mesin press berhenti. Apa yang harus dilakukan?',
+            ne: {
+              prompt: 'प्रेस मेसिन रोकियो। के गर्नुपर्छ?',
               options: [
-                'Masukkan tangan untuk mengambil komponen',
-                'Matikan daya dan panggil pengawas',
-                'Coba tekan dengan kaki'
+                'पार्ट निकाल्न हात हाल्ने',
+                'बिजुली बन्द गरी सुपरभाइजरलाई बोलाउने',
+                'खुट्टाले थिचेर हेर्ने'
               ],
               results: [
-                'Meski terlihat berhenti, tekanan yang tersisa dapat menjatuhkan ram. Tangan terjepit.',
-                'Benar. Matikan daya dan panggil pengawas, ram tidak akan jatuh.',
-                'Jika ram turun saat Anda menekan dengan kaki, kaki terjepit.'
+                'रोकिएको जस्तो देखिए पनि बाँकी दबाबले र्याम खस्न सक्छ। हात च्यापिन्छ।',
+                'सही। बिजुली बन्द गरी सुपरभाइजरलाई बोलाए र्याम खस्दैन।',
+                'खुट्टाले थिच्दा र्याम झरे खुट्टा च्यापिन्छ।'
+              ]
+            },
+            vi: {
+              prompt: 'Máy dập đã dừng. Bạn phải làm gì?',
+              options: [
+                'Cho tay vào để lấy linh kiện',
+                'Ngắt điện và gọi quản lý',
+                'Thử đạp bằng chân'
+              ],
+              results: [
+                'Dù trông như đã dừng, áp lực còn lại có thể làm đầu dập rơi xuống. Tay sẽ bị kẹp.',
+                'Đúng. Ngắt điện và gọi quản lý thì đầu dập không rơi xuống.',
+                'Nếu đầu dập hạ xuống khi bạn đạp thử, chân sẽ bị kẹp.'
               ]
             },
             vi: {
@@ -269,9 +282,9 @@ var Seed = (function () {
             km: { prompt: 'ភ្ជាប់ឧបករណ៍ការពារដែលត្រូវនឹងការងារ',
               pairs: [['ការងារម៉ាស៊ីនកិន', 'ស្រោមដៃសុវត្ថិភាព'], ['ការត្រួតពិនិត្យតាប្លូអគ្គិសនី', 'ស្រោមដៃអ៊ីសូឡង់']],
               why: 'ការងារនីមួយៗត្រូវការឧបករណ៍ការពារខុសគ្នា។ ស្រោមដៃសុវត្ថិភាពធម្មតាមិនអាចការពារការឆក់ខ្សែភ្លើងពេលត្រួតពិនិត្យតាប្លូអគ្គិសនីបានទេ។' },
-            id: { prompt: 'Hubungkan alat pelindung yang sesuai dengan pekerjaan',
-              pairs: [['Pekerjaan mesin press', 'Sarung tangan keselamatan'], ['Pemeriksaan panel listrik', 'Sarung tangan isolasi']],
-              why: 'Setiap pekerjaan butuh alat pelindung yang berbeda. Sarung tangan keselamatan biasa tidak mencegah sengatan listrik saat memeriksa panel listrik.' },
+            ne: { prompt: 'कामसँग मिल्ने सुरक्षा उपकरण जोड्नुहोस्',
+              pairs: [['प्रेस मेसिनको काम', 'सुरक्षा पन्जा'], ['बिजुली प्यानल जाँच', 'इन्सुलेसन पन्जा']],
+              why: 'हरेक कामलाई फरक सुरक्षा उपकरण चाहिन्छ। साधारण सुरक्षा पन्जाले बिजुली प्यानल जाँच गर्दा करेन्ट लाग्नबाट बचाउँदैन।' },
             vi: { prompt: 'Nối đồ bảo hộ phù hợp với công việc',
               pairs: [['Công việc máy dập', 'Găng tay bảo hộ'], ['Kiểm tra tủ điện', 'Găng tay cách điện']],
               why: 'Mỗi công việc cần đồ bảo hộ khác nhau. Găng tay bảo hộ thường không ngăn được điện giật khi kiểm tra tủ điện.' }
@@ -279,7 +292,7 @@ var Seed = (function () {
       ] },
     /* 2026-11-11 — 프레스 문구 ph-3 이 도장 교육에 섞여 있었다. 설비 종류가 다른 문구는 넣지 않는다 */
     { id: 'c-paint', title: '도장 부스 1 안전교육', equipmentId: 'e-booth1',
-      languages: ['id'], phraseIds: ['ph-4', 'ph-6'],
+      languages: ['ne'], phraseIds: ['ph-4', 'ph-6'],
       approved: true, createdAt: '2026-08-03T01:00:00.000Z',
       quiz: [
         { id: 'q1', type: 'choice', hazard: 'fire',
@@ -292,17 +305,17 @@ var Seed = (function () {
             '창문을 열면 바람이 들어와 불이 커집니다.'
           ],
           i18n: {
-            id: {
-              prompt: 'Terjadi kebakaran saat pengecatan. Apa yang dilakukan lebih dulu?',
+            ne: {
+              prompt: 'पेन्टिङ गर्दा आगो लाग्यो। पहिले के गर्ने?',
               options: [
-                'Menyiram dengan air',
-                'Matikan kipas ventilasi lalu mengungsi',
-                'Membuka jendela'
+                'पानी छर्कने',
+                'भेन्टिलेसन पंखा बन्द गरी बाहिर निस्कने',
+                'झ्याल खोल्ने'
               ],
               results: [
-                'Menyiram air pada api cat membuat api menyebar.',
-                'Benar. Mematikan kipas mencegah uap cat menyebar ke saluran. Matikan lalu segera keluar.',
-                'Membuka jendela membuat angin masuk dan api membesar.'
+                'पेन्टको आगोमा पानी छर्किँदा आगो फैलिन्छ।',
+                'सही। पंखा बन्द गर्दा पेन्टको बाफ डक्टमा फैलिँदैन। बन्द गरी तुरुन्त बाहिर निस्कनुहोस्।',
+                'झ्याल खोल्दा हावा पसेर आगो बढ्छ।'
               ]
             }
           } },
@@ -310,7 +323,7 @@ var Seed = (function () {
           prompt: '방독마스크를 써야 하는 구역을 누르세요',
           answer: { x: 38, y: 60, r: 16 },
           i18n: {
-            id: { prompt: 'Tekan area yang wajib memakai masker gas' }
+            ne: { prompt: 'ग्यास मास्क लगाउनुपर्ने ठाउँ थिच्नुहोस्' }
           } }
       ] }
   ];
@@ -329,7 +342,7 @@ var Seed = (function () {
       learnedAt: '2026-08-10T01:20:00.000Z',
       quiz: { score: 100, passed: true, answers: [1, 1, 1], at: '2026-08-10T01:32:00.000Z',
               attempt: 1, firstPassed: true } },
-    { workerId: 'W-4821-11', courseId: 'c-paint', lang: 'id',
+    { workerId: 'W-4821-11', courseId: 'c-paint', lang: 'ne',
       learnedAt: '2026-08-11T05:10:00.000Z',
       quiz: { score: 50, passed: false, answers: [0, 1], at: '2026-08-11T05:24:00.000Z',
               attempt: 1, firstPassed: false } },

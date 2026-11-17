@@ -243,19 +243,19 @@ function pickTo(t, code) {
      "번역 준비 중" 이 먼저, 그 아래에 음성 안내가 와야 한다. 순서가 바뀌면
      글을 못 읽는 사람은 위에서부터 본 것으로 다 봤다고 여기고,
      아래에 있는 번역 안내를 놓칠 수 있다.
-     W-4821-11(인도네시아어) + 기본 음성(한국어만) = 둘 다 걸리는 조합 */
+     W-4821-11(네팔어) + 기본 음성(한국어만) = 둘 다 걸리는 조합 */
   /* 2026-11-11 — 번역 없는 문구(ph-6)는 이제 한국어로 띄우지 않고 뺀다. 남은 카드에는 음성 안내만 */
   const idLearn = open('learn', { login: 'W-4821-11' });
   click(idLearn.win, idLearn.$('course-list').querySelector('.course-open'));
   const cardText = text(idLearn.$('phrase-card'));
-  const voiceAt = cardText.indexOf(idLearn.win.UI.voiceNote('id'));
+  const voiceAt = cardText.indexOf(idLearn.win.UI.voiceNote('ne'));
   ok('★ 번역 없는 문구는 아예 나오지 않는다 (한국어를 섞지 않는다)', cardText.indexOf('비상정지') === -1, cardText);
-  ok('★ 음성 안내는 뜬다 (인도네시아어 음성이 이 기기에 없다)', voiceAt !== -1,
+  ok('★ 음성 안내는 뜬다 (네팔어 음성이 이 기기에 없다)', voiceAt !== -1,
     cardText);
 
   /* ★★ 배지를 없앤 것이 아니라 한국어에만 안 띄운 것이다.
      이 짝이 없으면 "배지를 통째로 지웠다" 와 구분되지 않는다.
-     W-4821-11(인도네시아어)의 문구 풀에는 그 언어 번역이 있는 것과
+     W-4821-11(네팔어)의 문구 풀에는 그 언어 번역이 있는 것과
      없는 것(ph-6)이 섞여 있다. 없는 쪽에서는 배지가 뜨고, 있는 쪽에서는
      안 뜬다 — 숨기지 않으면서 거짓말도 하지 않는다는 규칙이 살아 있다.
 
@@ -267,7 +267,7 @@ function pickTo(t, code) {
        뜻이 그대로 남고, 오히려 원래 보려던 것(둘 다 있는가)을 더 정확히 본다. */
   const id = open('home', { login: 'W-4821-11' });
   const idTotal = Number(text(id.$('today-pos')).split('/')[1].trim());
-  ok('★ 인도네시아어 노동자에게는 넘겨 볼 문구가 둘 이상이다 (아래 짝의 전제)',
+  ok('★ 네팔어 노동자에게는 넘겨 볼 문구가 둘 이상이다 (아래 짝의 전제)',
     idTotal >= 2, '문구 ' + idTotal + '개');
 
   const idNotes = [];
@@ -277,8 +277,8 @@ function pickTo(t, code) {
   }
   const seen = idNotes.join(' | ');
 
-  const pending = id.win.I18N.t('learn.transPending', 'id');
-  const reviewed = id.win.I18N.t('home.reviewedOk', 'id');
+  const pending = id.win.I18N.t('learn.transPending', 'ne');
+  const reviewed = id.win.I18N.t('home.reviewedOk', 'ne');
   ok('★★ 번역이 없는 사람에게는 그대로 알린다 (숨긴 것이 아니다)',
     idNotes.some((n) => n.indexOf(pending) !== -1), seen);
   ok('★ 번역이 있는 문구에서는 그 배지를 띄우지 않는다 (늘 뜨면 뜻이 없다)',
@@ -390,7 +390,7 @@ function pickTo(t, code) {
 
   /* 사전 쪽도 6개 언어가 다 차 있어야 한다 (test-i18n.js 와 겹치지만,
      이 세 키는 소리가 안 날 때 유일하게 남는 통로라 여기서도 본다) */
-  ['km', 'id', 'vi', 'ne', 'th'].forEach((lang) => {
+  ['km', 'vi', 'ne', 'th'].forEach((lang) => {
     const miss = KEYS.filter((k) => !I.has(k, lang));
     ok(lang + ' 번역이 세 문장 모두에 있다', miss.length === 0, miss.join(', '));
   });

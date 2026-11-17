@@ -56,37 +56,7 @@
     box.hidden = false;
   }
 
-  /* 🆕 2026-11-16 로그인 시안 — 노동자 화면이 기본이고, 담당자·운영자는 아래 링크로 바꾼다.
-     같은 입력칸·같은 Auth 를 쓴다 (식별번호든 이메일이든 Auth 가 가린다). 글자만 바꾼다.
-     ★ 담당자 글자는 한국어로 둔다 — 담당자는 한국어 사용자이고, 언어를 바꿔도 되돌아가지 않게
-       언어를 고를 때마다 다시 적는다. */
-  var adminMode = false;
-  function applyMode() {
-    var h = $('t-login'), lab = document.querySelector('label[for="login-id"]'),
-        input = $('login-id'), link = $('admin-mode-label'), btn = $('btn-admin-mode');
-    if (!h || !lab || !input) return;
-    if (adminMode) {
-      h.textContent = '담당자 · 운영자 로그인';
-      lab.textContent = '업무용 이메일';
-      input.setAttribute('placeholder', 'name@company.co.kr');
-      var pwLab = document.querySelector('label[for="login-pw"]');
-      var go = document.querySelector('#btn-login [data-i18n]');
-      if (pwLab) pwLab.textContent = '비밀번호';
-      if (go) go.textContent = '로그인';
-    } else {
-      I18N.apply(document.querySelector('.login-card'));
-    }
-    if (link) link.textContent = adminMode ? '근로자 로그인으로' : '안전관리자 · 반장 로그인';
-    if (btn) btn.setAttribute('aria-pressed', adminMode ? 'true' : 'false');
-  }
-  var modeBtn = $('btn-admin-mode');
-  if (modeBtn) modeBtn.addEventListener('click', function () {
-    adminMode = !adminMode;
-    applyMode();
-    $('login-id').focus();
-  });
-
-  UI.preloginLangPicker('lang-gate', function () { renderQrNote(); applyMode(); });
+  /* 2026-11-16 로그인 화면 언어 선택은 뺐다 (사용자 결정) — 로그인 뒤 계정 언어로 바뀐다 */
   renderQrNote();
 
   /* 처음 여는 브라우저면 예시 데이터를 채운다.
@@ -99,7 +69,7 @@
        자동 채우기가 그 세션을 되살려, 로그인하지 않은 사람이 화면 안으로 들어간다.
      ★ 저장이 막힌 브라우저에서는 부르지 않는다. fill() 은 아무것도 저장하지 못한 채
        true 를 돌려주므로, "채웠습니다" 라고 적어 놓고 목록은 비는 화면이 된다. */
-  var seededNow = Store.available() && Seed.fillIfEmpty();
+  if (Store.available()) Seed.fillIfEmpty();   // 빈 브라우저면 예시 계정을 조용히 채운다 (화면에는 안 보인다)
 
   function showError(msg) {
     var box = $('login-error');
@@ -109,43 +79,6 @@
 
   function clearError() {
     $('login-error').hidden = true;
-  }
-
-  /* 시연 계정 목록 — 지금 저장돼 있는 계정을 그대로 보여 준다.
-     하드코딩한 목록을 보여 주면 초기화한 뒤에도 있는 것처럼 보인다. */
-  function renderAccounts() {
-    var list = $('demo-accounts');
-    list.textContent = '';
-
-    var accounts = Store.accounts.load();
-    if (!accounts.length) {
-      list.appendChild(UI.emptyRow('아직 계정이 없습니다. 위 버튼을 눌러 예시 데이터를 채우세요.'));
-      return;
-    }
-
-    accounts.forEach(function (acc) {
-      var role = Store.role(acc.role);
-      var li = UI.el('li', 'demo-account');
-
-      var body = UI.el('div', 'body');
-      body.appendChild(UI.el('strong', null, acc.userId));
-      body.appendChild(UI.el('p', 'meta',
-        (role ? role.label : acc.role) + (acc.name ? ' · ' + acc.name : '')));
-      li.appendChild(body);
-
-      // 누르면 아이디·비밀번호가 채워진다. 시연 중 오타로 막히는 일이 없게 한다.
-      var btn = UI.el('button', 'btn-sm', '이 계정으로');
-      btn.type = 'button';
-      btn.addEventListener('click', function () {
-        $('login-id').value = acc.userId;
-        $('login-pw').value = acc.pw;
-        clearError();
-        $('login-pw').focus();
-      });
-      li.appendChild(btn);
-
-      list.appendChild(li);
-    });
   }
 
   /* ── 들어가기 — 서버 먼저, 안 되면 이 기기 (T11) ────────────────────
@@ -198,7 +131,7 @@
         /* 서버가 없거나 닿지 못한다 — 교육이 멈추면 안 되므로 이 기기 계정으로 간다.
            숨기지 않고 **먼저 적고** 넘어간다. 어느 길로 들어왔는지 모르면
            데이터가 어디 있는지도 모른다 (이 기기에만 쌓인다). */
-        var note = '서버에 닿지 못해 이 기기에 저장된 계정으로 확인했습니다 (목업).';
+        var note = '서버에 닿지 못해 이 기기에 저장된 계정으로 확인했습니다.';
         showMode(note);
         loginHere(note);
         return;
@@ -208,24 +141,6 @@
       $('login-pw').focus();
     });
   });
-
-  $('btn-seed').addEventListener('click', function () {
-    if (Store.accounts.load().length &&
-        !window.confirm('지금 저장된 계정과 데이터를 예시 데이터로 덮어씁니다. 계속할까요?')) return;
-    Seed.fill();
-    renderAccounts();
-    UI.toast('예시 데이터를 채웠습니다.');
-  });
-
-  $('btn-reset').addEventListener('click', function () {
-    if (!window.confirm('이 브라우저에 저장된 내용을 전부 지웁니다.\n되돌릴 수 없습니다. 계속할까요?')) return;
-    Store.resetAll();
-    renderAccounts();
-    UI.toast('초기화했습니다. 새로고침하면 예시 데이터가 다시 채워집니다.');
-  });
-
-  // 조용히 채우면 "내가 넣지도 않았는데 왜 있지" 가 된다. 채웠으면 채웠다고 적는다.
-  if (seededNow) $('seed-auto').hidden = false;
 
   /* 🆕 2026-11-15 로그인 시안 — 아이콘 자리(data-icon)와 비밀번호 보기 */
   UI.$$('.login-body [data-icon]').forEach(function (n) { UI.setIcon(n, n.getAttribute('data-icon')); });
@@ -239,5 +154,4 @@
     });
   }
 
-  renderAccounts();
 })();

@@ -256,8 +256,8 @@ function openQuiz(opts) {
   // 문항1 은 choice. 오답을 골라 결과 문장을 확인한다.
   const choices = t.$('quiz-body').querySelectorAll('.choice-btn');
   click(t.win, choices[0]);   // 물을 뿌린다
-  has('오답의 결과를 인도네시아어로 말한다', text(t.$('consequence-text')),
-    'Menyiram air pada api cat membuat api menyebar');
+  has('오답의 결과를 네팔어로 말한다', text(t.$('consequence-text')),
+    'पेन्टको आगोमा पानी छर्किँदा आगो फैलिन्छ।');
   eq('틀렸을 때 아이콘', iconName(t.$('consequence-ico')), 'alert');
   eq('정답도 함께 표시', choices[1].getAttribute('data-mark'), 'ok');
 
@@ -271,10 +271,10 @@ function openQuiz(opts) {
   has('도장 작업 구역이 정답', labels.join(' | '), '도장 작업 구역');
 
   pickZone(t, [...zones].find((z) => z.getAttribute('aria-label') === '도장 작업 구역'));
-  ok('결과 문장이 인도네시아어 (한국어 구역 문장을 섞지 않는다)', !/[가-힣]/.test(text(t.$('consequence-text'))), text(t.$('consequence-text')));
+  ok('결과 문장이 네팔어 (한국어 구역 문장을 섞지 않는다)', !/[가-힣]/.test(text(t.$('consequence-text'))), text(t.$('consequence-text')));
 
   click(t.win, t.$('btn-next'));
-  eq('1문항 오답이라 미통과', text(t.$('result-score')), K(t, 'quiz.score', 'id').replace('{t}', 2).replace('{r}', 1));
+  eq('1문항 오답이라 미통과', text(t.$('result-score')), K(t, 'quiz.score', 'ne').replace('{t}', 2).replace('{r}', 1));
 
   const row = t.win.Store.progress.load()
     .find((r) => r.workerId === 'W-4821-11' && r.courseId === 'c-paint');
@@ -313,7 +313,7 @@ function openQuiz(opts) {
 {
   const t = openQuiz({ login: 'W-4821-11' });
   eq('문항 화면이 바로 뜬다', t.$('view-quiz').hidden, false);
-  has('도장 부스 교육을 골랐다 (설비 이름 + 내 언어)', text(t.$('quiz-course')), '도장 부스 1 · ' + K(t, 'learn.course', 'id'));
+  has('도장 부스 교육을 골랐다 (설비 이름 + 내 언어)', text(t.$('quiz-course')), '도장 부스 1 · ' + K(t, 'learn.course', 'ne'));
 }
 
 /* =================================================================
@@ -426,12 +426,29 @@ function openQuiz(opts) {
   eq('한국어 노동자는 번역 없이도 푼다', k.$('view-quiz').hidden, false);
 }
 
-/* --- 인도네시아어 노동자는 인도네시아어를 본다 --- */
+/* --- ★★ 문항 번역이 하나라도 빠지면 한국어를 띄우지 않고 막는다 (2026-11-11 요청 1-6) --- */
+{
+  const t = openQuiz({
+    login: 'W-4821-07', query: '?course=c-press',
+    before(win) { win.Store.courses.update((list) => { delete list.find((c) => c.id === 'c-press').quiz[2].i18n.km; }); },
+  });
+  eq('★★ 문항 화면을 열지 않는다', t.$('view-quiz').hidden, true);
+  has('★★ 내 언어로 「아직 준비되지 않았습니다」', text(t.$('gate-title')), K(t, 'quiz.notReady'));
+  ok('★★ 한국어 문항이 화면에 없다', text(t.$('view-gate')).indexOf('보호구를 연결') === -1);
+  const k = openQuiz({ login: 'W-4821-31', query: '?course=c-press',
+    before(win) { win.Store.courses.update((list) => { delete list.find((c) => c.id === 'c-press').quiz[2].i18n.km; });
+      win.Store.setup.update((s) => { s.workers.find((w) => w.id === 'W-4821-31').processId = 'p-press'; });
+      win.Store.accounts.update((l) => { const a = l.find((x) => x.userId === 'W-4821-31'); a.processId = 'p-press'; });
+      win.Store.progress.update((l) => { l.push({ workerId: 'W-4821-31', courseId: 'c-press', lang: 'ko', learnedAt: '2026-08-01T00:00:00Z', quiz: null }); }); } });
+  eq('한국어 노동자는 번역 없이도 푼다', k.$('view-quiz').hidden, false);
+}
+
+/* --- 네팔어 노동자는 네팔어를 본다 --- */
 {
   const t = openQuiz({ login: 'W-4821-11', query: '?course=c-paint' });
-  has('문항이 인도네시아어로 나온다', text(t.$('quiz-prompt')), 'Terjadi kebakaran saat pengecatan');
-  has('선택지도 인도네시아어로 나온다',
-    text(t.$('quiz-body').querySelectorAll('.choice-btn')[1]), 'Matikan kipas ventilasi');
+  has('문항이 네팔어로 나온다', text(t.$('quiz-prompt')), 'पेन्टिङ गर्दा आगो लाग्यो। पहिले के गर्ने?');
+  has('선택지도 네팔어로 나온다',
+    text(t.$('quiz-body').querySelectorAll('.choice-btn')[1]), 'भेन्टिलेसन पंखा बन्द गरी बाहिर निस्कने');
 }
 
 /* --- ★ 번역 배열의 길이가 다르면 한국어로 되돌아간다 ---
@@ -483,8 +500,8 @@ function openQuiz(opts) {
   if (zones.length) {
     pickZone(t, zones[0]);
     click(t.win, t.$('btn-next'));
-    has('결과 복기도 인도네시아어로 보인다',
-      text(t.$('result-review')), 'Terjadi kebakaran');
+    has('결과 복기도 네팔어로 보인다',
+      text(t.$('result-review')), 'पेन्टिङ गर्दा आगो लाग्यो। पहिले के गर्ने?');
   } else {
     ok('도해에 구역이 있다 (복기 확인을 위해)', false, '구역이 0개');
   }
@@ -504,7 +521,7 @@ function openQuiz(opts) {
   eq('★ 선택지 번역이 빠지면 한국어 배열', S.qtext(q, 'id', 'options')[0], 'A');
   eq('온전한 번역은 qhas true', S.qhas(q, 'km'), true);
   eq('★ 문구만 번역된 것은 qhas false — 언어가 섞인 화면을 숨기지 않는다',
-    S.qhas(q, 'id'), false);
+    S.qhas(q, 'ne'), false);
   eq('번역이 아예 없으면 qhas false', S.qhas(q, 'vi'), false);
 }
 

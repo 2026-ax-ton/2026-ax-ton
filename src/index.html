@@ -9,26 +9,18 @@
 <link rel="stylesheet" href="assets/style-admin.css">
 <link rel="stylesheet" href="assets/app.css">
 </head>
-<body class="login-body login-v2">
+<body class="login-body">
 
-<!-- 🆕 2026-11-16 로그인 화면을 Stitch 시안(코랄 · 언어 2열 카드 · 근로자 로그인)으로 바꿨다.
-     ★ 시안의 English · 「기타 언어」 · 바코드 스캔 · 고객지원 링크는 넣지 않았다 —
-       지원하지 않는 언어와 없는 기능을 화면에 두면 눌러도 아무 일이 없는 버튼이 된다.
-       언어는 계획한 5개(크메르·인니·베트남·네팔·태국) + 한국어(Store.LANGUAGES).
-     ★ 시안의 외부 글꼴(Google Fonts)·Tailwind CDN 은 쓰지 않는다 — 외부 요청 0건 (C05). -->
+<!-- 🆕 2026-11-15 로그인 화면을 시안(밝은 회색 바탕 + 가운데 흰 카드)으로 바꿨다.
+     ★ 시안의 「보안 서버 정상 가동 중」「SSL 256-bit」 「법 제31조 준수 인증」 「1588-0000」은 넣지 않았다 —
+       확인하지 않은 상태·인증·연락처를 화면에 쓰면 사실이 아닌 말이 된다. 이름은 전부 Safelang. -->
+<header class="login-strip">
+  <span class="login-strip-brand" data-brand="sm">safelang.</span>
+</header>
+
 <main class="login-main">
 
-  <header class="lv2-brand">
-    <span class="lv2-logo"><span class="ico" data-icon="shield" aria-hidden="true"></span></span>
-    <span class="lv2-name">SAFE-LANG</span>
-  </header>
-
-  <!-- 언어 선택 — 로그인 전이라 이 기기에 둔다 (H9 · FR-CM-01-08).
-       글을 못 읽어도 모국어 글자와 음성으로 자기 언어를 찾을 수 있다. -->
-  <section class="lv2-lang" aria-labelledby="t-lang">
-    <p class="lv2-sec-title" id="t-lang">교육 언어 선택 <span class="lv2-sec-sub">(기본: 한국어)</span></p>
-    <div class="lang-gate" id="lang-gate"></div>
-  </section>
+  <!-- 2026-11-16 사용자 결정 — 로그인 화면의 언어 선택을 뺐다. 노동자 언어는 로그인 뒤 계정의 언어로 바뀐다 -->
 
   <!-- QR 로 들어왔으면 로그인 뒤 어디로 가는지 미리 알린다 (H9 · FR-CM-01-09) -->
   <p class="qr-note" id="qr-note" hidden></p>
@@ -39,21 +31,26 @@
   </p>
 
   <section class="login-card" aria-labelledby="t-login">
-    <h1 id="t-login" data-i18n="login.workerTitle">근로자 로그인</h1>
+    <div class="login-head">
+      <span class="login-logo" data-brand="lg">safelang.</span>
+      <span class="login-chip"><span class="ico" data-icon="person" aria-hidden="true"></span>노동자 · 담당자 · 운영자</span>
+    </div>
+
+    <h1 id="t-login">안전보건교육 관리시스템</h1>
+    <p class="login-lead">사업장 안전교육 이해 확인과 교육 증빙 관리를 위해 로그인해 주세요.</p>
 
     <form id="form-login" autocomplete="off">
       <div class="field">
-        <label for="login-id" data-i18n="login.id">식별번호</label>
-        <div class="login-input lv2-has-lead">
-          <span class="lv2-lead ico" data-icon="person" aria-hidden="true"></span>
-          <input id="login-id" type="text" placeholder="예: W-4821-07" data-i18n-ph="login.idPh" autocomplete="username">
+        <label for="login-id" data-i18n="login.id">아이디</label>
+        <div class="login-input">
+          <input id="login-id" type="text" placeholder="식별번호 또는 업무용 이메일" autocomplete="username">
+          <span class="ico" data-icon="factory" aria-hidden="true"></span>
         </div>
       </div>
       <div class="field">
         <label for="login-pw" data-i18n="login.pw">비밀번호</label>
-        <div class="login-input lv2-has-lead">
-          <span class="lv2-lead ico" data-icon="shield" aria-hidden="true"></span>
-          <input id="login-pw" type="password" placeholder="••••" autocomplete="current-password">
+        <div class="login-input">
+          <input id="login-pw" type="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
           <button class="login-eye" type="button" id="btn-pw-eye" aria-label="비밀번호 보기" aria-pressed="false"><span class="ico" data-icon="eye" aria-hidden="true"></span></button>
         </div>
       </div>
@@ -64,57 +61,16 @@
       <p class="why" id="login-mode" hidden></p>
 
       <button class="btn btn-primary login-go" type="submit" id="btn-login">
-        <span data-i18n="login.submit">시작하기</span> <span aria-hidden="true">→</span>
+        <span data-i18n="login.submit">로그인</span> <span aria-hidden="true">→</span>
       </button>
     </form>
+
+    <hr class="hr">
+
+    <a class="login-signup" href="signup.html">처음이세요? <b data-i18n="login.signupTitle">회원가입</b></a>
   </section>
 
-  <nav class="lv2-foot" aria-label="다른 로그인">
-    <button type="button" class="lv2-link" id="btn-admin-mode" aria-pressed="false">
-      <span class="ico" data-icon="tools" aria-hidden="true"></span><span id="admin-mode-label">안전관리자 · 반장 로그인</span>
-    </button>
-    <span class="lv2-sep" aria-hidden="true">|</span>
-    <a class="lv2-link" href="signup.html" data-i18n="login.signupTitle">회원가입</a>
-  </nav>
-
-  <!-- 개발·시연용. 서버가 없으면 계정이 이 브라우저에만 있으므로,
-       처음 여는 사람이 빈 화면에서 막히지 않게 통로를 하나 둔다.
-       🆕 2026-11-16 노동자에게는 접어 둔다 (시안에 없는 칸). -->
-  <details class="login-demo-wrap" id="demo-wrap">
-    <summary>시연용 계정</summary>
-    <section class="login-card login-demo" aria-labelledby="t-demo">
-      <div class="sec-head">
-        <div>
-          <h2 id="t-demo">시연용 계정</h2>
-          <p class="why">
-            서버가 없어 계정도 이 브라우저 안에만 있습니다.
-            아래 버튼을 누르면 예시 사업장과 계정이 한 번에 만들어집니다.
-          </p>
-        </div>
-        <span class="badge badge-wait"><span aria-hidden="true">●</span> 목업</span>
-      </div>
-
-      <p class="why" id="seed-auto" hidden>
-        이 브라우저에는 저장된 것이 없어서 <b>예시 데이터를 자동으로 채웠습니다.</b>
-        쓰던 데이터가 있으면 덮어쓰지 않습니다.
-      </p>
-
-      <div class="btn-row" style="margin-bottom:12px">
-        <button class="btn-sm go" type="button" id="btn-seed">예시 데이터 채우기</button>
-        <button class="btn-sm danger" type="button" id="btn-reset">전체 초기화</button>
-      </div>
-
-      <ul class="demo-accounts" id="demo-accounts"></ul>
-
-      <p class="muted" style="margin-top:10px">
-        비밀번호는 전부 <b>1234</b> 입니다.
-        서버가 없으면 어차피 브라우저에 그대로 남으므로, 감추지 않고 목업이라고 밝힙니다.
-        초기화한 뒤 새로고침하면 예시 데이터가 다시 채워집니다.
-      </p>
-    </section>
-  </details>
-
-  <p class="login-foot">위치·근태를 기록하지 않고, 개인 점수를 인사·평가 목적으로 내보내지 않습니다.</p>
+  <p class="login-foot">Safelang © 2026</p>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>

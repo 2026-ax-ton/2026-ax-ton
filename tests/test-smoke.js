@@ -152,14 +152,14 @@ PAGES.forEach(([html, js, login]) => {
     JSON.stringify(reports.map(Object.keys)));
 
   /* 오역 문구는 사용 중지여야 한다.
-     ★ ph-3 은 인도네시아어 번역만 뜻이 뒤집혔다. 그 언어만 내려가고
+     ★ ph-3 은 네팔어 번역만 뜻이 뒤집혔다. 그 언어만 내려가고
        한국어·크메르어는 계속 나간다 — 문구 전체를 내리면 크메르어 노동자도
        이 안전 지시를 못 듣고, 그것은 오역보다 나은 상태가 아니다. */
   const ph3 = S.library.load().find((p) => p.id === 'ph-3');
-  eq('★ 뜻이 뒤집힌 인도네시아어는 나가지 않는다', S.phraseOk(ph3, 'id'), false);
+  eq('★ 뜻이 뒤집힌 네팔어는 나가지 않는다', S.phraseOk(ph3, 'ne'), false);
   eq('★ 크메르어는 계속 나간다', S.phraseOk(ph3, 'km'), true);
   eq('한국어 원문도 계속 나간다', S.phraseOk(ph3, 'ko'), true);
-  eq('신고에 어느 언어인지 남아 있다', ph3.flags[0].lang, 'id');
+  eq('신고에 어느 언어인지 남아 있다', ph3.flags[0].lang, 'ne');
 }
 
 /* -------------------------------------------------------------------
@@ -218,9 +218,7 @@ PAGES.forEach(([html, js, login]) => {
 
   ok('index.html 오류 0건', t.errors.length === 0, t.errors.join(' | '));
   eq('★ 첫 방문이면 계정이 채워진다', t.win.Store.accounts.load().length, 6);
-  eq('시연 계정 목록에 6개가 그려진다',
-    t.$('demo-accounts').querySelectorAll('li.demo-account').length, 6);
-  eq('★ 채웠으면 채웠다고 화면에 적는다', t.$('seed-auto').hidden, false);
+  ok('시연 계정 목록은 화면에 없다', !t.$('demo-accounts') && !t.$('btn-seed') && !t.$('btn-reset'));
   ok('아직 로그인 화면에 머문다 (자동으로 넘어가지 않는다)',
     t.nav.length === 0, t.nav.join(' | '));
 
@@ -240,7 +238,6 @@ PAGES.forEach(([html, js, login]) => {
   });
 
   eq('★ 쓰던 데이터를 덮어쓰지 않는다', t.win.Store.setup.load().site.name, '한빛금속');
-  eq('덮어쓰지 않았으면 채웠다고 말하지도 않는다', t.$('seed-auto').hidden, true);
   eq('계정은 그대로 6개', t.win.Store.accounts.load().length, 6);
 }
 
@@ -481,31 +478,10 @@ function bootWithSpeech(mode) {
 {
   const t = boot('index.html', { page: 'assets/login.js' });
 
-  const btns = t.$('lang-gate').querySelectorAll('.lang-btn');
-  eq('언어 6개가 뜬다', btns.length, 6);
-  has('★ 모국어 글자로 뜬다 (한국어를 몰라도 찾을 수 있다)', text(btns[0]), 'ភាសាខ្មែរ');
-  eq('음성 버튼도 언어마다 하나씩', t.$('lang-gate').querySelectorAll('.btn-audio').length, 6);
-
-  const koBtn = [...btns].find((b) => text(b) === '한국어');
-  eq('★ 아직 고르지 않았으면 한국어가 기본으로 골라져 있다', koBtn.getAttribute('aria-pressed'), 'true');
-
+  /* 2026-11-16 사용자 결정 — 로그인 화면에는 언어 선택이 없다 */
+  ok('★ 로그인 화면에 언어 선택이 없다', !t.$('lang-gate') && !t.win.document.querySelector('.lang-btn'));
   eq('처음에는 QR 안내가 없다', t.$('qr-note').hidden, true);
-
-  const kmBtn = [...btns].find((b) => text(b).indexOf('ភាសាខ្មែរ') !== -1);
-  click(t.win, kmBtn);
-
-  eq('★ 크메르어를 고르면 저장된다', t.win.Store.prefs.load().lang, 'km');
-  has('★ 화면 글자가 그 자리에서 바뀐다 (새로고침 없이)',
-    text(t.win.document.querySelector('label[for="login-id"]')), t.win.I18N.t('login.id', 'km'));
-  has('비밀번호 칸도 바뀐다',
-    text(t.win.document.querySelector('label[for="login-pw"]')), t.win.I18N.t('login.pw', 'km'));
-
-  /* render() 가 버튼을 다시 그리므로 고른 뒤에는 다시 찾아야 한다 */
-  const kmBtnAfter = [...t.$('lang-gate').querySelectorAll('.lang-btn')]
-    .find((b) => text(b).indexOf('ភាសាខ្មែរ') !== -1);
-  eq('고른 언어에 표시가 남는다', kmBtnAfter.getAttribute('aria-pressed'), 'true');
-  eq('★ 문서 언어도 함께 바뀐다 (브라우저가 글꼴을 맞춘다)',
-    t.win.document.documentElement.getAttribute('lang'), 'km');
+  ok('화면 오류 없음', t.errors.length === 0, t.errors.join(' | '));
 }
 
 {
@@ -518,12 +494,6 @@ function bootWithSpeech(mode) {
   has('로그인하면 바로 열린다고 말한다', text(t.$('qr-note')), '로그인하면');
   ok('안내도 음성으로 들을 수 있다', !!t.$('qr-note').querySelector('.btn-audio'));
 
-  /* 언어를 바꾸면 안내 문장도 그 언어로 다시 그려진다 */
-  const idBtn = [...t.$('lang-gate').querySelectorAll('.lang-btn')]
-    .find((b) => text(b).indexOf('Bahasa Indonesia') !== -1);
-  click(t.win, idBtn);
-  has('★ 언어를 바꾸면 QR 안내도 그 언어로 바뀐다',
-    text(t.$('qr-note')), t.win.I18N.t('login.qrNote', 'id').split('{')[0]);
 }
 
 {

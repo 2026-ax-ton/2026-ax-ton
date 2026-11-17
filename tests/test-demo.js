@@ -18,8 +18,7 @@ const { ok, eq, has, report, SRC } = require('./harness');
 const ROOT = path.join(SRC, '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
-const SCREENS = ['worker/home', 'worker/report', 'worker/talk', 'worker/my',
-  'admin/dashboard', 'admin/content', 'admin/proof', 'admin/library'];
+const SCREENS = ['worker/home', 'worker/report', 'worker/talk', 'worker/my'];
 
 
 /* -------------------------------------------------------------------
@@ -104,12 +103,12 @@ LIVE_URLS.forEach(([label, url]) => {
    ------------------------------------------------------------------- */
 {
   const missing = SCREENS.filter((f) => !read('src/' + f + '.html').includes('여기부터 채우시면 됩니다'));
-  ok('★ 여덟 화면에 메모가 그대로 남아 있다 (지운 것이 아니다)',
+  ok('★ 노동자 네 화면에 메모가 그대로 남아 있다 (지운 것이 아니다)',
     missing.length === 0, missing.join(', '));
 
   /* `class="todo"` 뿐 아니라 `class="todo noprint"` 도 있다 — 목록 안에 있으면 된다 */
   const notGated = SCREENS.filter((f) => !/class="(todo|todo .*?|.*? todo|.*? todo .*?)"/.test(read('src/' + f + '.html')));
-  ok('★ 여덟 칸이 모두 .todo 로 묶여 있다 (안 묶이면 감춰지지 않는다)',
+  ok('★ 남은 칸이 모두 .todo 로 묶여 있다 (안 묶이면 감춰지지 않는다)',
     notGated.length === 0, notGated.join(', '));
 }
 

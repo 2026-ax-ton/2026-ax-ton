@@ -524,32 +524,6 @@ fieldset.formset[disabled] { opacity: .5; }
 .loginerror::before { content: '! '; font-weight: 800; }
 .loginerror[hidden] { display: none; }
 
-/* 시연 계정 목록 */
-.demo-accounts {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 6px;
-}
-.demo-account {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 11px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 11px;
-}
-.demo-account .body { flex: 1 1 auto; min-width: 0; }
-.demo-account .body strong {
-  display: block;
-  font-size: .88em;
-  font-weight: 800;
-  word-break: break-all;
-}
-.demo-account .body .meta { margin: 2px 0 0; font-size: .74em; color: var(--ink-3); }
-
 /* ===================================================================
    하단 탭바 — 링크로 쓴다
 
@@ -806,3 +780,20 @@ html[data-env="dev"] .todo > h2::before {
 .login-v2 .login-demo-wrap > summary::-webkit-details-marker { display: none; }
 .login-v2 .login-foot { font-size: 11px; line-height: 1.6; }
 .login-v2 .qr-note { background: var(--lv2-coral-soft); color: #C93B47; }
+/* -------------------------------------------------------------------
+   🆕 2026-11-16 Safelang 로고 (UI.brand) — 돛단배 + safelang.
+   ------------------------------------------------------------------- */
+.brand { display: inline-flex; align-items: center; gap: 8px; line-height: 1; }
+.brand-mark { width: 30px; height: 30px; flex: 0 0 auto; display: block; }
+.brand-word { font-weight: 900; letter-spacing: -.04em; font-size: 1.15em; color: var(--ink); }
+.brand-dot { color: var(--brand); }
+.brand.sm .brand-mark { width: 22px; height: 22px; }
+.brand.sm .brand-word { font-size: 1em; }
+.brand.lg .brand-mark { width: 40px; height: 40px; }
+.brand.lg .brand-word { font-size: 1.45em; }
+/* 보라 머리띠 위 — 그림은 흰 칸에 얹고 글자는 흰색 */
+.brand-link { display: inline-flex; text-decoration: none; flex: 0 0 auto; }
+.brand.on-dark .brand-mark { background: #fff; border-radius: 9px; padding: 3px; width: 34px; height: 34px; box-sizing: border-box; }
+.brand.on-dark .brand-word { color: #fff; }
+.brand.on-dark .brand-dot { color: #d9cfff; }
+@media (max-width: 420px) { .brand.on-dark .brand-word { display: none; } }
