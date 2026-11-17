@@ -13,6 +13,19 @@ ok('촬영 전에는 카메라가 꺼진 상태 (live 아님) · 안내가 보�
 has('개인정보 주의 띠', t.$('scan-stage').textContent, '사람 얼굴');
 eq('촬영 전에는 멈추기를 못 누른다', t.$('btn-scan-stop2').disabled, true);
 
+/* ★★ 촬영 전에 「두 바퀴에 무엇을 하는지」가 보인다 (PR #18 `ab09b86`).
+   🆕 2026-11-17 — 합치기에서 이 칸이 조용히 빠져 있었다. 촬영을 처음 하는 사람은
+   [촬영 시작]을 누르기 전에 무엇을 할지 알 수 없었다 (촬영 대본을 넘겨받는 사람이 그 처지다). */
+{
+  const steps = [...t.win.document.querySelectorAll('.scan-steps li')];
+  eq('★★ 촬영 전 안내가 세 줄이다 (허리 높이 · 팔 들고 · 알아서 올라감)', steps.length, 3);
+  has('★ 1번 — 허리 높이 한 바퀴', steps[0].textContent, '허리 높이');
+  has('★ 2번 — 팔을 들고 한 바퀴 더', steps[1].textContent, '팔을 들고');
+  has('★ 3번 — 다 찍으면 알아서 올라간다', steps[2].textContent, '알아서 올라갑니다');
+  ok('★ 번호를 색이 아니라 글자·표시로 구분한다 (C05 UI-3)',
+    steps.every((li) => !!li.querySelector('.n')));
+}
+
 /* 카메라를 못 켜는 곳 — 조용히 실패하지 않고 이유를 말한다 */
 t.$('btn-scan-start').dispatchEvent(new t.win.MouseEvent('click', { bubbles: true }));
 has('★ 카메라를 못 켜면 이유를 적는다', t.$('scan-status').textContent, '카메라');
