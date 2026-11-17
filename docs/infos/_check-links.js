@@ -7,10 +7,17 @@ var path = require('path');
 var ROOT = path.resolve(__dirname, '..', '..');
 var KNOWN = ['docs/mockups/ADMIN-SCREENS.md'];   // 원래부터 저장소 밖 PDF 를 가리키는 문서 (2026-10-31 기록)
 
+// 저장소에 올리지 않는 폴더는 검사하지 않는다 (2026-11-17).
+// `docs/발표/.../참고자료/` 는 발표 자료를 만들려고 다른 곳의 문서를 복사해 모아 둔
+// 개인 작업용 폴더다. 복사본이라 원본 기준의 상대 링크가 당연히 안 맞고,
+// `.gitignore` 가 막고 있어 저장소에도 올라가지 않는다. 여기를 검사하면
+// 고칠 수 없는 오류가 매번 나와서 진짜 깨진 링크가 묻힌다.
+var SKIP_DIRS = ['참고자료', '팀문서'];
+
 function walk(dir, out) {
   fs.readdirSync(dir, { withFileTypes: true }).forEach(function (e) {
     var p = path.join(dir, e.name);
-    if (e.isDirectory()) walk(p, out);
+    if (e.isDirectory()) { if (SKIP_DIRS.indexOf(e.name) === -1) walk(p, out); }
     else if (/\.(md|html)$/.test(e.name)) out.push(p);
   });
   return out;
