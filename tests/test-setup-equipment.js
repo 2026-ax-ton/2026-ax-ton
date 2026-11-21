@@ -27,6 +27,27 @@ ok('화면에 제조사·모델명·연식 칸이 있다', !!($('equip-maker') &
 
 const a = addEquip('프레스 9호기', '화천기계', 'HPC-110', '2019');
 ok('설비가 저장됐다', !!a);
+
+/* 2026-11-22 — 소속 공정: 기본 공정(밀링·드릴)과 「기타 (직접 입력)」 — 고르면 공정도 함께 만든다 */
+const procVals = () => Array.from($('equip-proc').options).map((o) => o.value);
+ok('★ 소속 공정에 밀링·드릴·직접 입력이 보인다', procVals().includes('new:밀링') && procVals().includes('new:드릴') && procVals().includes('__custom'));
+$('equip-proc').value = 'new:밀링';
+const m = addEquip('밀링 1호기', '', '', '');
+const millProc = S.setup.load().processes.find((p) => p.name === '밀링');
+ok('★★ 밀링 공정이 만들어지고 설비가 거기 속한다', !!millProc && m && m.processId === millProc.id);
+ok('만든 뒤에는 목록에 한 번만 있다', !procVals().includes('new:밀링') && procVals().includes(millProc.id));
+$('equip-proc').value = '__custom';
+$('equip-proc').dispatchEvent(new win.Event('change'));
+ok('직접 입력을 고르면 이름 칸이 열린다', !$('equip-proc-custom').hidden);
+const before = S.setup.load().equipments.length;
+addEquip('빈 공정 설비', '', '', '');
+eq('★ 공정 이름이 비면 저장하지 않는다', S.setup.load().equipments.length, before);
+$('equip-proc').value = '__custom';
+$('equip-proc-custom').value = '연삭';
+const g = addEquip('연삭기 1', '', '', '');
+const grind = S.setup.load().processes.find((p) => p.name === '연삭');
+ok('★★ 직접 적은 공정이 만들어진다', !!grind && g && g.processId === grind.id);
+$('equip-proc').value = S.setup.load().processes[0].id;
 eq('제조사', a && a.maker, '화천기계');
 eq('모델명', a && a.model, 'HPC-110');
 eq('연식은 숫자로', a && a.year, 2019);
