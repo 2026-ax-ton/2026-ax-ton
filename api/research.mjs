@@ -29,13 +29,13 @@ import {
 } from './_research.mjs';
 import { EQUIPMENT_KINDS } from './_official.mjs';
 
-export const config = { maxDuration: 60 };
+export const config = { maxDuration: 180 };   // 🆕 2026-11-21 60 → 180 — 검색·읽기가 45초를 넘겨 실패했다 (밀링). Vercel 함수 상한 300초 안
 
 /* ── 결정에 걸린 값 ─────────────────────────────────────────────────── */
 
 const MAX_BODY = 8192;   // 2026-11-16 등록 정보 검수(verify)가 항목·분류 목록·메모를 함께 보낸다
 /* 검색을 몇 번 하고 읽느라 번역보다 오래 걸린다 */
-export const DEFAULT_RESEARCH_TIMEOUT_MS = 45000;
+export const DEFAULT_RESEARCH_TIMEOUT_MS = 150000;   // 🆕 2026-11-21 45초 → 150초 (함수 180초 안 · 참고 사진 12초 여유)
 const MAX_OUTPUT_TOKENS = 8000;   // 2026-11-09 경험 글까지 찾게 하자 4000 에서 JSON 이 잘렸다 (GPT 는 추론 토큰도 여기서 센다)
 const MAX_TEXT = 24000;
 const IMAGE_BUDGET_MS = 12000;   // 참고 사진 찾기에 쓰는 시간 상한 (모델 두 질문 뒤)

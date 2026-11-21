@@ -34,7 +34,7 @@
   var SEND_QUALITY = 0.85;
   var KEEP_MAX = 640;         // 설비에 저장하는 사진 긴 변 (설비 탭과 같다)
   var KEEP_QUALITY = 0.7;
-  var TIMEOUT_MS = 60000;
+  var TIMEOUT_MS = 180000;   // 🆕 2026-11-21 60초 → 180초 — 서버 조사 상한(150초)보다 길게
   var MAX_RUN_BYTES = 12 * 1024 * 1024;
   /* 보기 그림을 다시 뽑는 품질 사다리 — 0.4 에서 멈추면 목표(4KB)에 못 든다 (C06 D-048, 11/15 실측) */
   var PIC_QUALITIES = [0.55, 0.4, 0.32, 0.25];
@@ -267,7 +267,7 @@
     state.keepPhoto = keep;
     state.source = 'server';
     $('btn-research').disabled = true;
-    $('ag-research-status').textContent = 'AI 가 공개 자료를 찾는 중입니다… (30초쯤 걸립니다)';
+    $('ag-research-status').textContent = 'AI 가 공개 자료를 찾는 중입니다… (길면 2분쯤 걸립니다)';
     call('/api/research', { equipment: { id: e.id, kind: kindId(), name: e.name, maker: e.maker || '', model: e.model || '', year: e.year || null } })
       .then(function (r) {
         $('btn-research').disabled = false;
