@@ -22,6 +22,11 @@
   var $ = UI.$;
   var user = Auth.current();
 
+  /* 🆕 2026-11-22 설비 등록 「소속 공정」에 늘 보이는 기본 공정 — 실제 촬영 설비(밀링·드릴).
+     없으면 설비를 저장할 때 함께 만든다. 목록에 없는 공정은 「기타 (직접 입력)」으로 적는다 */
+  var PROC_PRESETS = ['밀링', '드릴'];
+  var PROC_CUSTOM = '__custom';
+
   UI.fillAdminBar(user);
   UI.markCurrentTab();
   UI.warnIfBlocked();
@@ -167,11 +172,19 @@
     var hasProcess = state.processes.length > 0;
     $('equip-lock').hidden = hasProcess;
     $('equip-fields').disabled = !hasProcess;
-    UI.fillSelect($('equip-proc'), state.processes,
+    /* 🆕 2026-11-22 등록된 공정 + 아직 없는 기본 공정(밀링·드릴) + 「기타 (직접 입력)」.
+       없는 공정을 고르면 설비를 저장할 때 공정도 함께 만든다 (값 'new:이름' · PROC_CUSTOM) */
+    var procOptions = state.processes.map(function (p) { return { id: p.id, name: p.name }; });
+    PROC_PRESETS.forEach(function (name) {
+      if (!Store.findBy(state.processes, 'name', name)) procOptions.push({ id: 'new:' + name, name: name });
+    });
+    procOptions.push({ id: PROC_CUSTOM, name: '기타 (직접 입력)' });
+    UI.fillSelect($('equip-proc'), procOptions,
       function (p) { return p.id; },
       /* ★ <option> 안에는 그림을 넣을 수 없다. 이모지를 남기면 이 목록만
          옛 말투로 남으므로 이름만 쓴다 (그림은 고른 뒤 화면에서 보인다). */
       function (p) { return p.name; });
+    $('equip-proc-custom').hidden = $('equip-proc').value !== PROC_CUSTOM;
     renderEquipments(state);
     badge($('b-equip'), state.equipments.length > 0, state.equipments.length + '대', '미설정');
 
@@ -831,6 +844,7 @@
     $('equip-edit-id').value = eq.id;
     $('equip-name').value = eq.name || '';
     $('equip-proc').value = eq.processId || '';
+    $('equip-proc-custom').hidden = true;
     $('equip-kind').value = Store.kindOf(eq).id || 'other';
     $('equip-maker').value = eq.maker || '';
     $('equip-model').value = eq.model || '';
@@ -850,6 +864,7 @@
   function resetEquipForm() {
     $('equip-edit-id').value = '';
     $('equip-name').value = '';
+    $('equip-proc-custom').value = '';
     $('equip-maker').value = '';
     $('equip-model').value = '';
     $('equip-year').value = '';
@@ -1014,6 +1029,13 @@
     /* 🆕 설비 이름을 적는 동안 특별교육 대상 안내 (PRD-AD-01 FR-08·09) */
     $('equip-name').addEventListener('input', function () { renderSpecialNote(); });
 
+    /* 🆕 「기타 (직접 입력)」을 고르면 공정 이름 칸을 연다 */
+    $('equip-proc').addEventListener('change', function () {
+      var custom = $('equip-proc').value === PROC_CUSTOM;
+      $('equip-proc-custom').hidden = !custom;
+      if (custom) $('equip-proc-custom').focus();
+    });
+
     /* 4. 설비 */
     $('form-equip').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -1022,6 +1044,19 @@
 
       var processId = $('equip-proc').value;
       if (!processId) { UI.toast('소속 공정을 골라 주세요.'); return; }
+
+      /* 🆕 2026-11-22 아직 없는 공정(기본 공정 · 직접 입력)은 설비와 함께 만든다. 같은 이름이 있으면 그것을 쓴다 */
+      var newProc = null;
+      var procName = processId === PROC_CUSTOM ? $('equip-proc-custom').value.trim().slice(0, 30)
+        : processId.indexOf('new:') === 0 ? processId.slice(4) : '';
+      if (processId === PROC_CUSTOM && !procName) {
+        UI.toast('공정 이름을 입력해 주세요.'); $('equip-proc-custom').focus(); return;
+      }
+      if (procName) {
+        var sameProc = Store.findBy(Store.setup.load().processes, 'name', procName);
+        if (sameProc) processId = sameProc.id;
+        else { newProc = { id: Store.uid(), name: procName, icon: '🏭' }; processId = newProc.id; }
+      }
 
       var hazards = UI.checkedValues('hazard');
       var kind = Store.equipmentKind($('equip-kind').value) ? $('equip-kind').value : 'other';
@@ -1052,6 +1087,7 @@
       var newId = editId ? '' : Store.uid();
       var recheck = !editId;   // 등록 정보가 바뀌었으면 AI 검수를 다시 한다
       commit(function (s) {
+        if (newProc && !Store.findBy(s.processes, 'id', newProc.id)) s.processes.push(newProc);
         if (!editId) {
           s.equipments.push({
             id: newId, processId: processId, name: name, kind: kind,
