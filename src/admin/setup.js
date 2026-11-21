@@ -355,7 +355,7 @@
        사진이 바뀌면 조사는 그 사진의 것이 아니라 지워진다 (설비 수정 · 촬영 화면이 지운다) → 다시 조사
      ★ 유료 AI 호출 — 담당자가 버튼을 눌러야만 부른다. 검수 승인 뒤에만
      ★ 서버를 못 부르는 곳(file://)에서는 조사할 수 없다 — 교육 만들기의 결과 파일 모드로 이어 가게 링크를 둔다 */
-  var RESEARCH_TIMEOUT_MS = 90000;
+  var RESEARCH_TIMEOUT_MS = 180000;   // 🆕 2026-11-21 서버 조사 상한(150초)보다 길게
   var researching = {};   // 설비 id → 진행 문구 (화면에만 — 저장하지 않는다)
 
   function researched(eq) { var a = eq && eq.analysis; return !!(a && a.research && Array.isArray(a.research.items)); }
@@ -457,7 +457,7 @@
     var opts = { token: Auth.token(), timeoutMs: RESEARCH_TIMEOUT_MS };
     var why = function (r) { return r.failed ? (r.failed === 'timeout' ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.') : ((r.data && r.data.message) || 'AI 가 답하지 못했습니다.'); };
     var finish = function (msg) { delete researching[id]; render(); if (msg) UI.toast(msg); };
-    researching[id] = 'AI 가 공개 자료에서 위험요소를 찾는 중입니다… (30초쯤)';
+    researching[id] = 'AI 가 공개 자료에서 위험요소를 찾는 중입니다… (길면 2분쯤)';
     render();
     Net.post('/api/research', { equipment: { id: eq.id, kind: Store.kindOf(eq).id, name: eq.name, maker: eq.maker || '', model: eq.model || '', year: eq.year || null } }, opts)
       .then(function (r) {
@@ -499,8 +499,8 @@
      /api/research 에 verify 를 붙여 부른다 — 「설비 자료조사」(autogen)와 같은 함수·같은 출처 규칙.
      ★ AI 는 제안만 한다. 설비 값은 담당자가 항목마다 [승인]할 때만 바뀐다.
      ★ 서버를 못 부르는 곳(file://·끊김)에서는 「검수 못 함」으로 남기고 등록은 그대로 둔다 */
-  var REVIEW_TIMEOUT_MS = 70000;
-  var REVIEW_STALE_MS = 2 * 60 * 1000;   // 확인 중에 화면을 떠나 멈춘 것 — 다시 검수 버튼을 보인다
+  var REVIEW_TIMEOUT_MS = 180000;   // 🆕 2026-11-21 70초 → 180초 — 검수도 같은 조사 함수(150초)
+  var REVIEW_STALE_MS = 4 * 60 * 1000;   // 🆕 2026-11-21 2분 → 4분 — 검수 상한(180초)보다 길게   // 확인 중에 화면을 떠나 멈춘 것 — 다시 검수 버튼을 보인다
 
   function kindLabelOf(id) { return (Store.equipmentKind(id) || {}).label || '기타'; }
 
