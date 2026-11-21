@@ -1374,3 +1374,12 @@ body.dash-v2 .page > .card { width: 100%; box-sizing: border-box; grid-column: a
 .scan-debug summary::-webkit-details-marker { display: none; }
 .scan-stage .scan-debug .scan-meter, .scan-stage.full .scan-debug .scan-meter { position: absolute; left: auto; top: auto; right: 0; bottom: 44px; width: min(280px, 80vw); max-width: none; margin: 0; padding: 8px 10px; border-radius: 10px; background: rgba(17,17,17,.8); color: #fff; line-height: 1.5; }
 .scan-thumb { border-radius: 10px; }
+/* 🆕 2026-11-21 설비 카드의 AI 위험요소 조사 (필수 단계) — 조사 결과를 사진 위 위치와 함께 */
+.equip-research { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line, #e5e7eb); border-radius: 12px; background: var(--surface, #fff); }
+.equip-research-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 4px; }
+.equip-research-fig { max-width: 360px; }
+.equip-research-fig .ag-box { color: #fff; font-size: 12px; font-weight: 800; padding: 1px 4px; background: rgba(198,40,40,.15); }
+.equip-research-list summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; font-weight: 700; }
+.equip-research-list ol { margin: 4px 0 0; padding-left: 22px; }
+.equip-research-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.equip-research-fig .ag-fig-tag { top: 6px; bottom: auto; }   /* 아래쪽 박스를 가리지 않게 */

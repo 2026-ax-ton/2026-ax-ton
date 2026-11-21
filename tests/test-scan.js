@@ -97,7 +97,7 @@ eq('다 차면 -1', M.biggestGap(full), -1);
   ok('★ 앞 절반은 낮게(허리 높이) 바퀴', p[0].every((l) => l.every((s) => s.t < 24 && s.pass === 0)));
   ok('★ 뒤 절반은 높게(팔 들고) 바퀴', p[1].every((l) => l.every((s) => s.t >= 24 && s.pass === 1)));
   ok('★★ 어둡거나 흔들리거나 역광인 장면은 거른다 (가이드 촬영과 같은 기준)', !all.some((s) => [1.1, 1.2, 1.3].includes(s.t)));
-  ok('★ 칸마다 PER_SEG 장까지', p.every((segs) => segs.every((l) => l.length <= C.PER_SEG)));
+  eq('★★ 거르기를 통과한 장면은 전부 남긴다 (3D 재료 — 칸마다 2장 상한 없음)', V.count(p), 96);
   eq('고르게 찍힌 영상이면 한 바퀴 칸이 다 찬다', M.coverage(p[0]) + M.coverage(p[1]), 2);
   eq('장 수 세기', V.count(p), all.length);
   eq('★ 설비 사진은 낮은 바퀴(정면)에서 고른다', V.best(p).pass, 0);

@@ -19,7 +19,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
 
   var C = {
     SEGMENTS: 24,        // 한 바퀴를 15° 칸 24개로
-    PER_SEG: 2,          // 칸마다 남길 사진 수 (선명한 순)
+    PER_SEG: 6,          // 칸마다 남길 사진 수 (선명한 순). 🆕 2026-11-21 2 → 6 — 3D(Blender·Seedance) 재료라 많을수록 좋다. 15° 칸에 6장 = 2.5°마다 한 장 · 두 바퀴 최대 288장(휴대폰 메모리 약 90MB)
     DONE_RATIO: 0.8,     // 칸 80% 가 차면 그 바퀴는 끝
     DARK: 45,            // 평균 밝기(0~255) 아래면 어둡다
     BRIGHT: 215,         // 위면 역광·과노출
@@ -107,7 +107,7 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
 })();
 
 /* 🆕 2026-11-21 동영상으로 넣기 — 설비 화면(setup.html)에서 사진 대신 동영상을 고르면
-   가이드 촬영과 **같은 기준**(어두움·역광·흔들림 거르기 · 칸마다 선명한 2장)으로 장면을 뽑고,
+   가이드 촬영과 **같은 기준**(어두움·역광·흔들림 거르기)으로 장면을 뽑고 — 통과한 장면은 3D 재료라 **전부** 남긴다 (최대 300장),
    같은 촬영 묶음(/api/scans put)으로 올린다. setup.html 도 이 파일을 싣는다 —
    아래 화면 코드는 #scan-video 가 없으면 돌지 않는다.
    ★ 영상 앞 절반 = 낮게(허리 높이) 바퀴, 뒤 절반 = 높게(팔 들고) 바퀴 — 촬영 안내와 같은 순서로 찍었다고 본다.
@@ -121,8 +121,9 @@ var ScanShots = window.ScanShots = (function () {
   var PROBE_W = 160;          // 거르기용 작은 사본 — 가이드 촬영과 같은 크기
   var MAX_EDGE = 1600;        // 남길 사진의 긴 변 — 가이드 촬영과 같은 값
   var QUALITY = 0.85;
-  var MAX_SAMPLES = 200;      // 긴 영상도 200번만 들여다본다 (휴대폰에서 1분 안쪽)
-  var MIN_STEP = 0.25;        // 초 — 짧은 영상은 0.25초마다
+  var MAX_SAMPLES = 300;      // 긴 영상도 300번만 들여다본다 — 🆕 2026-11-21 3D 재료라 거르기를 통과한 장면은 **전부** 남긴다 (최대 300장)
+  var MIN_STEP = 0.2;         // 초 — 짧은 영상은 0.2초마다
+  var PER_SEG = 99;           // 칸마다 상한 — 올릴 이름(바퀴-칸-번호)의 번호가 두 자리라서. 사실상 「전부」
 
   function emptyPasses() {
     var out = [];
@@ -138,7 +139,8 @@ var ScanShots = window.ScanShots = (function () {
       var f = duration > 0 ? Math.min(0.999999, Math.max(0, s.t / duration)) : 0;
       var pass = Math.min(PASSES - 1, Math.floor(f * PASSES));
       var seg = Math.min(C.SEGMENTS - 1, Math.floor((f * PASSES - pass) * C.SEGMENTS));
-      M.keep(passes[pass][seg], { t: s.t, sharp: s.sharp, pass: pass, seg: seg });
+      var list = passes[pass][seg];
+      if (list.length < PER_SEG) list.push({ t: s.t, sharp: s.sharp, pass: pass, seg: seg });
     });
     return passes;
   }
@@ -266,7 +268,7 @@ var ScanShots = window.ScanShots = (function () {
   UI.warnIfBlocked();
   UI.$$('[data-ico]').forEach(function (n) { UI.setIcon(n, n.getAttribute('data-ico')); });
 
-  var SHOT_MS = 500;
+  var SHOT_MS = 350;               // 🆕 2026-11-21 500 → 350 — 3D 재료를 더 많이 (거르기는 그대로)
   var SAY_GAP_MS = 4000;          // 같은 경고를 다시 말하기까지
   var MAX_EDGE = 1600;            // 남길 사진의 긴 변
   var PASSES = [
