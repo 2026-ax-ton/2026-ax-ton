@@ -106,6 +106,154 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
   return { C: C, segmentOf: segmentOf, stats: stats, verdict: verdict, posture: posture, coverage: coverage, biggestGap: biggestGap, keep: keep };
 })();
 
+/* 🆕 2026-11-21 동영상으로 넣기 — 설비 화면(setup.html)에서 사진 대신 동영상을 고르면
+   가이드 촬영과 **같은 기준**(어두움·역광·흔들림 거르기 · 칸마다 선명한 2장)으로 장면을 뽑고,
+   같은 촬영 묶음(/api/scans put)으로 올린다. setup.html 도 이 파일을 싣는다 —
+   아래 화면 코드는 #scan-video 가 없으면 돌지 않는다.
+   ★ 영상 앞 절반 = 낮게(허리 높이) 바퀴, 뒤 절반 = 높게(팔 들고) 바퀴 — 촬영 안내와 같은 순서로 찍었다고 본다.
+     방향 센서가 없으니 칸은 시간 순서로 채운다 (ponytail: 시간 = 방향 가정, 걸음이 고르지 않으면 칸이 치우친다)
+   ★ 회전 속도는 영상에서 모른다 — 「너무 빠름」 대신 흔들림(선명도)이 그 몫을 한다 */
+var ScanShots = window.ScanShots = (function () {
+  'use strict';
+
+  var M = ScanMath, C = M.C;
+  var PASSES = 2;
+  var PROBE_W = 160;          // 거르기용 작은 사본 — 가이드 촬영과 같은 크기
+  var MAX_EDGE = 1600;        // 남길 사진의 긴 변 — 가이드 촬영과 같은 값
+  var QUALITY = 0.85;
+  var MAX_SAMPLES = 200;      // 긴 영상도 200번만 들여다본다 (휴대폰에서 1분 안쪽)
+  var MIN_STEP = 0.25;        // 초 — 짧은 영상은 0.25초마다
+
+  function emptyPasses() {
+    var out = [];
+    for (var p = 0; p < PASSES; p++) { var segs = []; for (var s = 0; s < C.SEGMENTS; s++) segs.push([]); out.push(segs); }
+    return out;
+  }
+
+  /** 표본 [{ t, mean, sharp }] → 바퀴·칸마다 남길 장면 [[[{ t, sharp, pass, seg }]]] */
+  function pick(samples, duration) {
+    var passes = emptyPasses();
+    (samples || []).forEach(function (s) {
+      if (M.verdict(s, 0)) return;
+      var f = duration > 0 ? Math.min(0.999999, Math.max(0, s.t / duration)) : 0;
+      var pass = Math.min(PASSES - 1, Math.floor(f * PASSES));
+      var seg = Math.min(C.SEGMENTS - 1, Math.floor((f * PASSES - pass) * C.SEGMENTS));
+      M.keep(passes[pass][seg], { t: s.t, sharp: s.sharp, pass: pass, seg: seg });
+    });
+    return passes;
+  }
+
+  function flat(passes) {
+    var out = [];
+    passes.forEach(function (segs) { segs.forEach(function (list) { list.forEach(function (s) { out.push(s); }); }); });
+    return out;
+  }
+
+  /** 가장 선명한 한 장 — 낮은 바퀴(정면)에서 먼저 고른다 (가이드 촬영의 설비 사진과 같은 규칙) */
+  function best(passes) {
+    var b = null;
+    passes.forEach(function (segs) {
+      if (b) return;
+      segs.forEach(function (list) { list.forEach(function (s) { if (!b || s.sharp > b.sharp) b = s; }); });
+    });
+    return b;
+  }
+
+  function seek(video, t) {
+    return new Promise(function (ok) {
+      var done = false;
+      function fin() { if (done) return; done = true; video.removeEventListener('seeked', fin); clearTimeout(timer); ok(); }
+      var timer = setTimeout(fin, 4000);   // 멈춘 영상에서 기다리기만 하지 않게
+      video.addEventListener('seeked', fin);
+      video.currentTime = t;
+    });
+  }
+
+  /** 동영상 파일 → { passes, count, duration }. onProgress(0~1). 못 읽으면 Error('video') 로 거절 */
+  function fromVideo(file, onProgress) {
+    var tell = typeof onProgress === 'function' ? onProgress : function () {};
+    var url = URL.createObjectURL(file);
+    var v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'auto';
+    var ready = new Promise(function (ok, no) {
+      v.addEventListener('loadeddata', ok, { once: true });
+      v.addEventListener('error', function () { no(new Error('video')); }, { once: true });
+    });
+    v.src = url;
+    return ready.then(function () {
+      var dur = v.duration, vw = v.videoWidth, vh = v.videoHeight;
+      if (!isFinite(dur) || dur <= 0 || !vw || !vh) throw new Error('video');
+      var step = Math.max(MIN_STEP, dur / MAX_SAMPLES), times = [];
+      for (var t = step / 2; t < dur; t += step) times.push(t);
+      var probe = document.createElement('canvas');
+      probe.width = PROBE_W; probe.height = Math.max(1, Math.round(PROBE_W * vh / vw));
+      var pg = probe.getContext('2d');
+      var samples = [];
+      var chain = Promise.resolve();
+      times.forEach(function (time, i) {
+        chain = chain.then(function () { return seek(v, time); }).then(function () {
+          pg.drawImage(v, 0, 0, probe.width, probe.height);
+          var px = pg.getImageData(0, 0, probe.width, probe.height).data, gray = new Array(probe.width * probe.height);
+          for (var a = 0, b = 0; a < px.length; a += 4, b++) gray[b] = 0.299 * px[a] + 0.587 * px[a + 1] + 0.114 * px[a + 2];
+          var st = M.stats(gray, probe.width, probe.height);
+          samples.push({ t: time, mean: st.mean, sharp: st.sharp });
+          tell(0.8 * (i + 1) / times.length);
+        });
+      });
+      return chain.then(function () {
+        var passes = pick(samples, dur), shots = flat(passes);
+        var k = Math.min(1, MAX_EDGE / Math.max(vw, vh));
+        var c = document.createElement('canvas');
+        c.width = Math.round(vw * k); c.height = Math.round(vh * k);
+        var g = c.getContext('2d');
+        var keepChain = Promise.resolve();
+        shots.forEach(function (s, i) {
+          keepChain = keepChain.then(function () { return seek(v, s.t); }).then(function () {
+            g.drawImage(v, 0, 0, c.width, c.height);
+            return new Promise(function (ok) { c.toBlob(ok, 'image/jpeg', QUALITY); });
+          }).then(function (blob) {
+            s.blob = blob; s.w = c.width; s.h = c.height;
+            tell(0.8 + 0.2 * (i + 1) / shots.length);
+          });
+        });
+        return keepChain.then(function () {
+          /* 사진으로 못 만든 장면은 뺀다 */
+          passes.forEach(function (segs) { segs.forEach(function (list, si) { segs[si] = list.filter(function (s) { return !!s.blob; }); }); });
+          return { passes: passes, count: flat(passes).length, duration: dur };
+        });
+      });
+    }).then(function (r) { URL.revokeObjectURL(url); return r; }, function (e) { URL.revokeObjectURL(url); throw e; });
+  }
+
+  function toDataUrl(b) {
+    return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { ok(String(r.result)); }; r.onerror = function () { ok(''); }; r.readAsDataURL(b); });
+  }
+
+  /** 촬영 묶음 하나로 올린다 (/api/scans put → Vercel Blob 비공개). 이름은 바퀴-칸-번호.
+      돌려주는 값 { done, failed, scanId }. 끊김·로그인 만료면 남은 것을 실패로 세고 멈춘다 */
+  function upload(equipmentId, passes, onProgress) {
+    var tell = typeof onProgress === 'function' ? onProgress : function () {};
+    var scanId = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+    var jobs = [];
+    passes.forEach(function (segs, p) { segs.forEach(function (list, s) { list.forEach(function (shot, i) { jobs.push({ shot: shot, name: p + '-' + s + '-' + i }); }); }); });
+    var done = 0, failed = 0;
+    function next(k) {
+      if (k >= jobs.length) return Promise.resolve({ done: done, failed: failed, scanId: scanId });
+      tell(k + 1, jobs.length);
+      return toDataUrl(jobs[k].shot.blob).then(function (data) {
+        return Net.post('/api/scans', { op: 'put', equipmentId: equipmentId, scanId: scanId, name: jobs[k].name, data: data }, { token: Auth.token(), timeoutMs: 30000 });
+      }).then(function (r) {
+        if (r.ok) done += 1; else failed += 1;
+        if (!r.ok && (r.failed || r.status === 401)) { failed += jobs.length - k - 1; return next(jobs.length); }
+        return next(k + 1);
+      });
+    }
+    return next(0);
+  }
+
+  return { pick: pick, best: best, count: function (passes) { return flat(passes).length; }, fromVideo: fromVideo, upload: upload, toDataUrl: toDataUrl };
+})();
+
 (function () {
   'use strict';
 
@@ -460,36 +608,19 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
 
   /* ── 서버에 올리기 (/api/scans → Vercel Blob 비공개) — https 배포에서만 (net.js 가 막는다) ── */
 
-  function toDataUrl(b) {
-    return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { ok(String(r.result)); }; r.onerror = function () { ok(''); }; r.readAsDataURL(b); });
-  }
-
   function call(body) { return Net.post('/api/scans', body, { token: Auth.token(), timeoutMs: 30000 }); }
 
   function upload() {
     if (!eq) { UI.toast('설비 목록에서 설비를 골라 들어와야 올릴 수 있습니다.'); return; }
-    var scanId = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-    var jobs = [];
-    passes.forEach(function (segs, p) { segs.forEach(function (list, s) { list.forEach(function (shot, i) { jobs.push({ shot: shot, name: p + '-' + s + '-' + i }); }); }); });
-    var done = 0, failed = 0, btn = $('btn-scan-upload');
+    var btn = $('btn-scan-upload');
     btn.disabled = true;
-    function next(k) {
-      if (k >= jobs.length) {
-        btn.disabled = false;
-        $('scan-upload-status').textContent = failed ? ('올림 ' + done + '장 · 실패 ' + failed + '장 — [서버에 올리기]를 다시 누르면 전부 다시 올립니다.') : ('올림 ' + done + '장 — 설비 촬영 묶음 ' + scanId);
-        loadScans();
-        return;
-      }
-      $('scan-upload-status').textContent = '올리는 중 ' + (k + 1) + ' / ' + jobs.length;
-      toDataUrl(jobs[k].shot.blob).then(function (data) {
-        return call({ op: 'put', equipmentId: eq.id, scanId: scanId, name: jobs[k].name, data: data });
-      }).then(function (r) {
-        if (r.ok) done += 1; else failed += 1;
-        if (!r.ok && (r.failed || r.status === 401)) { failed += jobs.length - k - 1; next(jobs.length); return; }   // 끊김·로그인 만료면 멈춘다
-        next(k + 1);
-      });
-    }
-    next(0);
+    ScanShots.upload(eq.id, passes, function (k, n) {
+      $('scan-upload-status').textContent = '올리는 중 ' + k + ' / ' + n;
+    }).then(function (r) {
+      btn.disabled = false;
+      $('scan-upload-status').textContent = r.failed ? ('올림 ' + r.done + '장 · 실패 ' + r.failed + '장 — [서버에 올리기]를 다시 누르면 전부 다시 올립니다.') : ('올림 ' + r.done + '장 — 설비 촬영 묶음 ' + r.scanId);
+      loadScans();
+    });
   }
 
   /** 이 설비에 올린 촬영 — PC 에서 보면 폰에서 올린 것이 여기 나온다 */

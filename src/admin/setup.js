@@ -588,6 +588,8 @@
   var PHOTO_MAX = 640;      // 긴 변 — 동기화 상한(512KB)에 설비 여러 대가 들어가게
   var PHOTO_QUALITY = 0.7;
   var pendingPhoto = null;  // null = 그대로 · '' = 지움 · data URL = 새 사진
+  var pendingShots = null;  // 🆕 동영상에서 뽑은 장면 (ScanShots) — 저장하면 촬영 묶음으로 올린다
+  var videoBusy = false;
 
   function shrinkPhoto(file, done) {
     var url = URL.createObjectURL(file);
@@ -607,6 +609,56 @@
     };
     img.onerror = function () { URL.revokeObjectURL(url); done(''); };
     img.src = url;
+  }
+
+  function clearVideo() {
+    pendingShots = null;
+    var st = $('equip-video-status');
+    if (st && !videoBusy) { st.hidden = true; st.textContent = ''; }
+  }
+
+  /** 🆕 2026-11-21 동영상 — 가이드 촬영과 같은 기준으로 흔들리지 않은 장면만 고른다.
+      가장 선명한 한 장 = 설비 사진(미리보기), 나머지는 저장할 때 촬영 묶음으로 올린다 */
+  function onVideoFile(f) {
+    var st = $('equip-video-status'), save = $('btn-equip-save');
+    if (typeof ScanShots === 'undefined') { UI.toast('동영상을 읽을 수 없습니다. 사진으로 넣어 주세요.'); return; }
+    videoBusy = true;
+    pendingShots = null;
+    save.disabled = true;
+    st.hidden = false;
+    st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… 0%';
+    ScanShots.fromVideo(f, function (p) {
+      st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… ' + Math.round(p * 100) + '%';
+    }).then(function (r) {
+      var best = ScanShots.best(r.passes);
+      if (!best) {
+        st.textContent = '선명한 장면을 찾지 못했습니다. 밝은 곳에서 천천히 다시 찍어 주세요.';
+        return;
+      }
+      pendingShots = r.passes;
+      st.textContent = '흔들리지 않은 장면 ' + r.count + '장을 골랐습니다. 저장하면 가장 선명한 한 장이 설비 사진이 되고, ' + r.count + '장은 촬영 묶음으로 올라갑니다.';
+      return new Promise(function (ok) {
+        shrinkPhoto(best.blob, function (data) { if (data) { pendingPhoto = data; showPreview(data); } ok(); });
+      });
+    }).catch(function () {
+      st.textContent = '이 동영상을 읽지 못했습니다. 휴대폰 기본 카메라로 찍은 동영상(mp4)으로 다시 해 주세요.';
+    }).then(function () {
+      videoBusy = false;
+      save.disabled = false;
+    });
+  }
+
+  /** 저장한 설비에 동영상 장면을 올린다 — 서버 주소(https)에서만. 실패해도 설비 저장은 그대로다 */
+  function sendShots(id, passes) {
+    if (!passes || !id) return;
+    if (!(Net.onHttps && Net.onHttps())) { UI.toast('동영상 장면은 배포 주소에서 저장할 때 올라갑니다. 설비 사진만 저장했습니다.'); return; }
+    var st = $('equip-video-status');
+    st.hidden = false;
+    ScanShots.upload(id, passes, function (k, n) { st.textContent = '동영상 장면을 올리는 중 ' + k + ' / ' + n; }).then(function (r) {
+      st.textContent = r.failed
+        ? '동영상 장면 ' + r.done + '장을 올렸고 ' + r.failed + '장은 못 올렸습니다. 촬영 화면에서 다시 찍어 주세요.'
+        : '동영상 장면 ' + r.done + '장을 촬영 묶음 ' + r.scanId + '(으)로 올렸습니다.';
+    });
   }
 
   function showPreview(data) {
@@ -633,6 +685,7 @@
     /* 🆕 저장해 둔 특별교육 표시를 되살린다 — 수정하다 꺼지면 조용히 표시가 풀린다 (FR-AD-01-09) */
     renderSpecialNote(Array.isArray(eq.specialWork) && eq.specialWork.length > 0);
     pendingPhoto = null;
+    clearVideo();
     showPreview(eq.photo || '');
     $('btn-equip-save').lastChild.textContent = ' 수정 저장';
     $('btn-equip-cancel').hidden = false;
@@ -650,6 +703,7 @@
     setHazards([]);
     renderSpecialNote(false);   // 🆕 특별교육 표시도 다음 설비로 딸려 가지 않는다
     pendingPhoto = null;
+    clearVideo();
     showPreview('');
     $('btn-equip-save').lastChild.textContent = ' 설비 추가';
     $('btn-equip-cancel').hidden = true;
@@ -834,7 +888,9 @@
 
       /* 🆕 체크했을 때만 작업 번호를 남긴다. 이름이 바뀌어 낱말이 사라졌으면 빈 배열 (FR-AD-01-09) */
       var special = ($('equip-special-on') || {}).checked ? specialJobs() : [];
+      if (videoBusy) { UI.toast('동영상에서 장면을 고르는 중입니다. 끝나면 저장해 주세요.'); return; }
       var photo = pendingPhoto;
+      var shots = pendingShots;
       var message = '설비를 추가했습니다.';
       var newId = editId ? '' : Store.uid();
       var recheck = !editId;   // 등록 정보가 바뀌었으면 AI 검수를 다시 한다
@@ -868,6 +924,7 @@
       if (editId) UI.toast(message + (recheck ? ' 바뀐 정보를 AI 가 다시 확인합니다.' : ''));
 
       resetEquipForm();
+      sendShots(editId || newId, shots);   // 🆕 동영상 장면 → 촬영 묶음 (저장한 뒤라 설비 id 가 있다)
       /* [카메라로 찍기]로 저장했으면 바로 가이드 촬영으로 — AI 검수는 돌아온 뒤 시작한다 (넘어가면 요청이 끊긴다) */
       if (goScanAfterSave && newId) { location.href = scanUrl(newId); return; }
       if (recheck) runReview(editId || newId);
@@ -887,6 +944,7 @@
       var f = ev.target.files && ev.target.files[0];
       ev.target.value = '';
       if (!f) return;
+      if (String(f.type || '').indexOf('video/') === 0) { onVideoFile(f); return; }
       shrinkPhoto(f, function (data) {
         if (!data) { UI.toast('사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'); return; }
         pendingPhoto = data;

@@ -1001,7 +1001,7 @@ button.ag-box { background: transparent; padding: 0; cursor: pointer; }
 .scan-warn .ico { width: 22px; height: 22px; flex: 0 0 auto; }
 .scan-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; }
 .scan-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; border: 1px solid var(--line, #ccc); }
-#btn-scan-start[hidden], #btn-scan-stop[hidden], #btn-equip-scan[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
+#btn-scan-start[hidden], #btn-scan-stop[hidden], #btn-equip-scan[hidden], #btn-equip-cancel[hidden] { display: none; }   /* .btn 의 display:flex 가 hidden 을 덮는다 */
 /* 설비 목록·수정 폼의 [둘레 촬영] — 글자 링크가 아니라 누르는 버튼으로 보이게 (2026-11-15) */
 .equip-scan-btn { display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; margin-top: 8px; min-height: var(--tap-min, 60px); padding: 8px 14px; border-radius: 10px; background: var(--brand); color: var(--brand-ink, #fff); font-weight: 700; text-decoration: none; }
 .equip-scan-btn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
