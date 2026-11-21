@@ -1164,6 +1164,60 @@
   buildAddInputs();
   buildAddTags();
 
+  /* ── 🆕 2026-11-17 AI 문구 초안 ────────────────────────────────────
+     설비 종류 × 위험유형 → 한국어 지시문 초안. ★ 저장은 언제나 'waiting' + hazards 태그.
+     번역은 위 목록의 「AI 번역」, 승인은 판정 — 기존 흐름을 그대로 탄다. */
+  (function () {
+    var kindSel = $('draft-kind'), box = $('draft-hazards'), btn = $('btn-draft'), status = $('draft-status');
+    if (!kindSel || !box || !btn) return;
+    UI.fillSelect(kindSel, Store.EQUIPMENT_KINDS, function (k) { return k.id; }, function (k) { return k.label; });
+
+    /** 이 종류에서 그 위험의 승인 문구가 있나 */
+    function covered(kindId, code) {
+      return Store.phrasesFor(kindId, phrases(), [code]).some(function (p) {
+        return p.status === 'reviewed' && (p.hazards || []).indexOf(code) !== -1;
+      });
+    }
+    function paint() {
+      var keep = UI.checkedValues('draft-hazard', box);
+      box.textContent = '';
+      Store.HAZARD_TYPES.forEach(function (h) {
+        var has = covered(kindSel.value, h.code);
+        box.appendChild(UI.chip({ type: 'checkbox', name: 'draft-hazard', value: h.code, label: h.label,
+          sub: has ? '승인 문구 있음' : '승인 문구 없음', checked: keep.indexOf(h.code) !== -1 }));
+      });
+    }
+    kindSel.addEventListener('change', paint);
+    paint();
+
+    btn.addEventListener('click', function () {
+      var kind = Store.equipmentKind(kindSel.value);
+      var codes = UI.checkedValues('draft-hazard', box);
+      if (!kind || !codes.length) { status.textContent = '설비 종류와 위험유형을 하나 이상 고르세요.'; return; }
+      if (!Agent.hasPass()) { status.textContent = '아래 운영자 통과 문구를 먼저 넣어 주세요.'; return; }
+      var hazards = codes.map(function (c) { return { code: c, label: Store.hazard(c).label }; });
+      var existing = Store.phrasesFor(kind.id, phrases()).map(function (p) { return p.ko; }).slice(0, 20);
+      btn.disabled = true;
+      status.textContent = 'AI 가 초안을 쓰는 중입니다…';
+      Agent.draft(kind.label, hazards, existing).then(function (list) {
+        btn.disabled = false;
+        if (!list.length) { status.textContent = '쓸 만한 초안이 없었습니다. 다시 하거나 직접 추가해 주세요.'; return; }
+        commit(function (all) {
+          list.forEach(function (d) {
+            all.push({ id: Store.uid(), category: kind.label, hazards: [d.hazard], ko: d.ko,
+              status: 'waiting',   // ★ 상수. 응답에 무엇이 있든
+              translations: {}, flags: [], source: 'ai-draft' });
+          });
+        }, 'AI 초안 ' + list.length + '개를 검수 대기로 넣었습니다 — 번역·승인은 직접 하셔야 합니다.');
+        status.textContent = '';
+        paint();
+      }, function (err) {
+        btn.disabled = false;
+        status.textContent = (err && err.message) || 'AI 가 답하지 못했습니다.';
+      });
+    });
+  })();
+
   /* 운영자 통과 문구 — 이 탭에서만 기억한다. 저장하지 않는다 (A02 §5.6).
      ★ 값을 화면에 되비추지 않는다. 입력 칸에만 머문다. */
   (function () {

@@ -91,7 +91,7 @@ var Store = (function () {
 
   var ICONS = ['⚙', '🏭', '🔧', '🔩', '⚡', '🔥', '🧪', '🧯', '📦', '🚜'];
   /* 🆕 2026-11-16 설비 픽토그램은 담당자가 고르지 않는다 — 종류(AI 검수로 확인)에서 정한다 */
-  var KIND_ICON = { press: '⚙', paint: '🧪', injection: '🏭', electric: '⚡', other: '🔧' };
+  var KIND_ICON = { press: '⚙', paint: '🧪', injection: '🏭', electric: '⚡', milling: '⚙', drill: '🔩', other: '🔧' };
 
   /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
      **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
@@ -102,11 +102,13 @@ var Store = (function () {
     { id: 'paint',     label: '도장' },
     { id: 'injection', label: '사출성형' },
     { id: 'electric',  label: '전기설비' },
+    { id: 'milling',   label: '밀링' },     // 🆕 2026-11-17 실제 촬영 설비
+    { id: 'drill',     label: '드릴' },
     { id: 'other',     label: '기타' }
   ];
   var COMMON_CATEGORY = '공통';
   /* 종류 칸이 없던 옛 설비 — 이름으로 한 번만 짐작한다 (화면에 「종류 확인 필요」로 보인다) */
-  var KIND_GUESS = [[/프레스/, 'press'], [/도장/, 'paint'], [/사출/, 'injection'], [/배전|분전|전기/, 'electric']];
+  var KIND_GUESS = [[/프레스/, 'press'], [/도장/, 'paint'], [/사출/, 'injection'], [/배전|분전|전기/, 'electric'], [/밀링|머시닝/, 'milling'], [/드릴|보링/, 'drill']];
 
   /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
      **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
@@ -856,11 +858,16 @@ var Store = (function () {
     return { id: '', guessed: true };
   }
 
-  /** 이 설비 종류에 쓸 수 있는 문구 — 분류가 그 종류이거나 「공통」인 것만. 다른 설비 문구는 섞지 않는다 */
-  function phrasesFor(kindId, list) {
+  /** 이 설비 종류에 쓸 수 있는 문구 — 분류가 그 종류이거나 「공통」인 것만. 다른 설비 문구는 섞지 않는다.
+   *  🆕 2026-11-17 hazardIds(설비에 고른 위험 + AI 조사 위험)를 주면 위험 태그(p.hazards)가 겹치는 문구만.
+   *  태그가 없는 문구(옛 문구·위험 무관)는 그대로 붙인다 — 태그를 안 달았다고 안전 지시가 빠지면 안 된다 */
+  function phrasesFor(kindId, list, hazardIds) {
     var k = equipmentKind(kindId);
+    var want = hazardIds && hazardIds.length ? hazardIds : null;
     return (list || library.load()).filter(function (p) {
-      return p.category === COMMON_CATEGORY || (!!k && p.category === k.label);
+      if (!(p.category === COMMON_CATEGORY || (!!k && p.category === k.label))) return false;
+      if (!want || !p.hazards || !p.hazards.length) return true;
+      return p.hazards.some(function (h) { return want.indexOf(h) !== -1; });
     });
   }
 

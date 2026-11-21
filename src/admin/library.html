@@ -118,6 +118,25 @@
     </form>
   </section>
 
+  <!-- 3-1. 🆕 2026-11-17 AI 문구 초안 — 설비 종류 × 위험유형으로 지시문 초안을 받는다.
+       ★ 받은 초안은 전부 '검수 대기'로 들어간다. 번역·판정은 위 목록의 기존 흐름 그대로. -->
+  <section class="card" aria-labelledby="t-draft">
+    <div class="sec-head">
+      <div>
+        <h2 id="t-draft">AI 문구 초안</h2>
+        <p class="muted">설비 종류와 위험유형을 고르면 AI 가 한국어 지시문 초안을 씁니다. 초안은 검수 대기로 들어갑니다.</p>
+      </div>
+    </div>
+    <div class="field">
+      <label for="draft-kind">설비 종류</label>
+      <select id="draft-kind"></select>
+    </div>
+    <p class="muted" id="l-draft-hazard">위험유형 (승인 문구가 없는 것에 표시가 붙습니다)</p>
+    <div class="picker" id="draft-hazards" role="group" aria-labelledby="l-draft-hazard"></div>
+    <button class="btn btn-primary" type="button" id="btn-draft">초안 만들기 — 검수 대기로 들어갑니다</button>
+    <p class="muted" id="draft-status" role="status"></p>
+  </section>
+
   <!-- 4. 문구 목록 -->
   <section class="card" aria-labelledby="t-list">
     <div class="sec-head">

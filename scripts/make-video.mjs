@@ -12,7 +12,12 @@
    ★ 상처·피는 그리지 않는다 — 재연은 닿기 직전까지만.
    ★ 실제 사진과 만든 그림을 섞어 헷갈리지 않게: 3D·AI 컷에는 연필 아이콘 + 테두리(재연 주황, 바른 행동 초록).
      실제 사진 컷에는 테두리·아이콘이 없고 탐지 박스(빨강)만 있다.
-   ★ 안전 지시는 검수 완료 문구에서만 읽는다. AI 대본에 지시투가 있으면 위험 설명(part·risk)으로 바꾼다.
+   ★ 안전 지시는 검수 완료 문구가 메인이다. 위험 설명(narration)에 지시투가 있으면 part·risk 로 바꾼다.
+   🆕 2026-11-17 교육 전체 구성 (yesol 결정): ③ 에서 검수 문구 뒤에 GPT 수칙(guide)을 보충하고, 끝 전에 공통 수칙(general)을 넣는다.
+     GPT 문장은 지시투 가능 — 대신 .script.json 의 lines 에 source:'gpt' 로 표시하고, 담당자가 검수한 뒤 배포한다.
+     문구는 DB(library 표) 먼저, 없으면 seed.js. 종류 + 위험유형 태그로 고른다 (Store.phrasesFor 와 같은 규칙).
+     node scripts/make-video.mjs <결과> <out.mp4> --script-only [--hazards=pinch,shock]  → 대본만 (GPT 1회)
+     대본 검수·수정 → node scripts/make-video.mjs <결과> <out.mp4> --reuse  → 렌더 (GPT 대본 0회)
    ★ 그림은 research/videos/<출력 이름>/ 에 두고 다시 쓴다 (같은 위험이면 다시 만들지 않는다 — 비용).
    ★ 이 PC 에는 한국어 음성만 있다. 노동자 언어 음성은 서버 TTS(제출 직전 결제 예정)로 바꾼다.
    키는 .env.local, 출력하지 않는다. */
@@ -52,20 +57,39 @@ const dur = (f) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries
 
 /* ── 재료 ── */
 const eqName = (run.equipment && run.equipment.name) || '';
-const kind = (run.equipment && run.equipment.kind) || (/프레스/.test(eqName) ? 'press' : /사출/.test(eqName) ? 'injection' : 'other');
-const LABEL = { press: '프레스', injection: '사출성형', paint: '도장', electric: '전기설비', other: '기타' };
-const seedSrc = fs.readFileSync(path.join(ROOT, 'src', 'assets', 'seed.js'), 'utf8');
-const libSrc = /var LIBRARY = (\[[\s\S]*?\n  \]);/.exec(seedSrc);
-const phrases = (libSrc ? vm.runInNewContext('(' + libSrc[1] + ')') : [])
-  .filter((p) => p.status === 'reviewed' && (p.category === '공통' || p.category === LABEL[kind])).map((p) => ({ id: p.id, ko: p.ko }))
-  .filter((p, i, all) => all.findIndex((q) => q.ko === p.ko) === i);   /* 같은 문장이 id 만 다르게 여럿 있다 */
+const kind = (run.equipment && run.equipment.kind) || (/프레스/.test(eqName) ? 'press' : /사출/.test(eqName) ? 'injection' : /밀링/.test(eqName) ? 'milling' : /드릴/.test(eqName) ? 'drill' : 'other');
+const LABEL = { press: '프레스', injection: '사출성형', paint: '도장', electric: '전기설비', milling: '밀링', drill: '드릴', other: '기타' };
+const env = { ...readEnvLocal(), ...process.env };
 const boxes = new Map(((run.guided && run.guided.mapped) || []).map((m) => [m.id, m.box]));
 const hazards = run.research.items.filter((it) => it.status === 'ok' && boxes.get(it.id))
-  .map((it) => ({ id: it.id, part: it.part, risk: it.risk, official: !!it.official, box: boxes.get(it.id) }));
+  .map((it) => ({ id: it.id, part: it.part, risk: it.risk, hazard: it.hazard || '', official: !!it.official, box: boxes.get(it.id) }));
+
+/* 🆕 2026-11-17 문구는 DB(library 표)가 먼저, 없으면 seed.js. 매칭은 종류 + 위험유형 태그
+   위험유형 = 설비에 등록한 것(run.equipment.hazards 또는 --hazards a,b) + AI 조사 항목의 hazard (Store.phrasesFor 와 같은 규칙) */
+const argHz = (process.argv.find((a) => a.startsWith('--hazards=')) || '').slice('--hazards='.length);
+const wantHz = new Set([...((run.equipment && run.equipment.hazards) || []), ...argHz.split(',').filter(Boolean), ...hazards.map((h) => h.hazard).filter(Boolean)]);
+async function loadLibrary() {
+  const url = (env.SAFETY_DATABASE_URL || env.DATABASE_URL || '').trim();
+  if (url) {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const rows = await neon(url)`select id, data from library`;
+      if (rows.length) return { from: 'DB', list: rows.map((r) => ({ ...r.data, id: r.id })) };
+    } catch (e) { console.log('DB 문구를 못 읽어 seed.js 를 쓴다: ' + String(e.message || e).slice(0, 80)); }
+  }
+  const libSrc = /var LIBRARY = (\[[\s\S]*?\n  \]);/.exec(fs.readFileSync(path.join(ROOT, 'src', 'assets', 'seed.js'), 'utf8'));
+  return { from: 'seed.js', list: libSrc ? vm.runInNewContext('(' + libSrc[1] + ')') : [] };
+}
+const lib = await loadLibrary();
+const phrases = lib.list
+  .filter((p) => p.status === 'reviewed' && (p.category === '공통' || p.category === LABEL[kind]))
+  .filter((p) => !wantHz.size || !(p.hazards || []).length || p.hazards.some((h) => wantHz.has(h)))
+  .map((p) => ({ id: p.id, ko: p.ko, hazards: p.hazards || [] }))
+  .filter((p, i, all) => all.findIndex((q) => q.ko === p.ko) === i);   /* 같은 문장이 id 만 다르게 여럿 있다 */
+console.log('승인 문구 ' + phrases.length + '개 (' + lib.from + ') · 위험유형 ' + [...wantHz].join(','));
 const has3d = kind === 'press' && Object.values(CLIPS3D).every((p) => p.every((n) => fs.existsSync(path.join(DIR3D, n + '.mp4'))));
 
 /* ── ① 대본 (GPT 1회) ── */
-const env = { ...readEnvLocal(), ...process.env };
 const gpt = (env.AI_PROVIDER || '').trim() === 'openai';
 if (gpt && env.OPENAI_REASONING) process.env.OPENAI_REASONING = env.OPENAI_REASONING;
 const key = (gpt ? env.OPENAI_API_KEY : env.GEMINI_API_KEY || '').trim();
@@ -77,13 +101,18 @@ const system = '너는 이주노동자 안전교육 영상의 대본 작가다. 
   + '2) 위험마다 visual 을 정한다: ' + (has3d ? '"pinch" = 손이 금형 사이에 들어가 램에 끼이는 사고 (3D 장면, 한 번만), "drop" = 금형 교체·정비 중 램이 갑자기 내려오는 사고 (3D 장면, 한 번만), ' : '')
   + '"ai" = 그 밖의 사고 (그림을 새로 만든다).\n'
   + '3) visual 이 "ai" 이면 happen 과 safe 에 그림 설명을 영어로 쓴다. happen = 사고 직전 순간 (아직 다치지 않음, 위험한 곳이 눈에 띄게), safe = 같은 장면에서 바른 행동. 그림에 글자가 들어갈 만한 것(표지판·화면 글씨)은 쓰지 않는다.\n'
+  /* 🆕 2026-11-17 (yesol 결정) 검수 문구가 메인 + 교육 전체를 GPT 가 구성. GPT 문장(guide·general)은 지시투 가능 —
+     영상은 담당자가 대본(.script.json 의 lines, source:'gpt')을 검수한 뒤 배포한다 */
   + '4) narration 은 쉬운 한국어 1~2문장, 「어디가 무엇 때문에 위험한가」만. 「~하십시오」「~하세요」「~마세요」 같은 지시투는 쓰지 않는다.\n'
-  + '5) 무엇을 해야 하는지는 검수 문구 목록에서 그 위험에 맞는 것을 phraseId 로 고른다. 문구를 고쳐 쓰지 않는다.\n'
-  + '6) intro 와 outro 는 한국어 한 문장씩 (지시투 금지). outroPhraseId 는 마무리로 읽을 검수 문구.\n'
-  + '7) 설명 없이 JSON 하나만: {"intro":"...","hazards":[{"hazardId":"o1","accident":"끼임","visual":"pinch","narration":"...","phraseId":"ph-1"},'
-  + '{"hazardId":"r5","accident":"감전","visual":"ai","happen":"...","safe":"...","narration":"...","phraseId":"ph-2"}],"outro":"...","outroPhraseId":"ph-6"}';
+  + '5) 무엇을 해야 하는지는 검수 문구가 메인이다. 검수 문구 목록에서 그 위험에 맞는 것을 phraseId 로 반드시 먼저 고른다 ([ ] 안은 그 문구가 막는 위험유형). 문구를 고쳐 쓰지 않는다.\n'
+  + '6) guide 는 그 위험을 막는 일반 안전수칙 1~2문장 (쉬운 한국어, 지시투 가능). 고른 검수 문구와 같은 뜻은 되풀이하지 않고 보충만 한다. 맞는 검수 문구가 없으면 guide 가 행동을 알려 준다.\n'
+  + '7) general 은 위험별 내용 밖의 공통 수칙 2~4개 (보호구, 이상할 때 멈추고 알리기, 비상정지, 정리정돈 등 이 설비에 맞는 것). 맞는 검수 문구가 있으면 phraseId 를 넣고 text 는 비운다.\n'
+  + '8) intro 는 설비 소개와 교육 목적 1~2문장, outro 는 한 문장 (둘 다 지시투 금지). outroPhraseId 는 마무리로 읽을 검수 문구.\n'
+  + '9) 설명 없이 JSON 하나만: {"intro":"...","hazards":[{"hazardId":"o1","accident":"끼임","visual":"pinch","narration":"...","phraseId":"ph-1","guide":"..."},'
+  + '{"hazardId":"r5","accident":"감전","visual":"ai","happen":"...","safe":"...","narration":"...","phraseId":"ph-2","guide":"..."}],'
+  + '"general":[{"text":"...","phraseId":""}],"outro":"...","outroPhraseId":"ph-6"}';
 const user = '설비: ' + eqName + '\n위험요소:\n' + hazards.map((h) => '- ' + h.id + ' | ' + h.part + ' | ' + h.risk + (h.official ? ' | 공식 문서' : '')).join('\n')
-  + '\n검수 문구:\n' + phrases.map((p) => '- ' + p.id + ': ' + p.ko).join('\n');
+  + '\n검수 문구:\n' + phrases.map((p) => '- ' + p.id + (p.hazards.length ? ' [' + p.hazards.join(',') + ']' : '') + ': ' + p.ko).join('\n');
 const t0 = Date.now();
 /* --reuse: 지난 대본(.script.json)을 그대로 쓴다 — 그림 한 장만 고칠 때 위험 구성이 바뀌지 않게 (GPT 0회) */
 const scriptFile = to.replace(/\.mp4$/, '.script.json');
@@ -91,8 +120,11 @@ let raw;
 if (process.argv.includes('--reuse') && fs.existsSync(scriptFile)) {
   const prev = JSON.parse(fs.readFileSync(scriptFile, 'utf8'));
   const vis = (shot) => shot.source === '3d' ? Object.keys(CLIPS3D).find((k) => CLIPS3D[k].includes(shot.clip)) : 'ai';
-  raw = { intro: prev.intro, outro: prev.outro, outroPhraseId: prev.outroPhraseId,
-    hazards: prev.hazards.map((h) => ({ hazardId: h.hazardId, accident: h.accident, visual: vis(h.shots[1]), happen: h.shots[1].prompt, safe: h.shots[2].prompt, narration: h.narration, phraseId: h.phraseId })) };
+  /* 담당자가 .script.json 의 글(narration·guide·general)을 고쳤으면 고친 대로 읽는다 */
+  raw = { intro: prev.intro, outro: prev.outro, outroPhraseId: prev.outroPhraseId, general: prev.general || [],
+    hazards: prev.hazards.map((h) => ({ hazardId: h.hazardId, accident: h.accident, visual: h.visual || vis(h.shots[1]),
+      happen: h.happen !== undefined ? h.happen : h.shots[1].prompt, safe: h.safe !== undefined ? h.safe : h.shots[2].prompt,
+      narration: h.narration, phraseId: h.phraseId, guide: h.guide || '' })) };
 } else {
   const r = await callModel(cfg, system, user, { maxOutputTokens: 8000, maxText: 16000 });
   if (r.error) { console.error('대본 실패: ' + r.error); process.exit(1); }
@@ -127,11 +159,40 @@ const picked = [];
   let narration = clean(s.narration);
   const fixed = !narration;
   if (fixed) narration = h.part + '. ' + h.risk;
-  picked.push({ hazard: h, accident, visual, happen, safe, narration, fixed, phrase });
+  const guide = String(s.guide || '').trim().slice(0, 200);   /* GPT 수칙 — 지시투 허용, 담당자 검수 대상 */
+  picked.push({ hazard: h, accident, visual, happen, safe, narration, fixed, phrase, guide });
 });
+/* 공통 수칙 — 검수 문구가 있으면 그것, 없으면 GPT 글. 3D/그림 없이 설비 사진 컷 하나씩 */
+const general = (Array.isArray(raw.general) ? raw.general : []).map((g) => {
+  const ph = g && phraseOf(g.phraseId);
+  const phrase = ph && !usedPhrase.has(ph.id) ? ph : null;
+  if (phrase) usedPhrase.add(phrase.id);
+  return { phrase, text: phrase ? '' : String((g && g.text) || '').trim().slice(0, 200) };
+}).filter((g) => g.phrase || g.text).slice(0, 4);
 const intro = clean(raw.intro) || eqName + ' 의 위험한 곳을 함께 봅니다.';
 const outro = clean(raw.outro);
 const outroPhrase = phraseOf(raw.outroPhraseId);
+
+/* 담당자 검수용 대본 — 읽는 순서대로, 문장마다 출처(phrase = 검수 문구 그대로, gpt = AI 작성 → 검수 필요) */
+const line = (at, text, src) => (text ? [{ at, source: src, text }] : []);
+const lines = [].concat(line('intro', intro, 'gpt'),
+  ...picked.map((s) => [].concat(line(s.hazard.id + ' 위험', s.narration, s.fixed ? 'research' : 'gpt'),
+    line(s.hazard.id + ' 문구', s.phrase && s.phrase.ko, 'phrase'), line(s.hazard.id + ' 수칙', s.guide, 'gpt'))),
+  ...general.map((g, i) => line('공통 ' + (i + 1), g.phrase ? g.phrase.ko : g.text, g.phrase ? 'phrase' : 'gpt')),
+  line('outro', outro, 'gpt'), line('outro 문구', outroPhrase && !usedPhrase.has(outroPhrase.id) && outroPhrase.ko, 'phrase'));
+const scriptJson = (extra) => JSON.stringify(Object.assign({
+  equipment: eqName, model: cfg.model, at: new Date().toISOString(), phrasesFrom: lib.from, hazardTypes: [...wantHz],
+  review: '★ source:"gpt" 문장은 AI 가 썼다 — 담당자가 읽고, 고칠 것은 intro·outro·hazards[].narration·guide·general[].text 에서 고친 뒤 --reuse 로 렌더해 배포한다 (lines 는 읽기용)',
+  lines, intro, outro, outroPhraseId: outroPhrase ? outroPhrase.id : '',
+  general: general.map((g) => ({ text: g.text, phraseId: g.phrase ? g.phrase.id : '' })),
+}, extra), null, 2);
+if (process.argv.includes('--script-only')) {
+  fs.writeFileSync(scriptFile, scriptJson({ hazards: picked.map((s) => ({ hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual,
+    happen: s.happen, safe: s.safe, narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '', guide: s.guide })) }));
+  lines.forEach((l) => console.log('  [' + l.source + '] ' + l.at + ': ' + l.text));
+  console.log('대본만 저장: ' + scriptFile + ' — 검수 뒤 --reuse 로 렌더');
+  process.exit(0);
+}
 console.log('대본 위험 ' + picked.length + '개 · ' + (Date.now() - t0) + 'ms · 후보 ' + (raw.hazards || []).map((s) => s.hazardId + '/' + s.accident).join(' '));
 picked.forEach((s, i) => console.log('  ' + (i + 1) + '. ' + s.hazard.id + ' ' + s.hazard.part + ' [' + s.accident + '/' + s.visual + '] ' + s.narration
   + (s.phrase ? ' ▶ ' + s.phrase.id + ': ' + s.phrase.ko : ' ▶ (문구 없음)') + (s.fixed ? ' (지시투라 위험 설명으로 바꿈)' : '')));
@@ -235,10 +296,17 @@ for (const s of picked) {
   const need = Math.max(4, v.sec + 0.6 - WHERE_SEC);
   sec += pair ? clipShot(pair[0], need, 'happen') : imageShot(s.happenImg.file, need, 'happen');
   voice(v, sec);
-  /* ③ 동안 검수 문구 */
-  const pv = s.phrase ? speak(s.phrase.ko) : null;
+  /* ③ 동안 검수 문구(메인) → GPT 수칙(보충) */
+  const say3 = [s.phrase && s.phrase.ko, s.guide].filter(Boolean).join(' ... ');
+  const pv = say3 ? speak(say3) : null;
   const need3 = Math.max(4, pv ? pv.sec + 0.8 : 0);
   voice(pv, pair ? clipShot(pair[1], need3, 'safe') : imageShot(s.safeImg.file, need3, 'safe'));
+}
+
+/* 공통 수칙 — 설비 전체 사진 한 컷씩 */
+for (const g of general) {
+  v = speak(g.phrase ? g.phrase.ko : g.text);
+  voice(v, photoShot(Math.max(4, v.sec + 0.8), [], 1.06, null));
 }
 
 /* 끝 — 설비 전체 (박스를 다 그리면 겹쳐서 읽히지 않는다) */
@@ -263,12 +331,11 @@ fs.mkdirSync(path.dirname(path.resolve(to)), { recursive: true });
 ff(['-i', vfile, '-i', afile, '-c:v', 'copy', '-c:a', 'aac', '-shortest', to]);
 
 const total = dur(to);
-fs.writeFileSync(to.replace(/\.mp4$/, '.script.json'), JSON.stringify({
-  equipment: eqName, model: cfg.model, imageModel: IMAGE_MODEL, at: new Date().toISOString(), seconds: Math.round(total),
-  calls: { script: 1, images, textChecks: checks },
-  intro, outro, outroPhraseId: outroPhrase ? outroPhrase.id : '',
+fs.writeFileSync(scriptFile, scriptJson({
+  imageModel: IMAGE_MODEL, seconds: Math.round(total), calls: { script: process.argv.includes('--reuse') ? 0 : 1, images, textChecks: checks },
   hazards: picked.map((s) => ({
-    hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '',
+    hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual, happen: s.happen, safe: s.safe,
+    narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '', guide: s.guide,
     shots: [
       { role: 'where', source: 'real-photo', box: s.hazard.box },
       s.visual === 'ai' ? { role: 'happen', source: 'ai-image', prompt: s.happen, file: path.basename(s.happenImg.file), textCheck: s.happenImg.textCheck || 'cached' }
@@ -277,6 +344,6 @@ fs.writeFileSync(to.replace(/\.mp4$/, '.script.json'), JSON.stringify({
         : { role: 'safe', source: '3d', clip: CLIPS3D[s.visual][1] },
     ],
   })),
-}, null, 2));
+}));
 console.log('영상 ' + to + ' · ' + Math.round(total) + '초 · ' + Math.round(fs.statSync(to).size / 1024) + 'KB · 그림 ' + images + '장 생성 · 글자검사 ' + checks + '회');
 fs.rmSync(tmp, { recursive: true, force: true });
