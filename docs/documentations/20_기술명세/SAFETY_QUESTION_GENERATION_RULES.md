@@ -71,7 +71,7 @@
 
 ## 2. 설비별 생성 기준
 
-설비 종류는 `api/_official.mjs` 의 `EQUIPMENT_KINDS` (`press`·`paint`·`injection`·`electric`·`other`) 를 그대로 쓴다. 위험유형은 `api/_hazards.mjs` 의 6종(`pinch` 끼임·`shock` 감전·`fire` 화재·`fall` 추락·`choke` 질식·`chemical` 화학물질)이고, 6종 밖은 `unknown` 으로 받는다.
+설비 종류는 `api/_official.mjs` 의 `EQUIPMENT_KINDS` (`press`·`paint`·`injection`·`electric`·`milling`·`drill`·`other`) 를 그대로 쓴다. 위험유형은 `api/_hazards.mjs` 의 6종(`pinch` 끼임·`shock` 감전·`fire` 화재·`fall` 추락·`choke` 질식·`chemical` 화학물질)이고, 6종 밖은 `unknown` 으로 받는다.
 
 ### 2.1 모든 설비 공통
 

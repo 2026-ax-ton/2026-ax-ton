@@ -82,5 +82,30 @@ function pick(file) {
   has('★ 못 읽으면 이유를 적는다', $('equip-video-status').textContent, '읽지 못했습니다');
   ok('못 읽어도 저장 버튼은 다시 켜진다', $('btn-equip-save').disabled === false);
 
+  /* 🆕 2026-11-21 사진 여러 장 — 예전 촬영 사진(밀링 33장 등)을 한꺼번에 */
+  ok('★ 설비 사진 칸이 여러 장을 받는다', $('equip-photo').hasAttribute('multiple'));
+  let gotFiles = null;
+  win.ScanShots.best = (p) => (p[0][0][0] || null);
+  win.ScanShots.fromImages = (files) => { gotFiles = files; return Promise.resolve({ passes, count: 1, dropped: 1 }); };
+  function pickMany(list) {
+    Object.defineProperty($('equip-photo'), 'files', { value: list, configurable: true });
+    $('equip-photo').dispatchEvent(new win.Event('change', { bubbles: true }));
+  }
+  pickMany([new win.File(['a'], '20261116152219_0-0-0.jpg', { type: 'image/jpeg' }), new win.File(['b'], '20261116152219_0-1-0.jpg', { type: 'image/jpeg' })]);
+  await ticks();
+  eq('★★ 여러 장을 고르면 장면 고르기(fromImages)로 간다', gotFiles && gotFiles.length, 2);
+  has('★ 몇 장 골랐는지 · 몇 장 뺐는지 알린다', $('equip-video-status').textContent, '1장은 어둡거나 흔들려 뺐습니다');
+  const n0 = calls.up.length;
+  $('equip-name').value = '밀링 머신';
+  $('equip-proc').value = S.setup.load().processes[0].id;
+  $('form-equip').dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
+  await ticks();
+  const mill = S.setup.load().equipments.find((x) => x.name === '밀링 머신');
+  eq('★★ 저장하면 고른 사진이 그 설비의 촬영 묶음으로 올라간다', calls.up.length - n0 + '|' + (calls.up[n0] && calls.up[n0].id), '1|' + (mill && mill.id));
+  gotFiles = null;
+  pickMany([new win.File(['a'], 'one.jpg', { type: 'image/jpeg' })]);
+  await ticks();
+  eq('사진 한 장은 예전처럼 설비 사진만 (장면 고르기 아님)', gotFiles, null);
+
   report('설비 사진 칸에 동영상 넣기');
 })();

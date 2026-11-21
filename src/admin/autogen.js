@@ -688,9 +688,16 @@
 
   /* ── ③ 교육자료 — 이 설비 종류의 검수 문구 (자동) ───────────────── */
 
+  /** 🆕 2026-11-17 이 설비의 위험유형 — 등록 때 고른 것 + AI 조사에서 포함한 것 (문구 매칭 기준) */
+  function hazardCodes() {
+    var out = ((state.equipment && state.equipment.hazards) || []).slice();
+    (state.research ? includedHazards() : []).forEach(function (h) { if (h.hazard && out.indexOf(h.hazard) === -1) out.push(h.hazard); });
+    return out;
+  }
+
   function usablePhrases() {
     var langs = setup().languages || [];
-    return Store.phrasesFor(kindId()).filter(function (p) {
+    return Store.phrasesFor(kindId(), null, hazardCodes()).filter(function (p) {
       return Store.phraseOk(p, 'ko') && (!langs.length || langs.some(function (code) { return Store.phraseOk(p, code); }));
     });
   }

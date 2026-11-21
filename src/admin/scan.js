@@ -231,6 +231,61 @@ var ScanShots = window.ScanShots = (function () {
     return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { ok(String(r.result)); }; r.onerror = function () { ok(''); }; r.readAsDataURL(b); });
   }
 
+  /* 🆕 2026-11-21 사진 여러 장으로 넣기 — 예전에 찍어 내려받은 촬영 사진(밀링 33장 등)을 다시 넣는 길.
+     가이드 촬영과 같은 거르기(어두움·역광·흔들림)를 장마다 하고, 통과한 것은 **전부** 남긴다 (3D 재료).
+     ★ 이름이 「바퀴-칸-번호.jpg」(내려받기 이름 「<묶음>_바퀴-칸-번호.jpg」 포함)이면 그 자리에 둔다 —
+       방향 칸을 잃지 않는다. 아니면 고른 순서대로 낮은 바퀴 칸을 채운다 */
+  var SHOT_NAME_RE = /^(?:[0-9]+_)?([0-9])-([0-9]{1,2})-[0-9]{1,2}\.(?:jpe?g|png|webp)$/i;
+
+  /** 파일 이름 → { pass, seg } 또는 null */
+  function slotOf(name) {
+    var m = SHOT_NAME_RE.exec(String(name || ''));
+    if (!m) return null;
+    return { pass: Math.min(PASSES - 1, Number(m[1])), seg: Math.min(C.SEGMENTS - 1, Number(m[2])) };
+  }
+
+  function loadImage(file) {
+    return new Promise(function (ok) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () { ok({ img: img, url: url }); };
+      img.onerror = function () { URL.revokeObjectURL(url); ok(null); };
+      img.src = url;
+    });
+  }
+
+  /** 사진 파일들 → { passes, count, dropped }. onProgress(0~1). 읽지 못한 사진은 빼고 센다 */
+  function fromImages(files, onProgress) {
+    var tell = typeof onProgress === 'function' ? onProgress : function () {};
+    var list = Array.prototype.slice.call(files || []);
+    var passes = emptyPasses(), dropped = 0, auto = 0;
+    var probe = document.createElement('canvas'), out = document.createElement('canvas');
+    var chain = Promise.resolve();
+    list.forEach(function (file, i) {
+      chain = chain.then(function () { return loadImage(file); }).then(function (got) {
+        if (!got) { dropped += 1; return null; }
+        var img = got.img, w = img.naturalWidth, h = img.naturalHeight;
+        probe.width = PROBE_W; probe.height = Math.max(1, Math.round(PROBE_W * h / Math.max(1, w)));
+        var pg = probe.getContext('2d');
+        pg.drawImage(img, 0, 0, probe.width, probe.height);
+        var px = pg.getImageData(0, 0, probe.width, probe.height).data, gray = new Array(probe.width * probe.height);
+        for (var a = 0, b = 0; a < px.length; a += 4, b++) gray[b] = 0.299 * px[a] + 0.587 * px[a + 1] + 0.114 * px[a + 2];
+        var st = M.stats(gray, probe.width, probe.height);
+        var slot = slotOf(file.name) || { pass: 0, seg: (auto++) % C.SEGMENTS };
+        var cell = passes[slot.pass][slot.seg];
+        if (M.verdict(st, 0) || cell.length >= PER_SEG) { dropped += 1; URL.revokeObjectURL(got.url); return null; }
+        var k = Math.min(1, MAX_EDGE / Math.max(w, h));
+        out.width = Math.round(w * k); out.height = Math.round(h * k);
+        out.getContext('2d').drawImage(img, 0, 0, out.width, out.height);
+        URL.revokeObjectURL(got.url);
+        return new Promise(function (ok) { out.toBlob(ok, 'image/jpeg', QUALITY); }).then(function (blob) {
+          if (!blob) { dropped += 1; return; }
+          cell.push({ t: i, sharp: st.sharp, pass: slot.pass, seg: slot.seg, blob: blob, w: out.width, h: out.height });
+        });
+      }).catch(function () { dropped += 1; }).then(function () { tell((i + 1) / list.length); });
+    });
+    return chain.then(function () { return { passes: passes, count: flat(passes).length, dropped: dropped }; });
+  }
+
   /** 촬영 묶음 하나로 올린다 (/api/scans put → Vercel Blob 비공개). 이름은 바퀴-칸-번호.
       돌려주는 값 { done, failed, scanId }. 끊김·로그인 만료면 남은 것을 실패로 세고 멈춘다 */
   function upload(equipmentId, passes, onProgress) {
@@ -253,7 +308,7 @@ var ScanShots = window.ScanShots = (function () {
     return next(0);
   }
 
-  return { pick: pick, best: best, count: function (passes) { return flat(passes).length; }, fromVideo: fromVideo, upload: upload, toDataUrl: toDataUrl };
+  return { pick: pick, best: best, count: function (passes) { return flat(passes).length; }, fromVideo: fromVideo, fromImages: fromImages, slotOf: slotOf, upload: upload, toDataUrl: toDataUrl };
 })();
 
 (function () {

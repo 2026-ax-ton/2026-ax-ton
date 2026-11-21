@@ -178,8 +178,10 @@
   /* 🆕 2026-11-11 — 고른 설비의 종류(Store.kindOf) 문구와 「공통」만. 프레스 교육에 도장 문구가 섞이지 않게 */
   function usablePhrases() {
     var langs = setup().languages;
-    var kind = Store.kindOf(equipmentOf(draft.equipmentId)).id;
-    return Store.phrasesFor(kind).filter(function (p) {
+    var eq = equipmentOf(draft.equipmentId);
+    var kind = Store.kindOf(eq).id;
+    /* 🆕 2026-11-17 등록 때 고른 위험유형과 태그가 겹치는 문구만 (태그 없는 문구는 그대로) */
+    return Store.phrasesFor(kind, null, (eq && eq.hazards) || []).filter(function (p) {
       if (!langs.length) return Store.phraseOk(p, 'ko');
       return langs.some(function (code) { return Store.phraseOk(p, code); });
     });

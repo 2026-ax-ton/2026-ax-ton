@@ -17,7 +17,7 @@ if (!from || !to) { console.error('쓰는 법: node scripts/make-questions.mjs <
 const run = JSON.parse(fs.readFileSync(from, 'utf8'));
 const eqName = (run.equipment && run.equipment.name) || '';
 const kind = kindArg || (/프레스/.test(eqName) ? 'press' : /사출/.test(eqName) ? 'injection' : /도장/.test(eqName) ? 'paint' : 'other');
-const LABEL = { press: '프레스', paint: '도장', injection: '사출성형', electric: '전기설비', other: '기타' };
+const LABEL = { press: '프레스', paint: '도장', injection: '사출성형', electric: '전기설비', milling: '밀링', drill: '드릴', other: '기타' };
 
 /* 시드 문구 — 브라우저 파일이라 vm 으로 읽는다 */
 const seedSrc = fs.readFileSync(new URL('../src/assets/seed.js', import.meta.url), 'utf8');
