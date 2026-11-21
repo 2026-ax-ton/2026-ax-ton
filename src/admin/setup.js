@@ -318,15 +318,8 @@
         im.alt = eq.name + ' 사진';
         li.querySelector('.body').appendChild(im);
       }
-      li.querySelector('.body').appendChild(UI.el('p', 'meta', analysisLine(eq)));
-      /* 검수 대기 설비는 교육을 만들 수 없다 — 버튼 대신 이유를 보인다 */
-      if (Store.equipmentReady(eq)) {
-        var go = UI.el('a', 'btn-sm', eq.analysis ? '분석 결과 보기 · 교육 만들기' : 'AI 분석 · 교육 만들기');
-        go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
-        li.querySelector('.body').appendChild(go);
-      } else {
-        li.querySelector('.body').appendChild(UI.el('p', 'meta', '검수 대기 — 아래 AI 검수를 승인해야 교육을 만들 수 있습니다'));
-      }
+      /* 🆕 2026-11-21 AI 위험요소 조사 — 설비 등록의 필수 단계. 조사 결과가 사진 위 위치와 묶여 여기 보인다 */
+      li.querySelector('.body').appendChild(researchBlock(eq));
       /* 가이드 촬영 — 카메라 위 틀·수평선·자세 교정, 선명한 장면을 알아서 찍는다 */
       var cam = UI.el('a', 'equip-scan-btn', '카메라로 찍기 (가이드 촬영)');
       cam.insertBefore(UI.iconBox('camera', 'ico'), cam.firstChild);
@@ -352,6 +345,154 @@
     var n = a.research.items.length;
     var m = a.guided && Array.isArray(a.guided.mapped) ? a.guided.mapped.length : 0;
     return 'AI 분석: 위험 ' + n + ' · 사진 위치 ' + m + ' · 위치 확인 필요 ' + (n - m) + (a.at ? ' · ' + UI.formatDate(a.at) : '');
+  }
+
+  /* ── 🆕 2026-11-21 AI 위험요소 조사 — 설비 등록의 필수 단계 ───────────────
+     교육 만들기(autogen)의 「AI 위험요소 분석」과 **같은 함수·같은 저장 모양**이다
+     (/api/research → 사진이 있으면 /api/hazards → eq.analysis = { research, guided }).
+     그래서 교육 만들기는 여기서 한 조사를 다시 부르지 않고 불러온다.
+     ★ 조사한 위험요소를 **설비 사진 위 위치**와 묶어 둔다 — 3D 영상(1차 → 2차)과 퀴즈 캡처가 이것을 기준으로 쓴다.
+       사진이 바뀌면 조사는 그 사진의 것이 아니라 지워진다 (설비 수정 · 촬영 화면이 지운다) → 다시 조사
+     ★ 유료 AI 호출 — 담당자가 버튼을 눌러야만 부른다. 검수 승인 뒤에만
+     ★ 서버를 못 부르는 곳(file://)에서는 조사할 수 없다 — 교육 만들기의 결과 파일 모드로 이어 가게 링크를 둔다 */
+  var RESEARCH_TIMEOUT_MS = 90000;
+  var researching = {};   // 설비 id → 진행 문구 (화면에만 — 저장하지 않는다)
+
+  function researched(eq) { var a = eq && eq.analysis; return !!(a && a.research && Array.isArray(a.research.items)); }
+  function isPhoto(v) { return typeof v === 'string' && v.indexOf('data:image/') === 0; }
+
+  function researchBlock(eq) {
+    var box = UI.el('div', 'equip-research');
+    var head = UI.el('p', 'equip-research-head');
+    head.appendChild(UI.el('b', null, 'AI 위험요소 조사'));
+    head.appendChild(researched(eq) ? UI.okBadge('조사 완료') : UI.stopBadge('필수 · 아직 안 함'));
+    box.appendChild(head);
+    if (!Store.equipmentReady(eq)) {
+      if (researched(eq)) box.appendChild(UI.el('p', 'meta', analysisLine(eq)));
+      box.appendChild(UI.el('p', 'meta', '검수 대기 — 아래 AI 검수를 승인하면 조사할 수 있습니다. 교육은 조사까지 마쳐야 만들 수 있습니다.'));
+      return box;
+    }
+    var online = Net.onHttps && Net.onHttps();
+    if (researched(eq)) {
+      box.appendChild(UI.el('p', 'meta', analysisLine(eq)));
+      var fig = researchFigure(eq);
+      if (fig) box.appendChild(fig);
+      box.appendChild(researchList(eq));
+    } else {
+      box.appendChild(UI.el('p', 'meta', '교육을 만들기 전에 꼭 합니다. 공개 자료로 이 설비의 위험요소를 찾고, '
+        + (isPhoto(eq.photo) ? '설비 사진 위에 위치를 표시합니다.' : '설비 사진을 넣으면 사진 위 위치까지 찾습니다.')
+        + ' 이 결과가 3D 영상과 퀴즈의 기준이 됩니다.'));
+    }
+    if (researching[eq.id]) {
+      var st = UI.el('p', 'meta', researching[eq.id]);
+      st.setAttribute('role', 'status');
+      box.appendChild(st);
+    }
+    var row = UI.el('div', 'equip-research-actions');
+    if (online) {
+      var btn = UI.el('button', researched(eq) ? 'btn-sm' : 'btn btn-primary', researched(eq) ? '다시 조사' : 'AI 위험요소 조사 시작');
+      btn.type = 'button';
+      btn.disabled = !!researching[eq.id];
+      btn.setAttribute('data-research', eq.id);
+      btn.addEventListener('click', function () { runResearch(eq.id); });
+      row.appendChild(btn);
+    } else if (!researched(eq)) {
+      box.appendChild(UI.el('p', 'meta', 'AI 조사는 배포 주소(https)에서 로그인했을 때만 됩니다. 여기서는 교육 만들기의 [결과 파일 불러오기]를 쓰세요.'));
+    }
+    /* 교육 만들기 — 조사를 마친 뒤에만 (서버가 없는 곳은 결과 파일 모드라 열어 둔다) */
+    if (researched(eq) || !online) {
+      var go = UI.el('a', 'btn-sm', researched(eq) ? '조사 결과로 교육 만들기' : '교육 만들기 (결과 파일)');
+      go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
+      row.appendChild(go);
+    }
+    if (row.childNodes.length) box.appendChild(row);
+    return box;
+  }
+
+  /** 사진 위 위험 위치 — 번호 = 아래 목록 번호. 좌표는 % 라 사진 크기가 바뀌어도 그 자리다 */
+  function researchFigure(eq) {
+    var a = eq.analysis;
+    if (!(isPhoto(eq.photo) && a.guided && Array.isArray(a.guided.mapped) && a.guided.mapped.length)) return null;
+    var fig = UI.el('div', 'ag-figure equip-research-fig');
+    var img = UI.el('img');
+    img.src = eq.photo;
+    img.alt = eq.name + ' 사진 — AI 가 찾은 위험 위치';
+    fig.appendChild(img);
+    var items = a.research.items;
+    a.guided.mapped.forEach(function (m) {
+      if (!m || !m.box) return;
+      var n = -1;
+      items.forEach(function (it, i) { if (it.id === m.id) n = i + 1; });
+      if (n < 0) return;
+      var b = UI.el('span', 'ag-box', '#' + n);
+      b.style.left = m.box.x0 + '%';
+      b.style.top = m.box.y0 + '%';
+      b.style.width = (m.box.x1 - m.box.x0) + '%';
+      b.style.height = (m.box.y1 - m.box.y0) + '%';
+      fig.appendChild(b);
+    });
+    fig.appendChild(UI.el('span', 'ag-fig-tag', '실제 설비 사진 · AI 탐지'));
+    return fig;
+  }
+
+  /** 조사한 위험요소 — 「램과 금형 사이 — 끼임」 · 사진 위치가 없으면 「위치 확인 필요」 */
+  function researchList(eq) {
+    var a = eq.analysis;
+    var mapped = a.guided && Array.isArray(a.guided.mapped) ? a.guided.mapped : [];
+    var d = UI.el('details', 'equip-research-list');
+    d.appendChild(UI.el('summary', null, '조사한 위험요소 ' + a.research.items.length + '개 보기'));
+    var ol = UI.el('ol');
+    a.research.items.forEach(function (it) {
+      var h = Store.hazard(it.hazard);
+      var where = mapped.some(function (m) { return m.id === it.id; }) ? '' : ' · 위치 확인 필요';
+      ol.appendChild(UI.el('li', null, (it.part || '부위 미상') + ' — ' + (h ? h.label : (it.hazard || '위험 미상')) + where));
+    });
+    d.appendChild(ol);
+    return d;
+  }
+
+  function runResearch(id) {
+    var eq = Store.findBy(Store.setup.load().equipments, 'id', id);
+    if (!eq || researching[id] || !Store.equipmentReady(eq)) return;
+    var opts = { token: Auth.token(), timeoutMs: RESEARCH_TIMEOUT_MS };
+    var why = function (r) { return r.failed ? (r.failed === 'timeout' ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.') : ((r.data && r.data.message) || 'AI 가 답하지 못했습니다.'); };
+    var finish = function (msg) { delete researching[id]; render(); if (msg) UI.toast(msg); };
+    researching[id] = 'AI 가 공개 자료에서 위험요소를 찾는 중입니다… (30초쯤)';
+    render();
+    Net.post('/api/research', { equipment: { id: eq.id, kind: Store.kindOf(eq).id, name: eq.name, maker: eq.maker || '', model: eq.model || '', year: eq.year || null } }, opts)
+      .then(function (r) {
+        var got = r.data && r.data.equipment && r.data.equipment.id;
+        if (!r.ok || !r.data || !Array.isArray(r.data.items)) { finish(why(r) + ' 다시 눌러 주세요.'); return; }
+        if (got && got !== id) { finish('다른 설비의 결과가 왔습니다. 다시 조사해 주세요.'); return; }
+        var research = JSON.parse(JSON.stringify(r.data));
+        research.items.forEach(function (it) { delete it.image; });   // 참고 사진(외부 그림)은 넣지 않는다 (동기화 512KB)
+        var photo = isPhoto(eq.photo) ? eq.photo : '';
+        var store = function (guided) {
+          Store.setup.update(function (s) {
+            var e = Store.findBy(s.equipments, 'id', id);
+            if (!e) return;
+            /* 조사하는 사이 사진이 바뀌었으면 위치는 그 사진의 것이 아니다 */
+            var g = guided && e.photo === photo ? guided : null;
+            e.analysis = { at: new Date().toISOString(), model: research.model || '', source: 'server', kind: Store.kindOf(e).id, research: research, guided: g };
+          });
+        };
+        store(null);
+        if (!photo) { finish('조사를 마쳤습니다 — 위험요소 ' + research.items.length + '개. 설비 사진을 넣고 다시 조사하면 위치도 찾습니다.'); return; }
+        researching[id] = '설비 사진에서 위험 위치를 찾는 중입니다…';
+        render();
+        return Net.post('/api/hazards', {
+          image: photo,
+          items: research.items.map(function (it) { return { id: it.id, part: it.part, hazard: it.hazard }; }),
+          equipment: { id: id }
+        }, opts).then(function (h) {
+          var hid = h.data && h.data.equipment && h.data.equipment.id;
+          if (!h.ok || !h.data || !Array.isArray(h.data.mapped)) { finish('조사는 저장했습니다. 사진 위치는 찾지 못했습니다 — ' + why(h)); return; }
+          if (hid && hid !== id) { finish('조사는 저장했습니다. 사진 위치는 다른 설비 결과라 버렸습니다.'); return; }
+          if (h.data.person) { finish('조사는 저장했습니다. 사진에 사람이 찍혀 위치를 찾지 않았습니다 — 설비만 다시 찍어 주세요.'); return; }
+          store(h.data);
+          finish('조사를 마쳤습니다 — 위험요소 ' + research.items.length + '개 · 사진 위치 ' + h.data.mapped.length + '곳.');
+        });
+      });
   }
 
   /* ── 등록 정보 AI 1차 검수 (🆕 2026-11-16) ───────────────────────────
@@ -588,6 +729,8 @@
   var PHOTO_MAX = 640;      // 긴 변 — 동기화 상한(512KB)에 설비 여러 대가 들어가게
   var PHOTO_QUALITY = 0.7;
   var pendingPhoto = null;  // null = 그대로 · '' = 지움 · data URL = 새 사진
+  var pendingShots = null;  // 🆕 동영상에서 뽑은 장면 (ScanShots) — 저장하면 촬영 묶음으로 올린다
+  var videoBusy = false;
 
   function shrinkPhoto(file, done) {
     var url = URL.createObjectURL(file);
@@ -607,6 +750,56 @@
     };
     img.onerror = function () { URL.revokeObjectURL(url); done(''); };
     img.src = url;
+  }
+
+  function clearVideo() {
+    pendingShots = null;
+    var st = $('equip-video-status');
+    if (st && !videoBusy) { st.hidden = true; st.textContent = ''; }
+  }
+
+  /** 🆕 2026-11-21 동영상 — 가이드 촬영과 같은 기준으로 흔들리지 않은 장면만 고른다.
+      가장 선명한 한 장 = 설비 사진(미리보기), 나머지는 저장할 때 촬영 묶음으로 올린다 */
+  function onVideoFile(f) {
+    var st = $('equip-video-status'), save = $('btn-equip-save');
+    if (typeof ScanShots === 'undefined') { UI.toast('동영상을 읽을 수 없습니다. 사진으로 넣어 주세요.'); return; }
+    videoBusy = true;
+    pendingShots = null;
+    save.disabled = true;
+    st.hidden = false;
+    st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… 0%';
+    ScanShots.fromVideo(f, function (p) {
+      st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… ' + Math.round(p * 100) + '%';
+    }).then(function (r) {
+      var best = ScanShots.best(r.passes);
+      if (!best) {
+        st.textContent = '선명한 장면을 찾지 못했습니다. 밝은 곳에서 천천히 다시 찍어 주세요.';
+        return;
+      }
+      pendingShots = r.passes;
+      st.textContent = '흔들리지 않은 장면 ' + r.count + '장을 골랐습니다. 저장하면 가장 선명한 한 장이 설비 사진이 되고, ' + r.count + '장은 촬영 묶음으로 올라갑니다.';
+      return new Promise(function (ok) {
+        shrinkPhoto(best.blob, function (data) { if (data) { pendingPhoto = data; showPreview(data); } ok(); });
+      });
+    }).catch(function () {
+      st.textContent = '이 동영상을 읽지 못했습니다. 휴대폰 기본 카메라로 찍은 동영상(mp4)으로 다시 해 주세요.';
+    }).then(function () {
+      videoBusy = false;
+      save.disabled = false;
+    });
+  }
+
+  /** 저장한 설비에 동영상 장면을 올린다 — 서버 주소(https)에서만. 실패해도 설비 저장은 그대로다 */
+  function sendShots(id, passes) {
+    if (!passes || !id) return;
+    if (!(Net.onHttps && Net.onHttps())) { UI.toast('동영상 장면은 배포 주소에서 저장할 때 올라갑니다. 설비 사진만 저장했습니다.'); return; }
+    var st = $('equip-video-status');
+    st.hidden = false;
+    ScanShots.upload(id, passes, function (k, n) { st.textContent = '동영상 장면을 올리는 중 ' + k + ' / ' + n; }).then(function (r) {
+      st.textContent = r.failed
+        ? '동영상 장면 ' + r.done + '장을 올렸고 ' + r.failed + '장은 못 올렸습니다. 촬영 화면에서 다시 찍어 주세요.'
+        : '동영상 장면 ' + r.done + '장을 촬영 묶음 ' + r.scanId + '(으)로 올렸습니다.';
+    });
   }
 
   function showPreview(data) {
@@ -633,6 +826,7 @@
     /* 🆕 저장해 둔 특별교육 표시를 되살린다 — 수정하다 꺼지면 조용히 표시가 풀린다 (FR-AD-01-09) */
     renderSpecialNote(Array.isArray(eq.specialWork) && eq.specialWork.length > 0);
     pendingPhoto = null;
+    clearVideo();
     showPreview(eq.photo || '');
     $('btn-equip-save').lastChild.textContent = ' 수정 저장';
     $('btn-equip-cancel').hidden = false;
@@ -650,6 +844,7 @@
     setHazards([]);
     renderSpecialNote(false);   // 🆕 특별교육 표시도 다음 설비로 딸려 가지 않는다
     pendingPhoto = null;
+    clearVideo();
     showPreview('');
     $('btn-equip-save').lastChild.textContent = ' 설비 추가';
     $('btn-equip-cancel').hidden = true;
@@ -691,7 +886,10 @@
       { what: '2. 사용 언어',      done: state.languages.length > 0,  note: state.languages.length + '개' },
       { what: '3. 공정',           done: state.processes.length > 0,  note: state.processes.length + '개' },
       { what: '4. 설비',           done: state.equipments.length > 0, note: state.equipments.length + '대' },
-      { what: '5. 노동자',         done: state.workers.length > 0,    note: state.workers.length + '명' }
+      { what: '5. 노동자',         done: state.workers.length > 0,    note: state.workers.length + '명' },
+      /* 🆕 2026-11-21 설비마다 AI 위험요소 조사 (필수) */
+      { what: '6. AI 위험요소 조사', done: state.equipments.length > 0 && state.equipments.every(researched),
+        note: state.equipments.filter(researched).length + '/' + state.equipments.length + '대' }
     ];
 
     var list = $('checklist');
@@ -834,7 +1032,9 @@
 
       /* 🆕 체크했을 때만 작업 번호를 남긴다. 이름이 바뀌어 낱말이 사라졌으면 빈 배열 (FR-AD-01-09) */
       var special = ($('equip-special-on') || {}).checked ? specialJobs() : [];
+      if (videoBusy) { UI.toast('동영상에서 장면을 고르는 중입니다. 끝나면 저장해 주세요.'); return; }
       var photo = pendingPhoto;
+      var shots = pendingShots;
       var message = '설비를 추가했습니다.';
       var newId = editId ? '' : Store.uid();
       var recheck = !editId;   // 등록 정보가 바뀌었으면 AI 검수를 다시 한다
@@ -868,6 +1068,7 @@
       if (editId) UI.toast(message + (recheck ? ' 바뀐 정보를 AI 가 다시 확인합니다.' : ''));
 
       resetEquipForm();
+      sendShots(editId || newId, shots);   // 🆕 동영상 장면 → 촬영 묶음 (저장한 뒤라 설비 id 가 있다)
       /* [카메라로 찍기]로 저장했으면 바로 가이드 촬영으로 — AI 검수는 돌아온 뒤 시작한다 (넘어가면 요청이 끊긴다) */
       if (goScanAfterSave && newId) { location.href = scanUrl(newId); return; }
       if (recheck) runReview(editId || newId);
@@ -887,6 +1088,7 @@
       var f = ev.target.files && ev.target.files[0];
       ev.target.value = '';
       if (!f) return;
+      if (String(f.type || '').indexOf('video/') === 0) { onVideoFile(f); return; }
       shrinkPhoto(f, function (data) {
         if (!data) { UI.toast('사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'); return; }
         pendingPhoto = data;

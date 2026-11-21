@@ -83,4 +83,26 @@ const full = empty();
 full.forEach((l) => l.push({}));
 eq('다 차면 -1', M.biggestGap(full), -1);
 
+/* 🆕 2026-11-21 동영상으로 넣기 (ScanShots) — 가이드 촬영과 같은 거르기 · 같은 칸 */
+{
+  const V = t.win.ScanShots;
+  const samples = [];
+  for (let i = 0; i < 96; i++) samples.push({ t: i * 0.5 + 0.25, mean: 120, sharp: 100 + i });
+  samples.push({ t: 1.1, mean: 10, sharp: 900 });    // 어두움
+  samples.push({ t: 1.2, mean: 120, sharp: 5 });     // 흔들림
+  samples.push({ t: 1.3, mean: 250, sharp: 900 });   // 역광
+  const p = V.pick(samples, 48);
+  const all = p.flat(2);
+  eq('두 바퀴로 나눈다', p.length, 2);
+  ok('★ 앞 절반은 낮게(허리 높이) 바퀴', p[0].every((l) => l.every((s) => s.t < 24 && s.pass === 0)));
+  ok('★ 뒤 절반은 높게(팔 들고) 바퀴', p[1].every((l) => l.every((s) => s.t >= 24 && s.pass === 1)));
+  ok('★★ 어둡거나 흔들리거나 역광인 장면은 거른다 (가이드 촬영과 같은 기준)', !all.some((s) => [1.1, 1.2, 1.3].includes(s.t)));
+  eq('★★ 거르기를 통과한 장면은 전부 남긴다 (3D 재료 — 칸마다 2장 상한 없음)', V.count(p), 96);
+  eq('고르게 찍힌 영상이면 한 바퀴 칸이 다 찬다', M.coverage(p[0]) + M.coverage(p[1]), 2);
+  eq('장 수 세기', V.count(p), all.length);
+  eq('★ 설비 사진은 낮은 바퀴(정면)에서 고른다', V.best(p).pass, 0);
+  eq('다 흔들렸으면 고를 장면이 없다', V.best(V.pick([{ t: 1, mean: 120, sharp: 1 }], 10)), null);
+  eq('길이를 모르면 버리지 않고 첫 칸에 둔다', V.count(V.pick([{ t: 1, mean: 120, sharp: 500 }], 0)), 1);
+}
+
 report('설비 촬영 가이드');
