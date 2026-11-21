@@ -504,11 +504,72 @@ var ScanMath = window.ScanMath = (function () {   // window — 검사가 화면
       list.forEach(function (s) {
         var li = UI.itemRow('check-circle', '촬영 묶음 ' + s.scanId, UI.formatDate(s.at) + ' 올림 · 사진 ' + s.count + '장');
         li.appendChild(UI.okBadge('서버 보관'));
+        var dl = UI.el('button', 'btn-sm', '사진 내려받기');
+        dl.type = 'button';
+        dl.setAttribute('data-download', s.scanId);
+        dl.setAttribute('aria-label', '촬영 묶음 ' + s.scanId + ' 사진 ' + s.count + '장 내려받기');
+        dl.addEventListener('click', function () { downloadScan(s.scanId, dl); });
+        li.appendChild(dl);
         box.appendChild(li);
       });
       $('scan-list-count').textContent = list.length ? '최근 ' + list.length + '건' : '';
       $('sec-uploaded').hidden = false;
     });
+  }
+
+  /* ── 🆕 2026-11-21 올린 촬영 사진 내려받기 — 3D(COLMAP·Blender) 재료를 PC 폴더로 ──
+     폴더 고르기(showDirectoryPicker — 크롬·엣지 PC)가 되면 고른 폴더에 한 번에 쓴다. 안 되면 한 장씩 내려받는다.
+     ★ 폴더 창은 버튼을 누른 그 순간에만 열 수 있다 (브라우저 규칙) — 그래서 콘솔이 아니라 버튼이다
+     ★ 같은 사이트 /api/scans 만 부른다 (net.js · 토큰은 헤더로만). 비공개 저장소라 주소를 내주지 않고 이 함수를 거쳐 받는다
+     ★ 파일 이름 = <묶음>_<바퀴-칸-번호>.jpg — 여러 묶음을 한 폴더에 받아도 겹치지 않는다 */
+  function dataUrlBytes(data) {
+    var bin = atob(String(data).split(',')[1] || ''), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function saveFile(dir, name, data) {
+    if (dir) {
+      return dir.getFileHandle(name, { create: true }).then(function (fh) { return fh.createWritable(); })
+        .then(function (w) { return w.write(dataUrlBytes(data)).then(function () { return w.close(); }); });
+    }
+    var a = document.createElement('a');
+    a.href = data;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.parentNode.removeChild(a);
+    return new Promise(function (ok) { setTimeout(ok, 250); });   // 여러 장을 한꺼번에 누르면 브라우저가 빠뜨린다
+  }
+
+  function downloadScan(scanId, btn) {
+    var label = btn.textContent;
+    var pick = typeof window.showDirectoryPicker === 'function'
+      ? window.showDirectoryPicker({ mode: 'readwrite' }).catch(function () { return 'cancel'; })
+      : Promise.resolve(null);
+    pick.then(function (dir) {
+      if (dir === 'cancel') return null;
+      btn.disabled = true;
+      btn.textContent = '목록 받는 중…';
+      return call({ op: 'list', equipmentId: eq.id, scanId: scanId }).then(function (r) {
+        var paths = r.ok && r.data && Array.isArray(r.data.paths) ? r.data.paths : [];
+        if (!paths.length) { UI.toast(r.ok ? '받을 사진이 없습니다.' : ((r.data && r.data.message) || '목록을 받지 못했습니다.')); return; }
+        var done = 0, chain = Promise.resolve();
+        paths.forEach(function (p, k) {
+          chain = chain.then(function () {
+            btn.textContent = '받는 중 ' + (k + 1) + ' / ' + paths.length;
+            return call({ op: 'get', path: p });
+          }).then(function (g) {
+            var data = g.ok && g.data && typeof g.data.data === 'string' && g.data.data.indexOf('data:image/') === 0 ? g.data.data : '';
+            if (!data) return null;
+            return saveFile(dir, scanId + '_' + p.split('/').pop(), data).then(function () { done += 1; });
+          }).catch(function () { /* 한 장 실패는 건너뛴다 — 끝에 장수로 알린다 */ });
+        });
+        return chain.then(function () {
+          UI.toast('사진 ' + done + ' / ' + paths.length + '장을 ' + (dir ? '고른 폴더에 저장했습니다.' : '내려받았습니다 (다운로드 폴더).'));
+        });
+      });
+    }).then(function () { btn.disabled = false; btn.textContent = label; });
   }
 
   $('btn-scan-upload').addEventListener('click', upload);
