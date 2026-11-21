@@ -1130,6 +1130,7 @@
       var still = m.kept ? Limits.courseSizeProblem(course) : '';
       if (still) {
         $('ag-research-status').textContent = '';
+        dropMedia(course, m);
         UI.toast(still + '. 그림 ' + m.kept + '장을 저장소에 올리지 못했습니다. 잠시 뒤 다시 발급해 주세요.');
         renderApprove();
         return;
@@ -1138,9 +1139,16 @@
     });
   }
 
+  /** 🆕 2026-11-21 발급이 안 됐는데 이미 올린 그림 — 그 교육 id 아래 것을 치운다 (주인 없는 공장 사진을 남기지 않는다).
+      다시 발급하면 새 교육 id 라 이 그림은 다시 쓰이지 않는다. 실패해도 화면은 멈추지 않는다 */
+  function dropMedia(course, media) {
+    if (!media || !media.moved) return;
+    call('/api/scans', { op: 'media-del', courseId: course.id });
+  }
+
   function save(course, media, e) {
     var result = Store.courses.update(function (list) { list.push(course); });
-    if (!result.ok) { renderApprove(); UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
+    if (!result.ok) { dropMedia(course, media); renderApprove(); UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
     UI.toast('발급했습니다. 「' + course.title + '」이 노동자 수강 화면에 나타납니다.'
       + (media && media.kept ? ' (그림 ' + media.kept + '장은 저장소에 올리지 못해 교육 안에 그대로 넣었습니다)' : ''));
     state = emptyState(e);

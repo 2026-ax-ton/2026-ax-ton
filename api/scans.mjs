@@ -7,6 +7,7 @@
    🆕 2026-11-16 교육 그림 (보기 그림·설비 사진을 교육 데이터 밖으로 — 동기화 상한 512KB 를 풀기 위해)
    POST /api/scans  { op: 'media-put', courseId, name, data }   → { ok, ref: 'media:<courseId>/<name>.jpg' }   담당자만
    POST /api/scans  { op: 'media-get', ref }                    → { data: 'data:image/jpeg;base64,…' }       담당자·노동자
+   POST /api/scans  { op: 'media-del', courseId }               → { ok, deleted }   담당자만 — 발급 저장이 실패했을 때 올려 둔 그 교육 그림을 치운다 (2026-11-21)
      ★ ref 에는 사업장이 없다 — 저장 경로 media/<내 사업장>/… 는 **토큰에서만** 붙인다. 남의 사업장 그림은 「없음」
      ★ 노동자는 media-get 만. 나머지(촬영 사진 올리기·목록·받기, 교육 그림 올리기)는 담당자만
 
@@ -112,6 +113,15 @@ async function mediaPut(account, body, cors) {
   return json(200, { ok: true, ref: 'media:' + courseId + '/' + name + '.jpg' }, cors);
 }
 
+/** 🆕 2026-11-21 교육 그림 치우기 — 그 교육(courseId) 아래 것만, 내 사업장 것만. 주인 없는 그림(공장 내부 사진)을 남기지 않는다 */
+async function mediaDel(account, body, cors) {
+  if (!MEDIA_NAME_RE.test(body.courseId || '')) return fail(400, 'bad_request', '교육을 확인해 주세요.', cors);
+  const b = await blob();
+  const paths = (await listAll(b, mediaRoot(account) + body.courseId + '/')).map((x) => x.pathname);
+  if (paths.length) await b.del(paths);
+  return json(200, { ok: true, deleted: paths.length }, cors);
+}
+
 /** 🆕 교육 그림 받기 — 노동자 퀴즈·담당자 화면. 내 사업장 것만 */
 async function mediaGet(account, body, cors) {
   const m = MEDIA_REF_RE.exec(typeof body.ref === 'string' ? body.ref : '');
@@ -140,7 +150,7 @@ async function run(request) {
   if (!account.workplace_id) return fail(403, 'forbidden', '사업장 계정만 쓸 수 있습니다.', cors);
   const who = { account };
 
-  const OPS = { put, list, get, 'media-put': mediaPut, 'media-get': mediaGet };
+  const OPS = { put, list, get, 'media-put': mediaPut, 'media-get': mediaGet, 'media-del': mediaDel };
   const op = Object.prototype.hasOwnProperty.call(OPS, body.op) ? OPS[body.op] : null;
   if (!op) return fail(400, 'bad_request', '알 수 없는 요청입니다.', cors);
   let res;

@@ -34,6 +34,7 @@ scans.setBlobForTest({
   put: async (p, bytes, o) => { ok('비공개로 올린다', o.access === 'private'); store.set(p, { bytes, at: new Date('2026-11-14T10:00:00Z') }); return { pathname: p }; },
   list: async ({ prefix }) => ({ blobs: [...store.keys()].filter((p) => p.startsWith(prefix)).map((p) => ({ pathname: p, uploadedAt: store.get(p).at })), hasMore: false }),
   get: async (p) => (store.has(p) ? { statusCode: 200, stream: new Response(store.get(p).bytes).body } : null),
+  del: async (paths) => { [].concat(paths).forEach((p) => store.delete(p)); },
 });
 
 async function call(body, token) {
@@ -86,6 +87,15 @@ eq('★ .. 경로는 404', (await call({ op: 'get', path: 'scans/wpA/../wpB/x.jp
   eq('★★ 다른 사업장은 같은 주소로도 404', (await call({ op: 'media-get', ref: 'media:c1/q0-1.jpg' }, OTHER)).status, 404);
   eq('★ 주소 모양이 다르면 404 (경로를 넘볼 수 없다)', (await call({ op: 'media-get', ref: 'media:../wpB/c1/x.jpg' }, WORKER)).status, 404);
   eq('★★ 노동자는 촬영 사진(scans)은 여전히 못 받는다', (await call({ op: 'get', path: 'scans/wpA/e1/s1/0-3-1.jpg' }, WORKER)).status, 403);
+
+  /* 🆕 2026-11-21 media-del — 발급 저장이 실패했을 때 그 교육 그림만 치운다 */
+  await call({ op: 'media-put', courseId: 'c2', name: 'photo', data: JPG }, ADMIN);
+  await call({ op: 'media-put', courseId: 'c2', name: 'q0-0', data: JPG }, OTHER);   // 남의 사업장 같은 교육 id
+  eq('★★ 노동자는 그림을 치울 수 없다', (await call({ op: 'media-del', courseId: 'c2' }, WORKER)).status, 403);
+  eq('교육 id 모양이 다르면 400', (await call({ op: 'media-del', courseId: '../c' }, ADMIN)).status, 400);
+  const md = await call({ op: 'media-del', courseId: 'c2' }, ADMIN);
+  eq('★ 그 교육 그림을 치운다', md.status + '|' + (md.data && md.data.deleted), '200|1');
+  ok('★★ 내 사업장의 그 교육 것만 — 다른 교육·남의 사업장 그림은 그대로', !store.has('media/wpA/c2/photo.jpg') && store.has('media/wpA/c1/q0-1.jpg') && store.has('media/wpB/c2/q0-0.jpg'));
 }
 
 scans.setBlobForTest({ list: async () => { throw new Error('boom secret'); } });
