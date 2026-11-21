@@ -355,7 +355,7 @@
        사진이 바뀌면 조사는 그 사진의 것이 아니라 지워진다 (설비 수정 · 촬영 화면이 지운다) → 다시 조사
      ★ 유료 AI 호출 — 담당자가 버튼을 눌러야만 부른다. 검수 승인 뒤에만
      ★ 서버를 못 부르는 곳(file://)에서는 조사할 수 없다 — 교육 만들기의 결과 파일 모드로 이어 가게 링크를 둔다 */
-  var RESEARCH_TIMEOUT_MS = 90000;
+  var RESEARCH_TIMEOUT_MS = 180000;   // 🆕 2026-11-21 서버 조사 상한(150초)보다 길게
   var researching = {};   // 설비 id → 진행 문구 (화면에만 — 저장하지 않는다)
 
   function researched(eq) { var a = eq && eq.analysis; return !!(a && a.research && Array.isArray(a.research.items)); }
@@ -457,7 +457,7 @@
     var opts = { token: Auth.token(), timeoutMs: RESEARCH_TIMEOUT_MS };
     var why = function (r) { return r.failed ? (r.failed === 'timeout' ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.') : ((r.data && r.data.message) || 'AI 가 답하지 못했습니다.'); };
     var finish = function (msg) { delete researching[id]; render(); if (msg) UI.toast(msg); };
-    researching[id] = 'AI 가 공개 자료에서 위험요소를 찾는 중입니다… (30초쯤)';
+    researching[id] = 'AI 가 공개 자료에서 위험요소를 찾는 중입니다… (길면 2분쯤)';
     render();
     Net.post('/api/research', { equipment: { id: eq.id, kind: Store.kindOf(eq).id, name: eq.name, maker: eq.maker || '', model: eq.model || '', year: eq.year || null } }, opts)
       .then(function (r) {
@@ -499,8 +499,8 @@
      /api/research 에 verify 를 붙여 부른다 — 「설비 자료조사」(autogen)와 같은 함수·같은 출처 규칙.
      ★ AI 는 제안만 한다. 설비 값은 담당자가 항목마다 [승인]할 때만 바뀐다.
      ★ 서버를 못 부르는 곳(file://·끊김)에서는 「검수 못 함」으로 남기고 등록은 그대로 둔다 */
-  var REVIEW_TIMEOUT_MS = 70000;
-  var REVIEW_STALE_MS = 2 * 60 * 1000;   // 확인 중에 화면을 떠나 멈춘 것 — 다시 검수 버튼을 보인다
+  var REVIEW_TIMEOUT_MS = 180000;   // 🆕 2026-11-21 70초 → 180초 — 검수도 같은 조사 함수(150초)
+  var REVIEW_STALE_MS = 4 * 60 * 1000;   // 🆕 2026-11-21 2분 → 4분 — 검수 상한(180초)보다 길게   // 확인 중에 화면을 떠나 멈춘 것 — 다시 검수 버튼을 보인다
 
   function kindLabelOf(id) { return (Store.equipmentKind(id) || {}).label || '기타'; }
 
@@ -761,15 +761,27 @@
   /** 🆕 2026-11-21 동영상 — 가이드 촬영과 같은 기준으로 흔들리지 않은 장면만 고른다.
       가장 선명한 한 장 = 설비 사진(미리보기), 나머지는 저장할 때 촬영 묶음으로 올린다 */
   function onVideoFile(f) {
+    pickShots('동영상에서', function (tell) { return ScanShots.fromVideo(f, tell); },
+      '이 동영상을 읽지 못했습니다. 휴대폰 기본 카메라로 찍은 동영상(mp4)으로 다시 해 주세요.');
+  }
+
+  /** 🆕 2026-11-21 사진 여러 장 — 예전에 찍어 내려받은 촬영 사진을 한꺼번에. 동영상과 같은 길 (ScanShots.fromImages) */
+  function onImageFiles(files) {
+    pickShots('사진 ' + files.length + '장에서', function (tell) { return ScanShots.fromImages(files, tell); },
+      '사진을 읽지 못했습니다. JPEG·PNG 사진으로 다시 골라 주세요.');
+  }
+
+  /** 장면 고르기 공통 — 고르는 동안 저장을 막고, 가장 선명한 한 장을 설비 사진(미리보기)으로, 전부는 저장할 때 촬영 묶음으로 */
+  function pickShots(from, run, failText) {
     var st = $('equip-video-status'), save = $('btn-equip-save');
-    if (typeof ScanShots === 'undefined') { UI.toast('동영상을 읽을 수 없습니다. 사진으로 넣어 주세요.'); return; }
+    if (typeof ScanShots === 'undefined') { UI.toast('여기서는 장면을 고를 수 없습니다. 사진 한 장으로 넣어 주세요.'); return; }
     videoBusy = true;
     pendingShots = null;
     save.disabled = true;
     st.hidden = false;
-    st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… 0%';
-    ScanShots.fromVideo(f, function (p) {
-      st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… ' + Math.round(p * 100) + '%';
+    st.textContent = from + ' 흔들리지 않은 장면을 고르는 중… 0%';
+    run(function (p) {
+      st.textContent = from + ' 흔들리지 않은 장면을 고르는 중… ' + Math.round(p * 100) + '%';
     }).then(function (r) {
       var best = ScanShots.best(r.passes);
       if (!best) {
@@ -777,12 +789,13 @@
         return;
       }
       pendingShots = r.passes;
-      st.textContent = '흔들리지 않은 장면 ' + r.count + '장을 골랐습니다. 저장하면 가장 선명한 한 장이 설비 사진이 되고, ' + r.count + '장은 촬영 묶음으로 올라갑니다.';
+      st.textContent = '흔들리지 않은 장면 ' + r.count + '장을 골랐습니다' + (r.dropped ? ' (' + r.dropped + '장은 어둡거나 흔들려 뺐습니다)' : '')
+        + '. 저장하면 가장 선명한 한 장이 설비 사진이 되고, ' + r.count + '장은 촬영 묶음으로 올라갑니다.';
       return new Promise(function (ok) {
         shrinkPhoto(best.blob, function (data) { if (data) { pendingPhoto = data; showPreview(data); } ok(); });
       });
     }).catch(function () {
-      st.textContent = '이 동영상을 읽지 못했습니다. 휴대폰 기본 카메라로 찍은 동영상(mp4)으로 다시 해 주세요.';
+      st.textContent = failText;
     }).then(function () {
       videoBusy = false;
       save.disabled = false;
@@ -792,13 +805,13 @@
   /** 저장한 설비에 동영상 장면을 올린다 — 서버 주소(https)에서만. 실패해도 설비 저장은 그대로다 */
   function sendShots(id, passes) {
     if (!passes || !id) return;
-    if (!(Net.onHttps && Net.onHttps())) { UI.toast('동영상 장면은 배포 주소에서 저장할 때 올라갑니다. 설비 사진만 저장했습니다.'); return; }
+    if (!(Net.onHttps && Net.onHttps())) { UI.toast('고른 장면은 배포 주소에서 저장할 때 올라갑니다. 설비 사진만 저장했습니다.'); return; }
     var st = $('equip-video-status');
     st.hidden = false;
-    ScanShots.upload(id, passes, function (k, n) { st.textContent = '동영상 장면을 올리는 중 ' + k + ' / ' + n; }).then(function (r) {
+    ScanShots.upload(id, passes, function (k, n) { st.textContent = '장면을 올리는 중 ' + k + ' / ' + n; }).then(function (r) {
       st.textContent = r.failed
-        ? '동영상 장면 ' + r.done + '장을 올렸고 ' + r.failed + '장은 못 올렸습니다. 촬영 화면에서 다시 찍어 주세요.'
-        : '동영상 장면 ' + r.done + '장을 촬영 묶음 ' + r.scanId + '(으)로 올렸습니다.';
+        ? '장면 ' + r.done + '장을 올렸고 ' + r.failed + '장은 못 올렸습니다. 촬영 화면에서 다시 찍어 주세요.'
+        : '장면 ' + r.done + '장을 촬영 묶음 ' + r.scanId + '(으)로 올렸습니다.';
     });
   }
 
@@ -1085,10 +1098,14 @@
     });
 
     function onPhotoFile(ev) {
-      var f = ev.target.files && ev.target.files[0];
+      var files = Array.prototype.slice.call(ev.target.files || []);
       ev.target.value = '';
+      var f = files[0];
       if (!f) return;
       if (String(f.type || '').indexOf('video/') === 0) { onVideoFile(f); return; }
+      /* 🆕 사진을 여러 장 고르면 — 가장 선명한 한 장 = 설비 사진, 전부 = 촬영 묶음 */
+      var images = files.filter(function (x) { return String(x.type || '').indexOf('image/') === 0; });
+      if (images.length > 1) { onImageFiles(images); return; }
       shrinkPhoto(f, function (data) {
         if (!data) { UI.toast('사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'); return; }
         pendingPhoto = data;

@@ -173,6 +173,8 @@ var Auth = (function () {
     }
     dropServer();
     Store.session.clear();
+    /* 이 기기에 받아 둔 교육 그림(공장 내부 사진)도 버린다 — 다음 사람이 보지 않게 */
+    if (typeof Net !== 'undefined' && Net.clearMedia) Net.clearMedia();
   }
 
   function logout() {

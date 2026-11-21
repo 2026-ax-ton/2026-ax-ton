@@ -329,7 +329,15 @@ var Agent = (function () {
     };
   }
 
+  /** 🆕 2026-11-17 문구 초안 — 설비 종류 label 과 위험유형 [{code,label}] 을 보내 한국어 지시문 초안을 받는다.
+   *  ★ 돌려받은 것은 초안일 뿐이다. 저장하는 쪽이 언제나 'waiting' 으로 넣는다 */
+  function draft(kindLabel, hazards, existing) {
+    return call('/api/translate', { mode: 'draft', kind: kindLabel, hazards: hazards, existing: existing || [] })
+      .then(function (d) { return Array.isArray(d.phrases) ? d.phrases : []; });
+  }
+
   return {
+    draft: draft,
     runLang: runLang,
     run: run,
     compare: compare,
