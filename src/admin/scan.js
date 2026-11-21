@@ -291,6 +291,87 @@ var ScanShots = window.ScanShots = (function () {
   var eq = Store.findBy((Store.setup.load().equipments || []), 'id', params.get('equipment') || '');
   $('scan-equip').textContent = eq ? eq.name : '설비 (목록에서 고르지 않음)';
 
+  /* 🆕 2026-11-21 목록에 없는 설비 id 로 들어왔을 때 — 설비 카드가 지워져도 촬영 사진은 저장소의 「설비 id」 아래 남는다.
+     그 id 로 올린 촬영을 보이고 내려받게 하고, [설비 카드 다시 만들기]로 **같은 id** 의 카드를 되살린다 (사진이 다시 이어진다).
+     ★ 사업장은 여전히 토큰에서만 — 남의 사업장 사진은 「없음」이다 (api/scans) */
+  var lostId = !eq && /^[A-Za-z0-9_-]{1,64}$/.test(params.get('equipment') || '') ? params.get('equipment') : '';
+  if (lostId) {
+    eq = { id: lostId, name: '목록에 없는 설비 (' + lostId + ')', lost: true };
+    $('scan-equip').textContent = eq.name;
+    lostCard();
+  }
+
+  function lostCard() {
+    var sec = UI.el('section', 'card scan-card-sec scan-lost');
+    sec.appendChild(UI.el('h2', null, '설비 카드 다시 만들기'));
+    sec.appendChild(UI.el('p', 'meta', '이 설비 id(' + lostId + ')의 카드가 설비 목록에 없습니다. 아래 「올린 촬영」에 사진이 남아 있으면 내려받을 수 있고, 이름을 적고 [다시 만들기]를 누르면 같은 id 로 카드를 되살려 사진이 다시 이어집니다. 가장 먼저 찍힌 사진 한 장을 설비 사진으로 넣습니다.'));
+    var lab = UI.el('label', null, '설비 이름');
+    var input = UI.el('input');
+    input.type = 'text';
+    input.maxLength = 40;
+    input.placeholder = '예: 밀링 머신 1호기';
+    lab.appendChild(input);
+    sec.appendChild(lab);
+    var go = UI.el('button', 'btn btn-primary', '설비 카드 다시 만들기');
+    go.type = 'button';
+    go.id = 'btn-scan-restore';
+    sec.appendChild(go);
+    var lead = document.querySelector('.lead');
+    lead.parentNode.insertBefore(sec, lead.nextSibling);
+    go.addEventListener('click', function () { restoreCard(input.value.trim(), go); });
+  }
+
+  /** 같은 id 로 설비 카드를 되살린다 — 공정은 첫 공정, 종류는 「기타」, 검수 대기(설비 탭이 열릴 때 AI 검수). 사진은 촬영 묶음의 첫 장 */
+  function restoreCard(name, btn) {
+    if (!name) { UI.toast('설비 이름을 적어 주세요.'); return; }
+    var s0 = Store.setup.load();
+    var norm = function (v) { return String(v || '').replace(/\s+/g, '').toLowerCase(); };
+    if ((s0.equipments || []).some(function (x) { return norm(x.name) === norm(name); })) { UI.toast('같은 이름의 설비가 있습니다. 다른 이름을 적어 주세요.'); return; }
+    if (!(s0.processes || []).length) { UI.toast('설비 탭에서 공정을 먼저 등록해 주세요.'); return; }
+    btn.disabled = true;
+    firstPhoto().then(function (photo) {
+      var r = Store.setup.update(function (s) {
+        if (Store.findBy(s.equipments, 'id', lostId)) return;
+        s.equipments.push({
+          id: lostId, processId: s.processes[0].id, name: name, kind: 'other', icon: Store.kindIcon('other'),
+          hazards: [], note: '', maker: '', model: '', year: null, photo: photo || '', analysis: null, specialWork: [],
+          review: { status: 'queued', at: new Date().toISOString(), items: [] }
+        });
+      });
+      if (!r.ok) { btn.disabled = false; UI.toast('저장하지 못했습니다. 이 브라우저의 저장소가 막혀 있습니다.'); return; }
+      location.href = 'setup.html#list';
+    });
+  }
+
+  /** 가장 최근 촬영 묶음에서 낮은 바퀴 첫 장 → 설비 사진(긴 변 640). 못 받으면 '' */
+  function firstPhoto() {
+    if (!Net.onHttps()) return Promise.resolve('');
+    return call({ op: 'list', equipmentId: lostId }).then(function (r) {
+      var scans = (r.ok && r.data && r.data.scans) || [];
+      if (!scans.length) return '';
+      return call({ op: 'list', equipmentId: lostId, scanId: scans[0].scanId }).then(function (l) {
+        var paths = (l.ok && l.data && l.data.paths) || [];
+        var p = paths.filter(function (x) { return /\/0-[0-9]+-[0-9]+\.jpg$/.test(x); })[0] || paths[0];
+        return p ? call({ op: 'get', path: p }) : null;
+      }).then(function (g) {
+        var data = g && g.ok && g.data && typeof g.data.data === 'string' ? g.data.data : '';
+        if (!data) return '';
+        return new Promise(function (ok) {
+          var img = new Image();
+          img.onload = function () {
+            var k = Math.min(1, PHOTO_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+            var c = document.createElement('canvas');
+            c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            ok(c.toDataURL('image/jpeg', PHOTO_QUALITY));
+          };
+          img.onerror = function () { ok(''); };
+          img.src = data;
+        });
+      });
+    }).catch(function () { return ''; });
+  }
+
   /* --- PC 에서 열었으면 QR — 휴대폰이 같은 주소를 연다 --- */
   (function phoneQr() {
     var touch = 'ontouchstart' in window || (navigator.maxTouchPoints || 0) > 0;
@@ -550,7 +631,7 @@ var ScanShots = window.ScanShots = (function () {
     return best;
   }
   function savePhoto() {
-    var shot = eq && bestShot();
+    var shot = eq && !eq.lost && bestShot();   // 목록에 없는 설비는 카드를 되살린 뒤에
     if (!shot) return;
     var url = URL.createObjectURL(shot.blob), img = new Image();
     img.onload = function () {
