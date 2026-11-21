@@ -1411,3 +1411,14 @@ body.dash-v2 .page > .card { width: 100%; box-sizing: border-box; grid-column: a
   body.has-admin-menu .field select,
   body.has-admin-menu .field textarea { padding: 8px 12px; border-radius: 8px; }
 }
+
+/* 🆕 2026-11-22 대시보드 — 폭을 넓힌 뒤 오른쪽 340px 칸에 카드가 눌려 글자가 세로로 꺾였다.
+   넓은 화면에서는 취약 항목(가장 커야 한다 · SCREEN 기능6)을 한 줄 전체로 두고, 나머지는 같은 폭 두 칸 */
+@media (min-width: 1024px) {
+  body.dash-figma.has-admin-menu .page { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.dash-figma.has-admin-menu .page > .card { grid-column: auto; grid-row: auto; }
+  body.dash-figma.has-admin-menu .page > .card.feature,
+  body.dash-figma.has-admin-menu .page > section[aria-labelledby="t-action"] { grid-column: 1 / -1; }
+}
+/* 「정보수정」 같은 설비 줄 버튼이 두 줄로 꺾이지 않게 */
+#list-equip .btn-sm { white-space: nowrap; }
