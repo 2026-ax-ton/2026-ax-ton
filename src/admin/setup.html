@@ -193,14 +193,16 @@
 
             <!-- 🆕 2026-11-11 설비 사진 — AI 위험 위치 찾기와 사진 문항이 쓴다. 긴 변 640px 로 줄여 저장한다 -->
             <div class="field">
-              <label for="equip-photo">설비 사진 <small>(선택 · 사람 얼굴이 나오지 않게)</small></label>
+              <label for="equip-photo">설비 사진 또는 동영상 <small>(선택 · 사람 얼굴이 나오지 않게)</small></label>
               <div class="photo-pick">
-                <input id="equip-photo" type="file" accept="image/*">
+                <!-- 🆕 2026-11-21 동영상도 받는다 — 가이드 촬영과 같은 기준으로 선명한 장면을 뽑아 촬영 묶음으로 올린다 (scan.js ScanShots) -->
+                <input id="equip-photo" type="file" accept="image/*,video/*">
                 <!-- 🆕 2026-11-16 카메라로 찍기 = 가이드 촬영(scan.html) — 틀·수평선·자세 교정 위에서 둘레를 돌면 선명한 장면을 알아서 찍는다.
                      새 설비는 먼저 저장(검수 대기)하고 촬영으로 넘어간다. 가장 선명한 한 장이 설비 사진이 된다 -->
                 <button class="equip-scan-btn" type="button" id="btn-equip-camera">카메라로 찍기 (가이드 촬영)</button>
               </div>
               <p class="field-hint">카메라 위 안내를 따라 설비 둘레를 천천히 돌면 흔들리지 않은 장면만 알아서 찍힙니다. 새 설비는 이 버튼을 누를 때 먼저 등록됩니다.</p>
+              <p class="field-hint" id="equip-video-status" role="status" aria-live="polite" hidden></p>
               <img id="equip-photo-preview" class="equip-photo" alt="고른 설비 사진" hidden>
             </div>
 
@@ -332,6 +334,7 @@
 <script src="../assets/ui.js"></script>
 <script src="../assets/net.js"></script>
 <script src="../assets/curriculum.js"></script>
+<script src="scan.js"></script>   <!-- 동영상에서 장면 뽑기·올리기 (ScanShots) — 촬영 화면 코드는 여기서 돌지 않는다 -->
 <script src="setup.js"></script>
 </body>
 </html>
