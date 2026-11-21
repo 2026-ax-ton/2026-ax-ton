@@ -103,6 +103,11 @@ eq('다 차면 -1', M.biggestGap(full), -1);
   eq('★ 설비 사진은 낮은 바퀴(정면)에서 고른다', V.best(p).pass, 0);
   eq('다 흔들렸으면 고를 장면이 없다', V.best(V.pick([{ t: 1, mean: 120, sharp: 1 }], 10)), null);
   eq('길이를 모르면 버리지 않고 첫 칸에 둔다', V.count(V.pick([{ t: 1, mean: 120, sharp: 500 }], 0)), 1);
+  /* 🆕 사진 여러 장 — 이름에서 바퀴·칸을 읽는다 (방향 칸을 잃지 않게) */
+  eq('★ 「0-9-1.jpg」 → 낮은 바퀴 9번 칸', JSON.stringify(V.slotOf('0-9-1.jpg')), '{"pass":0,"seg":9}');
+  eq('★ 내려받기 이름 「<묶음>_1-3-0.jpg」 도 읽는다', JSON.stringify(V.slotOf('20261116152219_1-3-0.jpg')), '{"pass":1,"seg":3}');
+  eq('다른 이름이면 null (고른 순서로 채운다)', V.slotOf('IMG_1234.jpg'), null);
+  eq('바퀴·칸이 범위를 넘으면 끝 칸으로', JSON.stringify(V.slotOf('9-99-0.jpg')), '{"pass":1,"seg":23}');
 }
 
 report('설비 촬영 가이드');

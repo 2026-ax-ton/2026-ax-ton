@@ -196,7 +196,7 @@
               <label for="equip-photo">설비 사진 또는 동영상 <small>(선택 · 사람 얼굴이 나오지 않게)</small></label>
               <div class="photo-pick">
                 <!-- 🆕 2026-11-21 동영상도 받는다 — 가이드 촬영과 같은 기준으로 선명한 장면을 뽑아 촬영 묶음으로 올린다 (scan.js ScanShots) -->
-                <input id="equip-photo" type="file" accept="image/*,video/*">
+                <input id="equip-photo" type="file" accept="image/*,video/*" multiple>   <!-- 🆕 2026-11-21 사진 여러 장 → 촬영 묶음 -->
                 <!-- 🆕 2026-11-16 카메라로 찍기 = 가이드 촬영(scan.html) — 틀·수평선·자세 교정 위에서 둘레를 돌면 선명한 장면을 알아서 찍는다.
                      새 설비는 먼저 저장(검수 대기)하고 촬영으로 넘어간다. 가장 선명한 한 장이 설비 사진이 된다 -->
                 <button class="equip-scan-btn" type="button" id="btn-equip-camera">카메라로 찍기 (가이드 촬영)</button>
