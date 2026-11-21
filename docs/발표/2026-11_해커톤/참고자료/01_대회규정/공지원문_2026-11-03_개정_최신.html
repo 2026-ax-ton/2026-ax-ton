@@ -1,0 +1,798 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>[멋쟁이사자처럼] Campus AX-Ton 멘토링/해커톤 안내</title><meta name="data-notion-page-icon" content="🦁"/><link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%A6%81%3C%2Ftext%3E%3C%2Fsvg%3E"/><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style></head><body><article id="554eeb8e-89c0-838e-b4d5-017bc77fb4de" class="page sans" data-notion-page-icon="🦁"><header><div class="page-header-icon undefined"><span class="icon" data-emoji="🦁"></span></div><h1 class="page-title" dir="auto">[멋쟁이사자처럼] Campus AX-Ton 멘토링/해커톤 안내</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="08eeeb8e-89c0-8277-841d-817a55471f46" class="" dir="auto">안녕하세요, Campus AX-Ton 해커톤 진출팀 여러분. 본선 진출을 다시 한번 축하드립니다.</p><p id="463eeb8e-89c0-8255-aae9-0154956531b6" class="" dir="auto">이 페이지는 10월부터 11월까지 진행되는 멘토링과 11월 말 해커톤에 대한 안내입니다. 안내 사항을 확인하지 않아 발생하는 불이익은 참여자 본인에게 책임이 있으니, 끝까지 꼼꼼히 확인해 주세요.<br/><strong><br/>본 안내의 세부 사항은 운영 상황에 따라 변경될 수 있으며, 변경 시 오픈채팅방을 통해 공지합니다.</strong></p><h2 id="a6deeb8e-89c0-8207-85c3-010fc55b3e80" class="" dir="auto">전체 일정</h2><table id="733eeb8e-89c0-8285-8e88-81535a2c8661" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="1fdeeb8e-89c0-8216-812c-81b446c365ad" dir="ltr"><th id="sxey" class="simple-table-header-color simple-table-header">단계</th><th id="WHfE" class="simple-table-header-color simple-table-header">일정</th><th id="GHYo" class="simple-table-header-color simple-table-header">방식</th></tr></thead><tbody><tr id="0dfeeb8e-89c0-82ab-9849-81f4172d4045" dir="ltr"><td id="sxey" class="">멘토링</td><td id="WHfE" class="">9월 28일(월) ~ 11월 20일(금)</td><td id="GHYo" class="">온라인</td></tr><tr id="c7deeb8e-89c0-828c-9ed8-81f70407d9cc" dir="ltr"><td id="sxey" class="">자료 제출 마감</td><td id="WHfE" class="">11월 23일(월) 23:59</td><td id="GHYo" class="">이메일</td></tr><tr id="0b6eeb8e-89c0-8229-a930-810bc93fe6d7" dir="ltr"><td id="sxey" class="">발표 순서 공지</td><td id="WHfE" class="">11월 24일(화) 오후</td><td id="GHYo" class="">오픈채팅방</td></tr><tr id="3d3eeb8e-89c0-829d-b138-814c94cfb9e7" dir="ltr"><td id="sxey" class="">해커톤</td><td id="WHfE" class="">11월 28일(토) 09:00 집결</td><td id="GHYo" class="">오프라인, 서울</td></tr><tr id="91beeb8e-89c0-8335-848c-01bd70b5bc7a" dir="ltr"><td id="sxey" class="">수료증 발급</td><td id="WHfE" class="">12월 초 예정</td><td id="GHYo" class="">고용노동부 포털</td></tr></tbody></table><h2 id="5c9eeb8e-89c0-82ef-9136-018b480a1926" class="block-color-red" data-notion-highlight="red" dir="auto">★ 꼭 확인할 것</h2><div data-notion-highlight="red" dir="auto"><ol type="1" id="812eeb8e-89c0-8375-8c07-81bcd8cbf762" class="block-color-red numbered-list" data-notion-highlight="red" start="1"><li>멘토링과 해커톤 당일 일정에 모두 참여해야 수료로 인정됩니다.</li></ol></div><div data-notion-highlight="red" dir="auto"><ol type="1" id="bc6eeb8e-89c0-83d0-8cea-01e9d8b2237e" class="block-color-red numbered-list" data-notion-highlight="red" start="2"><li>멘토링은 반드시 카메라를 켜고 얼굴이 보이는 상태로 참여해 주세요.</li></ol></div><div data-notion-highlight="red" dir="auto"><ol type="1" id="34beeb8e-89c0-8389-bdcf-0126709d8a46" class="block-color-red numbered-list" data-notion-highlight="red" start="3"><li>발표 자료는 11월 23일(월) 23:59까지 필요한 파일을 모두 갖추어 이메일로 제출해야 하며, 마감 이후에는 수정할 수 없습니다.</li></ol></div><div data-notion-highlight="red" dir="auto"><ol type="1" id="4cfeeb8e-89c0-824e-8c33-81ee37f2dcae" class="block-color-red numbered-list" data-notion-highlight="red" start="4"><li>발표 순서는 자료 제출 역순으로 정해집니다. 가장 늦게 제출한 팀이 가장 먼저 발표합니다.</li></ol></div><div data-notion-highlight="red" dir="auto"><ol type="1" id="62deeb8e-89c0-8309-bc14-018e9956a66a" class="block-color-red numbered-list" data-notion-highlight="red" start="5"><li>해커톤 당일 09:00까지 행사장에 도착해 주세요. 리허설은 필수입니다.</li></ol></div><div data-notion-highlight="red" dir="auto"><ol type="1" id="30ceeb8e-89c0-8254-a9d6-810d33a96785" class="block-color-red numbered-list" data-notion-highlight="red" start="6"><li>해커톤 현장에서는 제출한 파일로만 발표와 시연을 진행합니다. 개인 노트북은 사용할 수 없습니다.</li></ol></div><h2 id="380eeb8e-89c0-8330-8831-01a3a6cadc74" class="block-color-gray_background" data-notion-highlight="gray_background" dir="auto">1. 멘토링</h2><h3 id="9a0eeb8e-89c0-8253-ac0c-81d4b2a82faa" class="" dir="auto">1-1 진행 방식</h3><table id="915eeb8e-89c0-839e-acdf-81c05333ceae" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="456eeb8e-89c0-8263-b355-8105640f8735" dir="ltr"><th id="b~OE" class="simple-table-header-color simple-table-header">구분</th><th id="_b]w" class="simple-table-header-color simple-table-header">내용</th></tr></thead><tbody><tr id="ab0eeb8e-89c0-834e-be2a-81fb3e5ab8b8" dir="ltr"><td id="b~OE" class="">진행 기간</td><td id="_b]w" class="">9월 28일(월) ~ 11월 20일(금)</td></tr><tr id="648eeb8e-89c0-83d0-a116-81bb6d5a1dda" dir="ltr"><td id="b~OE" class="">진행 횟수</td><td id="_b]w" class="">팀당 총 6회 (기술개발 멘토링 3회, 사업개발 멘토링 3회)</td></tr><tr id="b8beeb8e-89c0-83ae-b650-01b0a0bfa61d" dir="ltr"><td id="b~OE" class="">회당 시간</td><td id="_b]w" class="">2시간</td></tr><tr id="5d4eeb8e-89c0-834d-bc98-019e42c724ac" dir="ltr"><td id="b~OE" class="">진행 방식</td><td id="_b]w" class="">온라인 화상 (플랫폼 무관)</td></tr></tbody></table><h3 id="aa6eeb8e-89c0-8204-91b7-81d8cb90f03e" class="" dir="auto">1-2 멘토 역할</h3><ul id="608eeb8e-89c0-831e-b26f-817bec4138cb" class="bulleted-list" dir="auto"><li style="list-style-type:disc">기술개발 멘토는 핵심 기능 선정과 개발 구현을 지원하고, 팀의 기술적 어려움 해결을 돕습니다.</li></ul><ul id="22deeb8e-89c0-8301-a1cf-8175ace8b122" class="bulleted-list" dir="auto"><li style="list-style-type:disc">사업개발 멘토는 문제 정의, 타깃 사용자, 시장성을 검토하고 사업 방향을 검증합니다.</li></ul><h3 id="71beeb8e-89c0-8225-8a87-01ba5f789f05" class="" dir="auto">1-3 일정</h3><ul id="36feeb8e-89c0-8334-950a-0178eea46217" class="bulleted-list" dir="auto"><li style="list-style-type:disc">회차별 일정은 멘토와 팀이 직접 연락하여 조율합니다.</li></ul><ul id="c03eeb8e-89c0-82f7-aff1-81b6d69cc28d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">★ 전체 6회차는 11월 20일(금)까지 모두 완료되어야 합니다.</li></ul><h3 id="c7aeeb8e-89c0-824f-ad8a-01e2e05f37e7" class="" dir="auto">1-4 회차별 진행 흐름</h3><ol type="1" id="03beeb8e-89c0-83ea-af8d-0152c54c3a1e" class="numbered-list" start="1" dir="auto"><li>일정 확정: 멘토와 협의하여 회차 일정을 확정합니다.</li></ol><ol type="1" id="0fbeeb8e-89c0-8346-8781-81950f238fff" class="numbered-list" start="2" dir="auto"><li>멘토링 진행: 온라인 화상으로 2시간 동안 진행합니다.</li></ol><ol type="1" id="929eeb8e-89c0-83f8-85a1-0177f4c67aed" class="numbered-list" start="3" dir="auto"><li>참석 확인: 멘토가 회차마다 팀원 전원의 참석 여부를 화면 캡처로 확인합니다.</li></ol><h3 id="394eeb8e-89c0-8347-9349-014347cb03d0" class="" dir="auto">1-5 유의 사항</h3><ul id="b32eeb8e-89c0-83b9-87b1-0121badf16ce" class="bulleted-list" dir="auto"><li style="list-style-type:disc">★ 멘토링과 해커톤 당일 일정에 모두 참여해야 수료로 인정됩니다. 멘토링은 팀과 멘토가 직접 조율한 일정으로 진행되므로 전 회차 참여를 원칙으로 합니다.</li></ul><ul id="a5ceeb8e-89c0-831c-99c1-01270f0cdab3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">★ 참석은 멘토가 회차마다 화면 캡처로 확인합니다. 카메라를 끄거나 얼굴이 보이지 않으면 참석 확인이 되지 않아 수료 확인 및 수료증 발급이 어려울 수 있습니다.</li></ul><ul id="ddceeb8e-89c0-821a-98ec-01adf133b41a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">팀 구성은 변경할 수 없습니다. 신규 인원 추가와 팀 분리 모두 불가합니다.</li></ul><h2 id="1d5eeb8e-89c0-83ca-b6f7-81067fab70f9" class="block-color-gray_background" data-notion-highlight="gray_background" dir="auto">2. 해커톤</h2><h3 id="a32eeb8e-89c0-8350-b295-01050b3c55bd" class="" dir="auto">2-1 일정 및 장소</h3><table id="d55eeb8e-89c0-82d3-af32-0108a0ce808e" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="d4eeeb8e-89c0-82fb-ba5d-01ba57a047e7" dir="ltr"><th id="~sP;" class="simple-table-header-color simple-table-header">구분</th><th id="syqC" class="simple-table-header-color simple-table-header">내용</th></tr></thead><tbody><tr id="357eeb8e-89c0-83d3-b3a9-01fa0c86f333" dir="ltr"><td id="~sP;" class="">일시</td><td id="syqC" class="">11월 28일(토) 09:00 집합</td></tr><tr id="de5eeb8e-89c0-8318-8a1f-81857cbafedb" dir="ltr"><td id="~sP;" class="block-color-red_background">장소</td><td id="syqC" class="block-color-red_background"><strong>서울 강남구 삼성동 가빈아트홀<br/>서울특별시 강남구 삼성로 534</strong></td></tr><tr id="46aeeb8e-89c0-828d-bbf3-0182cd33239f" dir="ltr"><td id="~sP;" class="">대상</td><td id="syqC" class="">해커톤 진출 20팀</td></tr></tbody></table><h3 id="b3eeeb8e-89c0-833f-823d-81d35c0db41b" class="" dir="auto">2-2 당일 타임테이블</h3><table id="500eeb8e-89c0-838e-9ded-816f36735c17" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="e35eeb8e-89c0-823b-8d81-814b7615d167" dir="ltr"><th id="~Vk@" class="simple-table-header-color simple-table-header">시간</th><th id="ssL_" class="simple-table-header-color simple-table-header">내용</th></tr></thead><tbody><tr id="04ceeb8e-89c0-83f2-a686-811082729828" dir="ltr"><td id="~Vk@" class="block-color-red_background">09:00 ~ 11:30</td><td id="ssL_" class="block-color-red_background">리허설</td></tr><tr id="c2feeb8e-89c0-83a2-80dd-81858f967849" dir="ltr"><td id="~Vk@" class="block-color-red_background">11:40~12:30</td><td id="ssL_" class="block-color-red_background">식사</td></tr><tr id="ab9eeb8e-89c0-8293-a43e-8106d0bb3f4b" dir="ltr"><td id="~Vk@" class="block-color-red_background">12:40~16:00</td><td id="ssL_" class="block-color-red_background">발표</td></tr><tr id="9e9eeb8e-89c0-8266-932a-01ca4adbb067" dir="ltr"><td id="~Vk@" class="block-color-red_background">16:00~16:30</td><td id="ssL_" class="block-color-red_background">심사 및 시상</td></tr><tr id="243eeb8e-89c0-82d3-b1cd-81f4486eb0b0" dir="ltr"><td id="~Vk@" class="block-color-red_background">16:30</td><td id="ssL_" class="block-color-red_background">폐회</td></tr></tbody></table><ul id="16feeb8e-89c0-8234-b31b-81c9fa77abbd" class="bulleted-list" dir="auto"><li style="list-style-type:disc">★ 해커톤 당일 09:00까지 팀원 전원 행사장에 도착해 주세요. 지각 시, 리허설 기회가 제공되지 않을 수 있습니다. </li></ul><ul id="ff2eeb8e-89c0-8313-8905-81903c981552" class="bulleted-list" dir="auto"><li style="list-style-type:disc">세부 시간은 현장 상황에 따라 일부 조정될 수 있습니다.</li></ul><h3 id="4d5eeb8e-89c0-82f0-9e53-01bd7928ac60" class="block-color-default" data-notion-highlight="default" dir="auto">2-3 발표 및 시연</h3><p id="1b5eeb8e-89c0-831f-b007-01cbaf60da20" class="block-color-default" data-notion-highlight="default" dir="auto">발표 시간</p><div data-notion-highlight="default" dir="auto"><ul id="28beeb8e-89c0-8263-a44d-01de7a7e8539" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">팀당 10분이 주어지며, 발표 7분과 질의응답 3분으로 구성됩니다.</li></ul></div><div data-notion-highlight="red" dir="auto"><ul id="9a7eeb8e-89c0-83a2-9454-0122cc54eac8" class="block-color-red bulleted-list" data-notion-highlight="red"><li style="list-style-type:disc">★ 7분에는 발표, 화면 전환, 영상 재생, 시연이 모두 포함됩니다.</li></ul></div><div data-notion-highlight="default" dir="auto"><ul id="fc7eeb8e-89c0-82eb-b1aa-0134cb668344" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">발표 7분, 질의응답 3분이 지나면 즉시 종료되며 시간은 연장되지 않습니다.</li></ul></div><p id="4fceeb8e-89c0-83e0-80ea-81e530410f03" class="" dir="auto">발표 파일</p><ul id="b19eeb8e-89c0-8214-b530-010a752da81a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">현장 발표는 제출한 PPT 파일로 진행합니다.</li></ul><ul id="2cceeb8e-89c0-8297-9ddc-012eb1309f0e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">글꼴 깨짐 등으로 PPT 파일 사용이 어려운 경우 PDF 파일로 진행합니다.</li></ul><ul id="f6deeb8e-89c0-833a-8233-81925bd79e78" class="bulleted-list" dir="auto"><li style="list-style-type:disc">필요 시 사용한 폰트(글꼴) 파일을 송부해야합니다. </li></ul><p id="407eeb8e-89c0-82e9-812a-013dad02a15e" class="block-color-default" data-notion-highlight="default" dir="auto">무대 구성</p><div data-notion-highlight="red" dir="auto"><ul id="978eeb8e-89c0-837c-988d-81f0dd215713" class="block-color-red bulleted-list" data-notion-highlight="red"><li style="list-style-type:disc">★ 무대에는 발표자 1명, 시연자 1명의 좌석이 준비됩니다.</li></ul></div><div data-notion-highlight="default" dir="auto"><ul id="968eeb8e-89c0-835f-b812-0120748f58ef" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">발표자는 발표 장표를 기준으로 발표하고, 시연자는 영상 시연 또는 현장 시연을 진행합니다.</li></ul></div><div data-notion-highlight="default" dir="auto"><ul id="10ceeb8e-89c0-83b1-9865-81661be760d5" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">나머지 팀원은 대기석에서 대기하고, 질의응답 시간에 함께 무대에 오릅니다.</li></ul></div><p id="824eeb8e-89c0-8223-9b62-81b0d540d21c" class="block-color-default" data-notion-highlight="default" dir="auto">시연 방식</p><ul id="1a8eeb8e-89c0-8302-a174-0198183bebea" class="bulleted-list" dir="auto"><li style="list-style-type:disc">현장 시연: 현장에서 직접 조작 및 시연하는 것<br/>영상 시연: 영상으로 시연 화면을 담아 송출하는 것 (아이디어톤의 영상 시연 방식과 동일)</li></ul><div data-notion-highlight="default" dir="auto"><ul id="1ddeeb8e-89c0-8362-9535-0182bc4da8b7" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">현장 시연, 영상 시연 중 하나를 선택하거나 둘 다 진행할 수 있으며, 현장 시연과 영상 시연 사이에 점수 차등은 없습니다.</li></ul></div><ul id="4faeeb8e-89c0-83a8-a55f-81fd051b5021" class="bulleted-list" dir="auto"><li style="list-style-type:disc">시연 없이 발표만 진행하는 것도 가능합니다. 다만 심사 기준에 시연 완성도가 포함되어 있습니다. </li></ul><div data-notion-highlight="red" dir="auto"><ul id="afeeeb8e-89c0-836c-a78b-019df8760c30" class="block-color-red bulleted-list" data-notion-highlight="red"><li style="list-style-type:disc">★ 현장 시연은 <strong>운영 PC</strong>에 제출한 HTML 파일로만 진행합니다. 크롬에서 더블클릭했을 때 바로 실행되는 파일이어야 합니다.</li></ul></div><div data-notion-highlight="red" dir="auto"><ul id="da5eeb8e-89c0-831b-a333-01c0a30b8817" class="block-color-red bulleted-list" data-notion-highlight="red"><li style="list-style-type:disc">★ 영상 시연을 진행하는 팀은 발표 장표 중 영상을 재생할 페이지에 [영상 시연]이라고 표기하거나, 장표 내에 영상을 포함해야합니다. </li></ul></div><div data-notion-highlight="red" dir="auto"><ul id="01beeb8e-89c0-8307-9477-01e8b15fc009" class="block-color-red bulleted-list" data-notion-highlight="red"><li style="list-style-type:disc">★ 현장 시연 중 오류에 대비해 영상 시연 파일을 함께 제출하는 것을 권장합니다. 제출 기한 이후 추가 제출은 불가합니다. </li></ul></div><div data-notion-highlight="default" dir="auto"><ul id="6fdeeb8e-89c0-824c-bf97-01f28ad3f01a" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">현장에서는 인터넷 연결이 제공됩니다.</li></ul></div><div data-notion-highlight="default" dir="auto"><ul id="31aeeb8e-89c0-8349-86f3-81fefffc4adc" class="block-color-default bulleted-list" data-notion-highlight="default"><li style="list-style-type:disc">제출본이 아닌 파일이나 URL로 발표 또는 시연을 진행할 경우 실격 처리됩니다.</li></ul></div><h3 id="653eeb8e-89c0-8387-aa39-818d7eb1de98" class="" dir="auto">2-4 자료 제출</h3><table id="0c0eeb8e-89c0-82a8-97d0-81025068fd29" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="33aeeb8e-89c0-8254-801d-81dae0fdd140" dir="ltr"><th id="QCNY" class="simple-table-header-color simple-table-header">구분</th><th id="u&gt;|?" class="simple-table-header-color simple-table-header">내용</th></tr></thead><tbody><tr id="1d8eeb8e-89c0-83cb-90e8-81073498af2b" dir="ltr"><td id="QCNY" class="">제출 마감</td><td id="u&gt;|?" class="">11월 23일(월) 23:59</td></tr><tr id="cf9eeb8e-89c0-8211-a98f-01ec9d065830" dir="ltr"><td id="QCNY" class="">제출 방법</td><td id="u&gt;|?" class=""><a href="mailto:axton@likelion.net">axton@likelion.net</a> 이메일 제출</td></tr><tr id="78eeeb8e-89c0-823b-b1ac-011c004a430d" dir="ltr"><td id="QCNY" class="">메일 제목</td><td id="u&gt;|?" class="">[거점대학교] 팀명_발표자료제출</td></tr><tr id="66feeb8e-89c0-8377-a44a-01fee5f42c4c" dir="ltr"><td id="QCNY" class="">파일명</td><td id="u&gt;|?" class="">[팀명] 발표자료_형식 <br/>(예: [멋사] 발표자료_PDF, [멋사] 발표자료_영상)</td></tr></tbody></table><p id="addeeb8e-89c0-8337-940f-01783374ea43" class="" dir="auto">제출 파일</p><table id="7fceeb8e-89c0-8281-a509-01f53af1f7a5" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="abdeeb8e-89c0-83d2-b0bd-0151fcf58a7c" dir="ltr"><th id="Z`?v" class="simple-table-header-color simple-table-header">파일</th><th id="c}E:" class="simple-table-header-color simple-table-header">제출 대상</th></tr></thead><tbody><tr id="454eeb8e-89c0-83ea-8438-81518032ed32" dir="ltr"><td id="Z`?v" class="">발표 장표 PPT(PPTX)</td><td id="c}E:" class="">전 팀 필수</td></tr><tr id="d92eeb8e-89c0-8227-871c-0169f991fdd8" dir="ltr"><td id="Z`?v" class="">발표 장표 PDF</td><td id="c}E:" class="">전 팀 필수</td></tr><tr id="b1eeeb8e-89c0-82ab-9d03-01e2eff16794" dir="ltr"><td id="Z`?v" class="">영상 시연 파일</td><td id="c}E:" class="">영상 시연을 진행하는 팀</td></tr><tr id="334eeb8e-89c0-82d2-a08a-812264a188be" dir="ltr"><td id="Z`?v" class="">현장 시연 HTML 파일</td><td id="c}E:" class="">현장 시연을 진행하는 팀</td></tr></tbody></table><ul id="05ceeb8e-89c0-83c6-b66d-81861f5d1e28" class="bulleted-list" dir="auto"><li style="list-style-type:disc">★ 위 항목 중 해당하는 파일을 모두 첨부한 메일만 제출로 인정합니다.</li></ul><ul id="742eeb8e-89c0-839b-b7ef-016bdca93688" class="bulleted-list" dir="auto"><li style="list-style-type:disc">★ 마감 이후에는 수정 및 재제출이 불가합니다. </li></ul><ul id="fc5eeb8e-89c0-8221-bf47-81d06778797b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">25MB를 넘는 파일은 구글 드라이브 링크로 첨부할 수 있습니다. 링크는 &#x27;링크가 있는 모든 사용자&#x27; 보기 권한으로 설정해 주세요. 마감 시각 이후 수정된 파일은 인정되지 않습니다. </li></ul><ul id="d65eeb8e-89c0-82e7-9b89-810a6ab62065" class="bulleted-list" dir="auto"><li style="list-style-type:disc">현장 시연 파일(페이지 등)은 배포 링크가 아닌 HTML 파일 자체로 제출해 주세요.<ul id="a7ceeb8e-89c0-8317-848d-01268557d1cf" class="bulleted-list" dir="auto"><li style="list-style-type:circle">현장 시연은 마감 시점에 제출된 파일을 기준으로 진행되며, 마감 이후 내용이 변경될 수 있는 방식은 허용되지 않습니다. 판단 기준은 &#x27;마감 이후 팀이 시연 내용이나 기능을 변경할 수 있는지&#x27;입니다.</li></ul><ul id="e2aeeb8e-89c0-8381-a09f-816435ad7072" class="bulleted-list" dir="auto"><li style="list-style-type:circle">iframe 방식: 불가<br/>화면과 기능이 외부 서버에 있어 마감 이후에도 수정이 가능하므로 제출본으로 인정되지 않습니다.</li></ul><ul id="5aeeeb8e-89c0-8397-836c-01c1df644872" class="bulleted-list" dir="auto"><li style="list-style-type:circle">프론트엔드 HTML + 외부 백엔드 방식: 팀에서 직접 운영하는 백엔드 서버와 통신하는 방식은 불가<br/>마감 이후 서버 측 기능 수정이 가능하기 때문입니다.<br/>다만 AI 모델 API(예: Claude API), 공공데이터 API 등 팀에서 수정할 수 없는 외부 서비스를 HTML 파일에서 직접 호출하는 것은 허용됩니다.</li></ul><ul id="99feeb8e-89c0-82f3-a29f-01786ca6e055" class="bulleted-list" dir="auto"><li style="list-style-type:circle">단독 실행 HTML 방식: 허용</li></ul><ul id="99beeb8e-89c0-830a-a7ec-017803c49da1" class="bulleted-list" dir="auto"><li style="list-style-type:circle">위 방식 외에 외부 데이터베이스, 클라우드 서비스 등 허용 여부가 애매한 경우에는 반드시 마감 전 채널톡으로 문의해 주시기 바랍니다. 허용 여부는 위 기준에 따라 운영진이 최종 판단합니다.</li></ul><ul id="2d8eeb8e-89c0-8371-b89a-8148709a4ede" class="bulleted-list" dir="auto"><li style="list-style-type:circle">제출 이후 시연 내용이 변경된 사실이 확인될 경우, 발표 진행 여부와 관계없이 실격 처리되며 수상 이후 확인된 경우에도 수상이 취소될 수 있습니다.</li></ul><ul id="110eeb8e-89c0-82ff-ae5a-81ccd4b2efc5" class="bulleted-list" dir="auto"><li style="list-style-type:circle">추가로 아래 사항을 참고 부탁드립니다.<ul id="99beeb8e-89c0-83b5-ae7e-81081623ac6f" class="bulleted-list" dir="auto"><li style="list-style-type:square">시연에 필요한 데이터와 프롬프트 등은 제출하는 HTML 파일 안에 포함해 주세요.</li></ul><ul id="d2feeb8e-89c0-838b-9be3-81d4ac0573d2" class="bulleted-list" dir="auto"><li style="list-style-type:square">외부 API를 호출하는 경우 API 키가 파일에 포함되므로, 해커톤용 별도 키를 사용하고 행사 후 폐기하시길 권장드립니다.</li></ul><ul id="f59eeb8e-89c0-8249-a723-0125f0516321" class="bulleted-list" dir="auto"><li style="list-style-type:square">네트워크나 외부 API 상태에 따라 시연이 원활하지 않을 수 있으니, 영상 시연 파일을 함께 제출하시는 것을 권장드립니다.</li></ul></li></ul></li></ul><h3 id="305eeb8e-89c0-823c-a33b-0170e4386307" class="" dir="auto">2-5 발표 순서</h3><ul id="97deeb8e-89c0-83ec-8c16-816fb6690452" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-red" data-notion-highlight="red">★ 발표 순서는 자료 제출 역순으로 정합니다. 가장 늦게 제출한 팀이 가장 먼저 발표합니다.</mark></li></ul><ul id="ba9eeb8e-89c0-836f-8554-8157d23221e8" class="bulleted-list" dir="auto"><li style="list-style-type:disc">제출 순서는 필요한 파일을 모두 갖춘 첫 메일의 수신 시각을 기준으로 합니다.</li></ul><ul id="beceeb8e-89c0-8394-aa94-01535dc70904" class="bulleted-list" dir="auto"><li style="list-style-type:disc">발표 순서는 11월 24일(화) 오후에 오픈채팅방으로 공지합니다.</li></ul><h3 id="aabeeb8e-89c0-83d1-95b5-819a3d173073" class="" dir="auto">2-6 리허설</h3><div data-notion-highlight="red" dir="auto"><ul id="c4aeeb8e-89c0-8214-ad59-016a2bcb3210" class="block-color-red bulleted-list" data-notion-highlight="red"><li style="list-style-type:disc">★ 해커톤 당일, 리허설 참여는 필수입니다. (팀 당 약 5분)</li></ul></div><ul id="be5eeb8e-89c0-82e0-9b29-81ef889177b6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">운영 측 PC에서 제출 파일이 정상적으로 실행되는지, 발표 장표와 시연 화면 전환이 원활한지 직접 확인하는 시간입니다.</li></ul><h3 id="4dfeeb8e-89c0-83dd-b4fc-81492e3bdcaa" class="" dir="auto">2-7 심사</h3><ul id="b99eeb8e-89c0-83ce-903c-81c44c807c19" class="bulleted-list" dir="auto"><li style="list-style-type:disc">심사는 아래 기준에 따라 진행됩니다.</li></ul><table id="d9beeb8e-89c0-82dd-adab-01c6566800ac" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="16feeb8e-89c0-83dd-a7ad-81b3298222cd" dir="ltr"><th id="g;xm" class="simple-table-header-color simple-table-header">평가 항목</th><th id="Jsu}" class="simple-table-header-color simple-table-header">세부 평가 내용</th><th id="GjI&lt;" class="simple-table-header-color simple-table-header">배점</th></tr></thead><tbody><tr id="ca4eeb8e-89c0-8290-bcca-012c3c7203cb" dir="ltr"><td id="g;xm" rowspan="2" class="">문제 이해도</td><td id="Jsu}" class="">해결이 필요한 지역·사회 문제와 대상의 페인포인트를 정확히 파악하였는가</td><td id="GjI&lt;" rowspan="2" class="">15</td></tr><tr id="f86eeb8e-89c0-836f-8d52-01a966c58bf3" dir="ltr"><td id="Jsu}" class="">문제에서 해결책까지 논리적으로 연결되는가</td></tr><tr id="f3feeb8e-89c0-82f0-b20e-012afb3c786d" dir="ltr"><td id="g;xm" rowspan="2" class="">서비스 완성도</td><td id="Jsu}" class="">AI를 활용한 서비스가 실제로 작동하는 수준으로 구현되었는가</td><td id="GjI&lt;" rowspan="2" class="">25</td></tr><tr id="0b2eeb8e-89c0-83a1-81d4-81d676f3f3a7" dir="ltr"><td id="Jsu}" class="">핵심 기능이 완성도 있게 구현되고, UX/UI를 잘 갖추었는가</td></tr><tr id="02beeb8e-89c0-828a-a4a2-818a385dbaaf" dir="ltr"><td id="g;xm" rowspan="2" class="">비즈니스 모델</td><td id="Jsu}" class="">서비스 도입 시 기대 효과가 구체적이고, 다른 지역이나 대상으로 확장할 수 있는가</td><td id="GjI&lt;" rowspan="2" class="">20</td></tr><tr id="237eeb8e-89c0-8393-8a66-01e67309871e" dir="ltr"><td id="Jsu}" class="">서비스를 지속적으로 운영할 수 있는 구조를 갖추었는가</td></tr><tr id="3d4eeb8e-89c0-8378-aa62-0110e917274e" dir="ltr"><td id="g;xm" rowspan="2" class="">검증</td><td id="Jsu}" class="">사용자 인터뷰, MVP 테스트 등 실제 검증 활동을 진행하였는가</td><td id="GjI&lt;" rowspan="2" class="">15</td></tr><tr id="a55eeb8e-89c0-83b2-adeb-81d4d2fc1900" dir="ltr"><td id="Jsu}" class="">검증 결과를 바탕으로 서비스나 사업 방향을 개선하였는가</td></tr><tr id="ca4eeb8e-89c0-8390-b93f-01814903939c" dir="ltr"><td id="g;xm" rowspan="2" class="">발표 및 전달력</td><td id="Jsu}" class="">발표 흐름과 논리 구성이 명확한가</td><td id="GjI&lt;" rowspan="2" class="">15</td></tr><tr id="a7ceeb8e-89c0-836b-a3e2-817633a87e19" dir="ltr"><td id="Jsu}" class="">시연(현장 또는 영상)을 통해 서비스를 완성도 있게 보여주었는가</td></tr><tr id="91ceeb8e-89c0-8294-a1b6-014179f41e5f" dir="ltr"><td id="g;xm" rowspan="2" class="">팀워크 및 성장 가능성</td><td id="Jsu}" class="">AI 도구를 활용해 아이디어를 결과물로 만들어 간 성장 과정이 드러나는가</td><td id="GjI&lt;" rowspan="2" class="">10</td></tr><tr id="4e5eeb8e-89c0-8386-b196-01b58b6ccefa" dir="ltr"><td id="Jsu}" class="">팀원 간 역할 분담 및 역량이 잘 드러나는가 </td></tr><tr id="6e0eeb8e-89c0-830d-b810-8129e12009a2" dir="ltr"><td id="g;xm" class="">합계</td><td id="Jsu}" class=""></td><td id="GjI&lt;" class="">100</td></tr></tbody></table><h3 id="32beeb8e-89c0-83eb-aef3-81006298ea93" class="block-color-default" data-notion-highlight="default" dir="auto">2-8 시상</h3><p id="0cceeb8e-89c0-82af-b504-01d772429f54" class="block-color-default" data-notion-highlight="default" dir="auto">최종 상위 8팀에게 총 500만 원의 상금과 상장을 수여합니다.</p><table id="681eeb8e-89c0-83f7-8619-81e8b3c9d3c7" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="bd5eeb8e-89c0-82f1-bd90-014b57b53490" dir="ltr"><th id="]BMY" class="simple-table-header-color simple-table-header">구분</th><th id="RZ[e" class="simple-table-header-color simple-table-header">팀 수</th><th id="]^fd" class="simple-table-header-color simple-table-header">상금</th></tr></thead><tbody><tr id="97deeb8e-89c0-820a-8818-01c8a0e2b5dd" dir="ltr"><td id="]BMY" class="">대상</td><td id="RZ[e" class="">1팀</td><td id="]^fd" class="">200만 원</td></tr><tr id="29deeb8e-89c0-8200-a45e-01d4210c2c47" dir="ltr"><td id="]BMY" class="">최우수상</td><td id="RZ[e" class="">1팀</td><td id="]^fd" class="">100만 원</td></tr><tr id="3a9eeb8e-89c0-8214-8dd5-8104a73585e7" dir="ltr"><td id="]BMY" class="">우수상</td><td id="RZ[e" class="">2팀</td><td id="]^fd" class="">팀당 50만 원</td></tr><tr id="93feeb8e-89c0-826f-9c2a-01c602027a39" dir="ltr"><td id="]BMY" class="">장려상</td><td id="RZ[e" class="">4팀</td><td id="]^fd" class="">팀당 25만 원</td></tr></tbody></table><h3 id="f55eeb8e-89c0-8290-8178-01b2b76c7898" class="" dir="auto">2-9 현장 안내</h3><ul id="801eeb8e-89c0-82ee-a8e5-01da8b08a503" class="bulleted-list" dir="auto"><li style="list-style-type:disc">점심 식사가 제공됩니다.</li></ul><ul id="6f5eeb8e-89c0-838b-8002-811e43cbc238" class="bulleted-list" dir="auto"><li style="list-style-type:disc">현장에서 사진 및 영상 촬영이 진행되며, 촬영물 활용은 참여 동의서에서 선택하신 동의 내용에 따릅니다.</li></ul><h3 id="037eeb8e-89c0-828c-856f-8190f41cb17c" class="" dir="auto">2-10 유의 사항</h3><ul id="e2ceeb8e-89c0-836a-be06-016547b53c9e" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-red" data-notion-highlight="red">★ 해커톤 당일 불참 시 수료로 인정되지 않습니다. 부득이한 사유가 있는 경우 반드시 사전에 채널톡으로 문의 주세요.</mark></li></ul><ul id="e58eeb8e-89c0-83c6-b470-81db1f156a11" class="bulleted-list" dir="auto"><li style="list-style-type:disc">심사 시간에는 화면에 안내되는 만족도 조사를 현장에서 작성해 주세요. (수료증 발급용)</li></ul><h2 id="db0eeb8e-89c0-8367-a300-810917b67d5a" class="block-color-gray_background" data-notion-highlight="gray_background" dir="auto">3. 수료증 및 참여확인서</h2><p id="146eeb8e-89c0-82d0-8822-81d66a5b23c6" class="" dir="auto">수료증</p><ul id="68feeb8e-89c0-83c5-99f9-81458762cb44" class="bulleted-list" dir="auto"><li style="list-style-type:disc">전체 일정 종료 후 고용노동부 포털에서 발급됩니다. (12월 초 예정)</li></ul><ul id="2e7eeb8e-89c0-82f0-95d8-817f151c1482" class="bulleted-list" dir="auto"><li style="list-style-type:disc">1단계 교육(8월)부터 2단계 해커톤(11월)까지 전체 기간을 기준으로 발급됩니다.</li></ul><ul id="ddceeb8e-89c0-83a0-a2d7-81d8684ff559" class="bulleted-list" dir="auto"><li style="list-style-type:disc">중도에 참여를 포기할 경우 전체 참여 기간이 중도 포기로 처리되어, 이미 이수한 교육에 대해서도 수료증 발급이 어렵습니다.</li></ul><p id="40eeeb8e-89c0-833d-bba8-8130fa39a9fd" class="" dir="auto">참여확인서</p><ul id="7d1eeb8e-89c0-8216-9c9e-01dd268a5d43" class="bulleted-list" dir="auto"><li style="list-style-type:disc">수료증과 별도로 참여확인서가 필요한 경우 해커톤 종료 후, 신청할 수 있습니다.</li></ul><ul id="030eeb8e-89c0-821c-a688-01648fbf4305" class="bulleted-list" dir="auto"><li style="list-style-type:disc">신청일로부터 영업일 기준 1주일 이내에 발급됩니다. </li></ul><h2 id="b06eeb8e-89c0-8313-9bc8-0199c29be87e" class="block-color-gray_background" data-notion-highlight="gray_background" dir="auto">4. 교통비 </h2><p id="111eeb8e-89c0-8393-9921-811313197c6a" class="" dir="auto">행사 당일 원활한 이동을 위해 <strong>시외 이동 교통비</strong>를 지원합니다.</p><p id="acaeeb8e-89c0-82ab-bae2-017969b36a41" class="" dir="auto">1인당 상한 13만 원 내 실비 정산 방식으로 지급합니다.</p><aside class="block-color-gray_background callout" data-notion-callout="" data-notion-callout-icon="⭐" data-notion-callout-background="gray_background" style="white-space:pre-wrap;display:flex" id="b2ceeb8e-89c0-8210-b21a-81efd7c796f7" dir="ltr"><div style="font-size:1.5em"><span class="icon" data-emoji="⭐"></span></div><div style="width:100%"><p id="0b2eeb8e-89c0-823a-a4fe-01e693ec83eb" class="" dir="auto">진행 방식 요약</p><ul id="412eeb8e-89c0-8373-9c1e-013c5857c040" class="bulleted-list" dir="auto"><li style="list-style-type:disc">결제: 참가자 각자 본인 명의로 결제</li></ul><ul id="587eeb8e-89c0-83a5-be6d-01ca6a21bb26" class="bulleted-list" dir="auto"><li style="list-style-type:disc">취합 및 제출: 팀장이 팀원 전체의 증빙을 모아 제출 폼으로 1회 제출</li></ul><ul id="36deeb8e-89c0-83f5-85a7-81c24c48f8ed" class="bulleted-list" dir="auto"><li style="list-style-type:disc">지급: 확인 후 참가자 본인 계좌로 개별 지급</li></ul></div></aside><p id="118eeb8e-89c0-822a-ae89-01b82f8ba2b9" class="" dir="auto"><strong>지원 기준</strong></p><ul id="15aeeb8e-89c0-829b-bbba-8192e9784d85" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-blue_background" data-notion-highlight="blue_background"><strong>지원 대상 교통수단: KTX, 고속버스, 시외버스, 일반 열차 (왕복 인정)</strong></mark></li></ul><ul id="2a7eeb8e-89c0-8232-9bbe-01c5b68dbc56" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-gray" data-notion-highlight="gray"><mark class="highlight-red_background" data-notion-highlight="red_background">지원 불가 교통수단: 자차(유류비, 통행료), 택시, 렌터카, 항공, 서울 내 이동</mark></mark></li></ul><ul id="cabeeb8e-89c0-83ee-bb80-819ef25b48a9" class="bulleted-list" dir="auto"><li style="list-style-type:disc">이동 일정: 상행(서울 방향)/하행(서울에서 나가는 방향) 모두 행사 당일 승차분에 한하여 인정합니다.</li></ul><ul id="4daeeb8e-89c0-8254-8761-8147a61652be" class="bulleted-list" dir="auto"><li style="list-style-type:disc">전날 이동이 불가피한 경우: 사전에 채널톡으로 담당자와 소통해 주세요. 상행에 한하여<mark class="highlight-red" data-notion-highlight="red"> 협의 후</mark> 인정하며, 하행은 행사 당일 승차분만 인정합니다. (예: 개인적 사유가 아니며, 당일 첫차로도 집합 시간에 도착할 수 없는 지역)</li></ul><ul id="b04eeb8e-89c0-821b-9caa-01bb225f025d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">지급 방식: 참가자가 먼저 비용을 결제한 뒤 증빙을 제출하면, 확인 후 참가자 본인 계좌로 사후 지급합니다.<strong> 상한액보다 적게 사용한 경우 실제 사용 금액, 초과한 경우 상한액까지 지급합니다</strong>.</li></ul><ul id="792eeb8e-89c0-8256-89a9-81d1df3aab31" class="bulleted-list" dir="auto"><li style="list-style-type:disc">지급 대상: 행사 현장에 참석한 <strong>참가자 본인 명의 결제분</strong>에 한합니다. 입장과 퇴장 시 진행하는 출석 체크를 모두 완료한 참가자에게만 지급됩니다..</li></ul><ul id="ab9eeb8e-89c0-8227-b42b-81e22102a7e9" class="bulleted-list" dir="auto"><li style="list-style-type:disc">예매 취소 및 변경 수수료는 지원되지 않습니다.</li></ul><p id="de1eeb8e-89c0-8382-bf71-017bd8306ecd" class="" dir="auto"><strong>증빙 및 제출</strong></p><ul id="107eeb8e-89c0-82e5-99b7-01d526a3acb3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">필수 제출 서류: 영수증, 승차권 캡처, 결제 내역 (참가자 본인 명의)<ul id="c1deeb8e-89c0-8228-bfa0-817a23f80bde" class="bulleted-list" dir="auto"><li style="list-style-type:circle">영수증: 결제 금액과 결제 일시를 확인할 수 있는 영수증만 인정합니다.</li></ul><ul id="c0aeeb8e-89c0-82f7-b1b9-0157791ce2af" class="bulleted-list" dir="auto"><li style="list-style-type:circle">승차권: 탑승 일시를 확인할 수 있는 승차권만 인정합니다. (영수증과 매칭하여 검토합니다. 불일치할 경우 지원이 불가합니다.)</li></ul></li></ul><ul id="f3deeb8e-89c0-8218-a899-018984613c40" class="bulleted-list" dir="auto"><li style="list-style-type:disc">제출자: <strong>팀장이 팀원 전체분을 취합하여 제출합니다</strong>. (결제는 개인이 각자 진행합니다.)</li></ul><ul id="7c8eeb8e-89c0-83e8-b91a-019e34988405" class="bulleted-list" dir="auto"><li style="list-style-type:disc">제출 방법: 구글폼 (제출 링크는 추후 공지)<ul id="a6feeb8e-89c0-82a7-8ca6-815ef0e97d97" class="bulleted-list" dir="auto"><li style="list-style-type:circle">입력 항목: 팀명, 팀장 정보, 팀원별 성명, 이동 구간, 사용 금액, 지급 계좌(은행, 계좌번호, 예금주), 증빙 파일</li></ul><ul id="6a3eeb8e-89c0-834b-a2a4-8146e247046d" class="bulleted-list" dir="auto"><li style="list-style-type:circle">제출은 팀당 1회이며, 제출 후에는 수정이 어렵습니다. 제출 전 누락된 팀원이 없는지 확인해 주세요.</li></ul></li></ul><ul id="aadeeb8e-89c0-8217-89c4-81720c361f3f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">제출 기한: 11/29(일) ~ 12/1(화) 23:59까지 제출</li></ul><ul id="d8feeb8e-89c0-8354-81c7-010403795550" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>기한 내 제출하지 않았거나 서류가 미비한 경우 지급 불가합니다.</strong></li></ul><p id="cf9eeb8e-89c0-834e-97fc-01b189b19b3d" class="" dir="auto"><strong>지급 시기</strong></p><ul id="e4aeeb8e-89c0-82c4-8ef9-01575239fd75" class="bulleted-list" dir="auto"><li style="list-style-type:disc">12월 말에서 1월 초 사이 지급 예정입니다.</li></ul><ul id="c5deeb8e-89c0-82a5-8b60-0145b160a8e2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">미래내일일경험 참여자 수당을 받으신<strong> IBK 기업은행</strong> 계좌로 지급합니다. </li></ul><p id="16feeb8e-89c0-83ec-ace6-81bba938c10c" class="" dir="auto"><mark class="highlight-red_background" data-notion-highlight="red_background">★ 위 기준 및 안내에 따르지 않아 발생하는 불이익은 모두 본인이 감수하는 것으로 합니다. 기준에 맞게 예매해 주시고, 궁금한 점은 사전에 채널톡으로 문의해 주세요.</mark></p><p id="a81eeb8e-89c0-8363-b5bb-01382291c096" class="" dir="auto"><mark class="highlight-red_background" data-notion-highlight="red_background">★ 제출 후 검토 과정에서 보완을 요청 드릴 수 있습니다. 이 점 참고 해주세요. </mark></p><h2 id="632eeb8e-89c0-8266-8294-8182a9b7bd7c" class="block-color-gray_background" data-notion-highlight="gray_background" dir="auto">5. 문의</h2><p id="529eeb8e-89c0-8397-b156-81a8ee544e26" class="" dir="auto">문의 및 특이사항은 채널톡을 통해 접수해주시기 바랍니다. </p><p id="775eeb8e-89c0-82ee-8b9b-811b14462ea3" class="" dir="auto"><strong><a href="https://likelion.channel.io/workflows/842980">https://likelion.channel.io/workflows/842980</a></strong></p><p id="c25eeb8e-89c0-8215-9fc7-0145448c1d6a" class="" dir="auto">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
