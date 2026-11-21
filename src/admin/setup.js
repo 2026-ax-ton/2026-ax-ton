@@ -341,9 +341,9 @@
       li.querySelector('.body').appendChild(cam);
       li.querySelector('.body').appendChild(reviewBlock(eq));
 
-      var ed = UI.el('button', 'btn-sm', '수정');
+      var ed = UI.el('button', 'btn-sm', '정보수정');
       ed.type = 'button';
-      ed.setAttribute('aria-label', eq.name + ' 설비 수정');
+      ed.setAttribute('aria-label', eq.name + ' 설비 정보수정');
       ed.addEventListener('click', function () { startEdit(eq); });
       li.appendChild(ed);
       li.appendChild(deleteButton(eq.name + ' 설비 삭제', function () { removeEquipment(eq); }));
@@ -597,6 +597,35 @@
     return '승인하면 ' + it.field + '을(를) 「' + it.suggest + '」(으)로 바꿉니다';
   }
 
+  /** 항목 하나를 승인한다 — 제안 값을 설비에 옮긴다. 옮기지 못한 까닭이 있으면 그 문장을 돌려준다 */
+  function approveItem(eq, it) {
+    var message = '';
+    it.decision = 'approved';
+    var hz = Array.isArray(eq.hazards) ? eq.hazards : [];
+    var before = eq.kind + '|' + eq.maker + '|' + eq.model;
+    if (it.key.indexOf('add:') === 0) {
+      var code = Store.customHazard(it.label);
+      if (code && hz.indexOf(code) === -1) hz.push(code);
+    } else if (it.verdict === 'wrong' && it.key.indexOf('hazard:') === 0) {
+      hz = hz.filter(function (c) { return c !== it.code; });
+    } else if (it.verdict === 'wrong' && it.suggest) {
+      if (it.key === 'kind') {
+        var k = Store.EQUIPMENT_KINDS.filter(function (x) { return it.suggest.indexOf(x.label) !== -1; })[0];
+        if (k) { eq.kind = k.id; eq.icon = Store.kindIcon(k.id); }
+        else message = 'AI 가 낸 종류 「' + it.suggest + '」는 목록에 없어 바꾸지 않았습니다.';
+      }
+      if (it.key === 'maker') eq.maker = it.suggest.slice(0, 60);
+      if (it.key === 'model') eq.model = it.suggest.slice(0, 60);
+      if (it.key === 'year') { var y = parseInt(it.suggest, 10); if (y >= 1950 && y <= 2100) eq.year = y; }
+    }
+    eq.hazards = hz;
+    if (before !== eq.kind + '|' + eq.maker + '|' + eq.model && eq.analysis) eq.analysis = null;   // 다른 설비의 분석이 남지 않게
+    return message;
+  }
+
+  function isOpen(x) { return !x.decision || x.decision === 'redo'; }
+  function settleReview(eq) { eq.review.status = eq.review.items.some(isOpen) ? 'waiting' : 'approved'; }
+
   function decide(eqId, idx, decision, note) {
     var message = '';
     commit(function (s) {
@@ -605,29 +634,26 @@
       if (!it) return;
       it.decision = decision;
       if (note !== undefined) it.note = note;
-      if (decision === 'approved') {
-        var hz = Array.isArray(eq.hazards) ? eq.hazards : [];
-        var before = eq.kind + '|' + eq.maker + '|' + eq.model;
-        if (it.key.indexOf('add:') === 0) {
-          var code = Store.customHazard(it.label);
-          if (code && hz.indexOf(code) === -1) hz.push(code);
-        } else if (it.verdict === 'wrong' && it.key.indexOf('hazard:') === 0) {
-          hz = hz.filter(function (c) { return c !== it.code; });
-        } else if (it.verdict === 'wrong' && it.suggest) {
-          if (it.key === 'kind') {
-            var k = Store.EQUIPMENT_KINDS.filter(function (x) { return it.suggest.indexOf(x.label) !== -1; })[0];
-            if (k) { eq.kind = k.id; eq.icon = Store.kindIcon(k.id); }
-            else message = 'AI 가 낸 종류 「' + it.suggest + '」는 목록에 없어 바꾸지 않았습니다.';
-          }
-          if (it.key === 'maker') eq.maker = it.suggest.slice(0, 60);
-          if (it.key === 'model') eq.model = it.suggest.slice(0, 60);
-          if (it.key === 'year') { var y = parseInt(it.suggest, 10); if (y >= 1950 && y <= 2100) eq.year = y; }
-        }
-        eq.hazards = hz;
-        if (before !== eq.kind + '|' + eq.maker + '|' + eq.model && eq.analysis) eq.analysis = null;   // 다른 설비의 분석이 남지 않게
-      }
-      eq.review.status = eq.review.items.some(function (x) { return !x.decision || x.decision === 'redo'; }) ? 'waiting' : 'approved';
+      if (decision === 'approved') message = approveItem(eq, it);
+      settleReview(eq);
     }, message || (decision === 'approved' ? '승인했습니다.' : decision === 'deleted' ? '이 AI 결과를 버렸습니다. 적은 값은 그대로입니다.' : ''));
+  }
+
+  /** 🆕 2026-11-22 전체 승인 — 남은 항목을 한 번에. 담당자가 체크하고 확인창에서 한 번 더 눌러야만 한다 (승인은 사람만) */
+  function approveAll(eqId) {
+    var n = 0, notes = [];
+    commit(function (s) {
+      var eq = Store.findBy(s.equipments, 'id', eqId);
+      if (!eq || !eq.review) return;
+      eq.review.items.forEach(function (it) {
+        if (!isOpen(it)) return;
+        var m = approveItem(eq, it);
+        if (m) notes.push(m);
+        n++;
+      });
+      settleReview(eq);
+    });
+    UI.toast(n + '건을 모두 승인했습니다.' + (notes.length ? ' ' + notes.join(' ') : ''));
   }
 
   var VERDICT = {
@@ -674,6 +700,22 @@
     var open = rv.items.filter(function (x) { return !x.decision || x.decision === 'redo'; }).length;
     head.appendChild(open ? UI.waitBadge('검수 대기 · 승인할 항목 ' + open + '건') : UI.okBadge('AI 검수 · 담당자 승인 완료'));
     head.appendChild(again);
+    if (open) {
+      var all = UI.el('label', 'check-all');
+      var allBox = UI.el('input');
+      allBox.type = 'checkbox';
+      allBox.addEventListener('change', function () {
+        if (!allBox.checked) return;
+        if (!window.confirm('「' + eq.name + '」의 남은 ' + open + '건을 모두 승인합니다. AI 가 제안한 값으로 바뀌는 항목이 있습니다.')) {
+          allBox.checked = false;
+          return;
+        }
+        approveAll(eq.id);
+      });
+      all.appendChild(allBox);
+      all.appendChild(document.createTextNode(' 전체 승인 (' + open + '건)'));
+      head.appendChild(all);
+    }
 
     var ul = UI.el('ul', 'review-items');
     rv.items.forEach(function (it, idx) {
@@ -765,8 +807,32 @@
     img.src = url;
   }
 
+  /** 🆕 2026-11-22 고른 장면 전부를 작은 사진으로 — 대표(가장 선명한) 한 장은 글자로 표시한다 (색만으로 구분하지 않는다) */
+  var shotUrls = [];
+  function showShots(passes, best) {
+    var box = $('equip-shots-preview');
+    shotUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    shotUrls = [];
+    box.textContent = '';
+    var shots = [];
+    (passes || []).forEach(function (segs) { segs.forEach(function (list) { list.forEach(function (s) { if (s.blob) shots.push(s); }); }); });
+    shots.forEach(function (s, i) {
+      var fig = UI.el('figure', 'equip-shot' + (s === best ? ' is-best' : ''));
+      var im = UI.el('img');
+      var url = URL.createObjectURL(s.blob);
+      shotUrls.push(url);
+      im.src = url;
+      im.alt = '고른 장면 ' + (i + 1);
+      fig.appendChild(im);
+      if (s === best) fig.appendChild(UI.el('figcaption', null, '대표'));
+      box.appendChild(fig);
+    });
+    box.hidden = !shots.length;
+  }
+
   function clearVideo() {
     pendingShots = null;
+    showShots(null);
     var st = $('equip-video-status');
     if (st && !videoBusy) { st.hidden = true; st.textContent = ''; }
   }
@@ -790,6 +856,7 @@
     if (typeof ScanShots === 'undefined') { UI.toast('여기서는 장면을 고를 수 없습니다. 사진 한 장으로 넣어 주세요.'); return; }
     videoBusy = true;
     pendingShots = null;
+    showShots(null);
     save.disabled = true;
     st.hidden = false;
     st.textContent = from + ' 흔들리지 않은 장면을 고르는 중… 0%';
@@ -802,6 +869,7 @@
         return;
       }
       pendingShots = r.passes;
+      showShots(r.passes, best);
       st.textContent = '흔들리지 않은 장면 ' + r.count + '장을 골랐습니다' + (r.dropped ? ' (' + r.dropped + '장은 어둡거나 흔들려 뺐습니다)' : '')
         + '. 저장하면 가장 선명한 한 장이 설비 사진이 되고, ' + r.count + '장은 촬영 묶음으로 올라갑니다.';
       return new Promise(function (ok) {
@@ -1145,6 +1213,7 @@
       shrinkPhoto(f, function (data) {
         if (!data) { UI.toast('사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'); return; }
         pendingPhoto = data;
+        clearVideo();   // 한 장으로 다시 골랐으면 앞서 고른 장면 묶음은 올리지 않는다 (미리보기와 올라가는 것이 같게)
         showPreview(data);
       });
     }

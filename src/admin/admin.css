@@ -1383,3 +1383,31 @@ body.dash-v2 .page > .card { width: 100%; box-sizing: border-box; grid-column: a
 .equip-research-list ol { margin: 4px 0 0; padding-left: 22px; }
 .equip-research-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .equip-research-fig .ag-fig-tag { top: 6px; bottom: auto; }   /* 아래쪽 박스를 가리지 않게 */
+
+/* 🆕 2026-11-22 설비 사진 — 고른 장면 전부 미리보기 (대표 한 장은 「대표」 글자로) */
+.equip-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin-top: 8px; max-width: 720px; }
+.equip-shot { position: relative; margin: 0; }
+.equip-shot img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+.equip-shot.is-best img { border: 2px solid var(--brand); }
+.equip-shot figcaption { position: absolute; left: 4px; top: 4px; padding: 1px 6px; border-radius: 4px; background: var(--brand); color: var(--brand-ink, #fff); font-size: 12px; font-weight: 700; }
+
+/* 🆕 2026-11-22 검수 칸 「전체 승인」 체크 */
+.check-all { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; font-size: .9em; font-weight: 700; cursor: pointer; }
+.check-all input { width: 18px; height: 18px; }
+
+/* 🆕 2026-11-22 담당자 화면을 PC 크기로 (사용자 요청) — 넓은 화면(마우스)에서만.
+   폰(1024px 미만)은 장갑 낀 손 기준 60px 그대로다. admin.css 는 노동자 화면도 싣기 때문에
+   담당자 메뉴가 붙은 화면(body.has-admin-menu, ui.js buildAdminMenu)으로만 좁힌다 */
+@media (min-width: 1024px) {
+  body.has-admin-menu { --tap-min: 44px; --gap: 16px; }
+  body.has-admin-menu .page,
+  body.has-tabbar.has-admin-menu .page,
+  body.dash-v2.has-admin-menu .page { max-width: 1440px; }
+  body.has-tabbar.has-admin-menu .page.page-single { max-width: 1200px; }
+  body.has-admin-menu .field input[type="text"],
+  body.has-admin-menu .field input[type="date"],
+  body.has-admin-menu .field select { max-width: 560px; }
+  body.has-admin-menu .field input,
+  body.has-admin-menu .field select,
+  body.has-admin-menu .field textarea { padding: 8px 12px; border-radius: 8px; }
+}
