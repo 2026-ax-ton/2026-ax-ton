@@ -35,8 +35,7 @@ var Store = (function () {
      ----------------------------------------------------------------- */
 
   var LANGUAGES = [
-    { code: 'km', name: '크메르어',     native: 'ភាសាខ្មែរ' },
-    { code: 'id', name: '인도네시아어', native: 'Bahasa Indonesia' },
+    { code: 'km', name: '캄보디아어', native: 'ភាសាខ្មែរ' },
     { code: 'vi', name: '베트남어',     native: 'Tiếng Việt' },
     { code: 'ne', name: '네팔어',       native: 'नेपाली' },
     { code: 'th', name: '태국어',       native: 'ภาษาไทย' },
@@ -52,7 +51,62 @@ var Store = (function () {
     { code: 'chemical', label: '화학물질', icon: '🧪' }
   ];
 
+  /* 🆕 2026-11-16 설비 등록용 위험유형 — 위 6종(노동자 신고·AI 문항이 쓰는 핵심)에 공식 분류를 더한 목록.
+     ★ HAZARDS 는 그대로 둔다 — 노동자 신고 화면이 그 6개를 칩으로 보인다 (글 못 읽는 노동자에게 20개는 많다).
+     분류 근거
+       accident : 고용노동부 「산업재해 현황분석」 재해 발생형태 (떨어짐·끼임·감전 …)
+       health   : 산업안전보건기준에 관한 규칙 제3편 보건기준 (소음·진동, 분진, 근골격계, 온도, 방사선)
+     목록에 없는 것은 담당자가 직접 적는다 — 코드 'x:' + 글자 (customHazard) */
+  var HAZARD_GROUPS = [
+    { id: 'accident', label: '재해 발생형태 (고용노동부 산업재해 분류)' },
+    { id: 'health',   label: '건강장해 (산업안전보건기준 규칙 보건기준)' }
+  ];
+  var HAZARD_TYPES = HAZARDS.map(function (h) { return { code: h.code, label: h.label, icon: h.icon, group: 'accident' }; }).concat([
+    { code: 'trip',      label: '넘어짐',             icon: 'alert',   group: 'accident' },
+    { code: 'crush',     label: '깔림·뒤집힘',        icon: 'box',     group: 'accident' },
+    { code: 'collide',   label: '부딪힘',             icon: 'barrier', group: 'accident' },
+    { code: 'struck',    label: '물체에 맞음',        icon: 'helmet',  group: 'accident' },
+    { code: 'collapse',  label: '무너짐',             icon: 'barrier', group: 'accident' },
+    { code: 'cut',       label: '절단·베임·찔림',     icon: 'tools',   group: 'accident' },
+    { code: 'explode',   label: '폭발·파열',          icon: 'flame',   group: 'accident' },
+    { code: 'temp',      label: '이상온도 접촉(화상)', icon: 'flame',   group: 'accident' },
+    { code: 'strain',    label: '불균형·무리한 동작', icon: 'person',  group: 'accident' },
+    { code: 'drown',     label: '빠짐·익사',          icon: 'alert',   group: 'accident' },
+    { code: 'traffic',   label: '사업장 내 교통사고(지게차 등)', icon: 'tractor', group: 'accident' },
+    { code: 'noise',     label: '소음',               icon: 'speaker', group: 'health' },
+    { code: 'vibration', label: '진동',               icon: 'repeat',  group: 'health' },
+    { code: 'dust',      label: '분진',               icon: 'mask',    group: 'health' },
+    { code: 'msd',       label: '근골격계 부담',      icon: 'person',  group: 'health' },
+    { code: 'heatcold',  label: '고열·한랭',          icon: 'flame',   group: 'health' },
+    { code: 'radiation', label: '방사선·유해광선',    icon: 'eye',     group: 'health' }
+  ]);
+  var CUSTOM_HAZARD = 'x:';
+  /** 담당자가 직접 적은 위험유형의 코드 — 같은 글자는 같은 코드 (목록에 있는 이름이면 그 코드) */
+  function customHazard(text) {
+    var t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 20);
+    if (!t) return '';
+    for (var i = 0; i < HAZARD_TYPES.length; i++) if (HAZARD_TYPES[i].label === t) return HAZARD_TYPES[i].code;
+    return CUSTOM_HAZARD + t;
+  }
+
   var ICONS = ['⚙', '🏭', '🔧', '🔩', '⚡', '🔥', '🧪', '🧯', '📦', '🚜'];
+  /* 🆕 2026-11-16 설비 픽토그램은 담당자가 고르지 않는다 — 종류(AI 검수로 확인)에서 정한다 */
+  var KIND_ICON = { press: '⚙', paint: '🧪', injection: '🏭', electric: '⚡', other: '🔧' };
+
+  /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
+     **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
+     label 은 문구 분류(category) 값과 같다. 「공통」 문구는 모든 종류에 붙는다.
+     ★ 새 종류를 더할 때는 문구 화면의 분류 이름도 같은 label 로 쓴다 */
+  var EQUIPMENT_KINDS = [
+    { id: 'press',     label: '프레스' },
+    { id: 'paint',     label: '도장' },
+    { id: 'injection', label: '사출성형' },
+    { id: 'electric',  label: '전기설비' },
+    { id: 'other',     label: '기타' }
+  ];
+  var COMMON_CATEGORY = '공통';
+  /* 종류 칸이 없던 옛 설비 — 이름으로 한 번만 짐작한다 (화면에 「종류 확인 필요」로 보인다) */
+  var KIND_GUESS = [[/프레스/, 'press'], [/도장/, 'paint'], [/사출/, 'injection'], [/배전|분전|전기/, 'electric']];
 
   /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
      **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
@@ -415,7 +469,14 @@ var Store = (function () {
                           걸렸다고 우리가 넣지 않는다 — 「5대 이상」·「1톤 이상」 같은
                           조건은 담당자만 안다 (FR-09).
                         ★ 칸이 없거나 빈 배열이면 「표시 안 함」이다. 옛 설비가 그렇고,
-                          그래도 교육·수강·증빙은 그대로 돈다 */
+                          그래도 교육·수강·증빙은 그대로 돈다
+
+          🆕 2026-11-16 (더하기만)
+          hazards[] : HAZARD_TYPES 코드 + 직접 적은 것('x:글자'). 읽을 때는 Store.hazard(code)
+          review    : { status: 'checking'|'waiting'|'approved'|'error', at, model, message,
+                        items: [{ key, field, claim, verdict: 'ok'|'wrong'|'unknown', suggest, reason,
+                                  sources, decision: ''|'approved'|'deleted'|'redo', note }] }
+                      등록 정보의 AI 1차 검수 (setup.js). ★ AI 는 제안만 — 반영은 담당자가 [승인]할 때만 */
   var setup = makeStore('setup',
     function () {
       return {
@@ -470,7 +531,7 @@ var Store = (function () {
         status 는 PHRASE_STATUS 의 세 가지 중 하나.
         translations[code].status 는 그 언어만의 판정이고, 없으면 문구 전체를 따른다.
         flags[].lang 이 있으면 그 언어만 중지된다 — 크메르어 오역 하나로
-        인도네시아어 노동자까지 안전 지시를 못 듣게 되지 않는다.
+        네팔어 노동자까지 안전 지시를 못 듣게 되지 않는다.
 
         읽을 때는 Store.phraseOk(p, lang) 을 쓴다. p.status 를 직접 보면
         언어별 판정이 무시된다.
@@ -741,14 +802,26 @@ var Store = (function () {
     return null;
   }
   function language(code) { return findBy(LANGUAGES, 'code', code); }
-  function hazard(code)   { return findBy(HAZARDS, 'code', code); }
+  /* 6종 → 공식 분류 → 직접 적은 것('x:글자') 순으로 찾는다 */
+  function hazard(code) {
+    var h = findBy(HAZARDS, 'code', code) || findBy(HAZARD_TYPES, 'code', code);
+    if (h) return h;
+    if (typeof code === 'string' && code.indexOf(CUSTOM_HAZARD) === 0 && code.length > CUSTOM_HAZARD.length) {
+      return { code: code, label: code.slice(CUSTOM_HAZARD.length), icon: 'pencil', group: 'custom' };
+    }
+    return null;
+  }
+  function kindIcon(kindId) { return KIND_ICON[kindId] || KIND_ICON.other; }
+  /** 교육에 쓸 수 있는 설비인가 — 새 흐름으로 등록한 설비는 담당자가 AI 검수를 승인해야 한다 (2026-11-16).
+      review 칸이 없는 옛 설비는 이 흐름 전에 등록된 것이라 그대로 쓴다 */
+  function equipmentReady(eq) { return !!eq && (!eq.review || eq.review.status === 'approved'); }
   function role(code)     { return findBy(ROLES, 'code', code); }
 
   /* -----------------------------------------------------------------
      문구를 언어별로 판정한다 — phraseStatus / phraseOk
 
      ★ 검수 상태가 문구 단위이면, 크메르어 번역 하나가 오역이어도 문구 전체가
-       내려가고 인도네시아어·베트남어 노동자도 그 안전 지시를 함께 못 듣습니다.
+       내려가고 네팔어·베트남어 노동자도 그 안전 지시를 함께 못 듣습니다.
        그것은 오역보다 나은 상태가 아닙니다 — 안전 지시가 조용히 사라집니다.
 
      그래서 언어마다 상태를 가질 수 있게 합니다.
@@ -962,6 +1035,7 @@ var Store = (function () {
   return {
     // 어휘
     LANGUAGES: LANGUAGES, HAZARDS: HAZARDS, ICONS: ICONS,
+    HAZARD_TYPES: HAZARD_TYPES, HAZARD_GROUPS: HAZARD_GROUPS, customHazard: customHazard, kindIcon: kindIcon, equipmentReady: equipmentReady,
     EQUIPMENT_KINDS: EQUIPMENT_KINDS, COMMON_CATEGORY: COMMON_CATEGORY,
     equipmentKind: equipmentKind, kindOf: kindOf, phrasesFor: phrasesFor,
     SIZE_BANDS: SIZE_BANDS, ROLES: ROLES, PHRASE_STATUS: PHRASE_STATUS,

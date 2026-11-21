@@ -166,7 +166,7 @@ function fakeQuestions(body) {
   has('★ 해설·예방조치·근거', $('ag-quiz').textContent, '해설 발판 페달');
   has('예방조치', $('ag-quiz').textContent, '안전수칙·예방조치: 예방 발판 페달');
   /* 2026-11-11 — 문항을 만들면 사업장 언어(km·id·vi)로 번역까지 한다. 빠지면 발급이 막힌다 */
-  eq('★★ 문항을 만들면 사업장 언어마다 번역을 부른다', [...new Set(calls.filter((c) => c.path === '/api/translate-quiz').map((c) => c.body.lang))].sort().join(), 'id,km,vi');
+  eq('★★ 문항을 만들면 사업장 언어마다 번역을 부른다', [...new Set(calls.filter((c) => c.path === '/api/translate-quiz').map((c) => c.body.lang))].sort().join(), 'km,ne,vi');
   has('번역 상태 줄', $('ag-plan').textContent, '문항 번역 — ');
   ok('★ 번역이 다 되면 「문항 번역」 단계가 끝난다', win.__autogen.steps().find((s) => s.what === '문항 번역').done === true);
   has('★ 규칙에 걸려 뺀 후보와 이유', $('ag-plan').textContent, '금지어');
@@ -221,7 +221,7 @@ function fakeQuestions(body) {
   eq('규칙 판을 남긴다', c.rulesVersion, '2026-11-11');
   eq('★ 판정 기록 (뺌 1 · 고침 1)', c.aiDraft.review.wrong + '|' + c.aiDraft.review.edited, '1|1');
   eq('AI 작성 문항 수 기록', c.aiDraft.aiWritten, 1);
-  ok('★★ 발급본 문항에 세 언어 번역이 들어 있다', c.quiz.every((q) => ['km', 'id', 'vi'].every((l) => S.qhas(q, l))));
+  ok('★★ 발급본 문항에 세 언어 번역이 들어 있다', c.quiz.every((q) => ['km', 'ne', 'vi'].every((l) => S.qhas(q, l))));
   ok('★ 문항 칸 번호(slot)는 저장하지 않는다', c.quiz.every((q) => !('slot' in q)));
   ok('★★ 참고 사진(외부 그림)은 저장하지 않는다', !JSON.stringify(c).includes('/9j/AAAA') && !JSON.stringify(S.setup.load()).includes('/9j/AAAA'));
   ok('발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);

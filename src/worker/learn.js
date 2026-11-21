@@ -79,7 +79,7 @@
      ★ 검수 완료인 것만 남는다. 여기가 규칙이 코드가 되는 지점이다.
 
      ★ 판정은 내 언어 기준이다 (Store.phraseOk). 크메르어 번역 하나가 오역이어도
-       인도네시아어 노동자는 그 안전 지시를 계속 들어야 한다.
+       네팔어 노동자는 그 안전 지시를 계속 들어야 한다.
        p.status 를 직접 보면 언어별 판정이 무시된다. */
   function phrasesOf(course) {
     var library = Store.library.load();

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S10 · 창업 멘토링 3차 (마지막) — 결과와 할 일</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1f2328;--muted:#5d6670;--line:#e3e0da;--card:#ffffff;--accent:#6a4bc4;--accent-soft:#efeafb;--code:#f3f1ec;--quote:#f7f4ee}
+@media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e7e7ea;--muted:#a0a5ad;--line:#2d3036;--card:#1d1f23;--accent:#b49cff;--accent-soft:#2a2440;--code:#25272c;--quote:#202227}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav{width:230px;flex:none;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;border-right:1px solid var(--line)}
+nav .brand{font-weight:700;margin-bottom:12px;font-size:14px;color:var(--muted)}nav .sub{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:700;color:var(--muted)}
+nav a{display:block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
+nav a:hover{background:var(--accent-soft)}nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{flex:1;min-width:0;padding:28px 40px 80px}
+h1{font-size:26px;margin:0 0 12px}h2{font-size:20px;margin:32px 0 10px}h3{font-size:17px;margin:24px 0 8px}h4{font-size:15px}h5,h6{font-size:14px;margin:18px 0 6px}
+a{color:var(--accent)}code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow:auto;line-height:1.45}pre code{background:none;padding:0}
+blockquote{margin:12px 0;padding:8px 16px;background:var(--quote);border-left:3px solid var(--accent);border-radius:0 8px 8px 0}blockquote p{margin:6px 0}
+.tbl{overflow-x:auto;margin:12px 0}table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:var(--accent-soft);white-space:nowrap}td{min-width:3.2em}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.src{margin-top:48px;font-size:12px;color:var(--muted)}
+@media (max-width:800px){.wrap{display:block}nav{position:static;width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px}nav .brand{width:100%;margin:0}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">infos · 프로젝트 정보</div>
+<a href="../../README.html">처음 (사용법)</a>
+<a href="../../00_%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C/%ED%8C%80%EC%9B%90%EC%9A%A9-%EC%84%A4%EB%AA%85%EC%84%9C.html">00 팀원용 설명서</a>
+<a href="../../01_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94/%EA%B0%9C%EC%9A%94.html">01 프로젝트 개요</a>
+<a href="../../02_%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89/%ED%98%84%EC%9E%AC-%EC%A7%84%ED%96%89.html">02 현재 진행</a>
+<a href="../../03_%EA%B0%9C%EB%B0%9C/%EA%B0%9C%EB%B0%9C.html">03 개발</a>
+<a href="../../04_%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D/%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D.html">04 기술 스택</a>
+<a href="../%EB%A9%98%ED%86%A0%EB%A7%81.html">05 멘토링</a>
+<a href="../../06_%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95/%EB%8C%80%ED%9A%8C-%EA%B7%9C%EC%A0%95.html">06 대회 규정</a>
+<a href="../../07_%EC%82%AC%EC%97%85%ED%99%94/%EC%82%AC%EC%97%85%ED%99%94.html">07 사업화</a>
+<a href="../../08_%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84/%EA%B2%B0%EC%A0%95%EA%B3%BC-%EB%AC%B8%EC%84%9C%EC%A7%80%EB%8F%84.html">08 결정과 문서 지도</a>
+<a href="../../09_AI%EA%B5%90%EC%9C%A1%EC%9E%90%EB%8F%99%EC%83%9D%EC%84%B1/README.html">09 AI 교육 자동 생성 (yesol)</a>
+<div class="sub">2026-11-17_사업3차</div>
+<a href="S10_%EC%B0%BD%EC%97%85%EB%A9%98%ED%86%A0%EB%A7%813%EC%B0%A8-%EA%B2%B0%EA%B3%BC-2026-11-17.html" class="on">S10 창업멘토링3차-결과-2026-11-17</a>
+</nav>
+<main>
+<h1 id="s10--창업-멘토링-3차-마지막--결과와-할-일">S10 · 창업 멘토링 3차 (마지막) — 결과와 할 일</h1>
+<blockquote><p><strong>날짜</strong> 2026-11-17 · <strong>회차</strong> 사업개발 3차 · <strong>이것으로 멘토링 전 회차가 끝났다</strong><br><strong>기록</strong> 변소윤 (멘토링 중 전달받은 논의 내용과 작업 목록을 정리)<br><strong>이 문서가 답하는 질문</strong> 멘토가 무엇을 지적했나 · 무엇을 고쳐야 하나 · 발표 구성이 어떻게 바뀌나 · 기한은 언제인가</p></blockquote>
+<blockquote><p><strong>★ 마지막 멘토링이다.</strong> 여기서 나온 지적이 <strong>발표 구성의 최종 조건</strong>이 된다.<br>최종 제출은 <strong>11/23(월)</strong> 이다 (대회 자료 제출 마감과 같은 날).</p></blockquote>
+<hr>
+<h2 id="1-논의-내용--다섯-갈래">1. 논의 내용 — 다섯 갈래</h2>
+<h3 id="11-발표-준비와-발표-기술">1.1 발표 준비와 발표 기술</h3>
+<div class="tbl"><table><thead><tr><th>지적</th><th>내용</th></tr></thead><tbody><tr><td>발표장 사전 확인</td><td><strong>공연장 규모의 무대</strong>다. 크고 높다. 가서 처음 보면 당황한다</td></tr><tr><td>장비</td><td>포디움 활용 · 마이크 종류별 대처 · <strong>레이저 포인터 사용 주의</strong></td></tr><tr><td>스크립트</td><td><strong>스크립트 없이 발표한다.</strong> 슬라이드의 중요 내용을 <strong>볼드 처리</strong>해 그것을 보고 말한다</td></tr></tbody></table></div>
+<h3 id="12-시연-준비">1.2 시연 준비</h3>
+<div class="tbl"><table><thead><tr><th>지적</th><th>내용</th></tr></thead><tbody><tr><td>기술 문제 대비</td><td>영상 백업 + <strong>핵심 페이지를 캡처해 별첨 슬라이드로</strong> 준비</td></tr><tr><td>시연 방식</td><td><strong>영상 시연인지 직접 시연인지 확정</strong>할 것</td></tr></tbody></table></div>
+<h3 id="13-사업-아이템">1.3 사업 아이템</h3>
+<div class="tbl"><table><thead><tr><th>지적</th><th>내용</th></tr></thead><tbody><tr><td>고객별 KPI</td><td>사업주 <strong>비용 절감</strong> · 주무관 <strong>사고 건수 감소</strong> · 이주노동자 <strong>모국어 교육 수요</strong></td></tr><tr><td>가설 검증</td><td>이주노동자 인터뷰로 가설을 검증한 결과를 쓸 것</td></tr><tr><td>비즈니스 모델</td><td><strong>이해관계자 연결 구조를 개선</strong>할 것</td></tr></tbody></table></div>
+<h3 id="14-수익-구조와-요금-체계">1.4 수익 구조와 요금 체계</h3>
+<div class="tbl"><table><thead><tr><th>지적</th><th>내용</th></tr></thead><tbody><tr><td>가격 수준</td><td><strong>지금 요금이 지나치게 낮다.</strong> 시장 조사 후 현실적인 가격으로 <strong>상향</strong></td></tr><tr><td>요금 단위</td><td><strong>인당 단위 요금제로 전환</strong> 권고. 규모에 따른 할인 구조 반영</td></tr><tr><td>시장 규모</td><td><strong>TAM/SAM/SOM 수치 재검토</strong> 필요</td></tr></tbody></table></div>
+<h3 id="15-사업-계획">1.5 사업 계획</h3>
+<div class="tbl"><table><thead><tr><th>지적</th><th>내용</th></tr></thead><tbody><tr><td>영업 전략</td><td><strong>지역별 단계적 영업 전략</strong>을 세울 것 (예: 안산 산업단지)</td></tr><tr><td>원가·손익</td><td>5년 손익 계획 · <strong>인건비·서버비 등 원가 산정 방법</strong></td></tr><tr><td>시장 추정</td><td>안전교육 관련 <strong>법적 의무</strong>와 시장 규모 추정 방법</td></tr></tbody></table></div>
+<hr>
+<h2 id="2-할-일--멘토가-준-작업-목록">2. 할 일 — 멘토가 준 작업 목록</h2>
+<h3 id="21-발표-준비">2.1 발표 준비</h3>
+<ul><li>[ ] <strong>발표장 사진·환경 사전 확인</strong> — 가빈아트홀(서울 강남구 삼성로 534)</li><li>[ ] <strong>발표 연습</strong> — 무대가 크고 높은 공연장 형태라는 것을 전제로</li><li>[ ] <strong>시연 영상 준비 + 백업 페이지(핵심 화면 캡처) 슬라이드 추가</strong></li><li>[ ] <strong>슬라이드 내 중요 내용 볼드 처리</strong> — 스크립트 없이 발표할 수 있게</li></ul>
+<h3 id="22-사업계획서-수정">2.2 사업계획서 수정</h3>
+<ul><li>[ ] <strong>비즈니스 모델(사업 모델) 페이지 추가</strong></li><li>[ ] <strong>4개 지불 고객 각각의 문제와 서비스 연결고리 페이지 추가</strong></li><li>[ ] <strong>고객 문제 → 서비스 기능 → 수익 구조로 이어지는 논리 구성</strong></li></ul>
+<h3 id="23-수익-구조와-요금-체계-재설정">2.3 수익 구조와 요금 체계 재설정</h3>
+<ul><li>[ ] <strong>시장 조사 후 가격 상향</strong> — 지금 요금이 지나치게 낮다</li><li>[ ] <strong>인당 단위 요금 체계로 변경 검토</strong> · 규모에 따른 할인 구조 반영</li></ul>
+<h3 id="24-시장-규모와-사업-계획">2.4 시장 규모와 사업 계획</h3>
+<ul><li>[ ] <strong>영업 지역과 확장 순서 구체화</strong> (예: 안산 산업단지)</li><li>[ ] <strong>담당자 추가 인터뷰</strong> — 교육 종류별 비용 데이터 수집</li><li>[ ] <strong>5년치 매출·비용·인건비 계획 수립</strong></li></ul>
+<h3 id="25-기한">2.5 기한</h3>
+<ul><li>[ ] <strong>11/23(월)까지 최종 제출</strong> — 대회 자료 제출 마감과 같은 날이다</li></ul>
+<hr>
+<h2 id="3-발표-구성에-바로-걸리는-것">3. 발표 구성에 바로 걸리는 것</h2>
+<blockquote><p>아래 다섯은 <strong>PPT 목차를 짜기 전에 반영해야 한다.</strong> 목차가 바뀐다.</p></blockquote>
+<div class="tbl"><table><thead><tr><th>#</th><th>무엇</th><th>지금까지 생각하던 것</th><th>바뀌는 것</th></tr></thead><tbody><tr><td>1</td><td><strong>백업 페이지</strong></td><td>12장 구성</td><td><strong>별첨 슬라이드가 더 붙는다.</strong> 발표 7분에는 안 들어가고, 영상이 안 나올 때만 연다</td></tr><tr><td>2</td><td><strong>볼드 처리</strong></td><td>장표 디자인 규칙 없음</td><td><strong>모든 장표에 적용되는 규칙.</strong> 볼드가 곧 발표 대본이 된다</td></tr><tr><td>3</td><td><strong>지불 고객 4곳 연결고리</strong></td><td>고객 구조를 한 장에 요약</td><td><strong>고객마다 「문제 → 우리 기능 → 돈 내는 이유」를 보이는 장이 필요하다</strong></td></tr><tr><td>4</td><td><strong>논리 순서 고정</strong></td><td>장별로 주제를 배치</td><td><strong>고객 문제 → 서비스 기능 → 수익 구조</strong> 순서가 관통해야 한다</td></tr><tr><td>5</td><td><strong>시연 방식 확정</strong></td><td>영상만 (C06 D-036)</td><td>멘토가 다시 확인하라고 했다. 공지상 <strong>점수 차등이 없으므로 영상 유지로 답하면 된다</strong></td></tr></tbody></table></div>
+<h2 id="4-먼저-풀어야-하는-충돌--가격">4. 먼저 풀어야 하는 충돌 — 가격</h2>
+<p><strong>멘토와 현장 인터뷰가 서로 다른 말을 한다.</strong> 둘 다 사실이므로 어느 한쪽을 버리면 안 된다.</p>
+<div class="tbl"><table><thead><tr><th>누가</th><th>무엇을 말했나</th></tr></thead><tbody><tr><td><strong>멘토 (11/17)</strong></td><td>지금 요금이 <strong>지나치게 낮다.</strong> 시장 조사 후 <strong>상향</strong>하고 <strong>인당 단위</strong>로 바꿔라</td></tr><tr><td><strong>대행기관 실무자 (서면 인터뷰, 11/16)</strong></td><td>적정 연 이용료 <strong>10만~30만 원</strong>. &quot;사실상 <strong>무료에 가까운 금액</strong>이 아닐 경우 현장의 적극적인 참여를 이끌어내기 매우 어렵다&quot;</td></tr></tbody></table></div>
+<p><strong>읽는 법</strong> — 두 말이 부딪치는 것처럼 보이지만, <strong>말하는 대상이 다르다.</strong></p>
+<ul><li>인터뷰 응답자가 말한 것은 <strong>「사업주가 자기 돈으로 내기는 어렵다」</strong> 이지 <strong>「제품 가치가 30만 원」</strong> 이 아니다</li><li>같은 답변에서 그는 <strong>안전보건공단 등 공공 지원</strong>과 <strong>대행기관 연계</strong>를 대안으로 제시했다</li><li>멘토가 말한 것은 <strong>제품의 값어치에 비해 가격을 낮게 매겼다</strong>는 것이다</li></ul>
+<p>→ <strong>결론: 가격은 올리되, 사업주 단독 부담이 아닌 구조로 간다.</strong> 지자체·원청·산단 기관이 지불 주체로 들어가면 <strong>인당 단위 요금제</strong>가 오히려 자연스럽다 (지자체는 「몇 명을 교육시켰나」로 성과를 보고하므로 인당 과금과 단위가 맞는다).</p>
+<p>이렇게 쓰면 <strong>「현장에서 가격 가정이 틀린 것을 확인하고 지불 주체를 바꿨다」</strong>가 되어 해커톤 심사의 <strong>검증 15점 — 「결과를 바탕으로 사업 방향을 개선하였는가」</strong>를 같이 채운다.</p>
+<h2 id="5-다시-범위에-들어온-것--시장-규모">5. 다시 범위에 들어온 것 — 시장 규모</h2>
+<p>「고객 분석 및 통합 비즈니스 모델」 보고서(11/17)는 **&quot;시장 규모(TAM·SAM·SOM)는 별도로 재검증 중이므로 본 보고서에서 다루지 않음&quot;<strong> 으로 범위에서 뺐다. </strong>멘토가 재검토를 요구했으므로 다시 들어온다.**</p>
+<p><strong>주의</strong> — 아이디어톤 장표의 TAM 1.2조 · SAM 1,440억 · SOM 180억은 <a href="../../../documentations/10_사업화/S02_수치-근거대장.md"><code>S02 수치-근거대장</code></a> 에서 <strong>⛔ 사용 금지(N-93)</strong> 로 판정했다. 산출식이 없고 TAM 만 사업장당 단가가 다르기 때문이다. <strong>그 숫자로 돌아가지 않는다.</strong> 재산정값은 같은 문서의 N-40~N-42 에 있고, 그 단가도 🔷 가정이다.</p>
+<h2 id="6-이름-표기">6. 이름 표기</h2>
+<p>논의 기록에 제품명이 <strong>「세이프렌」</strong> 으로 적혀 있다. 저장소와 배포본의 이름은 <strong>SAFE-LANG</strong>(화면 표기 <code>Safelang</code>)이다. <strong>발표·제출물에서는 SAFE-LANG 으로 통일한다.</strong></p>
+<hr>
+<h2 id="7-이전-멘토링-지적과의-관계">7. 이전 멘토링 지적과의 관계</h2>
+<div class="tbl"><table><thead><tr><th>회차</th><th>지적</th><th>이번 회차에서</th></tr></thead><tbody><tr><td>사업 1차 (10/10)</td><td>돈을 내는 고객은 노동자가 아니라 기관·공무원·지자체</td><td><strong>유지·강화</strong> — 지불 고객 4곳 구조로 발전</td></tr><tr><td>사업 1차</td><td>효과의 크기를 숫자로</td><td>도입 효과 계산으로 답했으나 <strong>가정이 겹쳐 있어 보완 필요</strong></td></tr><tr><td>사업 1차</td><td>시장 수치가 환각이 아닌지 검증하라</td><td><code>S02</code> 근거 대장으로 답함. <strong>이번에 TAM/SAM/SOM 재검토가 다시 요구됨</strong></td></tr><tr><td>사업 2차 (10/24)</td><td>소수 언어 번역 데이터의 자산 가치</td><td><strong>보류 결정</strong> (5년 계획에서 제외, 3년 차 재검토)</td></tr></tbody></table></div>
+<hr>
+<h2 id="변경-기록">변경 기록</h2>
+<div class="tbl"><table><thead><tr><th>날짜</th><th>작성자</th><th>내용</th></tr></thead><tbody><tr><td>2026-11-17</td><td>변소윤</td><td>최초 작성. 멘토링 중 전달받은 논의 내용과 작업 목록을 옮기고, 발표 구성에 걸리는 것과 가격 충돌 해석을 덧붙였다</td></tr></tbody></table></div>
+<p class="src">이 페이지는 <code>S10_창업멘토링3차-결과-2026-11-17.md</code>에서 만들었다. 원본은 md다 — 고칠 때는 md를 고치고 <code>node docs/infos/_build.js</code>를 실행한다.</p>
+</main>
+</div>
+</body>
+</html>

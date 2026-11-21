@@ -372,3 +372,84 @@ export function judge(item) {
   }
   return { status: reasons.length ? 'check' : 'ok', reasons };
 }
+
+/* ── 🆕 2026-11-16 등록 정보 검수 (설비 화면 → /api/research 의 verify) ─────────────
+   담당자가 적은 설비 종류·제조사·모델·연식·위험유형이 맞는지 공개 자료로 확인한다.
+   ★ 「맞음」「틀림」은 **검색 근거로 확인된 출처가 있을 때만** 받는다. 없으면 「확인 못 함」.
+   ★ 빠진 위험유형 제안은 화면이 보낸 분류 목록(allowed) 안의 이름만, 확인된 출처가 있을 때만 받는다.
+   ★ 아무것도 저장하지 않는다 — 반영은 담당자가 [승인]할 때 화면이 한다. */
+
+export const VERIFY = { claims: 30, allowed: 40, label: 30, value: 60, note: 200, reason: 200, suggest: 60, missing: 6 };
+export const VERDICTS = ['ok', 'wrong', 'unknown'];
+
+/** 요청의 verify 를 다듬는다. 없거나 모양이 틀리면 null */
+export function readVerify(body) {
+  const v = body && body.verify;
+  if (!v || typeof v !== 'object' || !Array.isArray(v.claims)) return null;
+  const claims = [];
+  v.claims.slice(0, VERIFY.claims).forEach((c) => {
+    if (!c || typeof c !== 'object') return;
+    const key = typeof c.key === 'string' && /^[a-z]+(:[^\s"`{}<>]{1,30})?$/i.test(c.key) ? c.key : '';
+    const value = cleanField(c.value, VERIFY.value);
+    if (!key || !value || claims.some((x) => x.key === key)) return;
+    claims.push({ key, field: cleanField(c.field, VERIFY.label) || key, value, note: cleanField(c.note, VERIFY.note) });
+  });
+  if (!claims.length) return null;
+  const allowed = (Array.isArray(v.allowed) ? v.allowed : []).map((x) => cleanField(x, VERIFY.label)).filter(Boolean).slice(0, VERIFY.allowed);
+  return { claims, allowed };
+}
+
+export function verifySystemText() {
+  return '너는 산업안전 자료 검수원이다. 담당자가 공장 설비 한 대를 등록하며 적은 정보가 맞는지 공개 자료로 확인한다.\n'
+    + '규칙:\n'
+    + '1) 반드시 검색으로 실제로 본 자료만 근거로 쓴다. 우선순위: 제조사 자료 > KOSHA GUIDE·법령·공식 교육자료 > 업계 전문지 > 일반 웹.\n'
+    + '2) 항목(key)마다 verdict 를 ok(자료로 맞다고 확인), wrong(자료와 다르다), unknown(자료를 못 찾음) 중 하나로 쓴다. 추측으로 ok 를 쓰지 않는다.\n'
+    + '3) wrong 이면 suggest 에 자료가 말하는 올바른 값을 짧게 쓴다. 위험유형이 이 설비와 관계없으면 wrong 이고 suggest 는 비운다.\n'
+    + '4) reason 은 한국어 한 문장. 담당자 메모(note)가 있으면 그 지적을 먼저 확인하고 reason 에 답한다.\n'
+    + '5) 담당자가 적지 않았지만 이 설비에 분명히 있는 위험유형이 있으면 missing 에 넣는다. hazard 는 주어진 분류 목록의 이름 그대로만 쓴다.\n'
+    + '6) sources 에는 실제로 본 자료의 제목(title)·주소(url)만 쓴다. 주소를 지어내지 않는다.\n'
+    + '7) 설명 없이 아래 모양의 JSON 하나만 출력한다.\n'
+    + '{"checks": [{"key": "kind", "verdict": "ok", "suggest": "", "reason": "...", "sources": [{"title": "...", "url": "https://..."}]}],'
+    + ' "missing": [{"hazard": "...", "reason": "...", "sources": [{"title": "...", "url": "https://..."}]}]}';
+}
+
+export function verifyUserText(eq, v) {
+  const lines = ['설비 이름: ' + eq.name, '확인할 항목 (key · 항목 · 담당자가 적은 값 · 담당자 메모):'];
+  v.claims.forEach((c) => lines.push('- ' + c.key + ' · ' + c.field + ' · ' + c.value + (c.note ? ' · 메모: ' + c.note : '')));
+  if (v.allowed.length) lines.push('위험유형 분류 목록: ' + v.allowed.join(', '));
+  lines.push('각 항목이 맞는지 확인하라.');
+  return lines.join('\n');
+}
+
+/** 모델 출력 → 화면이 그대로 쓰는 검수 결과. 확인된 출처가 없으면 ok·wrong 을 unknown 으로 내린다 */
+export function cleanVerify(raw, grounding, eq, v) {
+  const grounded = groundedSources(grounding);
+  const got = raw && Array.isArray(raw.checks) ? raw.checks : [];
+  const checks = v.claims.map((c) => {
+    const m = got.find((x) => x && x.key === c.key) || null;
+    const src = verifySources(m && m.sources, grounded, eq && eq.maker);
+    let verdict = m && VERDICTS.indexOf(m.verdict) !== -1 ? m.verdict : 'unknown';
+    let reason = clip(m && m.reason, VERIFY.reason);
+    if (!m) reason = 'AI 가 이 항목에 답하지 않음';
+    if (verdict !== 'unknown' && !src.sources.length) {
+      verdict = 'unknown';
+      reason = (reason ? reason + ' — ' : '') + '근거 출처를 확인하지 못해 판정하지 않음';
+    }
+    return {
+      key: c.key, field: c.field, claim: c.value, verdict,
+      suggest: verdict === 'wrong' ? clip(m && m.suggest, VERIFY.suggest) : '',
+      reason, sources: src.sources, unverifiedSources: src.unverified,
+    };
+  });
+  const missing = [];
+  (raw && Array.isArray(raw.missing) ? raw.missing : []).forEach((m) => {
+    if (!m || missing.length >= VERIFY.missing) return;
+    const label = clip(m.hazard, VERIFY.label);
+    if (v.allowed.indexOf(label) === -1 || missing.some((x) => x.label === label)) return;
+    if (v.claims.some((c) => c.key.indexOf('hazard:') === 0 && c.value === label)) return;   // 이미 적은 것
+    const src = verifySources(m.sources, grounded, eq && eq.maker);
+    if (!src.sources.length) return;   // 근거 없는 제안은 받지 않는다
+    missing.push({ key: 'add:' + label, field: '위험유형 추가 제안', claim: '', label, verdict: 'wrong', suggest: label, reason: clip(m.reason, VERIFY.reason), sources: src.sources, unverifiedSources: src.unverified });
+  });
+  return { checks, missing };
+}

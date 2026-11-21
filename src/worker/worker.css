@@ -1672,3 +1672,227 @@
 #view-quiz .consequence .pict { color: var(--stop); }
 #view-quiz .consequence[data-correct="yes"] .pict { color: var(--ok); }
 #view-quiz .big-actions .btn-primary { min-height: 64px; border-radius: 16px; font-size: 20px; }
+
+
+/* ===================================================================
+   [P2] 🆕 2026-11-16 홈 새 디자인 (Stitch 시안 「Vibrant Industrial Safety」)
+
+   로그인 화면(app.css .login-v2)과 같은 말투 — 연한 바탕, 흰 카드,
+   둥근 모서리, 코랄 하나로 "지금 누를 곳" 을 가리킨다.
+   ★ 홈 화면에만 걸린다 (body.home-v2). 다른 노동자 화면은 그대로다.
+   ★ 글꼴은 그대로 (외부 글꼴을 부르지 않는다 — 오프라인 · 외부 요청 0건).
+   =================================================================== */
+
+/* 색 · 머리띠 · 카드 · 버튼 · 탭바는 아래 「노동자 화면 공통 디자인」 으로 올렸다.
+   여기에는 홈에만 있는 것(오늘 할 교육 · 진행 상황 · 바로가기 목록)만 남는다. */
+
+.home-v2 .hv2-me {
+  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #F2F4F6; color: var(--hv2-ink-2); text-decoration: none;
+}
+.home-v2 .hv2-me .ico { width: 22px; height: 22px; }
+.home-v2 .hv2-kicker {
+  margin: 0; font-size: 15px; font-weight: 800; color: var(--hv2-ink);
+}
+
+/* 1. 오늘 할 교육 — 이 화면의 주인공 */
+.home-v2 .hv2-task { padding: 18px 16px 16px; }
+.home-v2 .hv2-task-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.home-v2 .hv2-meta {
+  flex: 0 0 auto; padding: 4px 10px; border-radius: 999px;
+  background: var(--hv2-soft); color: #B23A44; font-size: 12px; font-weight: 700;
+}
+.home-v2 .hv2-meta[hidden] { display: none; }
+.home-v2 .hv2-task-body { display: flex; align-items: center; gap: 14px; }
+.home-v2 .hv2-pict {
+  flex: 0 0 auto; width: 64px; height: 64px; border-radius: 18px;
+  background: var(--hv2-soft); color: var(--hv2-fill);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.home-v2 .hv2-pict .ico, .home-v2 .hv2-pict svg { width: 36px; height: 36px; font-size: 36px; }
+.home-v2 .hv2-title {
+  margin: 0; font-size: 1.3em; font-weight: 800; line-height: 1.35; color: var(--hv2-ink);
+  overflow-wrap: anywhere;
+}
+.home-v2 .hv2-title:empty { display: none; }
+.home-v2 .hv2-task .stage-say {
+  margin: 10px 0 12px; font-size: .92em; color: var(--hv2-ink-2); line-height: 1.5;
+}
+
+/* 3단계 — 얇은 알약 셋. 색만이 아니라 아이콘 · 테두리도 함께 바뀐다 */
+.home-v2 .stage-track { gap: 6px; margin: 0 0 14px; }
+.home-v2 .stage-track li {
+  flex-direction: row; justify-content: center; gap: 6px;
+  min-height: 40px; padding: 6px 4px; border-radius: 12px;
+  border: 1px solid var(--hv2-line); background: #fff;
+}
+.home-v2 .stage-track li .ico { font-size: 18px; width: 18px; height: 18px; }
+.home-v2 .stage-track li[data-state="now"] { border: 2px solid var(--hv2-coral); background: var(--hv2-soft); color: #B23A44; }
+.home-v2 .stage-track li[data-state="done"] { border-color: #BFE3DA; background: #EEF8F5; color: #1C6B57; }
+
+/* 지금 시작하기 — 큰 코랄 버튼 하나 */
+.home-v2 #stage-actions { display: block; }
+.home-v2 #stage-actions .btn,
+.home-v2 .order-card .big-actions .btn {
+  width: 100%; min-height: 60px; border-radius: 16px;
+  background: var(--hv2-fill); border-color: var(--hv2-fill); color: #fff;
+  font-size: 18px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.home-v2 #stage-actions .btn::after { content: "\2192"; font-weight: 700; }
+.home-v2 .hv2-task .policy-note { margin: 12px 0 0; font-size: .8em; line-height: 1.5; color: var(--hv2-ink-3); }
+.home-v2 .hv2-task .policy-note b { color: var(--hv2-ink-2); }
+
+/* 0. 다시 들으라는 지시 — 코랄 띠 */
+.home-v2 .order-card { border-left: 5px solid var(--hv2-coral); }
+
+/* 2. 내 진행 상황 */
+.home-v2 .hv2-prog { padding: 16px; }
+.home-v2 .hv2-prog[hidden] { display: none; }
+.home-v2 .hv2-prog-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.home-v2 .hv2-prog-num { font-size: 1.25em; font-weight: 800; color: var(--hv2-fill); font-variant-numeric: tabular-nums; }
+.home-v2 .hv2-bar { height: 10px; border-radius: 999px; background: #F2F4F6; overflow: hidden; }
+.home-v2 .hv2-bar span { display: block; height: 100%; border-radius: 999px; background: var(--hv2-coral); }
+.home-v2 .hv2-prog-say { margin: 10px 0 0; }
+
+/* 3. 바로가기 — 한 줄짜리 카드 목록 (그림 · 이름 · 배지 · 음성) */
+.home-v2 .bigmenu { grid-template-columns: 1fr; gap: 10px; }
+.home-v2 .bigmenu-cell {
+  padding: 8px 8px 8px 12px; border-radius: 18px; border-color: var(--hv2-line);
+  box-shadow: 0 2px 10px rgba(25, 31, 40, .04);
+}
+.home-v2 .bigmenu-link {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) 16px;
+  grid-template-rows: auto auto; column-gap: 12px; row-gap: 4px;
+  align-items: center; justify-items: start; text-align: left;
+}
+.home-v2 .bigmenu-link > .ico {
+  grid-column: 1; grid-row: 1 / span 2;
+  font-size: 24px; width: 48px; height: 48px; padding: 12px; box-sizing: border-box;
+  border-radius: 14px; background: #F2F4F6; color: var(--hv2-ink-2);
+}
+.home-v2 .bigmenu-link .name { grid-column: 2; grid-row: 1; font-size: 1em; font-weight: 800; color: var(--hv2-ink); text-align: left; }
+.home-v2 .bigmenu-link .badge { grid-column: 2; grid-row: 2; text-align: left; }
+.home-v2 .bigmenu-link .name:last-of-type:only-of-type { grid-row: 1 / span 2; }
+.home-v2 .bigmenu-link::after { content: "\203A"; grid-column: 3; grid-row: 1 / span 2; font-size: 24px; color: #B0B8C1; }
+/* 위험한 곳 알리기 — 코랄로 강조 (시안 그대로) */
+.home-v2 .bigmenu-cell.is-report { background: var(--hv2-soft); border-color: #FFD5D9; }
+.home-v2 .bigmenu-cell.is-report .bigmenu-link > .ico { background: var(--hv2-fill); color: #fff; }
+
+/* 4. 오늘의 안전 문구 — 덜 크게. 홈의 주인공은 "오늘 할 교육" 이다 */
+.home-v2 .today { padding: 16px; text-align: left; }
+.home-v2 .today .hv2-kicker { margin-bottom: 10px; }
+.home-v2 .today .pict { font-size: 36px; margin: 0 0 4px; color: var(--hv2-fill); }
+.home-v2 .today .pict svg { width: 36px; height: 36px; }
+.home-v2 .hv2-me svg { width: 22px; height: 22px; }
+.home-v2 .today .translated { font-size: 1.12em; color: var(--hv2-ink); }
+.home-v2 .today .original { color: var(--hv2-ink-3); }
+.home-v2 .today .listen { justify-content: flex-start; }
+.home-v2 .today .listen .label { color: #B23A44; }
+.home-v2 .today #today-report { margin-top: 10px; }
+.home-v2 .hv2-more { margin-top: 12px; border-top: 1px solid var(--hv2-line); padding-top: 10px; }
+.home-v2 .hv2-more summary {
+  min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-size: .9em; font-weight: 700; color: var(--hv2-ink-2);
+}
+.home-v2 .hv2-more .muted { font-size: .84em; line-height: 1.55; }
+
+
+/* ===================================================================
+   [공통] 🆕 2026-11-16 노동자 화면 공통 디자인 (Stitch 시안 → 앱 전체)
+
+   ★ 이 구역 하나가 노동자 화면 6개(홈 · 교육 · 이해 확인 · 신고 · 소통 · 마이)의
+     겉모양을 정한다. 색이나 모서리를 바꾸고 싶으면 **맨 위 :root 값만** 고치면 된다.
+   ★ worker.css 는 노동자 화면에서만 실린다 — 로그인 · 관리자 화면에는 안 걸린다.
+   ★ 기능 · 글자 · 음성 버튼은 그대로다. 겉모양만 바꾼다.
+   =================================================================== */
+
+:root {
+  /* ── 디자인 값 (여기만 고치면 전부 바뀐다) ── */
+  --hv2-coral: #F0646E;     /* 장식 · 막대 · 테두리 (글자를 얹지 않는다) */
+  --hv2-fill: #CC4550;      /* 버튼 바탕 · 강조 글자 — 흰 글자/흰 바탕 모두 4.6:1 */
+  --hv2-soft: #FFF0F1;      /* 연한 코랄 바탕 */
+  --hv2-ink: #191F28;
+  --hv2-ink-2: #4E5968;
+  --hv2-ink-3: #6B7684;
+  --hv2-line: #E5E8EB;
+  --hv2-bg: #F8F9FD;        /* 화면 바탕 */
+  --hv2-card-radius: 20px;
+  --hv2-btn-radius: 16px;
+  --hv2-shadow: 0 2px 10px rgba(25, 31, 40, .05);
+
+  /* ── 기존 화면들이 쓰던 이름을 위 값에 잇는다 ── */
+  --brand: var(--hv2-fill);
+  --brand-strong: #A93540;
+  --brand-deep: #8F2C36;
+  --brand-soft: var(--hv2-soft);
+  --brand-line: #FFD5D9;
+  --brand-vivid: var(--hv2-coral);
+  --brand-vivid-2: #F58A91;
+  --brand-focus: var(--hv2-coral);
+  --brand-glow: rgba(240, 100, 110, .28);
+  --brand-tint: #FFF8F8;
+  --banner: var(--hv2-coral);
+  --banner-end: #F58A91;
+  --btn-main: var(--hv2-fill);          /* 검정 버튼 → 코랄 버튼 */
+  --btn-main-strong: #A93540;
+  --btn-main-ink: #ffffff;
+  --bg: var(--hv2-bg);
+  --radius: var(--hv2-card-radius);
+}
+
+body.has-tabbar { background: var(--hv2-bg); }
+
+/* 머리띠 — 흰 바탕 · 로고 · 현장 이름 · (언어) · 로그아웃.
+   코랄 띠 대신 로고 색으로 "노동자 화면" 임을 알린다. */
+.workerbar {
+  background: #fff;
+  color: var(--hv2-ink);
+  border-bottom: 1px solid var(--hv2-line);
+  gap: 10px;
+}
+.workerbar .hv2-logo {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 11px;
+  background: var(--hv2-fill); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.workerbar .hv2-logo svg, .workerbar .hv2-logo .ico { width: 22px; height: 22px; }
+.workerbar .who strong { color: var(--hv2-ink); }
+.workerbar .who span { color: var(--hv2-ink-3); }
+.workerbar .btn-sm { background: #fff; color: var(--hv2-ink-2); border-color: var(--hv2-line); border-radius: 12px; }
+.workerbar .btn-sm:hover { background: #F2F4F6; color: var(--hv2-ink); border-color: var(--hv2-line); }
+.workerbar .lang-switch {
+  border: 1px solid var(--hv2-line); border-radius: 12px; background: #F8F9FA;
+  color: var(--hv2-ink); padding: 4px 8px; font-weight: 600;
+}
+
+/* 화면 제목 */
+.page h1 { color: var(--hv2-ink); font-weight: 800; letter-spacing: -.01em; }
+
+/* 카드 — 흰 바탕 · 큰 모서리 · 옅은 그림자 */
+.page .card,
+.page .today {
+  background: #fff;
+  border: 1px solid var(--hv2-line);
+  border-radius: var(--hv2-card-radius);
+  box-shadow: var(--hv2-shadow);
+}
+
+/* 주 버튼 — 코랄 · 둥근 모서리 · 장갑 손가락 크기 */
+.page .btn-primary {
+  border-radius: var(--hv2-btn-radius);
+  min-height: var(--tap-min);
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(204, 69, 80, .22);
+}
+.page .btn:not(.btn-primary) { border-radius: var(--hv2-btn-radius); }
+
+/* 하단 탭 — 흰 바탕 · 지금 자리를 코랄로 */
+.tabbar.fixed { background: #fff; border-top: 1px solid var(--hv2-line); }
+.tabbar a[aria-current="page"],
+.tabbar a[aria-current="page"] .ico { color: var(--hv2-fill); }
+/* 언어 고르기가 있는 화면(교육 · 이해 확인)에서도 머리띠가 두 줄로 깨지지 않게 */
+.workerbar .btn-sm { white-space: nowrap; flex: 0 0 auto; }
+.workerbar .who span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.workerbar .lang-switch { flex: 0 1 auto; min-width: 0; max-width: 7.5em; }

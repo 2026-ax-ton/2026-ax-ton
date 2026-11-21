@@ -83,14 +83,14 @@ function open(page, query, voices, login) {
 
   /* 언어 바꾸기 — 음성을 끊고 그 자리에서 다시 그린다 */
   const sel = t.$('lang-switch').querySelector('select');
-  ok('★ 머리에 언어 바꾸기가 있다 (모국어 글자)', !!sel && [...sel.options].some((o) => o.textContent === 'Bahasa Indonesia'));
+  ok('★ 머리에 언어 바꾸기가 있다 (모국어 글자)', !!sel && [...sel.options].some((o) => o.textContent === 'नेपाली'));
   const cancels = sp.cancels;
-  sel.value = 'id';
+  sel.value = 'ne';
   sel.dispatchEvent(new t.win.Event('change', { bubbles: true }));
   ok('★ 언어를 바꾸면 읽던 음성을 끊는다', sp.cancels > cancels);
-  has('★★ 새로고침 없이 문항이 그 언어로', t.$('quiz-prompt').textContent, 'Mesin press berhenti');
-  has('화면 글자도 그 언어로', t.$('step-count').textContent, t.win.I18N.t('quiz.stepLabel', 'id'));
-  eq('★ 계정에 저장된다 (다음 문항·새로고침에도 남는다)', t.win.Store.accounts.load().find((a) => a.userId === 'W-4821-07').lang, 'id');
+  has('★★ 새로고침 없이 문항이 그 언어로', t.$('quiz-prompt').textContent, 'प्रेस मेसिन रोकियो। के गर्नुपर्छ?');
+  has('화면 글자도 그 언어로', t.$('step-count').textContent, t.win.I18N.t('quiz.stepLabel', 'ne'));
+  eq('★ 계정에 저장된다 (다음 문항·새로고침에도 남는다)', t.win.Store.accounts.load().find((a) => a.userId === 'W-4821-07').lang, 'ne');
   t.win.Date.now = realNow;
   ok('화면 오류 없음', t.errors.length === 0, t.errors.join(' | '));
 }

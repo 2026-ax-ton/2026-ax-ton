@@ -172,7 +172,7 @@
   /* ★ 검수를 지난 문구만. 여기가 규칙이 코드가 되는 지점이다.
 
      판정은 언어별이다 (Store.phraseOk). 사업장에 등록한 언어 중 하나라도
-     쓸 수 있으면 고를 수 있게 둔다 — 인도네시아어 번역만 중지된 문구를
+     쓸 수 있으면 고를 수 있게 둔다 — 네팔어 번역만 중지된 문구를
      선택지에서 아예 빼면 크메르어 노동자도 그 안전 지시를 못 받는다.
      어느 언어에서 빠지는지는 renderPhraseWarn 이 화면에 적는다. */
   /* 🆕 2026-11-11 — 고른 설비의 종류(Store.kindOf) 문구와 「공통」만. 프레스 교육에 도장 문구가 섞이지 않게 */
@@ -1482,6 +1482,15 @@
         + ' · ' + (a ? 'AI 분석: 위험 ' + a.research.items.length + (a.at ? ' · ' + UI.formatDate(a.at) : '') : 'AI 분석 전')
         + ' · 사진 ' + (e.photo ? '있음' : '없음'));
       li.setAttribute('data-id', e.id);
+      /* ★ AI 검수를 승인받지 않은 설비는 교육을 만들 수 없다 — 승인하러 가는 길만 보인다 (2026-11-16) */
+      if (!Store.equipmentReady(e)) {
+        li.querySelector('.body').appendChild(UI.waitBadge('검수 대기 — 등록 설비에서 AI 검수를 승인해야 교육을 만들 수 있습니다'));
+        var rv = UI.el('a', 'btn btn-primary', '검수 승인하러 가기');
+        rv.href = 'setup.html#list';
+        li.appendChild(rv);
+        list.appendChild(li);
+        return;
+      }
       var go = UI.el('a', 'btn btn-primary', a ? '분석 불러와 교육 만들기' : 'AI 분석하고 교육 만들기');
       go.href = 'autogen.html#eq=' + encodeURIComponent(e.id);
       li.appendChild(go);
@@ -1496,17 +1505,18 @@
     var state = setup();
     renderEduKind();
     renderEquipCards(state);
-    var ready = state.equipments.length > 0 && state.languages.length > 0;
+    var usable = state.equipments.filter(Store.equipmentReady);   // 검수 대기 설비는 직접 만들기에서도 못 고른다
+    var ready = usable.length > 0 && state.languages.length > 0;
     $('setup-lock').hidden = ready;
     $('builder').hidden = !ready;
 
     if (ready) {
-      UI.fillSelect($('draft-equip'), state.equipments,
+      UI.fillSelect($('draft-equip'), usable,
         function (e) { return e.id; },
       /* ★ <option> 안에는 그림을 넣을 수 없다. 이모지를 남기면 이 목록만
          옛 말투로 남으므로 이름만 쓴다 (그림은 고른 뒤 화면에서 보인다). */
         function (e) { return e.name; });
-      if (!draft.equipmentId) draft.equipmentId = $('draft-equip').value;
+      if (!draft.equipmentId || !Store.findBy(usable, 'id', draft.equipmentId)) draft.equipmentId = $('draft-equip').value;
       $('draft-equip').value = draft.equipmentId;
       syncEduEquip();
 

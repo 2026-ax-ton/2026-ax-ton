@@ -15,14 +15,12 @@
      ★ 시안의 「보안 서버 정상 가동 중」「SSL 256-bit」 「법 제31조 준수 인증」 「1588-0000」은 넣지 않았다 —
        확인하지 않은 상태·인증·연락처를 화면에 쓰면 사실이 아닌 말이 된다. 이름은 전부 Safelang. -->
 <header class="login-strip">
-  <span class="login-strip-brand"><span class="ico" data-icon="shield" aria-hidden="true"></span>Safelang</span>
+  <span class="login-strip-brand" data-brand="sm">safelang.</span>
 </header>
 
 <main class="login-main">
 
-  <!-- 언어 선택 — 로그인 전이라 이 기기에 둔다 (H9 · FR-CM-01-08).
-       글을 못 읽어도 모국어 글자와 음성으로 자기 언어를 찾을 수 있다. -->
-  <div class="lang-gate" id="lang-gate"></div>
+  <!-- 2026-11-16 사용자 결정 — 로그인 화면의 언어 선택을 뺐다. 노동자 언어는 로그인 뒤 계정의 언어로 바뀐다 -->
 
   <!-- QR 로 들어왔으면 로그인 뒤 어디로 가는지 미리 알린다 (H9 · FR-CM-01-09) -->
   <p class="qr-note" id="qr-note" hidden></p>
@@ -34,7 +32,7 @@
 
   <section class="login-card" aria-labelledby="t-login">
     <div class="login-head">
-      <span class="login-logo"><span class="login-logo-mark"><span class="ico" data-icon="shield" aria-hidden="true"></span></span>Safelang</span>
+      <span class="login-logo" data-brand="lg">safelang.</span>
       <span class="login-chip"><span class="ico" data-icon="person" aria-hidden="true"></span>노동자 · 담당자 · 운영자</span>
     </div>
 
@@ -48,7 +46,6 @@
           <input id="login-id" type="text" placeholder="식별번호 또는 업무용 이메일" autocomplete="username">
           <span class="ico" data-icon="factory" aria-hidden="true"></span>
         </div>
-        <p class="field-hint">노동자는 사업장에서 받은 식별번호, 담당자·운영자는 업무용 이메일입니다.</p>
       </div>
       <div class="field">
         <label for="login-pw" data-i18n="login.pw">비밀번호</label>
@@ -70,45 +67,46 @@
 
     <hr class="hr">
 
-    <p class="login-note"><span class="ico" data-icon="shield" aria-hidden="true"></span>
-      Safelang 은 사업장 안전교육 전용입니다. 계정을 받은 사람만 쓸 수 있습니다.
-      위치·근태를 기록하지 않고, 개인 점수를 인사·평가 목적으로 내보내지 않습니다.</p>
-
     <a class="login-signup" href="signup.html">처음이세요? <b data-i18n="login.signupTitle">회원가입</b></a>
   </section>
 
-  <!-- 개발·시연용. 서버가 없으면 계정이 이 브라우저에만 있으므로,
-       처음 여는 사람이 빈 화면에서 막히지 않게 통로를 하나 둔다. -->
-  <section class="login-card login-demo" aria-labelledby="t-demo">
-    <div class="sec-head">
-      <div>
-        <h2 id="t-demo">시연용 계정</h2>
-        <p class="why">
-          서버가 없어 계정도 이 브라우저 안에만 있습니다.
-          아래 버튼을 누르면 예시 사업장과 계정이 한 번에 만들어집니다.
-        </p>
+  <!-- 시연·촬영용. 서버가 없으면 계정이 이 브라우저 안에만 있어서, 처음 여는 사람이
+       빈 화면에서 막힌다. 그래서 통로를 하나 둔다 — 단 **접어 둔다**(노동자 화면 시안에 없는 칸).
+       🆕 2026-11-17 되돌림 — 11/16 에 뺐더니 시연 영상을 찍을 때 계정을 찾을 길도,
+       다시 찍으려 초기화할 길도 없어졌다 (촬영 대본 §0 이 이 칸을 쓴다). -->
+  <details class="login-demo-wrap" id="demo-wrap">
+    <summary>시연용 계정</summary>
+    <section class="login-card login-demo" aria-labelledby="t-demo">
+      <div class="sec-head">
+        <div>
+          <h2 id="t-demo">시연용 계정</h2>
+          <p class="why">
+            서버가 없어 계정도 이 브라우저 안에만 있습니다.
+            아래 버튼을 누르면 예시 사업장과 계정이 한 번에 만들어집니다.
+          </p>
+        </div>
+        <span class="badge badge-wait"><span aria-hidden="true">&#9679;</span> 목업</span>
       </div>
-      <span class="badge badge-wait"><span aria-hidden="true">●</span> 목업</span>
-    </div>
 
-    <p class="why" id="seed-auto" hidden>
-      이 브라우저에는 저장된 것이 없어서 <b>예시 데이터를 자동으로 채웠습니다.</b>
-      쓰던 데이터가 있으면 덮어쓰지 않습니다.
-    </p>
+      <p class="why" id="seed-auto" hidden>
+        이 브라우저에는 저장된 것이 없어서 <b>예시 데이터를 자동으로 채웠습니다.</b>
+        쓰던 데이터가 있으면 덮어쓰지 않습니다.
+      </p>
 
-    <div class="btn-row" style="margin-bottom:12px">
-      <button class="btn-sm go" type="button" id="btn-seed">예시 데이터 채우기</button>
-      <button class="btn-sm danger" type="button" id="btn-reset">전체 초기화</button>
-    </div>
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn-sm go" type="button" id="btn-seed">예시 데이터 채우기</button>
+        <button class="btn-sm danger" type="button" id="btn-reset">전체 초기화</button>
+      </div>
 
-    <ul class="demo-accounts" id="demo-accounts"></ul>
+      <ul class="demo-accounts" id="demo-accounts"></ul>
 
-    <p class="muted" style="margin-top:10px">
-      비밀번호는 전부 <b>1234</b> 입니다.
-      서버가 없으면 어차피 브라우저에 그대로 남으므로, 감추지 않고 목업이라고 밝힙니다.
-      초기화한 뒤 새로고침하면 예시 데이터가 다시 채워집니다.
-    </p>
-  </section>
+      <p class="muted" style="margin-top:10px">
+        비밀번호는 전부 <b>1234</b> 입니다.
+        서버가 없으면 어차피 브라우저에 그대로 남으므로, 감추지 않고 목업이라고 밝힙니다.
+        초기화한 뒤 새로고침하면 예시 데이터가 다시 채워집니다.
+      </p>
+    </section>
+  </details>
 
   <p class="login-foot">Safelang © 2026</p>
 </main>

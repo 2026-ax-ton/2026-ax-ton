@@ -27,7 +27,6 @@
 
   <div class="pagehead noprint">
     <h1>교육 증빙 생성</h1>
-    <p class="lead">저장된 교육 기록을 법정 교육일지 서식으로 그대로 옮깁니다.</p>
   </div>
 
   <p class="blocked noprint" id="blocked" hidden>
@@ -35,21 +34,11 @@
   </p>
 
   <!-- ★ "면책" 이라고 쓰지 않는다. 증빙은 교육을 했다는 기록일 뿐이다. -->
-  <p class="ai-note off noprint">
-    <span class="tag">이 문서가 하는 일</span>
-    <span>이 증빙은 <b>교육을 실시했다는 기록</b>입니다. 법적 책임을 대신하지 않습니다.
-      미이수자와 이해도 미달자를 숨기는 기능은 넣지 않았습니다 —
-      숨길 수 있는 증빙은 증빙이 아닙니다.</span>
-  </p>
 
   <section class="card noprint" aria-labelledby="t-pick">
     <div class="sec-head">
       <div>
         <h2 id="t-pick">무엇에 대한 증빙인가</h2>
-        <p class="why">
-          고른 범위 안의 <b>모든 교육</b>과 그 <b>대상자 전원</b>이 아래 일지에 들어갑니다.
-          사람을 골라 빼는 기능은 없습니다.
-        </p>
       </div>
     </div>
 
@@ -70,7 +59,6 @@
     <div class="field" id="field-period" hidden>
       <label for="pick-period">기간</label>
       <select id="pick-period"></select>
-      <p class="why">감독기관에 내는 것은 보통 기간 단위입니다.</p>
     </div>
 
     <dl class="kpi-row" id="summary"></dl>
@@ -133,17 +121,6 @@
   </article>
 
   <!-- 여기부터 채우면 됩니다 -->
-  <section class="todo noprint">
-    <h2>여기부터 채우시면 됩니다</h2>
-    <p class="why">아래는 골격에 넣지 않은 것들입니다. 지금 상태로도 인쇄까지 됩니다.</p>
-    <dl>
-      <dt>기간별 묶음</dt><dd>지금은 교육 하나씩입니다. 분기·연도 단위로 여러 교육을 한 문서에 넣는 화면</dd>
-      <dt>서식 맞추기</dt><dd>감독기관 제출 서식과 항목 이름을 맞추는 일 (우선순위 3층). <b>책임을 면한다는 뜻의 표현은 그대로 금지</b></dd>
-      <dt>위조 검증</dt><dd>생성 시점 해시·타임스탬프로 "수정 불가"를 기술로 뒷받침 (3층)</dd>
-      <dt>노동자 개인 증빙</dt><dd>노동자 마이페이지(P2)에서 자기 것만 출력하는 경로</dd>
-      <dt>내 파일</dt><dd><code>admin/proof.html</code> · <code>admin/proof.js</code> · <code>admin/admin.css</code></dd>
-    </dl>
-  </section>
 
 </main>
 

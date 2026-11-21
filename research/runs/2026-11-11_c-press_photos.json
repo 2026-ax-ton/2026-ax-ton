@@ -1,0 +1,666 @@
+{
+  "kind": "safety-ai-run",
+  "version": 1,
+  "at": "2026-11-10T08:14:07.056Z",
+  "provider": "openai",
+  "model": "gpt-5-mini",
+  "equipment": {
+    "name": "C형 유압프레스",
+    "maker": "Namyang",
+    "model": "NCP-20",
+    "year": null
+  },
+  "research": {
+    "overview": "C형(C-frame) 유압프레스 일반(모델 NCP-20에 대한 제조사 매뉴얼을 직접 확인하지 못해 같은 종류 설비의 일반적 위험을 보완함). 제공된 M-30-2002 항목(가드의 측·상·하 접근 및 가드 재전환 관련)은 제외하고 그 밖에 C형 유압프레스에서 문헌상·현장경험상 추가로 확인되는 위험부위·주의사항을 정리함.",
+    "limits": [
+      "제조사(남양) 공식 사용자 매뉴얼(NCP-20 모델별 정비·안전 절차서)을 웹·공개문서에서 직접 찾으려 시도했으나 원문 매뉴얼(작동·정비 매뉴얼 PDF)을 확보하지 못했고, 제조사가 제품 사양을 표기한 판매·전시 페이지(제품사양 표)는 확인함. 따라서 모델 고유의 내부 안전장치(예: 모델별 인터록 방식·감지센서 배치·정지성능 수치)는 제조사 매뉴얼에서 직접",
+      "검색·확인한 범위: 국내외 유압프레스 안전 가이드(OSHA eTool 'Hydraulic presses', EN 693 표준 요약, KOSHA 기술지침들(M-122-2012, M-127-2012 외)), 및 DOSH Malaysia 'Guidelines on Safe Use of Press Machines'을 검토함.",
+      "확인 불가 사항: 제조사 Namyang의 NCP-20(모델) 공식 사용설명서·정비매뉴얼·기술사양서(호스 규격·최대작동압·제어방식·안전장치 기본구성 등)를 찾지 못했음(국문·영문 웹사이트·카탈로그·판매페이지 검색 및 산업용 자료 검색에서 누락).",
+      "어떤 문헌에서 막혔는지 상세: Namyang(남양) 제조사 사이트 내 NCP-20 모델 페이지·PDF 매뉴얼, 또는 제품 카탈로그(모델별 사양서)를 여러 검색어(영문·한글 모델명, NCP-20, NCP 20, 'NCP-20 Namyang press')로 조회했으나 공식 매뉴얼 원문을 확보하지 못함.",
+      "영상자료: 유압프레스 관련 교육·사고 영상이 존재함을 확인했으나(검색으로 발견), 동영상은 근거로 사용하지 않았음(규칙 3)."
+    ],
+    "docNumbers": [
+      "M-122-2012",
+      "M-127-2012"
+    ],
+    "general": true,
+    "items": [
+      {
+        "id": "o1",
+        "part": "가드 측방·상방·하방",
+        "hazard": "pinch",
+        "risk": "가드 옆·위·아래로 손을 넣으면 금형 사이에 끼인다",
+        "sources": [
+          {
+            "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침 §5.1·§6.5",
+            "url": "https://www.moel.go.kr/local/busanbukbu/common/downloadFile.do?file_seq=21171050364&bbs_seq=62551&bbs_id=LOCAL5",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "M-30-2002",
+          "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침",
+          "section": "§5.1·§6.5",
+          "publisher": "한국산업안전공단",
+          "year": 2002
+        },
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=q3J5Sns14fE",
+          "host": "youtube.com",
+          "alt": "Prasa hydrauliczna wyciek oleju spod uszczelki silownika-jak naprawiłem zapraszam na film",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "o2",
+        "part": "가드 재전환",
+        "hazard": "pinch",
+        "risk": "가드를 열고 임시 조작한 뒤 제자리로 돌리지 않고 작업을 다시 시작하면 끼인다",
+        "sources": [
+          {
+            "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침 §7.2",
+            "url": "https://www.moel.go.kr/local/busanbukbu/common/downloadFile.do?file_seq=21171050364&bbs_seq=62551&bbs_id=LOCAL5",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "",
+        "specific": false,
+        "official": {
+          "code": "M-30-2002",
+          "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침",
+          "section": "§7.2",
+          "publisher": "한국산업안전공단",
+          "year": 2002
+        },
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://atssafety.com/en-es/products/hydraulic-press-guard",
+          "host": "atssafety.com",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r1",
+        "part": "램·금형(작동부)",
+        "partEn": "ram and die",
+        "hazard": "pinch",
+        "risk": "슬라이드(램)가 하강할 때 금형·작업물 사이에 손가락·손이 끼어 심각한 압착·절단 상해가 발생한다.",
+        "sources": [
+          {
+            "title": "산업안전보건기준에 관한 규칙(프레스·전단기 방호조치) (행정규칙)",
+            "url": "https://www.law.go.kr/LSW/admRulInfoP.do?admRulSeq=2345",
+            "host": "law.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 1,
+        "conflict": "",
+        "needsPhoto": "램과 금형 사이 정면 근접 사진(금형 닫힘 상태와 개방 상태)",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/File:Hydraulic_press.jpg",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY-SA 3.0 · Cjp24",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r2",
+        "part": "백게이지/테이블 주변(작업물 공급·취출 경로)",
+        "partEn": "back gauge and bed area",
+        "hazard": "pinch",
+        "risk": "작업물 공급·취출 중 손이 작업점으로 들어가면 슬라이드 움직임으로 끼임·절단 사고가 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "부록1 주요 기계설비의 위험요인과 대책 (KOSHA 기술지원문서 요약)",
+            "url": "https://riskfinder.ai-safetylabs.com/rule/MECH-Q01",
+            "host": "riskfinder.ai-safetylabs.com",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "산업안전보건기준 제103조(프레스 등의 위험 방지) 해설",
+            "url": "https://hseteam.kr/103%EC%A1%B0-%ED%94%84%EB%A0%88%EC%8A%A4-%EB%B0%A9%ED%98%B8%EC%9E%A5%EC%B9%98-%EC%A0%95%EC%A7%80%EC%84%B1%EB%8A%A5/",
+            "host": "hseteam.kr",
+            "tier": 3,
+            "kind": "web"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "정반(테이블)과 백게이지 사이의 간격을 측면에서(작업물이 올려진 상태)",
+        "specific": false,
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r3",
+        "part": "유압실린더·유압회로(유압누유·배관)",
+        "partEn": "hydraulic cylinder and hydraulic circuit",
+        "hazard": "fire",
+        "risk": "유압계통의 누유가 고온부·전기부와 접촉하면 화재 위험이 있고, 누유로 인한 미끄러짐·화상 위험이 있다.",
+        "sources": [
+          {
+            "title": "EN 693:2001+A2:2011 - Machine tools - Safety - Hydraulic presses (안전표준 일반위험 항목)",
+            "url": "https://www.iteh.us/catalog/standards/cen/a65e3490-964a-493e-a490-83f37c562c4f/en-693-2001a2-2011",
+            "host": "iteh.us",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 1,
+        "conflict": "",
+        "needsPhoto": "유압펌프·유압탱크·호스 연결부(누유 확인용) 정면·측면 사진",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "믿을 만한 출처가 하나뿐"
+        ],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Hydraulic_machinery",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY 3.0 · GetAClass",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r4",
+        "part": "유압시스템(저장에너지·밸브)",
+        "partEn": "hydraulic system (stored energy/valves)",
+        "hazard": "pinch",
+        "risk": "유압압력이 남아 있는 상태에서 금형·램이 예기치 않게 움직이거나 저속으로 하강하여 끼임 사고가 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "EN 693:2001+A2:2011 - Hydraulic presses (저장에너지·안전요구사항)",
+            "url": "https://www.iteh.us/catalog/standards/cen/a65e3490-964a-493e-a490-83f37c562c4f/en-693-2001a2-2011",
+            "host": "iteh.us",
+            "tier": 3,
+            "kind": "journal"
+          },
+          {
+            "title": "프레스 및 컨베이어 안전대책(고용노동부 자료)",
+            "url": "https://moel.go.kr/policy/policydata/view.do?bbs_seq=1392621432067",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "실린더 상단·하단 부위와 배관·안전밸브 부근 클로즈업",
+        "specific": false,
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r5",
+        "part": "제어반·전기배선",
+        "partEn": "control panel and electrical wiring",
+        "hazard": "shock",
+        "risk": "노후·손상된 전기배선이나 보호장치 미설치로 감전, 전기적 과열·스파크로 인한 2차 사고가 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "‘프레스, 크레인, 가스용접작업 위험요인이 궁금하다면’ (고용노동부/안전보건공단 홍보)",
+            "url": "https://moel.go.kr/news/enews/report/enewsView.do?news_seq=5313",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 1,
+        "conflict": "",
+        "needsPhoto": "제어반 도어 열고 제어장치(전원단자·접지 상태) 정면 사진",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/File:Hydraulic_press_control_panel.jpg",
+          "host": "commons.wikimedia.org",
+          "alt": "File:Hydraulic press control panel.jpg",
+          "kind": "page",
+          "license": "CC BY-SA 3.0 · Cjp24",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r6",
+        "part": "작업자 개인요인(복장·장갑·장신구)",
+        "partEn": "operator clothing and PPE",
+        "hazard": "pinch",
+        "risk": "작업 중 장갑·느슨한 소매·목걸이·긴 머리 등이 설비의 이동부에 끌려 들어가 끼임·인발 사고를 유발한다는 현장 사례 보고가 있다.",
+        "sources": [
+          {
+            "title": "부록1 주요 기계설비(프레스 등) 위험요인과 대책 (KOSHA 기술지원요약)",
+            "url": "https://riskfinder.ai-safetylabs.com/rule/MECH-Q01",
+            "host": "riskfinder.ai-safetylabs.com",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "프레스 관련 산업사고 보도(정비·센서 수리 중 프레스 작동 사고 사례)",
+            "url": "https://kisj.co.kr/post/8oy17Y7W",
+            "host": "kisj.co.kr",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "작업자가 작업 위치에서 보이는 착용상태(일반적 사진; 개인식별 제외)",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Gloves",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY-SA 3.0 · Kippelboy",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r7",
+        "part": "금형 고정·클램프부",
+        "partEn": "die clamping and tooling fixtures",
+        "hazard": "pinch",
+        "risk": "금형 고정 불량, 클램프 해제·탈락 시 작업물 이탈·비대칭 하중으로 순간이동·끼임·탈구 등이 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "EN 693:2001+A2:2011 (금형·치공구 관련 안전고려)",
+            "url": "https://www.iteh.us/catalog/standards/cen/a65e3490-964a-493e-a490-83f37c562c4f/en-693-2001a2-2011",
+            "host": "iteh.us",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 1,
+        "conflict": "",
+        "needsPhoto": "금형 클램프부 정면·측면(고정상태와 볼트/핀 위치)",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "믿을 만한 출처가 하나뿐"
+        ],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=ltnX8SQusmc",
+          "host": "youtube.com",
+          "alt": "【KOSMEK】Die Change System Case Study for Press Machine with Auto Clamp",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r8",
+        "part": "작업물 튀김·비산(이젝트·스프링백)",
+        "partEn": "workpiece ejection / springback",
+        "hazard": "unknown",
+        "risk": "프레스 가압·탈형 과정에서 작업물이 튀거나 스프링백되어 작업자에게 타격·부상 또는 눈 손상을 일으킬 수 있다.",
+        "sources": [
+          {
+            "title": "EN 693:2001+A2:2011 (압착·성형 작업 중 작업물 이탈·비산 관련 위험 언급)",
+            "url": "https://www.iteh.us/catalog/standards/cen/a65e3490-964a-493e-a490-83f37c562c4f/en-693-2001a2-2011",
+            "host": "iteh.us",
+            "tier": 3,
+            "kind": "journal"
+          },
+          {
+            "title": "프레스 및 컨베이어 안전대책(고용노동부 자료)",
+            "url": "https://moel.go.kr/policy/policydata/view.do?bbs_seq=1392621432067",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "금형에서 작업물 탈형되는 순간을 측면에서(폭발·비산 위험 확인용)",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "위험유형을 정하지 못함"
+        ],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=vOkpFUcqCE8",
+          "host": "youtube.com",
+          "alt": "Crushing Hydraulic Jack / Cylinder with Hydraulic Press",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r9",
+        "part": "정비·청소 중 비인가 기동·락아웃 미실시",
+        "partEn": "maintenance  cleaning (lockout/tagout)",
+        "hazard": "pinch",
+        "risk": "정비·청소 시 전원 차단·유압압력 해제·태그아웃 미준수로 기기가 갑작스레 동작하여 끼임·절단 사고가 발생한다는 사고 사례가 다수 보고된다.",
+        "sources": [
+          {
+            "title": "프레스 및 컨베이어 안전대책(고용노동부 자료, 정비 시 안전대책 포함)",
+            "url": "https://moel.go.kr/policy/policydata/view.do?bbs_seq=1392621432067",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "[중대재해사이렌] 프레스 센서 수리 중 작동…근로자 끼여 사망 보도",
+            "url": "https://kisj.co.kr/post/8oy17Y7W",
+            "host": "kisj.co.kr",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "정비 시 전원·유압 차단 상태(주변 밸브·락아웃 장치) 전경 사진",
+        "specific": false,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://en.wikipedia.org/wiki/Lockout%E2%80%93tagout",
+          "host": "en.wikipedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r10",
+        "part": "진동·소음 유발부(펌프·엔진)",
+        "partEn": "pump and motor noise/vibration sources",
+        "hazard": "unknown",
+        "risk": "지속적 고강도 진동·소음은 작업자 피로·주의력 저하를 유발해 사고 위험을 높이며, 장기 노출 시 청력 손상 등 건강 문제가 생길 수 있다.",
+        "sources": [
+          {
+            "title": "프레스 및 컨베이어 안전대책(고용노동부 자료)",
+            "url": "https://moel.go.kr/policy/policydata/view.do?bbs_seq=1392621432067",
+            "host": "moel.go.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 1,
+        "conflict": "",
+        "needsPhoto": "펌프·전동기 장착부 및 지지구조 정면 사진",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "위험유형을 정하지 못함"
+        ],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=vsf_oYoTBi0",
+          "host": "youtube.com",
+          "alt": "Hydraulic Pump Noises: What They Mean & How to Fix Them",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r11",
+        "part": "유압유·윤활제 접촉·흡입(유해물질)",
+        "partEn": "hydraulic oil / lubricants exposure",
+        "hazard": "chemical",
+        "risk": "유압유·윤활제의 피부접촉·흡입 또는 누출 시 피부염·호흡기 자극 등 화학적 유해성이 발생할 수 있다.",
+        "sources": [
+          {
+            "title": "EN 693:2001+A2:2011 (유압시스템 관련 안전고려 및 오일 누유 위험)",
+            "url": "https://www.iteh.us/catalog/standards/cen/a65e3490-964a-493e-a490-83f37c562c4f/en-693-2001a2-2011",
+            "host": "iteh.us",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 1,
+        "conflict": "",
+        "needsPhoto": "유압유 보충구·오일탱크 캡과 라벨(안전물질 표시) 클로즈업",
+        "specific": false,
+        "status": "check",
+        "reasons": [
+          "믿을 만한 출처가 하나뿐"
+        ],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Oil_spills",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "Public domain · U.S. — NOAA",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r12",
+        "part": "유압계통(호스·피팅·실린더)",
+        "partEn": "hydraulic lines / cylinder",
+        "hazard": "chemical",
+        "risk": "고압 유체 호스·피팅의 파손이나 연결부 누출로 인하여 고압 유체가 인체에 주입되거나 분사되어 조직 손상·화상·작동 이상을 일으킬 위험이 있다.",
+        "sources": [
+          {
+            "title": "Hydraulic presses - eTool (OSHA)",
+            "url": "https://www.osha.gov/etools/machine-guarding/presses/hydraulic",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "EN 693:2001+A2:2011 — Machine tools — Safety — Hydraulic presses (sections on high‑pressure fluid ejection)",
+            "url": "https://www.iteh.us/catalog/standards/cen/a65e3490-964a-493e-a490-83f37c562c4f/en-693-2001a2-2011",
+            "host": "iteh.us",
+            "tier": 3,
+            "kind": "journal"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "유압호스·피팅의 연결부(조인트)를 측·정면에서, 실린더 축 방향 연결부 전체를 근접 촬영",
+        "specific": true,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/File:Hose_fitting_crimper.JPG",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY-SA 3.0 · Jstapko",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r13",
+        "part": "슬라이드·램과 금형 좌측·우측 접근 공간(오버런·잔류운동)",
+        "partEn": "ram / slide",
+        "hazard": "pinch",
+        "risk": "유압계 잔류압·밸브 고장·제어오작동으로 슬라이드가 비예상 이동하여 작업자가 금형 사이에 끼이거나 압박당할 위험이 있다.",
+        "sources": [
+          {
+            "title": "Hydraulic presses - eTool (OSHA)",
+            "url": "https://www.osha.gov/etools/machine-guarding/presses/hydraulic",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "프레스 방호장치의 선정·설치 및 사용 기술지침 (KOSHA Guide, M-122-2012)",
+            "url": "https://oshri.kosha.or.kr/oshri/publication/researchReportSearch.do?articleNo=454356&attachNo=260660&mode=download",
+            "host": "oshri.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "EN 693는 일부 제어·오버런 감시 장치 요구를 강조하는 반면 KOSHA 지침은 보조광축 설치·급정지 제한 등 설계·현장 적용 세부가 다름.",
+        "needsPhoto": "슬라이드(램) 전면 및 측면 간섭 영역을 전·측면에서, 제어 패널·정지장치 위치를 함께 촬영",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Hydraulic_presses",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY-SA 4.0 · Sam D. Wilbur",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r14",
+        "part": "전기제어반·센서·푸시버튼(콘트롤)",
+        "partEn": "control panel / sensors",
+        "hazard": "shock",
+        "risk": "제어반 접지불량·노후 케이블·방수 미흡 또는 정비 중 전원 인가로 인해 전기적 감전 또는 오동작으로 기계가 비정상 작동할 위험이 있다.",
+        "sources": [
+          {
+            "title": "Hydraulic presses - eTool (OSHA)",
+            "url": "https://www.osha.gov/etools/machine-guarding/presses/hydraulic",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "프레스의 등급에 따른 정비관리 지침 (KOSHA M-127-2012)",
+            "url": "https://oshri.kosha.or.kr/cms/resFileDownload.do?fileName=KOSHA_Guide_%EB%B0%8F_%EB%B2%95%EB%A0%B9_%EA%B0%84_%EC%97%B0%EA%B3%84%EC%84%B1(EA).pdf&siteId=kosha&type=etc",
+            "host": "oshri.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "제어반 도어를 닫은 상태와 내부 배선·접지단을 근접 촬영(전원 차단 상태에서)",
+        "specific": true,
+        "status": "ok",
+        "reasons": [],
+        "image": {
+          "page": "https://commons.wikimedia.org/wiki/Category:Control_panels",
+          "host": "commons.wikimedia.org",
+          "alt": "페이지 대표 그림",
+          "kind": "page",
+          "license": "CC BY-SA 4.0 · Hctsound",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      },
+      {
+        "id": "r15",
+        "part": "금형·공구 이송 보조장치(크레인·리프트·컨베이어)",
+        "partEn": "hoist / transfer / conveyor",
+        "hazard": "pinch",
+        "risk": "금형 이송용 호이스트·포크·리프트 또는 컨베이어 오작동·고정불량 시 낙하·물림·끼임이 발생하거나 운반 중 금형이 떨어져 작업자에게 충격을 줄 위험이 있다.",
+        "sources": [
+          {
+            "title": "Guidelines on Safe Use of Press Machines (DOSH Malaysia)",
+            "url": "https://dosh.gov.my/wp-content/uploads/2024/10/Guidelines-on-Safe-Use-of-Press-Machines-2015.pdf",
+            "host": "dosh.gov.my",
+            "tier": 3,
+            "kind": "web"
+          },
+          {
+            "title": "프레스의 레이저방식 방호장치 등 기술지침 목록 (KOSHA)",
+            "url": "https://www.kosha.or.kr/kosha/report/notice.do?articleNo=447237&attachNo=251758&mode=download",
+            "host": "kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "",
+        "needsPhoto": "금형 고정·걸림 부위(보조호이스트의 체결부·슬링 걸림부)를 전·측면에서 촬영",
+        "specific": true,
+        "status": "ok",
+        "reasons": []
+      },
+      {
+        "id": "r16",
+        "part": "정비·청소 중 역동작(가드·리미트 미복구, 밸브·로터리 우회)",
+        "partEn": "safeguard / interlock / valves",
+        "hazard": "pinch",
+        "risk": "가드를 열고 수동으로 위치조정·청소 후 가드·인터록을 원래대로 복구하지 않거나 LOTO(전원격리) 절차를 지키지 않아 기계 재가동 시 작업자가 끼이거나 상해를 당할 위험이 있다.",
+        "sources": [
+          {
+            "title": "프레스 방호장치의 선정·설치 및 사용 기술지침 (KOSHA Guide, M-122-2012)",
+            "url": "https://oshri.kosha.or.kr/oshri/publication/researchReportSearch.do?articleNo=454356&attachNo=260660&mode=download",
+            "host": "oshri.kosha.or.kr",
+            "tier": 2,
+            "kind": "official"
+          },
+          {
+            "title": "Hydraulic presses - eTool (OSHA) — 안전장치·양손트립·인터록 관련",
+            "url": "https://www.osha.gov/etools/machine-guarding/presses/hydraulic",
+            "host": "osha.gov",
+            "tier": 2,
+            "kind": "official"
+          }
+        ],
+        "unverifiedSources": 0,
+        "conflict": "일부 자료는 양손트립·전자광축 사용을 권장하는 반면 KOSHA는 프레스 등급·작업형태에 따라 적용 범위를 다르게 규정함.",
+        "needsPhoto": "가드 잠금·인터록 기구와 가드 닫힘 상태를 전면에서 촬영 (열림/닫힘 상태 모두)",
+        "specific": true,
+        "status": "check",
+        "reasons": [
+          "출처끼리 말이 다름"
+        ],
+        "image": {
+          "page": "https://www.youtube.com/watch?v=iVWRZWcwtkE",
+          "host": "youtube.com",
+          "alt": "Hydraulic Hose Failure",
+          "kind": "video",
+          "license": "확인 필요",
+          "removed": "저작권 — 공개 저장소에 두지 않는다 (2026-11-17 합치기 때 제거). 원본은 page 주소에 있다"
+        }
+      }
+    ],
+    "dropped": {
+      "shape": 0,
+      "over": 0
+    },
+    "sourceCount": 10,
+    "thin": false,
+    "officialDocs": [
+      {
+        "code": "M-30-2002",
+        "title": "KOSHA CODE M-30-2002 프레스 방호장치의 선정·설치 및 사용 기술지침",
+        "publisher": "한국산업안전공단",
+        "year": 2002,
+        "url": "https://www.moel.go.kr/local/busanbukbu/common/downloadFile.do?file_seq=21171050364&bbs_seq=62551&bbs_id=LOCAL5"
+      }
+    ],
+    "noOfficial": false,
+    "images": 15,
+    "model": "gpt-5-mini"
+  },
+  "guided": null,
+  "photo": null,
+  "ms": {
+    "research": 45250
+  },
+  "groundingCount": 40
+}

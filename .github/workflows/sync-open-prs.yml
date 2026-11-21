@@ -1,0 +1,68 @@
+# 열린 PR 브랜치에 `develop` 을 매일 자동으로 합쳐 둔다 (2026-11-17, C06 D-051).
+#
+# 왜 있나
+#   2026-11-17 사고의 진짜 원인은 디자인이 겹친 것이 아니라 **브랜치가 멀어진 것**이다.
+#   개인 저장소에 65커밋이 쌓이는 동안 아무도 몰랐고, 합칠 때 충돌 57개가 한꺼번에 왔다.
+#   하루에 한 번씩 `develop` 을 따라붙여 두면 충돌이 **한 번에 하나씩** 작게 온다.
+#
+# 무엇을 하나
+#   · 깨끗이 합쳐지면 → 그 브랜치에 바로 올린다 (사람이 할 일 없음)
+#   · 충돌이 나면    → 올리지 않고 **그 PR 에 댓글로 알린다** (브랜치를 건드리지 않는다)
+#
+# ★ 남의 브랜치에 올리는 일이라, **깨끗할 때만** 올린다. 충돌을 대신 풀지 않는다.
+name: 열린 PR 에 develop 따라붙이기
+
+on:
+  schedule:
+    - cron: '0 21 * * *'      # 매일 06:00 (KST) — 작업 시작 전에 맞춰 둔다
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: develop 을 각 PR 브랜치에 합친다
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git fetch --no-tags origin develop
+
+          marker='<!-- sync-open-prs -->'
+
+          gh pr list --state open --base develop --json number,headRefName,headRepositoryOwner \
+            --jq '.[] | select(.headRepositoryOwner.login == "'"${GITHUB_REPOSITORY%%/*}"'") | "\(.number) \(.headRefName)"' \
+          | while read -r num branch; do
+              [ -n "$branch" ] || continue
+              echo "── #$num $branch"
+
+              behind="$(git rev-list --count "origin/$branch..origin/develop")"
+              if [ "$behind" = "0" ]; then echo "   이미 최신"; continue; fi
+
+              git checkout -B "sync-$branch" "origin/$branch" --quiet
+              if git merge --no-edit origin/develop --quiet; then
+                git push origin "HEAD:$branch" --quiet
+                echo "   develop $behind 커밋을 따라붙였다"
+              else
+                git merge --abort || true
+                files="$(git diff --name-only --diff-filter=U origin/$branch origin/develop 2>/dev/null | head -20)"
+                body="$(printf '%s\n\n### `develop` 과 충돌이 납니다 (커밋 %s개 뒤처짐)\n\n이 브랜치에 `develop` 을 자동으로 따라붙이려 했는데 **충돌이 나서 멈췄습니다.** 브랜치는 건드리지 않았습니다.\n\n직접 해 주셔야 합니다 — 터미널에서 이 브랜치를 받은 뒤\n\n```\ngit pull origin develop\n```\n\n충돌 표시가 난 곳을 고치고 올리시면 됩니다. **미루면 충돌이 더 커집니다** — 지금 푸는 것이 가장 작습니다.\n\n겹치는 파일:\n\n```\n%s\n```\n\n막히면 캡처해서 개발자에게 보내 주세요.\n\n<sub>자동 댓글 · `.github/workflows/sync-open-prs.yml`</sub>' "$marker" "$behind" "$files")"
+
+                id="$(gh api "repos/$GITHUB_REPOSITORY/issues/$num/comments" --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -1)"
+                if [ -n "$id" ]; then
+                  gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+                else
+                  gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$num/comments" -f body="$body" > /dev/null
+                fi
+                echo "   충돌 — 댓글로 알렸다"
+              fi
+            done

@@ -54,9 +54,10 @@ var I18N = (function () {
        번역하지 않는다 — 그 문장을 번역하려면 이미 그 사람의 언어를 알아야
        하는 모순이 생긴다. 대신 모국어 글자와 그 언어로 그 이름을 읽어 주는
        음성으로 고르게 한다 (UI.preloginLangPicker). */
-    'login.id':      { ko: '아이디', km: 'ID', id: 'ID', vi: 'ID', ne: 'आईडी', th: 'ไอดี' },
+    /* 🆕 2026-11-16 로그인 시안 — 노동자 기준으로 「식별번호」 「시작하기」. 담당자 모드에서는 login.js 가 한국어로 바꿔 적는다 */
+    'login.id':      { ko: '식별번호', km: 'លេខ ID', id: 'Nomor ID', vi: 'Mã số ID', ne: 'आईडी नम्बर', th: 'รหัส ID' },
     'login.pw':      { ko: '비밀번호', km: 'ពាក្យសម្ងាត់', id: 'Kata sandi', vi: 'Mật khẩu', ne: 'पासवर्ड', th: 'รหัสผ่าน' },
-    'login.submit':  { ko: '로그인', km: 'ចូលប្រើ', id: 'Masuk', vi: 'Đăng nhập', ne: 'लगइन', th: 'เข้าสู่ระบบ' },
+    'login.submit':  { ko: '시작하기', km: 'ចាប់ផ្តើម', id: 'Mulai', vi: 'Bắt đầu', ne: 'सुरु गर्नुहोस्', th: 'เริ่มต้น' },
     'login.signupTitle': { ko: '회원가입', km: 'ចុះឈ្មោះ', id: 'Daftar', vi: 'Đăng ký', ne: 'दर्ता गर्नुहोस्', th: 'สมัครสมาชิก' },
     'login.signupSubmit': { ko: '가입하고 시작하기', km: 'ចុះឈ្មោះ ហើយចាប់ផ្តើម', id: 'Daftar dan mulai', vi: 'Đăng ký và bắt đầu', ne: 'दर्ता गरी सुरु गर्नुहोस्', th: 'สมัครแล้วเริ่มเลย' },
     'login.backToLogin': { ko: '로그인으로', km: 'ត្រឡប់ទៅចូលប្រើ', id: 'Kembali ke masuk', vi: 'Về đăng nhập', ne: 'लगइनमा फर्कनुहोस्', th: 'กลับไปเข้าสู่ระบบ' },
@@ -122,6 +123,9 @@ var I18N = (function () {
     'home.reportSent':   { ko: '신고했습니다. 확인될 때까지 이 번역은 보이지 않습니다.', km: 'បានរាយការណ៍ហើយ។ ការបកប្រែនេះនឹងមិនបង្ហាញទេ រហូតដល់ត្រួតពិនិត្យរួច', id: 'Laporan terkirim. Terjemahan ini tidak akan tampil sampai diperiksa.', vi: 'Đã báo cáo. Bản dịch này sẽ không hiển thị cho đến khi được kiểm duyệt.', ne: 'सूचना दिइयो। जाँच नभएसम्म यो अनुवाद देखिँदैन।', th: 'แจ้งแล้ว คำแปลนี้จะไม่แสดงจนกว่าจะตรวจสอบ' },
     'home.unreviewedNotUsed': { ko: '안전 지시로 쓰지 않습니다.', km: 'មិនប្រើជាការណែនាំសុវត្ថិភាពទេ', id: 'Tidak dipakai sebagai instruksi keselamatan.', vi: 'Không dùng làm chỉ dẫn an toàn.', ne: 'सुरक्षा निर्देशनका रूपमा प्रयोग गरिँदैन।', th: 'ไม่ใช้เป็นคำสั่งด้านความปลอดภัย' },
     'home.menuLearn':    { ko: '안전교육 듣기', km: 'ស្តាប់ការបណ្តុះបណ្តាលសុវត្ថិភាព', id: 'Dengarkan pelatihan keselamatan', vi: 'Nghe đào tạo an toàn', ne: 'सुरक्षा तालिम सुन्नुहोस्', th: 'ฟังการอบรมความปลอดภัย' },
+    'home.todayTask':    { ko: '오늘 할 교육', km: 'ការបណ្តុះបណ្តាលថ្ងៃនេះ', id: 'Pelatihan hari ini', vi: 'Bài học hôm nay', ne: 'आजको तालिम', th: 'การอบรมวันนี้' },
+    'home.rulesN':       { ko: '수칙 {n}개', km: 'ច្បាប់ {n}', id: '{n} aturan', vi: '{n} quy tắc', ne: '{n} नियम', th: '{n} ข้อ' },
+    'home.myProgress':   { ko: '내 진행 상황', km: 'វឌ្ឍនភាពរបស់ខ្ញុំ', id: 'Kemajuan saya', vi: 'Tiến độ của tôi', ne: 'मेरो प्रगति', th: 'ความคืบหน้าของฉัน' },
     'home.offlineOk':    { ko: '오프라인 가능',           km: 'ប្រើបានគ្មានអ៊ីនធឺណិត', id: 'Bisa tanpa internet', vi: 'Dùng được khi mất mạng', ne: 'इन्टरनेट बिना चल्छ', th: 'ใช้ได้แบบออฟไลน์' },
 
     /* 교육 */

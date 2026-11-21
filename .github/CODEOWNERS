@@ -1,0 +1,51 @@
+# 누가 어느 파일의 주인인가 — 2026-11-17 (C06 D-051)
+#
+# 이 파일이 하는 일은 **막는 것이 아니라 알리는 것**이다.
+# 여기 적힌 사람은 그 파일이 들어간 PR 에 자동으로 리뷰 요청을 받는다.
+# **승인은 필요 없다** (승인자 0명) — 검사(`run-all`)만 통과하면 본인이 머지한다.
+#
+# 🆕 2026-11-17 — **기본 담당을 개발(yesol)로 넘겼다.**
+#   전까지 기본값이 `* @byeonsoyun` 이라 **모든 PR 에 byeonsoyun 리뷰 요청이 갔고**,
+#   GitHub 화면에 「리뷰 요청됨」이 떠서 **허락을 기다려야 하는 것처럼 보였다**.
+#   막는 설정은 아니었지만 오해를 샀다 — 2026-11-16 역할 분담(창업 수빈 ·
+#   개발 예솔 · 디자인 박소윤 · PPT 변소윤)에 맞춰 다시 적는다.
+#
+# 규칙: **아래로 갈수록 이긴다** (마지막에 맞는 줄 하나만 적용된다).
+
+# ── 기본값 — 개발 전반 ─────────────────────────────────────────
+*                               @yesoool2824
+
+# ── 문서 ──────────────────────────────────────────────────────
+/docs/                          @yesoool2824
+/docs/devlog/byeonsoyun.md      @byeonsoyun
+/docs/documentations/10_사업화/   @ehowl7107
+/docs/documentations/30_제품정의/  @ehowl7107 @yesoool2824
+/docs/발표/                      @byeonsoyun @ehowl7107
+
+# ── 서버·DB·배포 ──────────────────────────────────────────────
+/api/                           @yesoool2824
+/db/                            @yesoool2824
+/scripts/                       @yesoool2824
+/research/                      @yesoool2824
+
+# ── 검사와 저장소 규칙 — 제품 원칙이 여기 걸려 있다 ──────────────
+#    (`run-all` 이 신고 익명성·미이수자 숨김 금지 같은 것을 지킨다)
+/tests/                         @yesoool2824 @byeonsoyun
+/.github/                       @yesoool2824 @byeonsoyun
+
+# ── 디자인 — 노동자 화면 ───────────────────────────────────────
+/src/worker/                    @smilesy0603 @yesoool2824
+
+# ── ★ 공용 핵심 — 한 명이 고치면 화면 11개가 전부 영향을 받는다 ──────
+#    여기만 변소윤도 **알림**을 받는다. 허락이 아니라, 제품 뼈대가 바뀌면
+#    발표 자료(PPT) 내용도 같이 고쳐야 하기 때문이다 (제출 11/23).
+/src/assets/ui.js               @yesoool2824 @byeonsoyun
+/src/assets/store.js            @yesoool2824 @byeonsoyun
+/src/assets/auth.js             @yesoool2824 @byeonsoyun
+/src/assets/net.js              @yesoool2824 @byeonsoyun
+/src/assets/i18n.js             @yesoool2824 @byeonsoyun
+/src/assets/app.css             @yesoool2824 @byeonsoyun
+/src/assets/login.js            @yesoool2824 @byeonsoyun
+/src/sw.js                      @yesoool2824 @byeonsoyun
+/src/index.html                 @yesoool2824 @byeonsoyun
+/src/signup.html                @yesoool2824 @byeonsoyun

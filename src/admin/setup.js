@@ -69,18 +69,72 @@
       }));
     });
 
+    /* 6종 밖의 공식 분류 — 묶음별 드롭다운 */
+    var more = $('hazard-add');
+    var first = UI.el('option', null, '목록에서 더 고르기…');
+    first.value = '';
+    more.appendChild(first);
+    Store.HAZARD_GROUPS.forEach(function (g) {
+      var og = document.createElement('optgroup');
+      og.label = g.label;
+      Store.HAZARD_TYPES.forEach(function (h) {
+        if (h.group !== g.id || Store.findBy(Store.HAZARDS, 'code', h.code)) return;
+        var o = UI.el('option', null, h.label);
+        o.value = h.code;
+        og.appendChild(o);
+      });
+      more.appendChild(og);
+    });
+
     UI.fillSelect($('equip-kind'), Store.EQUIPMENT_KINDS,
       function (k) { return k.id; }, function (k) { return k.label; });
+    /* 🆕 2026-11-16 픽토그램 고르기 없음 (공정·설비 둘 다) — 저장 칸(icon)은 다른 화면이 읽어 값만 자동으로 둔다 */
+  }
 
-    [['pick-proc-icon', 'proc-icon'], ['pick-equip-icon', 'equip-icon']].forEach(function (pair) {
-      var box = $(pair[0]);
-      Store.ICONS.forEach(function (icon, idx) {
-        box.appendChild(UI.chip({
-          type: 'radio', name: pair[1], value: icon,
-          icon: icon, checked: idx === 0
-        }));
-      });
+  /** 위험유형 칩 — 6종은 늘 있고, 목록·직접 입력으로 더한 것은 그때 붙인다 */
+  function addHazardChip(code, checked) {
+    var h = Store.hazard(code);
+    if (!h) return;
+    var have = UI.$$('input[name="hazard"]').filter(function (n) { return n.value === code; })[0];
+    if (have) { have.checked = checked !== false; return; }
+    $('pick-hazard').appendChild(UI.chip({ type: 'checkbox', name: 'hazard', value: code, icon: h.icon, label: h.label, checked: checked !== false }));
+  }
+  /** 폼의 위험유형을 이 목록으로 맞춘다 — 6종 밖의 칩은 지우고 다시 붙인다 */
+  function setHazards(codes) {
+    UI.$$('input[name="hazard"]').forEach(function (n) {
+      if (Store.findBy(Store.HAZARDS, 'code', n.value)) n.checked = codes.indexOf(n.value) !== -1;
+      else n.closest('label').remove();
     });
+    codes.forEach(function (c) { addHazardChip(c, true); });
+  }
+
+  /* -----------------------------------------------------------------
+     화면 나누기 — 상세 메뉴(설비 ▾)의 항목마다 한 부분만 보인다
+     ----------------------------------------------------------------- */
+  var VIEWS = ['site', 'equip', 'list', 'workers', 'backup'];
+  var forcedView = '';   // 주소의 # 를 못 바꾸는 곳(검사·옛 브라우저)에서 코드가 정한 화면
+  function currentView() {
+    var v = location.hash.replace('#', '');
+    if (VIEWS.indexOf(v) !== -1) return v;
+    if (forcedView) return forcedView;
+    return Store.setup.load().processes.length ? 'equip' : 'site';
+  }
+  /** 코드가 화면을 옮긴다 — 주소도 바꿔 뒤로 가기·메뉴 표시가 따라오게 한다 */
+  function goView(v) {
+    forcedView = v;
+    try { if (location.hash !== '#' + v) location.hash = '#' + v; } catch (e) { /* 주소를 못 바꿔도 화면은 옮긴다 */ }
+    showView();
+  }
+  function showView() {
+    var v = currentView();
+    UI.$$('[data-view]').forEach(function (n) { n.hidden = n.getAttribute('data-view') !== v; });
+    UI.$$('.viewtabs a').forEach(function (a) {
+      if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    /* 수정 중에 다른 화면으로 가면 수정을 접는다 — 등록 폼에 남은 값이 새 설비로 들어가지 않게 */
+    if (v !== 'list' && $('equip-edit-id').value) resetEquipForm();
+    if (v !== 'equip') $('equip-added').hidden = true;
   }
 
   /* -----------------------------------------------------------------
@@ -161,6 +215,7 @@
     state.processes.forEach(function (p) {
       var used = state.equipments.filter(function (e) { return e.processId === p.id; }).length;
       var li = UI.itemRow(p.icon, p.name, used ? '설비 ' + used + '대' : '설비 없음');
+      li.removeChild(li.firstChild);   // 픽토그램은 보이지 않는다 (2026-11-16)
       li.appendChild(deleteButton(p.name + ' 공정 삭제', function () { removeProcess(p); }));
       list.appendChild(li);
     });
@@ -227,6 +282,7 @@
       var spec = [eq.maker, eq.model, eq.year].filter(function (v) { return v; }).join(' · ');
       var li = UI.itemRow(eq.icon, eq.name,
         processName(state, eq.processId) + (spec ? ' · ' + spec : ''));
+      li.removeChild(li.firstChild);   // 픽토그램은 보이지 않는다 (2026-11-16)
       li.setAttribute('data-id', eq.id);
 
       var tags = UI.el('div', 'tags');
@@ -262,16 +318,15 @@
         im.alt = eq.name + ' 사진';
         li.querySelector('.body').appendChild(im);
       }
-      li.querySelector('.body').appendChild(UI.el('p', 'meta', analysisLine(eq)));
-      var go = UI.el('a', 'btn-sm', eq.analysis ? '분석 결과 보기 · 교육 만들기' : 'AI 분석 · 교육 만들기');
-      go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
-      li.querySelector('.body').appendChild(go);
-      /* 휴대폰으로 설비 둘레 찍기 — 3D·여러 각도 재료 (시제품) */
-      var cam = UI.el('a', 'equip-scan-btn', '둘레 촬영');
+      /* 🆕 2026-11-21 AI 위험요소 조사 — 설비 등록의 필수 단계. 조사 결과가 사진 위 위치와 묶여 여기 보인다 */
+      li.querySelector('.body').appendChild(researchBlock(eq));
+      /* 가이드 촬영 — 카메라 위 틀·수평선·자세 교정, 선명한 장면을 알아서 찍는다 */
+      var cam = UI.el('a', 'equip-scan-btn', '카메라로 찍기 (가이드 촬영)');
       cam.insertBefore(UI.iconBox('camera', 'ico'), cam.firstChild);
-      cam.href = 'scan.html?equipment=' + encodeURIComponent(eq.id);
-      cam.setAttribute('aria-label', eq.name + ' 둘레 촬영 — 카메라 위 안내를 따라 두 바퀴');
+      cam.href = scanUrl(eq.id);
+      cam.setAttribute('aria-label', eq.name + ' 카메라로 찍기 — 카메라 위 안내를 따라 둘레를 돈다');
       li.querySelector('.body').appendChild(cam);
+      li.querySelector('.body').appendChild(reviewBlock(eq));
 
       var ed = UI.el('button', 'btn-sm', '수정');
       ed.type = 'button';
@@ -292,11 +347,390 @@
     return 'AI 분석: 위험 ' + n + ' · 사진 위치 ' + m + ' · 위치 확인 필요 ' + (n - m) + (a.at ? ' · ' + UI.formatDate(a.at) : '');
   }
 
+  /* ── 🆕 2026-11-21 AI 위험요소 조사 — 설비 등록의 필수 단계 ───────────────
+     교육 만들기(autogen)의 「AI 위험요소 분석」과 **같은 함수·같은 저장 모양**이다
+     (/api/research → 사진이 있으면 /api/hazards → eq.analysis = { research, guided }).
+     그래서 교육 만들기는 여기서 한 조사를 다시 부르지 않고 불러온다.
+     ★ 조사한 위험요소를 **설비 사진 위 위치**와 묶어 둔다 — 3D 영상(1차 → 2차)과 퀴즈 캡처가 이것을 기준으로 쓴다.
+       사진이 바뀌면 조사는 그 사진의 것이 아니라 지워진다 (설비 수정 · 촬영 화면이 지운다) → 다시 조사
+     ★ 유료 AI 호출 — 담당자가 버튼을 눌러야만 부른다. 검수 승인 뒤에만
+     ★ 서버를 못 부르는 곳(file://)에서는 조사할 수 없다 — 교육 만들기의 결과 파일 모드로 이어 가게 링크를 둔다 */
+  var RESEARCH_TIMEOUT_MS = 180000;   // 🆕 2026-11-21 서버 조사 상한(150초)보다 길게
+  var researching = {};   // 설비 id → 진행 문구 (화면에만 — 저장하지 않는다)
+
+  function researched(eq) { var a = eq && eq.analysis; return !!(a && a.research && Array.isArray(a.research.items)); }
+  function isPhoto(v) { return typeof v === 'string' && v.indexOf('data:image/') === 0; }
+
+  function researchBlock(eq) {
+    var box = UI.el('div', 'equip-research');
+    var head = UI.el('p', 'equip-research-head');
+    head.appendChild(UI.el('b', null, 'AI 위험요소 조사'));
+    head.appendChild(researched(eq) ? UI.okBadge('조사 완료') : UI.stopBadge('필수 · 아직 안 함'));
+    box.appendChild(head);
+    if (!Store.equipmentReady(eq)) {
+      if (researched(eq)) box.appendChild(UI.el('p', 'meta', analysisLine(eq)));
+      box.appendChild(UI.el('p', 'meta', '검수 대기 — 아래 AI 검수를 승인하면 조사할 수 있습니다. 교육은 조사까지 마쳐야 만들 수 있습니다.'));
+      return box;
+    }
+    var online = Net.onHttps && Net.onHttps();
+    if (researched(eq)) {
+      box.appendChild(UI.el('p', 'meta', analysisLine(eq)));
+      var fig = researchFigure(eq);
+      if (fig) box.appendChild(fig);
+      box.appendChild(researchList(eq));
+    } else {
+      box.appendChild(UI.el('p', 'meta', '교육을 만들기 전에 꼭 합니다. 공개 자료로 이 설비의 위험요소를 찾고, '
+        + (isPhoto(eq.photo) ? '설비 사진 위에 위치를 표시합니다.' : '설비 사진을 넣으면 사진 위 위치까지 찾습니다.')
+        + ' 이 결과가 3D 영상과 퀴즈의 기준이 됩니다.'));
+    }
+    if (researching[eq.id]) {
+      var st = UI.el('p', 'meta', researching[eq.id]);
+      st.setAttribute('role', 'status');
+      box.appendChild(st);
+    }
+    var row = UI.el('div', 'equip-research-actions');
+    if (online) {
+      var btn = UI.el('button', researched(eq) ? 'btn-sm' : 'btn btn-primary', researched(eq) ? '다시 조사' : 'AI 위험요소 조사 시작');
+      btn.type = 'button';
+      btn.disabled = !!researching[eq.id];
+      btn.setAttribute('data-research', eq.id);
+      btn.addEventListener('click', function () { runResearch(eq.id); });
+      row.appendChild(btn);
+    } else if (!researched(eq)) {
+      box.appendChild(UI.el('p', 'meta', 'AI 조사는 배포 주소(https)에서 로그인했을 때만 됩니다. 여기서는 교육 만들기의 [결과 파일 불러오기]를 쓰세요.'));
+    }
+    /* 교육 만들기 — 조사를 마친 뒤에만 (서버가 없는 곳은 결과 파일 모드라 열어 둔다) */
+    if (researched(eq) || !online) {
+      var go = UI.el('a', 'btn-sm', researched(eq) ? '조사 결과로 교육 만들기' : '교육 만들기 (결과 파일)');
+      go.href = 'autogen.html#eq=' + encodeURIComponent(eq.id);
+      row.appendChild(go);
+    }
+    if (row.childNodes.length) box.appendChild(row);
+    return box;
+  }
+
+  /** 사진 위 위험 위치 — 번호 = 아래 목록 번호. 좌표는 % 라 사진 크기가 바뀌어도 그 자리다 */
+  function researchFigure(eq) {
+    var a = eq.analysis;
+    if (!(isPhoto(eq.photo) && a.guided && Array.isArray(a.guided.mapped) && a.guided.mapped.length)) return null;
+    var fig = UI.el('div', 'ag-figure equip-research-fig');
+    var img = UI.el('img');
+    img.src = eq.photo;
+    img.alt = eq.name + ' 사진 — AI 가 찾은 위험 위치';
+    fig.appendChild(img);
+    var items = a.research.items;
+    a.guided.mapped.forEach(function (m) {
+      if (!m || !m.box) return;
+      var n = -1;
+      items.forEach(function (it, i) { if (it.id === m.id) n = i + 1; });
+      if (n < 0) return;
+      var b = UI.el('span', 'ag-box', '#' + n);
+      b.style.left = m.box.x0 + '%';
+      b.style.top = m.box.y0 + '%';
+      b.style.width = (m.box.x1 - m.box.x0) + '%';
+      b.style.height = (m.box.y1 - m.box.y0) + '%';
+      fig.appendChild(b);
+    });
+    fig.appendChild(UI.el('span', 'ag-fig-tag', '실제 설비 사진 · AI 탐지'));
+    return fig;
+  }
+
+  /** 조사한 위험요소 — 「램과 금형 사이 — 끼임」 · 사진 위치가 없으면 「위치 확인 필요」 */
+  function researchList(eq) {
+    var a = eq.analysis;
+    var mapped = a.guided && Array.isArray(a.guided.mapped) ? a.guided.mapped : [];
+    var d = UI.el('details', 'equip-research-list');
+    d.appendChild(UI.el('summary', null, '조사한 위험요소 ' + a.research.items.length + '개 보기'));
+    var ol = UI.el('ol');
+    a.research.items.forEach(function (it) {
+      var h = Store.hazard(it.hazard);
+      var where = mapped.some(function (m) { return m.id === it.id; }) ? '' : ' · 위치 확인 필요';
+      ol.appendChild(UI.el('li', null, (it.part || '부위 미상') + ' — ' + (h ? h.label : (it.hazard || '위험 미상')) + where));
+    });
+    d.appendChild(ol);
+    return d;
+  }
+
+  function runResearch(id) {
+    var eq = Store.findBy(Store.setup.load().equipments, 'id', id);
+    if (!eq || researching[id] || !Store.equipmentReady(eq)) return;
+    var opts = { token: Auth.token(), timeoutMs: RESEARCH_TIMEOUT_MS };
+    var why = function (r) { return r.failed ? (r.failed === 'timeout' ? 'AI 가 제시간에 답하지 못했습니다.' : '서버에 닿지 못했습니다.') : ((r.data && r.data.message) || 'AI 가 답하지 못했습니다.'); };
+    var finish = function (msg) { delete researching[id]; render(); if (msg) UI.toast(msg); };
+    researching[id] = 'AI 가 공개 자료에서 위험요소를 찾는 중입니다… (길면 2분쯤)';
+    render();
+    Net.post('/api/research', { equipment: { id: eq.id, kind: Store.kindOf(eq).id, name: eq.name, maker: eq.maker || '', model: eq.model || '', year: eq.year || null } }, opts)
+      .then(function (r) {
+        var got = r.data && r.data.equipment && r.data.equipment.id;
+        if (!r.ok || !r.data || !Array.isArray(r.data.items)) { finish(why(r) + ' 다시 눌러 주세요.'); return; }
+        if (got && got !== id) { finish('다른 설비의 결과가 왔습니다. 다시 조사해 주세요.'); return; }
+        var research = JSON.parse(JSON.stringify(r.data));
+        research.items.forEach(function (it) { delete it.image; });   // 참고 사진(외부 그림)은 넣지 않는다 (동기화 512KB)
+        var photo = isPhoto(eq.photo) ? eq.photo : '';
+        var store = function (guided) {
+          Store.setup.update(function (s) {
+            var e = Store.findBy(s.equipments, 'id', id);
+            if (!e) return;
+            /* 조사하는 사이 사진이 바뀌었으면 위치는 그 사진의 것이 아니다 */
+            var g = guided && e.photo === photo ? guided : null;
+            e.analysis = { at: new Date().toISOString(), model: research.model || '', source: 'server', kind: Store.kindOf(e).id, research: research, guided: g };
+          });
+        };
+        store(null);
+        if (!photo) { finish('조사를 마쳤습니다 — 위험요소 ' + research.items.length + '개. 설비 사진을 넣고 다시 조사하면 위치도 찾습니다.'); return; }
+        researching[id] = '설비 사진에서 위험 위치를 찾는 중입니다…';
+        render();
+        return Net.post('/api/hazards', {
+          image: photo,
+          items: research.items.map(function (it) { return { id: it.id, part: it.part, hazard: it.hazard }; }),
+          equipment: { id: id }
+        }, opts).then(function (h) {
+          var hid = h.data && h.data.equipment && h.data.equipment.id;
+          if (!h.ok || !h.data || !Array.isArray(h.data.mapped)) { finish('조사는 저장했습니다. 사진 위치는 찾지 못했습니다 — ' + why(h)); return; }
+          if (hid && hid !== id) { finish('조사는 저장했습니다. 사진 위치는 다른 설비 결과라 버렸습니다.'); return; }
+          if (h.data.person) { finish('조사는 저장했습니다. 사진에 사람이 찍혀 위치를 찾지 않았습니다 — 설비만 다시 찍어 주세요.'); return; }
+          store(h.data);
+          finish('조사를 마쳤습니다 — 위험요소 ' + research.items.length + '개 · 사진 위치 ' + h.data.mapped.length + '곳.');
+        });
+      });
+  }
+
+  /* ── 등록 정보 AI 1차 검수 (🆕 2026-11-16) ───────────────────────────
+     /api/research 에 verify 를 붙여 부른다 — 「설비 자료조사」(autogen)와 같은 함수·같은 출처 규칙.
+     ★ AI 는 제안만 한다. 설비 값은 담당자가 항목마다 [승인]할 때만 바뀐다.
+     ★ 서버를 못 부르는 곳(file://·끊김)에서는 「검수 못 함」으로 남기고 등록은 그대로 둔다 */
+  var REVIEW_TIMEOUT_MS = 180000;   // 🆕 2026-11-21 70초 → 180초 — 검수도 같은 조사 함수(150초)
+  var REVIEW_STALE_MS = 4 * 60 * 1000;   // 🆕 2026-11-21 2분 → 4분 — 검수 상한(180초)보다 길게   // 확인 중에 화면을 떠나 멈춘 것 — 다시 검수 버튼을 보인다
+
+  function kindLabelOf(id) { return (Store.equipmentKind(id) || {}).label || '기타'; }
+
+  /** 확인할 항목 — 담당자가 적은 값만 (빈 칸은 묻지 않는다) */
+  function claimsOf(eq) {
+    var list = [{ key: 'kind', field: '설비 종류', value: kindLabelOf(Store.kindOf(eq).id) }];
+    if (eq.maker) list.push({ key: 'maker', field: '제조사', value: eq.maker });
+    if (eq.model) list.push({ key: 'model', field: '모델명', value: eq.model });
+    if (eq.year) list.push({ key: 'year', field: '연식', value: String(eq.year) });
+    (eq.hazards || []).forEach(function (code, i) {
+      var h = Store.hazard(code);
+      if (h) list.push({ key: 'hazard:' + i, field: '위험유형', value: h.label, code: code });
+    });
+    return list;
+  }
+
+  function sameItem(a, b) { return a.key === b.key && (a.claim || '') === (b.claim || '') && (a.suggest || '') === (b.suggest || ''); }
+
+  function runReview(id) {
+    var eq = Store.findBy(Store.setup.load().equipments, 'id', id);
+    if (!eq) return;
+    var old = eq.review && Array.isArray(eq.review.items) ? eq.review.items : [];
+    var claims = claimsOf(eq).map(function (c) {
+      var o = old.filter(function (x) { return x.key === c.key && x.claim === c.value && x.decision === 'redo'; })[0];
+      return { key: c.key, field: c.field, value: c.value, code: c.code, note: o ? o.note || '' : '' };
+    });
+    setReview(id, function (r) { r.status = 'checking'; r.at = new Date().toISOString(); r.message = ''; });
+    Net.post('/api/research', {
+      equipment: { id: eq.id, kind: Store.kindOf(eq).id, name: eq.name, maker: eq.maker || '', model: eq.model || '', year: eq.year || null },
+      verify: {
+        claims: claims.map(function (c) { return { key: c.key, field: c.field, value: c.value, note: c.note }; }),
+        allowed: Store.HAZARD_TYPES.map(function (h) { return h.label; })
+      }
+    }, { token: Auth.token(), timeoutMs: REVIEW_TIMEOUT_MS }).then(function (r) {
+      if (!r.ok || !r.data || !r.data.verify) {
+        var why = r.failed ? 'AI 검수는 배포 주소(https)에서 서버에 닿을 때만 됩니다.' : ((r.data && r.data.message) || 'AI 가 답하지 못했습니다.');
+        setReview(id, function (rv) { rv.status = 'error'; rv.message = why + ' 등록 정보는 그대로 저장돼 있습니다.'; });
+        return;
+      }
+      var v = r.data.verify;
+      var fresh = (v.checks || []).concat(v.missing || []).map(function (x) {
+        var c = claims.filter(function (k) { return k.key === x.key; })[0];
+        return {
+          key: x.key, field: x.field, claim: x.claim || '', code: c ? c.code || '' : '',
+          verdict: x.verdict, suggest: x.suggest || '', label: x.label || '', reason: x.reason || '',
+          sources: (x.sources || []).slice(0, 3).map(function (s) { return { title: s.title, url: s.url, host: s.host }; }),
+          decision: '', note: c ? c.note : ''
+        };
+      });
+      setReview(id, function (rv) {
+        /* 담당자가 이미 승인·삭제한 같은 항목은 그 판정을 지킨다 */
+        rv.items = fresh.map(function (x) {
+          var kept = old.filter(function (o) { return (o.decision === 'approved' || o.decision === 'deleted') && sameItem(o, x); })[0];
+          return kept || x;
+        });
+        /* ★ 항목이 하나도 없으면 저절로 승인되지 않는다 — 사람이 [AI 없이 담당자가 확인 · 승인]으로 정한다 */
+        if (!rv.items.length) { rv.status = 'error'; rv.message = 'AI 가 확인한 항목이 없습니다.'; }
+        else rv.status = rv.items.some(function (x) { return !x.decision; }) ? 'waiting' : 'approved';
+        rv.model = r.data.model || '';
+        rv.at = new Date().toISOString();
+      });
+    });
+  }
+
+  function setReview(id, fn) {
+    commit(function (s) {
+      var eq = Store.findBy(s.equipments, 'id', id);
+      if (!eq) return;
+      eq.review = eq.review && typeof eq.review === 'object' ? eq.review : { items: [] };
+      if (!Array.isArray(eq.review.items)) eq.review.items = [];
+      fn(eq.review);
+    });
+  }
+
+  /** 승인했을 때 바뀌는 것 — 버튼 옆에 미리 말한다 */
+  function applyText(it) {
+    if (it.key.indexOf('add:') === 0) return '승인하면 위험유형에 「' + it.label + '」을(를) 더합니다';
+    if (it.verdict !== 'wrong') return '승인하면 적은 값을 그대로 확정합니다';
+    if (it.key.indexOf('hazard:') === 0) return '승인하면 위험유형에서 「' + it.claim + '」을(를) 뺍니다';
+    if (!it.suggest) return '승인하면 적은 값을 그대로 둡니다 (AI 가 바른 값을 못 냄)';
+    return '승인하면 ' + it.field + '을(를) 「' + it.suggest + '」(으)로 바꿉니다';
+  }
+
+  function decide(eqId, idx, decision, note) {
+    var message = '';
+    commit(function (s) {
+      var eq = Store.findBy(s.equipments, 'id', eqId);
+      var it = eq && eq.review && eq.review.items[idx];
+      if (!it) return;
+      it.decision = decision;
+      if (note !== undefined) it.note = note;
+      if (decision === 'approved') {
+        var hz = Array.isArray(eq.hazards) ? eq.hazards : [];
+        var before = eq.kind + '|' + eq.maker + '|' + eq.model;
+        if (it.key.indexOf('add:') === 0) {
+          var code = Store.customHazard(it.label);
+          if (code && hz.indexOf(code) === -1) hz.push(code);
+        } else if (it.verdict === 'wrong' && it.key.indexOf('hazard:') === 0) {
+          hz = hz.filter(function (c) { return c !== it.code; });
+        } else if (it.verdict === 'wrong' && it.suggest) {
+          if (it.key === 'kind') {
+            var k = Store.EQUIPMENT_KINDS.filter(function (x) { return it.suggest.indexOf(x.label) !== -1; })[0];
+            if (k) { eq.kind = k.id; eq.icon = Store.kindIcon(k.id); }
+            else message = 'AI 가 낸 종류 「' + it.suggest + '」는 목록에 없어 바꾸지 않았습니다.';
+          }
+          if (it.key === 'maker') eq.maker = it.suggest.slice(0, 60);
+          if (it.key === 'model') eq.model = it.suggest.slice(0, 60);
+          if (it.key === 'year') { var y = parseInt(it.suggest, 10); if (y >= 1950 && y <= 2100) eq.year = y; }
+        }
+        eq.hazards = hz;
+        if (before !== eq.kind + '|' + eq.maker + '|' + eq.model && eq.analysis) eq.analysis = null;   // 다른 설비의 분석이 남지 않게
+      }
+      eq.review.status = eq.review.items.some(function (x) { return !x.decision || x.decision === 'redo'; }) ? 'waiting' : 'approved';
+    }, message || (decision === 'approved' ? '승인했습니다.' : decision === 'deleted' ? '이 AI 결과를 버렸습니다. 적은 값은 그대로입니다.' : ''));
+  }
+
+  var VERDICT = {
+    ok:      function () { return UI.okBadge('AI 조사 · 자료로 확인됨'); },
+    wrong:   function () { return UI.stopBadge('AI 조사 · 자료와 다름'); },
+    unknown: function () { return UI.waitBadge('AI 조사 · 자료를 못 찾음'); }
+  };
+
+  /** 설비 한 줄 아래의 검수 칸 */
+  function reviewBlock(eq) {
+    var box = UI.el('div', 'review');
+    var rv = eq.review;
+    var head = UI.el('div', 'review-head');
+    box.appendChild(head);
+    var again = UI.el('button', 'btn-sm', 'AI 검수 다시 받기');
+    again.type = 'button';
+    again.addEventListener('click', function () { runReview(eq.id); });
+    /* AI 를 못 쓸 때(서버 없음·실패) — 담당자가 직접 확인하고 승인한다. 승인은 사람만 (AI 결과는 늘 대기) */
+    var manual = UI.el('button', 'btn-sm', 'AI 없이 담당자가 확인 · 승인');
+    manual.type = 'button';
+    manual.addEventListener('click', function () {
+      if (!window.confirm('"' + eq.name + '" 의 종류·제조사·모델·위험유형을 담당자가 직접 확인했습니까? 승인하면 교육 만들기에 쓸 수 있습니다.')) return;
+      setReview(eq.id, function (r) { r.status = 'approved'; r.manual = true; r.at = new Date().toISOString(); });
+    });
+
+    var stale = rv && rv.status === 'checking' && (Date.now() - new Date(rv.at).getTime() > REVIEW_STALE_MS);
+    if (!rv || stale) {
+      head.appendChild(stale ? UI.waitBadge('검수 대기 · AI 검수가 멈췄습니다') : UI.neutralBadge('AI 검수 전'));
+      head.appendChild(again);
+      if (stale) head.appendChild(manual);
+      return box;
+    }
+    if (rv.status === 'checking' || rv.status === 'queued') {
+      head.appendChild(UI.waitBadge(rv.status === 'queued' ? '검수 대기 · 촬영 뒤 AI 검수를 시작합니다' : '검수 대기 · AI 가 공개 자료로 확인하는 중… (30초쯤)'));
+      return box;
+    }
+    if (rv.status === 'error') {
+      head.appendChild(UI.stopBadge('검수 대기 · AI 검수 못 함'));
+      head.appendChild(UI.el('span', 'meta', rv.message || ''));
+      head.appendChild(again);
+      head.appendChild(manual);
+      return box;
+    }
+    var open = rv.items.filter(function (x) { return !x.decision || x.decision === 'redo'; }).length;
+    head.appendChild(open ? UI.waitBadge('검수 대기 · 승인할 항목 ' + open + '건') : UI.okBadge('AI 검수 · 담당자 승인 완료'));
+    head.appendChild(again);
+
+    var ul = UI.el('ul', 'review-items');
+    rv.items.forEach(function (it, idx) {
+      var li = UI.el('li', 'review-item' + (it.decision === 'deleted' ? ' is-deleted' : ''));
+      var line = UI.el('div', 'review-line');
+      line.appendChild(UI.el('b', null, it.field));
+      if (it.claim) line.appendChild(UI.el('span', null, '적은 값: ' + it.claim));
+      line.appendChild((VERDICT[it.verdict] || VERDICT.unknown)());
+      li.appendChild(line);
+      /* AI 가 조사한 부분 — 색 띠 + 「AI 조사」 글자 (색만으로 구분하지 않는다) */
+      var ai = UI.el('div', 'ai-found');
+      ai.appendChild(UI.el('span', 'ai-mark', 'AI 조사'));
+      if (it.suggest) ai.appendChild(UI.el('b', null, (it.key.indexOf('add:') === 0 ? '추가 제안: ' : 'AI 가 찾은 값: ') + it.suggest));
+      if (it.reason) ai.appendChild(UI.el('span', null, it.reason));
+      (it.sources || []).forEach(function (s) {
+        var a = UI.el('a', 'src', s.title || s.host);
+        a.href = s.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        ai.appendChild(a);
+      });
+      if (!(it.sources || []).length) ai.appendChild(UI.el('span', 'meta', '확인된 출처 없음'));
+      li.appendChild(ai);
+
+      if (it.decision === 'approved' || it.decision === 'deleted') {
+        li.appendChild(UI.el('p', 'meta', it.decision === 'approved' ? '담당자 승인됨' : '삭제됨 — 적은 값 그대로'));
+      } else {
+        li.appendChild(UI.el('p', 'meta', applyText(it)));
+        var row = UI.el('div', 'btn-row');
+        var ok = UI.el('button', 'btn-sm', '승인');
+        ok.type = 'button';
+        ok.addEventListener('click', function () { decide(eq.id, idx, 'approved'); });
+        var fix = UI.el('button', 'btn-sm', '수정');
+        fix.type = 'button';
+        var del = UI.el('button', 'btn-sm danger', '삭제');
+        del.type = 'button';
+        del.addEventListener('click', function () { decide(eq.id, idx, 'deleted'); });
+        row.appendChild(ok); row.appendChild(fix); row.appendChild(del);
+        li.appendChild(row);
+
+        /* 수정 — 이 항목에 메모(지시)를 달아 AI 가 다시 조사한다 */
+        var memo = UI.el('div', 'review-memo');
+        memo.hidden = it.decision !== 'redo';
+        var ta = UI.el('textarea');
+        ta.rows = 2; ta.maxLength = 200;
+        ta.placeholder = '예: 제조사는 화천기계가 맞는지, 영문 표기 Hwacheon 으로 다시 찾아 줘';
+        ta.setAttribute('aria-label', it.field + ' 재조사 메모');
+        ta.value = it.note || '';
+        var go = UI.el('button', 'btn-sm', '이 메모로 재조사');
+        go.type = 'button';
+        go.addEventListener('click', function () {
+          if (!ta.value.trim()) { UI.toast('AI 에게 다시 확인할 점을 적어 주세요.'); ta.focus(); return; }
+          decide(eq.id, idx, 'redo', ta.value.trim().slice(0, 200));
+          runReview(eq.id);
+        });
+        memo.appendChild(ta); memo.appendChild(go);
+        fix.addEventListener('click', function () { memo.hidden = false; ta.focus(); });
+        li.appendChild(memo);
+      }
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    return box;
+  }
+
   /* ── 설비 사진 · 수정 ─────────────────────────────────────────── */
 
   var PHOTO_MAX = 640;      // 긴 변 — 동기화 상한(512KB)에 설비 여러 대가 들어가게
   var PHOTO_QUALITY = 0.7;
   var pendingPhoto = null;  // null = 그대로 · '' = 지움 · data URL = 새 사진
+  var pendingShots = null;  // 🆕 동영상에서 뽑은 장면 (ScanShots) — 저장하면 촬영 묶음으로 올린다
+  var videoBusy = false;
 
   function shrinkPhoto(file, done) {
     var url = URL.createObjectURL(file);
@@ -318,21 +752,69 @@
     img.src = url;
   }
 
+  function clearVideo() {
+    pendingShots = null;
+    var st = $('equip-video-status');
+    if (st && !videoBusy) { st.hidden = true; st.textContent = ''; }
+  }
+
+  /** 🆕 2026-11-21 동영상 — 가이드 촬영과 같은 기준으로 흔들리지 않은 장면만 고른다.
+      가장 선명한 한 장 = 설비 사진(미리보기), 나머지는 저장할 때 촬영 묶음으로 올린다 */
+  function onVideoFile(f) {
+    var st = $('equip-video-status'), save = $('btn-equip-save');
+    if (typeof ScanShots === 'undefined') { UI.toast('동영상을 읽을 수 없습니다. 사진으로 넣어 주세요.'); return; }
+    videoBusy = true;
+    pendingShots = null;
+    save.disabled = true;
+    st.hidden = false;
+    st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… 0%';
+    ScanShots.fromVideo(f, function (p) {
+      st.textContent = '동영상에서 흔들리지 않은 장면을 고르는 중… ' + Math.round(p * 100) + '%';
+    }).then(function (r) {
+      var best = ScanShots.best(r.passes);
+      if (!best) {
+        st.textContent = '선명한 장면을 찾지 못했습니다. 밝은 곳에서 천천히 다시 찍어 주세요.';
+        return;
+      }
+      pendingShots = r.passes;
+      st.textContent = '흔들리지 않은 장면 ' + r.count + '장을 골랐습니다. 저장하면 가장 선명한 한 장이 설비 사진이 되고, ' + r.count + '장은 촬영 묶음으로 올라갑니다.';
+      return new Promise(function (ok) {
+        shrinkPhoto(best.blob, function (data) { if (data) { pendingPhoto = data; showPreview(data); } ok(); });
+      });
+    }).catch(function () {
+      st.textContent = '이 동영상을 읽지 못했습니다. 휴대폰 기본 카메라로 찍은 동영상(mp4)으로 다시 해 주세요.';
+    }).then(function () {
+      videoBusy = false;
+      save.disabled = false;
+    });
+  }
+
+  /** 저장한 설비에 동영상 장면을 올린다 — 서버 주소(https)에서만. 실패해도 설비 저장은 그대로다 */
+  function sendShots(id, passes) {
+    if (!passes || !id) return;
+    if (!(Net.onHttps && Net.onHttps())) { UI.toast('동영상 장면은 배포 주소에서 저장할 때 올라갑니다. 설비 사진만 저장했습니다.'); return; }
+    var st = $('equip-video-status');
+    st.hidden = false;
+    ScanShots.upload(id, passes, function (k, n) { st.textContent = '동영상 장면을 올리는 중 ' + k + ' / ' + n; }).then(function (r) {
+      st.textContent = r.failed
+        ? '동영상 장면 ' + r.done + '장을 올렸고 ' + r.failed + '장은 못 올렸습니다. 촬영 화면에서 다시 찍어 주세요.'
+        : '동영상 장면 ' + r.done + '장을 촬영 묶음 ' + r.scanId + '(으)로 올렸습니다.';
+    });
+  }
+
   function showPreview(data) {
     var p = $('equip-photo-preview');
     p.hidden = !data;
     if (data) p.src = data; else p.removeAttribute('src');
   }
 
-  /** 사진 칸 아래 [둘레 촬영] — 저장된 설비(수정 중)만 연다. 새 설비는 저장해야 id 가 생긴다 */
-  function scanEntry(id) {
-    var a = $('btn-equip-scan');
-    a.hidden = !id;
-    $('equip-scan-hint').hidden = !!id;
-    if (id) a.href = 'scan.html?equipment=' + encodeURIComponent(id);
-  }
-
+  /** 수정은 「등록 설비 확인·수정」 안에서 한다 — 같은 폼을 그 자리로 옮겨 온다 (등록 화면으로 돌아가지 않는다) */
   function startEdit(eq) {
+    goView('list');
+    var slot = $('equip-edit-slot');
+    slot.appendChild($('form-equip'));
+    slot.hidden = false;
+    $('equip-edit-title').textContent = '설비 수정 — ' + (eq.name || '');
     $('equip-edit-id').value = eq.id;
     $('equip-name').value = eq.name || '';
     $('equip-proc').value = eq.processId || '';
@@ -340,14 +822,15 @@
     $('equip-maker').value = eq.maker || '';
     $('equip-model').value = eq.model || '';
     $('equip-year').value = eq.year || '';
-    UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = (eq.hazards || []).indexOf(n.value) !== -1; });
-    /* 🆕 저장해 둔 특별교육 표시를 되살린다 — 수정하다 꺼지면 조용히 표시가 풀린다 */
+    setHazards(Array.isArray(eq.hazards) ? eq.hazards : []);
+    /* 🆕 저장해 둔 특별교육 표시를 되살린다 — 수정하다 꺼지면 조용히 표시가 풀린다 (FR-AD-01-09) */
     renderSpecialNote(Array.isArray(eq.specialWork) && eq.specialWork.length > 0);
     pendingPhoto = null;
+    clearVideo();
     showPreview(eq.photo || '');
-    scanEntry(eq.id);
     $('btn-equip-save').lastChild.textContent = ' 수정 저장';
     $('btn-equip-cancel').hidden = false;
+    if (slot.scrollIntoView) slot.scrollIntoView({ block: 'start' });
     $('equip-name').focus();
   }
 
@@ -358,13 +841,29 @@
     $('equip-model').value = '';
     $('equip-year').value = '';
     // 위험유형은 초기화한다. 다음 설비에 앞 설비의 위험이 딸려 들어가면 안 된다.
-    UI.$$('input[name="hazard"]').forEach(function (n) { n.checked = false; });
+    setHazards([]);
     renderSpecialNote(false);   // 🆕 특별교육 표시도 다음 설비로 딸려 가지 않는다
     pendingPhoto = null;
+    clearVideo();
     showPreview('');
-    scanEntry('');
     $('btn-equip-save').lastChild.textContent = ' 설비 추가';
     $('btn-equip-cancel').hidden = true;
+    /* 폼을 등록 화면으로 되돌린다 */
+    $('equip-form-home').appendChild($('form-equip'));
+    $('equip-edit-slot').hidden = true;
+  }
+
+  /* ── 카메라로 찍기 (🆕 2026-11-16) = 가이드 촬영(scan.html) ──────────────────────
+     틀·수평선·자세 교정이 카메라 위에 나오고, 둘레를 돌면 선명한 장면만 알아서 찍힌다.
+     촬영 화면은 저장된 설비(id)에 사진을 붙인다 — 새 설비는 먼저 저장(검수 대기)하고 넘어간다 */
+  function scanUrl(id) { return 'scan.html?equipment=' + encodeURIComponent(id) + '&return=list'; }
+  var goScanAfterSave = false;
+  function openGuidedCamera() {
+    var editId = $('equip-edit-id').value;
+    if (editId) { location.href = scanUrl(editId); return; }
+    goScanAfterSave = true;   // 아래 저장이 끝나면 촬영으로 넘어간다
+    $('form-equip').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    goScanAfterSave = false;
   }
 
   function renderWorkers(state) {
@@ -387,7 +886,10 @@
       { what: '2. 사용 언어',      done: state.languages.length > 0,  note: state.languages.length + '개' },
       { what: '3. 공정',           done: state.processes.length > 0,  note: state.processes.length + '개' },
       { what: '4. 설비',           done: state.equipments.length > 0, note: state.equipments.length + '대' },
-      { what: '5. 노동자',         done: state.workers.length > 0,    note: state.workers.length + '명' }
+      { what: '5. 노동자',         done: state.workers.length > 0,    note: state.workers.length + '명' },
+      /* 🆕 2026-11-21 설비마다 AI 위험요소 조사 (필수) */
+      { what: '6. AI 위험요소 조사', done: state.equipments.length > 0 && state.equipments.every(researched),
+        note: state.equipments.filter(researched).length + '/' + state.equipments.length + '대' }
     ];
 
     var list = $('checklist');
@@ -488,7 +990,7 @@
         return;
       }
 
-      var icon = UI.pickedValue('proc-icon') || Store.ICONS[0];
+      var icon = '🏭';   // 고르지 않는다 — 다른 화면이 읽는 칸이라 값만 둔다
       commit(function (s) {
         s.processes.push({ id: Store.uid(), name: name, icon: icon });
       }, '공정을 추가했습니다.');
@@ -509,9 +1011,17 @@
       if (!processId) { UI.toast('소속 공정을 골라 주세요.'); return; }
 
       var hazards = UI.checkedValues('hazard');
-      var icon = UI.pickedValue('equip-icon') || Store.ICONS[0];
       var kind = Store.equipmentKind($('equip-kind').value) ? $('equip-kind').value : 'other';
+      var icon = Store.kindIcon(kind);   // 픽토그램은 고르지 않는다 — 종류에서 정한다
       var editId = $('equip-edit-id').value;
+
+      /* 🆕 2026-11-16 같은 이름의 설비는 받지 않는다 (교육·증빙에서 어느 설비인지 구분이 안 된다) */
+      var norm = function (v) { return String(v || '').replace(/\s+/g, '').toLowerCase(); };
+      if (Store.setup.load().equipments.some(function (x) { return x.id !== editId && norm(x.name) === norm(name); })) {
+        UI.toast('동일한 이름을 가진 설비가 존재합니다. 다른 이름을 적거나 등록 설비에서 그 설비를 수정해 주세요.');
+        $('equip-name').focus();
+        return;
+      }
 
       /* 제조사·모델명·연식 — AI 리서치(PRD-AD-08 S1)용. 선택이라 비어도 된다.
          연식은 숫자로만 받고, 범위 밖이면 버린다 (잘못된 값으로 리서치하지 않게) */
@@ -520,20 +1030,25 @@
       var yearNum = Number($('equip-year').value);
       var year = Number.isInteger(yearNum) && yearNum >= 1950 && yearNum <= 2100 ? yearNum : null;
 
-      /* 🆕 체크했을 때만 작업 번호를 남긴다. 이름이 바뀌어 낱말이 사라졌으면 빈 배열 (FR-09) */
+      /* 🆕 체크했을 때만 작업 번호를 남긴다. 이름이 바뀌어 낱말이 사라졌으면 빈 배열 (FR-AD-01-09) */
       var special = ($('equip-special-on') || {}).checked ? specialJobs() : [];
-
+      if (videoBusy) { UI.toast('동영상에서 장면을 고르는 중입니다. 끝나면 저장해 주세요.'); return; }
       var photo = pendingPhoto;
+      var shots = pendingShots;
       var message = '설비를 추가했습니다.';
+      var newId = editId ? '' : Store.uid();
+      var recheck = !editId;   // 등록 정보가 바뀌었으면 AI 검수를 다시 한다
       commit(function (s) {
         if (!editId) {
           s.equipments.push({
-            id: Store.uid(), processId: processId, name: name, kind: kind,
+            id: newId, processId: processId, name: name, kind: kind,
             icon: icon, hazards: hazards, note: '',
             maker: maker, model: model, year: year,
             photo: photo || '', analysis: null,
             /* 🆕 특별교육 대상 표시 — 담당자가 체크했을 때만 (FR-AD-01-09) */
-            specialWork: special
+            specialWork: special,
+            /* 처음부터 검수 대기 — 담당자가 승인하기 전에는 교육 만들기에서 고를 수 없다 */
+            review: { status: goScanAfterSave ? 'queued' : 'checking', at: new Date().toISOString(), items: [] }
           });
           return;
         }
@@ -541,6 +1056,8 @@
         if (!eq) return;
         /* ★ 종류·제조사·모델·사진이 바뀌면 예전 AI 분석은 이 설비의 것이 아니다 — 지운다 (다시 분석) */
         var changed = eq.kind !== kind || (eq.maker || '') !== maker || (eq.model || '') !== model || (photo !== null && photo !== eq.photo);
+        recheck = eq.kind !== kind || (eq.maker || '') !== maker || (eq.model || '') !== model || (eq.year || null) !== year ||
+          (eq.hazards || []).join() !== hazards.join() || !eq.review;
         eq.processId = processId; eq.name = name; eq.kind = kind; eq.icon = icon; eq.hazards = hazards;
         eq.maker = maker; eq.model = model; eq.year = year;
         eq.specialWork = special;
@@ -548,9 +1065,17 @@
         if (changed && eq.analysis) { eq.analysis = null; message = '수정했습니다. 종류·모델·사진이 바뀌어 AI 분석 결과를 지웠습니다 — 다시 분석해 주세요.'; }
         else message = '수정했습니다.';
       }, editId ? null : message);
-      if (editId) UI.toast(message);
+      if (editId) UI.toast(message + (recheck ? ' 바뀐 정보를 AI 가 다시 확인합니다.' : ''));
 
       resetEquipForm();
+      sendShots(editId || newId, shots);   // 🆕 동영상 장면 → 촬영 묶음 (저장한 뒤라 설비 id 가 있다)
+      /* [카메라로 찍기]로 저장했으면 바로 가이드 촬영으로 — AI 검수는 돌아온 뒤 시작한다 (넘어가면 요청이 끊긴다) */
+      if (goScanAfterSave && newId) { location.href = scanUrl(newId); return; }
+      if (recheck) runReview(editId || newId);
+      if (!editId) {
+        $('equip-added-text').textContent = '「' + name + '」을(를) 등록했습니다. AI 가 등록 정보를 공개 자료로 확인합니다 — 결과는 등록 설비에서 승인해 주세요.';
+        $('equip-added').hidden = false;
+      }
       if (new URLSearchParams(location.search).get('return') === 'content') {
         $('return-note').hidden = false;
         $('return-link').focus();
@@ -559,17 +1084,36 @@
       }
     });
 
-    $('equip-photo').addEventListener('change', function (ev) {
+    function onPhotoFile(ev) {
       var f = ev.target.files && ev.target.files[0];
       ev.target.value = '';
       if (!f) return;
+      if (String(f.type || '').indexOf('video/') === 0) { onVideoFile(f); return; }
       shrinkPhoto(f, function (data) {
         if (!data) { UI.toast('사진을 읽지 못했습니다. 다른 사진으로 해 주세요.'); return; }
         pendingPhoto = data;
         showPreview(data);
       });
-    });
+    }
+    $('equip-photo').addEventListener('change', onPhotoFile);
+    $('btn-equip-camera').addEventListener('click', openGuidedCamera);
     $('btn-equip-cancel').addEventListener('click', resetEquipForm);
+
+    /* 위험유형 — 목록에서 더하기 · 직접 적기 */
+    $('hazard-add').addEventListener('change', function () {
+      if (this.value) addHazardChip(this.value, true);
+      this.value = '';
+    });
+    function addCustom() {
+      var code = Store.customHazard($('hazard-custom').value);
+      if (!code) { UI.toast('더할 위험유형을 적어 주세요.'); $('hazard-custom').focus(); return; }
+      addHazardChip(code, true);
+      $('hazard-custom').value = '';
+    }
+    $('btn-hazard-custom').addEventListener('click', addCustom);
+    $('hazard-custom').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } });
+
+    window.addEventListener('hashchange', showView);
 
     /* 5. 노동자 */
     $('form-worker').addEventListener('submit', function (e) {
@@ -628,6 +1172,9 @@
   buildStaticControls();
   bindEvents();
   render();
+  showView();
+  /* 촬영으로 먼저 넘어갔던 새 설비 — 돌아왔으니 AI 검수를 시작한다 */
+  Store.setup.load().equipments.forEach(function (e) { if (e.review && e.review.status === 'queued') runReview(e.id); });
   /* 콘텐츠에서 「설비 등록하러 가기」로 왔다 — 돌아가는 길을 처음부터 보인다 */
   if (new URLSearchParams(location.search).get('return') === 'content') $('return-note').hidden = false;
 })();

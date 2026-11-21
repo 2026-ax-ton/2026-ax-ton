@@ -55,6 +55,61 @@ var UI = (function () {
     return node;
   }
 
+  /* 🆕 2026-11-16 Safelang 로고 (사용자가 준 시안 — 돛단배 + safelang.)
+     그림은 좌표만 든 인라인 SVG — 제3자 요청 0건, innerHTML 없이 createElementNS 로 만든다.
+     [data-brand] 칸(로그인)과 관리자 머리띠가 같은 것을 쓴다 — 로고가 두 벌이면 한쪽만 바뀐다. */
+  var BRAND_SHAPES = [
+    ['path', { d: 'M27 7q5-3 10 0', fill: 'none', stroke: '#795cf2', 'stroke-width': '2.6', 'stroke-linecap': 'round' }],
+    ['path', { d: 'M31 11V50H13Z', fill: '#161b26' }],
+    ['path', { d: 'M31 30V36H22.5Z M31 41V47H16.5Z', fill: '#d6cdfb' }],
+    ['path', { d: 'M33 11c11 0 18 9 18 22H33Z', fill: '#795cf2' }],
+    ['path', { d: 'M33 33H55q3 0 1 3l-6 4q-2 1-5 1H33Z', fill: '#161b26' }],
+    ['rect', { x: '10', y: '49', width: '22', height: '6', rx: '3', fill: '#161b26' }],
+    ['path', { d: 'M41 41V50q0 6-6 6h-2', fill: 'none', stroke: '#795cf2', 'stroke-width': '2.6', 'stroke-linecap': 'round' }],
+    ['line', { x1: '32', y1: '9', x2: '32', y2: '57', stroke: '#c9cdd4', 'stroke-width': '1.4' }]
+  ];
+
+  function brandMark() {
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '6 4 54 54');
+    svg.setAttribute('class', 'brand-mark');
+    svg.setAttribute('aria-hidden', 'true');
+    BRAND_SHAPES.forEach(function (s) {
+      var n = document.createElementNS(NS, s[0]);
+      Object.keys(s[1]).forEach(function (k) { n.setAttribute(k, s[1][k]); });
+      svg.appendChild(n);
+    });
+    return svg;
+  }
+
+  function brand(className) {
+    var box = el('span', 'brand' + (className ? ' ' + className : ''));
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', 'Safelang');
+    box.appendChild(brandMark());
+    var word = el('span', 'brand-word', 'safelang');
+    word.setAttribute('aria-hidden', 'true');
+    word.appendChild(el('span', 'brand-dot', '.'));
+    box.appendChild(word);
+    return box;
+  }
+
+  function fillBrands() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-brand]'), function (n) {
+      n.textContent = '';
+      n.appendChild(brand(n.getAttribute('data-brand') || ''));
+    });
+    // HTML 에 이름만 적어 둔 아이콘 칸 (<span data-ico="file">) 을 그림으로
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ico]'), function (n) {
+      setIcon(n, n.getAttribute('data-ico'));
+    });
+  }
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillBrands);
+    else fillBrands();
+  }
+
   /* 상태 배지 — 아이콘 + 글자 + 색.
      흑백으로 봐도 뜻이 남아야 한다 (SCREEN §4 · PRD §9.4)
 
@@ -211,7 +266,14 @@ var UI = (function () {
       Store.LANGUAGES.forEach(function (l) {
         var cell = el('span', 'lang-cell');
 
-        var btn = el('button', 'lang-btn' + (l.code === current ? ' on' : ''), l.native);
+        /* 🆕 2026-11-16 로그인 시안 — 모국어 글자를 크게, 한국어 이름을 작게 (담당자가 옆에서 도와줄 때 읽는다).
+           고른 언어에는 체크 그림. 한국어 칸은 이름이 같으므로 작은 줄을 붙이지 않는다. */
+        var btn = el('button', 'lang-btn' + (l.code === current ? ' on' : ''));
+        if (l.code === current) btn.appendChild(iconBox('check', 'lang-check'));
+        var nat = el('span', 'lang-native', l.native);
+        nat.setAttribute('lang', l.code);
+        btn.appendChild(nat);
+        if (l.name !== l.native) btn.appendChild(el('span', 'lang-ko', l.name));
         btn.type = 'button';
         btn.setAttribute('aria-pressed', l.code === current ? 'true' : 'false');
         btn.addEventListener('click', function () {
@@ -251,6 +313,13 @@ var UI = (function () {
       chipNode.appendChild(ico);
       chipNode.appendChild(document.createTextNode(' ' + Store.role(user.role).label));
     }
+    var head = document.querySelector('.adminbar');
+    if (head && !head.querySelector('.brand')) {
+      var home = el('a', 'brand-link');
+      home.href = user.role === 'operator' ? 'library.html' : 'dashboard.html';
+      home.appendChild(brand('on-dark'));
+      head.insertBefore(home, head.firstChild);
+    }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
     /* 🆕 2026-11-11 서버가 거절한 변경을 알린다 — 전에는 이 브라우저에만 남고 아무도 몰랐다 (store.js onReject) */
@@ -275,6 +344,20 @@ var UI = (function () {
     }
     var out = $('btn-logout');
     if (out) out.addEventListener('click', Auth.logout);
+
+    /* 🆕 2026-11-16 공통 디자인 — 노동자 화면 머리띠 맨 앞에 로고(방패).
+       화면 6개 html 을 일일이 고치지 않게 여기서 한 번에 붙인다. */
+    var bar = document.querySelector('.workerbar');
+    if (bar) {
+      var logo = bar.querySelector('.hv2-logo');
+      if (!logo) {
+        logo = el('span', 'hv2-logo');
+        logo.setAttribute('data-icon', 'shield');
+        bar.insertBefore(logo, bar.firstChild);
+      }
+      logo.setAttribute('aria-hidden', 'true');
+      setIcon(logo, 'shield');
+    }
   }
 
   /* 하단 탭에서 지금 페이지에 표시를 준다.
@@ -294,8 +377,135 @@ var UI = (function () {
     'scan.html': ['admin', 'operator'],
     'library.html': ['operator']
   };
+  /* 🆕 2026-11-16 담당자 메뉴 — 같은 성격끼리 묶은 5개 그룹 + 상세 메뉴.
+     ★ 마우스를 올려서가 아니라 **누르면 열리고, 열린 채로 남는다.** 바깥을 누르거나 Esc 로 닫는다.
+     HTML 의 탭 링크 5개는 JS 가 멈췄을 때의 대비책으로 두고, 뜰 때 이 메뉴로 바꿔 끼운다.
+     [href, 이름, 설명] — 화면 안 위치는 # 로 간다 (설비 화면은 # 마다 한 부분만 보인다) */
+  var ADMIN_MENU = [
+    { label: '대시보드', icon: 'chart', items: [
+      ['dashboard.html#t-status', '이수 현황', '교육별 이수·미이수 인원'],
+      ['dashboard.html#t-weak', '이해도 취약 항목', '틀린 문항이 몰린 위험'],
+      ['dashboard.html#t-action', '조치가 필요한 사람', '재교육 · 미이수 노동자'],
+      ['dashboard.html#t-reports', '위험요소 신고', '노동자 익명 신고'],
+      ['dashboard.html#t-talk', '현장 소통 게시판', '노동자 질문 · 답변']
+    ] },
+    { label: '설비', icon: 'factory', items: [
+      ['setup.html#site', '사업장 등록', '사업장 기본 정보 · 사용 언어 · 공정'],
+      ['setup.html#equip', '설비 등록', '위험 기계·기구 등록 · 사진 촬영'],
+      ['setup.html#list', '등록 설비 확인·수정', 'AI 검수 결과 승인 · 설비 수정'],
+      ['setup.html#workers', '노동자 관리', '외국인 노동자 언어 · 공정 배치'],
+      ['setup.html#backup', '데이터 백업', '내보내기 · 불러오기']
+    ] },
+    { label: '교육 콘텐츠', icon: 'doc-edit', items: [
+      ['autogen.html', 'AI로 교육 만들기', '설비 자료조사 → 평가문항 자동 생성'],
+      ['content.html', '교육 직접 만들기', '안전 문구 고르기 · 문항 만들기'],
+      ['content.html#t-made', '발급한 교육', '노동자에게 나간 교육 목록']
+    ] },
+    { label: '교육 증빙', icon: 'file', items: [
+      ['proof.html', '교육일지 · 증빙', '법정 교육 실시 기록 출력']
+    ] },
+    { label: '안전 문구', icon: 'search', items: [
+      ['library.html#t-flags', '오역 신고', '노동자가 알린 번역 문제'],
+      ['library.html#t-review', '판정이 필요한 문구', 'AI 번역 승인 · 중지'],
+      ['library.html#t-list', '문구 목록 · 추가', '검수된 안전 문구']
+    ] }
+  ];
+
+  function buildAdminMenu(nav) {
+    var here = location.pathname.split('/').pop();
+    var hash = location.hash;
+    nav.textContent = '';
+    nav.classList.add('admin-menu');
+    document.body.classList.add('has-admin-menu');
+    /* 넓은 화면에서는 머리띠 바로 아래 가로 메뉴로 — 머리띠 높이만큼 내려 붙인다 */
+    var head = document.querySelector('.apphead');
+    if (head) {
+      head.parentNode.insertBefore(nav, head.nextSibling);
+      document.documentElement.style.setProperty('--head-h', (head.offsetHeight || 60) + 'px');
+    }
+    var groups = [];
+    var user = Auth.current();
+
+    /* ★ 못 들어가는 메뉴를 보여 주지 않는다 (2026-11-15 사용자 보고 · `tests/test-tabbar.js`).
+       탭 막대였을 때와 같은 규칙이다 — 판정은 `PAGE_ROLES` 한 곳에서만 한다.
+       가드(`Auth.require`)는 눌러도 되돌려 보내 준다. 문제는 **보여 준 것**이다. */
+    function mayOpen(href) {
+      var roles = PAGE_ROLES[href.split('#')[0]];
+      return !(roles && user && roles.indexOf(user.role) === -1);
+    }
+
+    function closeAll(except) {
+      groups.forEach(function (g) {
+        if (g === except) return;
+        g.btn.setAttribute('aria-expanded', 'false');
+        g.panel.hidden = true;
+      });
+    }
+
+    ADMIN_MENU.map(function (g) {
+      return { label: g.label, icon: g.icon, items: g.items.filter(function (it) { return mayOpen(it[0]); }) };
+    }).filter(function (g) {
+      return g.items.length > 0;
+    }).forEach(function (g, gi) {
+      var wrap = el('div', 'menu-group');
+      var btn = el('button', 'menu-btn');
+      btn.type = 'button';
+      btn.id = 'menu-btn-' + gi;
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-controls', 'menu-panel-' + gi);
+      btn.appendChild(iconBox(g.icon, 'ico'));
+      btn.appendChild(el('span', 'menu-label', g.label));
+      btn.appendChild(el('span', 'caret', '▾'));
+      var panel = el('div', 'menu-panel');
+      panel.id = 'menu-panel-' + gi;
+      panel.hidden = true;
+      panel.setAttribute('aria-labelledby', btn.id);
+      var mine = false;
+      g.items.forEach(function (it) {
+        var a = el('a', 'menu-item');
+        a.href = it[0];
+        var file = it[0].split('#')[0];
+        var at = it[0].indexOf('#') === -1 ? '' : it[0].slice(it[0].indexOf('#'));
+        if (file === here) mine = true;
+        if (file === here && (at === hash || (!at && !hash))) a.setAttribute('aria-current', 'page');
+        var txt = el('span', 'menu-text');
+        txt.appendChild(el('b', null, it[1]));
+        txt.appendChild(el('small', null, it[2]));
+        a.appendChild(txt);
+        /* 같은 화면 안에서 옮기면 메뉴를 닫는다 (다른 화면이면 어차피 새로 뜬다) */
+        a.addEventListener('click', function () { closeAll(null); });
+        panel.appendChild(a);
+      });
+      if (mine) btn.setAttribute('aria-current', 'page');
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        closeAll(null);
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        panel.hidden = open;
+      });
+      wrap.appendChild(btn);
+      wrap.appendChild(panel);
+      nav.appendChild(wrap);
+      groups.push({ btn: btn, panel: panel });
+    });
+
+    document.addEventListener('click', function (e) { if (!nav.contains(e.target)) closeAll(null); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(null); });
+    /* 설비 화면처럼 # 로 부분을 바꾸면 현재 표시도 따라간다 */
+    window.addEventListener('hashchange', function () {
+      $$('.menu-item', nav).forEach(function (a) {
+        var href = a.getAttribute('href');
+        var cur = href.split('#')[0] === location.pathname.split('/').pop() &&
+          (href.indexOf('#') === -1 ? !location.hash : href.slice(href.indexOf('#')) === location.hash);
+        if (cur) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      });
+    });
+  }
 
   function markCurrentTab() {
+    var adminNav = document.querySelector('nav.tabbar[aria-label="담당자 메뉴"]');
+    if (adminNav) { buildAdminMenu(adminNav); return; }
     var here = location.pathname.split('/').pop();
     var user = Auth.current();
     $$('.tabbar a').forEach(function (a) {
@@ -353,7 +563,7 @@ var UI = (function () {
      ------------------------------------------------------------------- */
 
   var VOICE_TAG = {
-    km: 'km-KH', id: 'id-ID', vi: 'vi-VN',
+    km: 'km-KH', vi: 'vi-VN',
     ne: 'ne-NP', th: 'th-TH', ko: 'ko-KR'
   };
 
@@ -754,6 +964,14 @@ var UI = (function () {
       }).catch(function () {
         /* 등록이 안 돼도 화면은 그대로 돌아야 한다. 오프라인만 못 쓸 뿐이다. */
       });
+      /* 🆕 2026-11-16 새 판이 자리를 잡으면 한 번 새로 고친다 (sw.js skipWaiting 과 짝).
+         처음 방문(원래 담긴 판이 없음)에는 새로 고치지 않는다 — 고칠 옛 화면이 없다 */
+      var had = !!navigator.serviceWorker.controller, reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!had || reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
       return true;
     } catch (e) {
       return false;
@@ -994,6 +1212,7 @@ var UI = (function () {
 
   return {
     syncBadge: syncBadge,
+    brand: brand,
     $: $, $$: $$, el: el,
     badge: badge, badgeText: badgeText, okBadge: okBadge, waitBadge: waitBadge,
     stopBadge: stopBadge, neutralBadge: neutralBadge, phraseBadge: phraseBadge,

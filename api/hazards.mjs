@@ -26,7 +26,7 @@ import {
   cleanGuidedItems, guidedSystemText, guidedUserText, mapBoxes,
 } from './_hazards.mjs';
 
-export const config = { maxDuration: 45 };
+export const config = { maxDuration: 120 };   // 🆕 2026-11-21 45 → 120 — 조사와 함께 늘린다
 
 /* ── 결정에 걸린 값 ─────────────────────────────────────────────────── */
 
@@ -40,7 +40,7 @@ export const MAX_BODY = 2 * 1024 * 1024;
 export const MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /* 사진은 글보다 오래 걸린다 (번역 20초, 실측 도구 30초) — scripts/measure-hazards.mjs 와 같게 */
-export const DEFAULT_HAZARD_TIMEOUT_MS = 30000;
+export const DEFAULT_HAZARD_TIMEOUT_MS = 90000;   // 🆕 2026-11-21 30초 → 90초 (함수 120초 안)
 /* 지점 5개 × (좌표 + 이유 120자) JSON 이 번역 한 문장(600자)보다 길다 */
 const MAX_OUTPUT_TOKENS = 1200;
 const MAX_TEXT = 4000;

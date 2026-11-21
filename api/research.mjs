@@ -25,16 +25,17 @@ import { attachImages } from './_images.mjs';
 import { parseModelJson } from './_hazards.mjs';
 import {
   systemText, specificSystemText, userText, cleanField, cleanResult, mergeRaw, mergeGrounding, withOfficial,
+  readVerify, verifySystemText, verifyUserText, cleanVerify,
 } from './_research.mjs';
 import { EQUIPMENT_KINDS } from './_official.mjs';
 
-export const config = { maxDuration: 60 };
+export const config = { maxDuration: 180 };   // 🆕 2026-11-21 60 → 180 — 검색·읽기가 45초를 넘겨 실패했다 (밀링). Vercel 함수 상한 300초 안
 
 /* ── 결정에 걸린 값 ─────────────────────────────────────────────────── */
 
-const MAX_BODY = 2048;
+const MAX_BODY = 8192;   // 2026-11-16 등록 정보 검수(verify)가 항목·분류 목록·메모를 함께 보낸다
 /* 검색을 몇 번 하고 읽느라 번역보다 오래 걸린다 */
-export const DEFAULT_RESEARCH_TIMEOUT_MS = 45000;
+export const DEFAULT_RESEARCH_TIMEOUT_MS = 150000;   // 🆕 2026-11-21 45초 → 150초 (함수 180초 안 · 참고 사진 12초 여유)
 const MAX_OUTPUT_TOKENS = 8000;   // 2026-11-09 경험 글까지 찾게 하자 4000 에서 JSON 이 잘렸다 (GPT 는 추론 토큰도 여기서 센다)
 const MAX_TEXT = 24000;
 const IMAGE_BUDGET_MS = 12000;   // 참고 사진 찾기에 쓰는 시간 상한 (모델 두 질문 뒤)
@@ -73,8 +74,13 @@ async function run(request) {
   const who = await requireAdmin(sql, request, cors);
   if (who.done) return who.done;
 
-  const eq = readEquipment(parseJson(text));
+  const body = parseJson(text);
+  const eq = readEquipment(body);
   if (!eq) return fail(400, 'bad_request', '설비 이름을 적어 주세요.', cors);
+  /* 🆕 2026-11-16 verify 가 있으면 조사가 아니라 등록 정보 검수 (질문 하나) */
+  const wantsVerify = !!body && body.verify !== undefined;
+  const verify = wantsVerify ? readVerify(body) : null;
+  if (wantsVerify && !verify) return fail(400, 'bad_request', '확인할 항목이 없습니다.', cors);
 
   let cfg = null;
   for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
@@ -87,6 +93,24 @@ async function run(request) {
   if (!(await takeDailyCall(cfg.dailyLimit))) {
     log({ route: 'research', ms: Date.now() - started, status: 429, err: 'limit' });
     return fail(429, 'limit', MESSAGES.limit, cors);
+  }
+
+  if (verify) {
+    const r = await callModel(cfg, verifySystemText(), verifyUserText(eq, verify), { maxOutputTokens: MAX_OUTPUT_TOKENS, maxText: MAX_TEXT, tools: TOOLS });
+    if (r.error) {
+      const f = modelFail(r, cors, MESSAGES);
+      log({ route: 'research', mode: 'verify', ms: Date.now() - started, status: f.status, err: r.error, why: r.why || '' });
+      return f.response;
+    }
+    const raw = parseModelJson(r.text);
+    if (!raw) {
+      log({ route: 'research', mode: 'verify', ms: Date.now() - started, status: 502, err: 'model', why: 'JSON 이 아님' });
+      return fail(502, 'model', MESSAGES.model + ' (응답 모양이 틀림)', cors);
+    }
+    const out = cleanVerify(raw, r.grounding, eq, verify);
+    log({ route: 'research', mode: 'verify', ms: Date.now() - started, status: 200, err: '',
+      n: out.checks.length, ok: out.checks.filter((c) => c.verdict === 'ok').length, add: out.missing.length });
+    return json(200, { verify: out, equipment: { id: eq.id, kind: eq.kind }, model: cfg.model }, cors);
   }
 
   /* 두 질문을 나란히 — ① 기본 조사 ② 이 기계에만 있는 위험 (같은 모델, 차례로 하면 60초를 넘는다).

@@ -53,8 +53,15 @@ function requiredRoles(page) {
 }
 
 /* =================================================================
-   2. ★★ 역할마다 — 보이는 탭은 전부 들어갈 수 있고, 들어갈 수 있는 탭은 보인다
+   2. ★★ 역할마다 — 보이는 길은 전부 들어갈 수 있고, 들어갈 수 있는 길은 보인다
+
+   🆕 2026-11-17 — 담당자 화면은 탭 막대가 **그룹 메뉴**로 바뀌었다 (ui.js buildAdminMenu).
+   막대일 때는 `hidden` 으로 감췄고, 메뉴는 **아예 그리지 않는다.** 지키는 것은 같다 —
+   보이는 것은 전부 들어갈 수 있어야 하고, 들어갈 수 있는 것은 빠지면 안 된다.
+   주소에 `#` 이 붙으므로 **파일 이름으로** 맞춘다.
    ================================================================= */
+const fileOf = (a) => a.getAttribute('href').split('#')[0];
+
 [
   { role: 'admin', login: 'kim@daesung.co.kr', page: 'admin/dashboard.html', script: 'admin/dashboard.js', label: '담당자' },
   { role: 'operator', login: 'oper@safety.kr', page: 'admin/library.html', script: 'admin/library.js', label: '운영자' }
@@ -63,21 +70,31 @@ function requiredRoles(page) {
   const MAP = t.win.UI.PAGE_ROLES;
   const tabs = [...t.win.document.querySelectorAll('.tabbar a')];
 
-  ok(`${who.label} — 탭 막대가 있다`, tabs.length > 0);
+  ok(`${who.label} — 길이 있다 (탭 막대 또는 그룹 메뉴)`, tabs.length > 0);
 
-  const shown = tabs.filter((a) => !a.hidden).map((a) => a.getAttribute('href'));
-  const hidden = tabs.filter((a) => a.hidden).map((a) => a.getAttribute('href'));
+  const shown = tabs.filter((a) => !a.hidden).map(fileOf);
+  const hidden = tabs.filter((a) => a.hidden).map(fileOf);
 
   const canOpen = (href) => !MAP[href] || MAP[href].indexOf(who.role) !== -1;
 
-  ok(`★★ ${who.label} — 보이는 탭은 전부 들어갈 수 있다 (${shown.join(' ')})`,
+  ok(`★★ ${who.label} — 보이는 길은 전부 들어갈 수 있다 (${[...new Set(shown)].join(' ')})`,
     shown.every(canOpen), '못 들어가는데 보이는 것: ' + shown.filter((h) => !canOpen(h)).join(', '));
 
-  ok(`★★ ${who.label} — 들어갈 수 있는 탭을 감추지 않았다`,
+  ok(`★★ ${who.label} — 들어갈 수 있는 길을 감추지 않았다`,
     hidden.every((h) => !canOpen(h)), '들어갈 수 있는데 감춘 것: ' + hidden.filter(canOpen).join(', '));
 
-  ok(`${who.label} — 지금 화면 탭이 켜져 있다`,
-    tabs.some((a) => a.getAttribute('aria-current') === 'page'));
+  /* ★ 반대쪽 실수 — 거르다가 들어갈 수 있는 화면이 통째로 사라지면 안 된다.
+     `scan.html`(설비 촬영)만 뺀다 — 메뉴에서 바로 가는 곳이 아니라 **설비 등록 안의 한 걸음**이다
+     (설비 목록의 [카메라로 찍기] 가 그 설비 id 를 달고 연다). 설비 없이 열면 할 일이 없다. */
+  const FLOW_ONLY = ['scan.html'];
+  const reachable = Object.keys(MAP).filter((f) => canOpen(f) && FLOW_ONLY.indexOf(f) === -1);
+  ok(`★★ ${who.label} — 들어갈 수 있는 화면 ${reachable.length}개가 모두 길에 있다`,
+    reachable.every((f) => shown.indexOf(f) !== -1),
+    '빠진 것: ' + reachable.filter((f) => shown.indexOf(f) === -1).join(', '));
+
+  /* 지금 화면 표시 — 막대는 링크에, 그룹 메뉴는 그룹 단추에 붙는다 */
+  const current = [...t.win.document.querySelectorAll('.tabbar [aria-current="page"]')];
+  ok(`${who.label} — 지금 화면이 켜져 있다`, current.length > 0);
 });
 
 /* =================================================================
@@ -85,15 +102,18 @@ function requiredRoles(page) {
    ================================================================= */
 {
   const t = boot('admin/dashboard.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/dashboard.js' });
-  const lib = [...t.win.document.querySelectorAll('.tabbar a')].find((a) => a.getAttribute('href') === 'library.html');
-  ok('담당자 화면에도 「문구」 탭 markup 은 있다 (화면 7개가 같은 막대를 쓴다)', !!lib);
-  eq('★★ 담당자에게는 감춰진다 — 눌러 봐야 대시보드로 되돌아오는 탭이었다', lib.hidden, true);
+  const links = [...t.win.document.querySelectorAll('.tabbar a')];
+  const lib = links.filter((a) => fileOf(a) === 'library.html');
+  ok('★★ 담당자에게 「문구」로 가는 길이 하나도 없다 — 눌러 봐야 대시보드로 되돌아오던 것이다',
+    lib.every((a) => a.hidden), '보이는 것: ' + lib.filter((a) => !a.hidden).length + '개');
 
   const t2 = boot('admin/library.html', { login: 'oper@safety.kr', role: 'operator', page: 'admin/library.js' });
-  const dash = [...t2.win.document.querySelectorAll('.tabbar a')].find((a) => a.getAttribute('href') === 'dashboard.html');
-  eq('★★ 운영자에게 「대시보드」가 감춰진다 (반대쪽도 같은 문제였다)', dash.hidden, true);
-  const myTab = [...t2.win.document.querySelectorAll('.tabbar a')].find((a) => a.getAttribute('href') === 'library.html');
-  eq('운영자의 「문구」 탭은 보인다', myTab.hidden, false);
+  const links2 = [...t2.win.document.querySelectorAll('.tabbar a')];
+  const dash = links2.filter((a) => fileOf(a) === 'dashboard.html');
+  ok('★★ 운영자에게 「대시보드」로 가는 길이 없다 (반대쪽도 같은 문제였다)',
+    dash.every((a) => a.hidden), '보이는 것: ' + dash.filter((a) => !a.hidden).length + '개');
+  const myTab = links2.filter((a) => fileOf(a) === 'library.html');
+  ok('운영자의 「문구」 길은 보인다', myTab.length > 0 && myTab.some((a) => !a.hidden));
 }
 
 /* =================================================================

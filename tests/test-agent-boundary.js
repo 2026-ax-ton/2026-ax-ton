@@ -79,13 +79,13 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
   const t = open();
   fake(t, pair('កុំដាក់ដៃ', '롤러에 손을 넣지 마십시오.'));
 
-  t.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th']).then((out) => {
-    eq('5개 언어가 전부 돌아온다', out.results.length, 5);
+  t.win.Agent.run(phrase, ['km', 'vi', 'ne', 'th']).then((out) => {
+    eq('4개 언어가 전부 돌아온다', out.results.length, 4);
     ok('전부 성공', out.results.every((r) => r.ok));
     ok('한 번에 끝났다 (tries=1)', out.results.every((r) => r.tries === 1));
     ok('뜻이 뒤집히지 않았다', out.results.every((r) => r.flipped === false));
     ok('아무도 사람에게 올라가지 않았다', out.results.every((r) => r.escalated === false));
-    eq('언어 5개 × (번역+역번역) = 10번 불렀다', t.calls.length, 10);
+    eq('언어 4개 × (번역+역번역) = 8번 불렀다', t.calls.length, 8);
 
     const saved = t.win.Agent.toTranslation(out.results[0]);
     eq('★ 저장 상태는 언제나 waiting', saved.status, 'waiting');
@@ -217,7 +217,7 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
   };
 
   eq('승인된 언어를 알아본다', t.win.Agent.isReviewed(mixed, 'km'), true);
-  eq('대기 중인 언어는 아니다', t.win.Agent.isReviewed(mixed, 'id'), false);
+  eq('대기 중인 언어는 아니다', t.win.Agent.isReviewed(mixed, 'ne'), false);
 
   t.win.Agent.run(mixed, ['km', 'id', 'vi']).then((out) => {
     eq('★ 승인된 크메르어는 건너뛴다', out.skipped.join(','), 'km');
@@ -312,7 +312,7 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
   Object.defineProperty(t5.win.navigator, 'onLine', { value: false, configurable: true });
   fake(t5, pair('x', 'y'));
   ok('끊김을 사람 말로 알려 준다', /인터넷이 끊겨/.test(t5.win.Agent.blockedReason()));
-  t5.win.Agent.run(phrase, ['km', 'id']).then((out) => {
+  t5.win.Agent.run(phrase, ['km', 'ne']).then((out) => {
     eq('끊겨 있으면 부르지 않는다', t5.calls.length, 0);
     ok('언어마다 이유를 돌려준다', out.results.every((r) => r.code === 'offline'));
     ok('★ 손 입력으로 계속할 수 있게 이유를 준다', out.results.every((r) => !!r.message));
@@ -347,21 +347,21 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
    ================================================================= */
 {
   const t = open();
-  eq('천장은 30번 (언어 5 × 2단계 × 3시도)', t.win.Agent.MAX_CALLS_PER_PHRASE, 30);
+  eq('천장은 24번 (언어 4 × 2단계 × 3시도)', t.win.Agent.MAX_CALLS_PER_PHRASE, 24);
 
-  /* 5개 언어가 전부 사람에게 올라가는 최악의 경우 = 딱 30번 */
+  /* 4개 언어가 전부 사람에게 올라가는 최악의 경우 = 딱 24번 */
   fake(t, pair('កុំដាក់ដៃ', '롤러에 손을 넣어도 됩니다.'));
-  t.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th']).then((out) => {
-    eq('★★ 최악의 경우에도 30번을 넘지 않는다', t.calls.length, 30);
-    ok('다섯 언어 모두 사람에게 올라갔다', out.results.every((r) => r.ok && r.escalated));
+  t.win.Agent.run(phrase, ['km', 'vi', 'ne', 'th']).then((out) => {
+    eq('★★ 최악의 경우에도 24번을 넘지 않는다', t.calls.length, 24);
+    ok('네 언어 모두 사람에게 올라갔다', out.results.every((r) => r.ok && r.escalated));
     eq('지갑을 다 썼다', out.callsLeft, 0);
   });
 
   /* ★ 언어가 늘어도 천장은 그대로다 — 설정 사고로 요금이 터지지 않게 */
   const t2 = open();
   fake(t2, pair('x', '손을 넣어도 됩니다.'));
-  t2.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th', 'km', 'id', 'vi']).then((out) => {
-    ok('★★ 언어를 8개로 늘려도 30번에서 멈춘다', t2.calls.length <= 30, t2.calls.length + '번');
+  t2.win.Agent.run(phrase, ['km', 'vi', 'ne', 'th', 'km', 'vi', 'ne', 'th']).then((out) => {
+    ok('★★ 언어를 8개로 늘려도 24번에서 멈춘다', t2.calls.length <= 24, t2.calls.length + '번');
     ok('천장에 걸린 언어는 이유를 받는다',
       out.results.some((r) => !r.ok && r.code === 'budget'));
     ok('★ 천장에 걸려도 손 입력으로 이어 갈 수 있게 이유를 준다',
@@ -409,11 +409,11 @@ const phrase = { id: 'p-1', ko: KO, translations: {} };
     });
   };
 
-  t2.win.Agent.run(phrase, ['km', 'id', 'vi', 'ne', 'th']).then(() => {
-    eq('언어 5개가 전부 출발했다', started.length, 5);
+  t2.win.Agent.run(phrase, ['km', 'vi', 'ne', 'th']).then(() => {
+    eq('언어 4개가 전부 출발했다', started.length, 4);
     const span = started[started.length - 1].at - started[0].at;
     ok('★ 마지막 언어가 늦게 출발한다 (한꺼번에 쏘지 않는다)',
-      span >= t2.win.Agent.STAGGER_MS * 3, span + 'ms');
+      span >= t2.win.Agent.STAGGER_MS * 2, span + 'ms');
     ok('그래도 전체는 몇 초 안에 끝난다 (줄 세우는 것이 아니다)',
       span < t2.win.Agent.STAGGER_MS * 6, span + 'ms');
   });
