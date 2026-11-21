@@ -1260,36 +1260,79 @@
       $('worker-id').focus();
     });
 
-    /* 데이터 주고받기 — 8개 키 전부를 함께 다룬다.
-       설비만 옮기고 교육 이력을 두고 오면 화면이 서로 어긋난다. */
-    $('btn-export').addEventListener('click', function () {
-      $('jsonbox').value = Store.exportAll();
-      $('jsonbox').select();
-      UI.toast('JSON 을 아래 상자에 꺼냈습니다. 복사해 두세요.');
-    });
-
-    $('btn-import').addEventListener('click', function () {
-      var text = $('jsonbox').value.trim();
-      if (!text) { UI.toast('불러올 JSON 을 아래 상자에 붙여넣어 주세요.'); return; }
-      if (!window.confirm('지금 저장된 내용을 붙여넣은 JSON 으로 덮어씁니다. 계속할까요?')) return;
-
-      var result = Store.importAll(text);
-      if (!result.ok) { UI.toast('불러오지 못했습니다 — ' + result.reason); return; }
-      render();
-      UI.toast('불러왔습니다.');
-    });
-
-    $('btn-reset').addEventListener('click', function () {
-      if (!window.confirm('이 브라우저에 저장된 내용을 전부 지웁니다.\n계정과 로그인도 함께 지워집니다.\n계속할까요?')) return;
-      Store.resetAll();
-      location.href = '../index.html';
-    });
+    /* 🆕 2026-11-22 자료 내려받기 — 엑셀로 여는 CSV (JSON 상자를 대신한다) */
+    $('btn-csv-workers').addEventListener('click', function () { downloadCsv('노동자명단', workerRows()); });
+    $('btn-csv-equips').addEventListener('click', function () { downloadCsv('설비목록', equipRows()); });
+    $('btn-csv-progress').addEventListener('click', function () { downloadCsv('교육이수현황', progressRows()); });
 
     /* 다른 탭에서 같은 페이지를 열어 두고 고쳤을 때 이 탭도 따라간다 */
     window.addEventListener('storage', function (e) {
       if (e.key === Store.setup.KEY) render();
     });
   }
+
+  /* ── 🆕 2026-11-22 자료 내려받기 (CSV) ───────────────────────────── */
+
+  /** 칸 하나 — 따옴표로 감싸고, =·+·-·@ 로 시작하면 엑셀이 수식으로 읽지 않게 ' 를 붙인다 (설비 이름은 사람이 적은 값) */
+  function csvCell(v) {
+    var t = v === null || v === undefined ? '' : String(v);
+    if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+    return '"' + t.replace(/"/g, '""') + '"';
+  }
+  function toCsv(rows) {
+    /* BOM — 없으면 엑셀이 한글을 깨뜨린다 */
+    return '\ufeff' + rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n');
+  }
+  function day(iso) { return iso ? String(iso).slice(0, 10) : ''; }
+  function procName(id) { var p = Store.findBy(Store.setup.load().processes, 'id', id); return p ? p.name : ''; }
+
+  function workerRows() {
+    var rows = [['식별번호', '사용 언어', '소속 공정']];
+    Store.setup.load().workers.forEach(function (w) { rows.push([w.id, langName(w.lang), procName(w.processId)]); });
+    return rows;
+  }
+
+  function equipRows() {
+    var rows = [['설비 이름', '소속 공정', '설비 종류', '제조사', '모델명', '연식', '위험유형', 'AI 검수', 'AI 위험요소 조사']];
+    Store.setup.load().equipments.forEach(function (e) {
+      var k = Store.equipmentKind(Store.kindOf(e).id);
+      var hz = (e.hazards || []).map(function (c) { var h = Store.hazard(c); return h ? h.label : c; }).join(' · ');
+      var rv = !e.review ? '' : e.review.status === 'approved' ? '승인 완료' : '검수 대기';
+      rows.push([e.name, procName(e.processId), k ? k.label : '', e.maker || '', e.model || '', e.year || '', hz, rv, researched(e) ? '완료' : '안 함']);
+    });
+    return rows;
+  }
+
+  /** 교육 × 대상자 한 줄씩. ★ 대상자 = 설비가 속한 공정의 노동자 전원 — 미수강자를 빼지 않는다 (dashboard.js audienceOf·stateOf 와 같은 규칙) */
+  function progressRows() {
+    var state = Store.setup.load();
+    var prog = Store.progress.load();
+    var rows = [['교육', '설비', '식별번호', '사용 언어', '상태', '수강일', '검증일', '점수']];
+    Store.courses.load().forEach(function (c) {
+      var eq = Store.findBy(state.equipments, 'id', c.equipmentId);
+      if (!eq) return;
+      state.workers.filter(function (w) { return w.processId === eq.processId; }).forEach(function (w) {
+        var r = prog.filter(function (x) { return x.workerId === w.id && x.courseId === c.id; })[0] || null;
+        var st = !r || !r.learnedAt ? '미수강' : !r.quiz ? '검증 미실시' : r.quiz.passed ? '이수' : '미통과';
+        rows.push([c.title || '', eq.name, w.id, langName(w.lang), st, day(r && r.learnedAt), day(r && r.quiz && r.quiz.at), r && r.quiz ? r.quiz.score : '']);
+      });
+    });
+    return rows;
+  }
+
+  function downloadCsv(name, rows) {
+    if (rows.length < 2) { UI.toast('내려받을 내용이 아직 없습니다.'); return; }
+    var url = URL.createObjectURL(new Blob([toCsv(rows)], { type: 'text/csv;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    UI.toast((rows.length - 1) + '줄을 내려받았습니다.');
+  }
+  window.__setupCsv = { toCsv: toCsv, workerRows: workerRows, equipRows: equipRows, progressRows: progressRows };   // 검사용
 
   buildStaticControls();
   bindEvents();
