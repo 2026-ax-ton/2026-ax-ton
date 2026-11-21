@@ -77,7 +77,7 @@ ok('★★ 검수 대기는 교육에 못 쓴다 · review 없는 옛 설비는 
 S.setup.update((s) => { const e = s.equipments.find((x) => x.id === d.id); e.analysis = { at: '2026-11-11T00:00:00Z', research: { items: [{ id: 'r1' }, { id: 'r2' }] }, guided: { mapped: [{ id: 'r1' }] } }; });
 /* 종류 칸이 없던 옛 설비 하나 */
 S.setup.update((s) => { s.equipments.push({ id: 'e-old', processId: s.processes[0].id, name: '옛 분전반', icon: '⚡', hazards: [], note: '' }); });
-const editBtn = Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '사출기 1 설비 수정');
+const editBtn = Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '사출기 1 설비 정보수정');
 ok('수정 버튼이 있다', !!editBtn);
 // 목록을 다시 그려야 분석 줄이 보인다
 $('equip-kind').dispatchEvent(new win.Event('change'));
@@ -92,7 +92,7 @@ const d2 = S.setup.load().equipments.find((e) => e.id === d.id);
 ok('★ 종류·모델·사진이 그대로면 분석을 남긴다', !!d2.analysis);
 has('★ 목록에 분석 요약 (위험 · 사진 위치 · 위치 확인 필요)', $('list-equip').textContent, 'AI 분석: 위험 2 · 사진 위치 1 · 위치 확인 필요 1');
 eq('수정해도 설비 수는 그대로', S.setup.load().equipments.filter((e) => e.name === '사출기 1').length, 1);
-Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '사출기 1 설비 수정').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '사출기 1 설비 정보수정').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
 $('equip-kind').value = 'press';
 $('form-equip').dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
 const d3 = S.setup.load().equipments.find((e) => e.id === d.id);
@@ -128,7 +128,7 @@ eq('평소에는 안 보인다', $('return-note').hidden, true);
   eq('★ 등록 뒤 AI 검수 바로가기', $('equip-added').hidden + '|' + $('equip-added-go').getAttribute('href'), 'false|#list');
 
   /* 수정 — 폼이 「등록 설비」 칸 안으로 옮겨 간다 */
-  Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '위험유형 시험기 설비 수정').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+  Array.from($('list-equip').querySelectorAll('button')).find((b) => b.getAttribute('aria-label') === '위험유형 시험기 설비 정보수정').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
   ok('★★ 수정 폼은 등록 화면이 아니라 등록 설비 칸 안에 있다', $('equip-edit-slot').contains($('form-equip')) && !$('equip-edit-slot').hidden);
   eq('수정 화면이 보인다', doc.querySelector('[data-view="list"]').hidden + '|' + doc.querySelector('[data-view="equip"]').hidden, 'false|true');
   eq('★ 수정 폼에 그 설비의 위험유형(6종 밖 포함)이 그대로', Array.from(doc.querySelectorAll('input[name="hazard"]:checked')).map((x) => x.value).join(), 'noise,x:고압가스');
@@ -179,6 +179,30 @@ eq('평소에는 안 보인다', $('return-note').hidden, true);
     memo.querySelector('button').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
     e2 = S.setup.load().equipments.find((x) => x.id === n.id);
     eq('★★ 메모가 남고 다시 검수를 부른다', e2.review.items[3].note + '|' + e2.review.status, '프레스 소음 기준으로 다시|checking');
+    /* 🆕 2026-11-22 전체 승인 — 체크 + 확인창. 취소하면 아무것도 안 바뀐다 */
+    S.setup.update((s) => {
+      const e = s.equipments.find((x) => x.id === n.id);
+      e.maker = '';
+      e.review = { status: 'waiting', items: [
+        { key: 'maker', field: '제조사', claim: '', verdict: 'wrong', suggest: '화천기계', reason: 'r', sources: [], decision: '' },
+        { key: 'hazard:0', field: '위험유형', claim: '소음', code: 'noise', verdict: 'ok', suggest: '', reason: 'r', sources: [], decision: 'redo' },
+        { key: 'model', field: '모델', claim: 'X', verdict: 'ok', suggest: '', reason: 'r', sources: [], decision: 'deleted' },
+      ] };
+    });
+    $('pick-lang').dispatchEvent(new win.Event('change'));
+    const allBox = () => li().querySelector('.check-all input');
+    has('★ 남은 건수와 함께 「전체 승인」이 보인다', li().querySelector('.check-all').textContent, '전체 승인 (2건)');
+    win.confirm = () => false;
+    allBox().checked = true; allBox().dispatchEvent(new win.Event('change'));
+    e2 = S.setup.load().equipments.find((x) => x.id === n.id);
+    ok('★★ 확인창에서 취소하면 승인되지 않는다', e2.review.status === 'waiting' && !allBox().checked);
+    win.confirm = () => true;
+    allBox().checked = true; allBox().dispatchEvent(new win.Event('change'));
+    e2 = S.setup.load().equipments.find((x) => x.id === n.id);
+    eq('★★ 전체 승인 — 남은 항목만 승인 · 버린 항목은 그대로 · 제안 값 반영',
+      e2.review.items.map((x) => x.decision).join() + '|' + e2.review.status + '|' + e2.maker, 'approved,approved,deleted|approved|화천기계');
+    ok('다 승인하면 체크칸이 사라진다', !li().querySelector('.check-all'));
+    ok('★ 설비 줄 버튼은 「정보수정」', Array.from(li().querySelectorAll(':scope > button')).some((b) => b.textContent === '정보수정'));
     /* 담당자 메뉴 — 누르면 열리고 남는다 · 바깥을 누르면 닫힌다.
        🆕 2026-11-17 — 메뉴도 역할을 본다. 담당자에게는 「안전 문구」(운영자 전용)가 빠져 **4개 그룹**이다
        (`ui.js` PAGE_ROLES · `tests/test-tabbar.js`). 못 들어가는 곳을 보여 주지 않는다 */
