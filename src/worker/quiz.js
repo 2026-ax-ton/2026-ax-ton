@@ -179,6 +179,10 @@
     };
     show('quiz');
     renderQuestion(true);
+    /* 🆕 저장소 그림(media:)은 처음 문항을 띄우면서 전부 미리 받아 둔다 — 중간에 끊겨도 뒤 문항 그림이 보이게 */
+    var refs = [course.photo];
+    (course.quiz || []).forEach(function (q) { (Array.isArray(q.pics) ? q.pics : []).forEach(function (p) { refs.push(p); }); });
+    Net.prefetchMedia(refs, { token: Auth.token() });
   }
 
   function renderVoiceNote() {
@@ -273,14 +277,25 @@
   /* --- hotspot — 누를 때마다 표시가 옮겨 가고, [제출] 때의 마지막 한 점만 채점한다 --- */
 
   function renderHotspot(body, q) {
-    var photo = q.figure === 'photo' && typeof run.course.photo === 'string' && run.course.photo.indexOf('data:image/') === 0;
+    var photo = q.figure === 'photo' && typeof run.course.photo === 'string'
+      && (run.course.photo.indexOf('data:image/') === 0 || Net.isMediaRef(run.course.photo));   // 🆕 저장소 그림(media:)도
     var figure = UI.el('div', 'quiz-figure' + (photo ? ' photo' : ''));
     var zones = [];
     if (photo) {
       var img = UI.el('img');
-      img.src = run.course.photo;
       img.alt = '';
       figure.appendChild(img);
+      /* 🆕 받은 적 없는 그림을 끊긴 곳에서 열면 — 그 사람 언어로 끊김을 알리고, 다시 연결되면 저절로 받는다.
+         ★ 설비 도해로 바꾸지 않는다 — 정답 좌표는 사진 기준이라 도해 위에서는 채점이 틀어진다 */
+      Net.mediaInto(img, run.course.photo, { token: Auth.token() }).then(function (shown) {
+        if (shown || !figure.parentNode) return;
+        var note = UI.el('p', 'quiz-media-note', T('sync.offline'));
+        figure.parentNode.insertBefore(note, figure.nextSibling);
+        window.addEventListener('online', function retry() {
+          window.removeEventListener('online', retry);
+          Net.mediaInto(img, run.course.photo, { token: Auth.token() }).then(function (ok) { if (ok && note.parentNode) note.parentNode.removeChild(note); });
+        });
+      });
     } else {
       var name = Diagrams.nameFor(run.equipment);
       figure.appendChild(Diagrams.svg(name));
@@ -401,12 +416,12 @@
       btn.type = 'button';
       btn.appendChild(UI.el('span', 'no', String(i + 1)));
       /* 그림 보기 — 영상의 3D 장면·AI 그림 (scripts/make-video-quiz.mjs). data:image 만 (제3자 요청 0건) */
-      var pic = q.pics && typeof q.pics[i] === 'string' && q.pics[i].indexOf('data:image/') === 0 ? q.pics[i] : '';
+      var pic = q.pics && typeof q.pics[i] === 'string' && (q.pics[i].indexOf('data:image/') === 0 || Net.isMediaRef(q.pics[i])) ? q.pics[i] : '';
       if (pic) {
         btn.className = 'choice-btn has-pic';
         var img = UI.el('img', 'pic');
-        img.src = pic;
         img.alt = option;
+        Net.mediaInto(img, pic, { token: Auth.token() });   // 🆕 저장소 그림(media:)이면 받아서
         btn.appendChild(img);
       } else {
         btn.appendChild(UI.el('span', 'text', option));

@@ -147,7 +147,87 @@ var Net = (function () {
     });
   }
 
+  /* ── 🆕 교육 그림 (2026-11-16) ─────────────────────────────────────
+     교육 데이터에는 그림 대신 'media:<교육>/<이름>.jpg' 만 남는다 (동기화 상한 512KB).
+     그림은 우리 서버(/api/scans media-get)에서 받아 **이 기기의 캐시에 담아 둔다** —
+     한 번 본 그림은 인터넷이 끊겨도 다시 보인다.
+     ★ 캐시 이름은 'safety-' 로 시작하지 않는다 — sw.js 가 판이 바뀔 때 'safety-*' 를 지운다
+     ★ 캐시 열쇠는 쿼리 없는 경로(/__media/…)다 — sw.js 가 ignoreSearch 로 찾기 때문에
+       쿼리로 가르면 다른 그림이 나올 수 있다
+     ★ 제3자 요청 0건 — 우리 서버만 부른다. file:// 에서는 부르지 않는다(onHttps) */
+  var MEDIA_CACHE = 'media-v1';
+  var MEDIA_RE = /^media:[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.jpg$/;
+
+  function isMediaRef(v) { return typeof v === 'string' && MEDIA_RE.test(v); }
+
+  function mediaKey(ref) { return '/__media/' + ref.slice(6); }
+
+  function openMedia() {
+    if (typeof caches === 'undefined' || !caches || !caches.open) return Promise.resolve(null);
+    return caches.open(MEDIA_CACHE).catch(function () { return null; });
+  }
+
+  var pending = {};   // 받는 중인 그림 — 같은 그림을 동시에 두 번 묻지 않는다 (퀴즈 첫 문항 + 미리 받기)
+
+  /** 그림 하나 — data URL 을 돌려준다. 못 받으면 '' (던지지 않는다) */
+  function media(ref, opts) {
+    if (!isMediaRef(ref)) return Promise.resolve('');
+    if (!pending[ref]) {
+      pending[ref] = fetchMedia(ref, opts);
+      pending[ref].then(function () { delete pending[ref]; });
+    }
+    return pending[ref];
+  }
+
+  function fetchMedia(ref, opts) {
+    var key = mediaKey(ref);
+    return openMedia().then(function (cache) {
+      var hit = cache ? cache.match(key).catch(function () { return null; }) : Promise.resolve(null);
+      return hit.then(function (res) {
+        if (res) return res.text();
+        return post('/api/scans', { op: 'media-get', ref: ref }, opts).then(function (r) {
+          var data = r.ok && r.data && typeof r.data.data === 'string' && r.data.data.indexOf('data:image/') === 0 ? r.data.data : '';
+          /* 담기가 끝난 뒤에 돌려준다 — 곧바로 끊겨도 방금 받은 그림이 캐시에 있어야 한다 (CI 에서 순서가 갈렸다) */
+          if (data && cache && typeof Response === 'function') {
+            return cache.put(key, new Response(data, { headers: { 'Content-Type': 'text/plain' } }))
+              .catch(function () {}).then(function () { return data; });
+          }
+          return data;
+        });
+      });
+    }).catch(function () { return ''; });
+  }
+
+  /** 그림 칸 하나를 채운다 — data URL 이면 바로, media: 이면 받아서. 못 받으면 칸에 표시만 */
+  function mediaInto(img, value, opts) {
+    if (typeof value === 'string' && value.indexOf('data:image/') === 0) { img.src = value; return Promise.resolve(true); }
+    if (!isMediaRef(value)) return Promise.resolve(false);
+    img.setAttribute('data-media', 'loading');
+    return media(value, opts).then(function (data) {
+      if (data) { img.src = data; img.setAttribute('data-media', 'ok'); return true; }
+      img.setAttribute('data-media', 'missing');
+      return false;
+    });
+  }
+
+  /** 로그아웃 때 — 이 기기에 담아 둔 사업장 그림(공장 내부 사진)을 지운다 (공용 폰) */
+  function clearMedia() {
+    if (typeof caches === 'undefined' || !caches || !caches.delete) return Promise.resolve(false);
+    return caches.delete(MEDIA_CACHE).catch(function () { return false; });
+  }
+
+  /** 여러 그림을 미리 받아 담아 둔다 (끊기기 전에) — 끝까지 기다릴 필요는 없다 */
+  function prefetchMedia(values, opts) {
+    var refs = (Array.isArray(values) ? values : []).filter(isMediaRef);
+    return Promise.all(refs.map(function (ref) { return media(ref, opts); }));
+  }
+
   return {
+    isMediaRef: isMediaRef,
+    media: media,
+    mediaInto: mediaInto,
+    prefetchMedia: prefetchMedia,
+    clearMedia: clearMedia,
     post: post,
     request: request,
     available: available,
