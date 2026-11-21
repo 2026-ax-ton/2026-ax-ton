@@ -110,20 +110,6 @@ var Store = (function () {
   /* 종류 칸이 없던 옛 설비 — 이름으로 한 번만 짐작한다 (화면에 「종류 확인 필요」로 보인다) */
   var KIND_GUESS = [[/프레스/, 'press'], [/도장/, 'paint'], [/사출/, 'injection'], [/배전|분전|전기/, 'electric'], [/밀링|머시닝/, 'milling'], [/드릴|보링/, 'drill']];
 
-  /* 🆕 2026-11-11 설비 종류 — 설비(setup.equipments[].kind)와 안전 문구(library[].category)를
-     **고정 id 로** 잇는다. 설비 이름 글자로 잇지 않는다 (「배전반 A」처럼 이름에 종류가 안 들어가는 설비가 있다).
-     label 은 문구 분류(category) 값과 같다. 「공통」 문구는 모든 종류에 붙는다.
-     ★ 새 종류를 더할 때는 문구 화면의 분류 이름도 같은 label 로 쓴다 */
-  var EQUIPMENT_KINDS = [
-    { id: 'press',     label: '프레스' },
-    { id: 'paint',     label: '도장' },
-    { id: 'injection', label: '사출성형' },
-    { id: 'electric',  label: '전기설비' },
-    { id: 'other',     label: '기타' }
-  ];
-  var COMMON_CATEGORY = '공통';
-  /* 종류 칸이 없던 옛 설비 — 이름으로 한 번만 짐작한다 (화면에 「종류 확인 필요」로 보인다) */
-  var KIND_GUESS = [[/프레스/, 'press'], [/도장/, 'paint'], [/사출/, 'injection'], [/배전|분전|전기/, 'electric']];
 
   /* 사업장 규모는 11-admin-start.html 의 가입 폼과 같은 3구간을 쓴다.
      같은 개념을 두 화면이 다르게 물으면 나중에 합칠 때 값을 손으로 옮겨야 한다. */
