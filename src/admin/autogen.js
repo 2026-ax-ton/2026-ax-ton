@@ -147,7 +147,7 @@
       var o = UI.el('option', null, waitingCount() ? '승인된 설비가 없습니다 (AI 검수 대기 ' + waitingCount() + '대)' : '등록된 설비가 없습니다');
       o.value = '';
       sel.appendChild(o);
-      $('btn-research').disabled = true;
+      $('ag-need-research').hidden = true;
       return;
     }
     list.forEach(function (e) {
@@ -184,14 +184,17 @@
     if (!ph.hidden) ph.src = e.photo;
     state.keepPhoto = ph.hidden ? '' : e.photo;
 
-    /* 설비 탭에 저장된 분석 — 다시 조사하지 않고 불러온다 */
+    /* 설비 탭에 저장된 분석을 불러온다. 🆕 2026-11-22 조사는 설비 탭에서만 한다 — 안 했으면 그리로 안내한다 */
     var a = e.analysis;
-    if (a && a.research && Array.isArray(a.research.items)) {
+    var done = !!(a && a.research && Array.isArray(a.research.items));
+    $('ag-need-research').hidden = done;
+    if (done) {
       state.research = a.research;
       state.guided = state.keepPhoto && a.guided && Array.isArray(a.guided.mapped) ? a.guided : null;
       state.source = a.source || 'saved';
-      $('ag-research-status').textContent = '설비에 저장된 AI 분석을 불러왔습니다 (' + (a.at ? UI.formatDate(a.at) : '') + '). 새로 하려면 [AI 위험요소 분석 시작].';
+      $('ag-research-status').textContent = '설비 탭에서 한 AI 위험요소 조사를 불러왔습니다 (' + (a.at ? UI.formatDate(a.at) : '') + '). 다시 조사하려면 설비 탭에서 합니다.';
       renderAll();
+      findPhotos();   // 참고 사진 — 조사 결과마다 찾는다 (서버가 없으면 조용히 건너뛴다)
     }
     prepareCourseImages(renderAll);
   }
@@ -254,33 +257,6 @@
 
   /* ── ② 분석 (서버) ──────────────────────────────────────────────── */
 
-  function startResearch() {
-    var e = state.equipment;
-    if (!e) return;
-    if (!serverReady()) {
-      $('offline-note').hidden = false;
-      $('ag-research-status').textContent = '여기서는 AI 서버를 부를 수 없습니다 (배포 주소에서 로그인했을 때만 됩니다). [결과 파일 불러오기]로 실측 결과를 열어 주세요.';
-      return;
-    }
-    var keep = state.keepPhoto;
-    state = emptyState(e);
-    state.keepPhoto = keep;
-    state.source = 'server';
-    $('btn-research').disabled = true;
-    $('ag-research-status').textContent = 'AI 가 공개 자료를 찾는 중입니다… (길면 2분쯤 걸립니다)';
-    call('/api/research', { equipment: { id: e.id, kind: kindId(), name: e.name, maker: e.maker || '', model: e.model || '', year: e.year || null } })
-      .then(function (r) {
-        $('btn-research').disabled = false;
-        if (!r.ok) { $('ag-research-status').textContent = failText(r) + ' 교육 콘텐츠 화면에서 직접 만들 수 있습니다.'; return; }
-        if (!sameEquipment(r.data)) { $('ag-research-status').textContent = '다른 설비의 결과가 왔습니다. 다시 조사해 주세요.'; return; }
-        state.research = r.data;
-        $('ag-research-status').textContent = '조사를 마쳤습니다.' + (keep ? ' 설비 사진에서 위치를 찾습니다…' : ' 설비 사진을 넣으면 위치도 찾습니다.');
-        saveAnalysis();
-        renderAll();
-        if (keep) locate(keep, keep); else afterAnalysis();
-      });
-  }
-
   /** 분석이 끝난 뒤 — 참고 사진 찾기, 판정할 것이 없으면 문항 만들기 */
   function afterAnalysis() {
     findPhotos();
@@ -323,6 +299,7 @@
     }
     state = emptyState(e);
     state.source = 'file';
+    $('ag-need-research').hidden = true;   // 결과 파일로 조사 결과를 가져왔다
     state.research = run.research;
     state.research.model = state.research.model || run.model;
     state.guided = run.photo ? run.guided : null;
@@ -1193,7 +1170,6 @@
   })();
 
   $('ag-equip').addEventListener('change', showSpec);
-  $('btn-research').addEventListener('click', startResearch);
   $('ag-runfile').addEventListener('change', function (ev) { onRunFile(ev.target.files && ev.target.files[0]); ev.target.value = ''; });
   $('ag-photo').addEventListener('change', function (ev) { onPhoto(ev.target.files && ev.target.files[0]); ev.target.value = ''; });
   $('btn-add-item').addEventListener('click', addItem);

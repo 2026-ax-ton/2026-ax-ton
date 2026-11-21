@@ -162,7 +162,7 @@ function typeName(t, name) {
   has('저장된 설비에 배지가 보인다', text(t.$('list-equip')), '특별교육 · ' + C.job(11).title);
 
   const row = [...win.document.querySelectorAll('#list-equip li')].find((li) => li.getAttribute('data-id') === 'e-press3');
-  click(win, [...row.querySelectorAll('button')].find((b) => text(b) === '수정'));
+  click(win, [...row.querySelectorAll('button')].find((b) => text(b) === '정보수정'));
 
   eq('이름이 들어왔다', t.$('equip-name').value, '프레스 3호기');
   eq('★ 안내가 떠 있다', t.$('equip-special').hidden, false);
