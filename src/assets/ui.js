@@ -394,7 +394,7 @@ var UI = (function () {
       ['setup.html#equip', '설비 등록', '위험 기계·기구 등록 · 사진 촬영'],
       ['setup.html#list', '등록 설비 확인·수정', 'AI 검수 결과 승인 · 설비 수정'],
       ['setup.html#workers', '노동자 관리', '외국인 노동자 언어 · 공정 배치'],
-      ['setup.html#backup', '데이터 백업', '내보내기 · 불러오기']
+      ['setup.html#backup', '자료 내려받기', '노동자 명단 · 설비 · 이수 현황 (엑셀)']
     ] },
     { label: '교육 콘텐츠', icon: 'doc-edit', items: [
       ['autogen.html', 'AI로 교육 만들기', '설비 자료조사 → 평가문항 자동 생성'],
