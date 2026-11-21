@@ -101,15 +101,16 @@ function fakeQuestions(body) {
   has('설비 종류를 보인다', $('ag-equip-spec').textContent, '종류: 프레스');
   ok('「AI 여기까지」 안내는 없다 (2026-11-10)', !doc.querySelector('.ai-note'));
 
-  click(win, $('btn-research'));
+  /* 🆕 2026-11-22 조사는 설비 탭에서만 — 여기에는 조사 버튼이 없고, 안 한 설비는 설비 탭으로 안내한다 */
+  ok('★★ 교육 만들기에는 조사 버튼이 없다', !doc.getElementById('btn-research'));
+  ok('★★ 조사 안 한 설비 — 설비 탭으로 가라는 안내', $('ag-need-research').hidden === false && $('ag-go-research').getAttribute('href') === 'setup.html#list');
+  /* 설비 탭에서 조사를 마쳤다 (setup.js runResearch 가 같은 모양으로 저장 — test-setup-research.js) */
+  S.setup.update((s) => { s.equipments.find((e) => e.id === 'e-press3').analysis = { at: '2026-11-22T00:00:00Z', kind: 'press', source: 'server', research: JSON.parse(JSON.stringify(RESEARCH)), guided: JSON.parse(JSON.stringify(GUIDED)) }; });
+  $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
   await ticks();
-  const rc = calls.find((c) => c.path === '/api/research');
-  eq('★★ 조사에 설비 id·종류를 보낸다', rc && rc.body.equipment.id + '|' + rc.body.equipment.kind, 'e-press3|press');
-  ok('★ 계정 값은 보내지 않는다', rc && !/kim@daesung|김현수/.test(JSON.stringify(rc.body)));
-  const hc = calls.find((c) => c.path === '/api/hazards');
-  ok('★★ 설비 사진이 있으면 위치 찾기를 바로 부른다 (설비 id 함께)', !!hc && hc.body.image === PHOTO && hc.body.equipment.id === 'e-press3');
-  const saved = S.setup.load().equipments.find((e) => e.id === 'e-press3').analysis;
-  eq('★★ 분석이 설비에 저장된다 (설비 탭이 원천)', saved && saved.research.items.length + '|' + saved.guided.mapped.length + '|' + saved.kind, '3|2|press');
+  ok('★★ 조사한 설비 — 안내가 사라진다', $('ag-need-research').hidden === true);
+  has('★ 설비 탭에서 한 조사를 불러왔다고 알린다', $('ag-research-status').textContent, '설비 탭에서 한 AI 위험요소 조사를 불러왔습니다');
+  ok('★★ 여기서는 조사·위치 찾기를 다시 부르지 않는다', !calls.some((c) => c.path === '/api/research' || c.path === '/api/hazards'));
   has('★ 개수 줄 — 위험요소·사진·위치·위치 확인 필요·문항', $('ag-counts').textContent, '위험요소 3개 · 설비 사진 1장 · 사진 위치 2곳 · 위치 확인 필요 1개 · 문항 0개');
   ok('★ 판정이 남아 있으면 문항을 아직 만들지 않는다', !calls.some((c) => c.path === '/api/questions'));
   ok('참고 사진 찾기를 부른다', calls.some((c) => c.path === '/api/photos'));
@@ -235,23 +236,14 @@ function fakeQuestions(body) {
   ok('도장 부스는 사진이 없다', $('ag-equip-photo').hidden === true);
   $('ag-equip').value = 'e-press3';
   $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
-  eq('★★ 설비에 저장된 분석을 다시 조사하지 않고 불러온다', calls.length + '|' + aiCount(win), n0 + '|3');
-  has('저장된 분석이라고 알린다', $('ag-research-status').textContent, '저장된 AI 분석');
+  eq('★★ 설비에 저장된 분석을 다시 조사하지 않고 불러온다 (참고 사진 찾기만 더 부른다)', calls.slice(n0).map((c) => c.path).join() + '|' + aiCount(win), '/api/photos|3');
+  has('저장된 분석이라고 알린다', $('ag-research-status').textContent, '설비 탭에서 한 AI 위험요소 조사');
   ok('화면 오류 없음 (흐름 끝)', t.errors.length === 0, t.errors.join(' | '));
 
   /* 해시로 설비 고르기 (설비 탭 · 콘텐츠 탭에서 오는 길) */
   const th = boot('admin/autogen.html#eq=e-booth1', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js' });
   eq('★ #eq= 로 온 설비를 고른다', th.$('ag-equip').value, 'e-booth1');
 
-  /* 서버가 다른 설비 결과를 주면 쓰지 않는다 */
-  researchEquip = { id: 'e-panel' };
-  $('ag-equip').value = 'e-booth1';
-  $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
-  click(win, $('btn-research'));
-  await ticks();
-  has('★★ 다른 설비 결과는 버린다', $('ag-research-status').textContent, '다른 설비의 결과');
-  eq('그 결과를 저장하지 않는다', !!S.setup.load().equipments.find((e) => e.id === 'e-booth1').analysis, false);
-  researchEquip = null;
 
   /* ═══ 2. 결과 파일 모드 ═══ */
   {
@@ -393,10 +385,8 @@ function fakeQuestions(body) {
     t2.win.Net.available = () => true;
     t2.win.Net.post = () => { called += 1; return Promise.resolve({ ok: true, data: RESEARCH }); };
     ok('★ 토큰이 없으면 안내를 보인다', t2.$('offline-note').hidden === false);
-    click(t2.win, t2.$('btn-research'));
     await tick();
     eq('★ 토큰이 없으면 서버를 부르지 않는다', called, 0);
-    has('★★ 눌러도 조용하지 않다', t2.$('ag-research-status').textContent, '결과 파일 불러오기');
 
     const t6 = boot('admin/autogen.html', { login: 'kim@daesung.co.kr', role: 'admin', page: 'admin/autogen.js',
       before: (w) => { w.Store.setup.update((s) => { s.equipments = []; }); } });
