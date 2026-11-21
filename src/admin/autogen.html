@@ -59,7 +59,11 @@
       등록된 설비가 없습니다. <a class="btn" href="setup.html?return=content">설비 등록하러 가기</a>
     </p>
     <img id="ag-equip-photo" class="equip-photo" alt="설비 사진" hidden>
-    <button class="btn btn-primary" type="button" id="btn-research">AI 위험요소 분석 시작</button>
+    <!-- 🆕 2026-11-22 AI 위험요소 조사는 설비 탭에서 한다 (yesol 요청). 여기서는 설비에 저장된 결과를 불러오기만 한다 -->
+    <p class="lockmsg" id="ag-need-research" hidden>
+      이 설비는 아직 <b>AI 위험요소 조사</b>를 하지 않았습니다. 설비 탭의 「등록 설비 확인·수정」에서 조사를 마치고 오세요.
+      <a class="btn" id="ag-go-research" href="setup.html#list">설비 탭에서 조사하기</a>
+    </p>
     <!-- 서버 없이: 실측 도구가 남긴 결과 파일로 같은 검토를 한다. 파일은 이 브라우저에서만 읽는다 -->
     <label class="btn" for="ag-runfile">결과 파일 불러오기</label>
     <input id="ag-runfile" type="file" accept=".json,application/json" hidden>
