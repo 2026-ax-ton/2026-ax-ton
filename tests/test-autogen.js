@@ -206,6 +206,19 @@ function fakeQuestions(body) {
   $('ag-reviewed').checked = true;
   $('ag-reviewed').dispatchEvent(new win.Event('change', { bubbles: true }));
 
+  /* 🆕 2026-11-22 다시 풀기용 대체 문항 (규칙 §12.9 ⑧, C06 D-060) — 검토 화면에 보이고, 따로 번역하고, 발급본에 남는다 */
+  const q2 = win.__autogen.state().quiz.quiz.find((q) => q.id === 'q2');
+  q2.alt = [{ ...JSON.parse(JSON.stringify(q2)), id: 'q2-alt', variantOf: 'q2', prompt: '대체 발문', i18n: {} }];
+  delete q2.alt[0].alt;
+  click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
+  ok('★★ 검토 화면에 대체 문항이 보인다', !!doc.querySelector('#ag-quiz li[data-q="q2"] [data-alt="q2-alt"]') && $('ag-quiz').textContent.includes('다시 풀기용 대체 문항'));
+  const nT = calls.length;
+  win.__autogen.translateQuiz(['km']);
+  await ticks();
+  const altCall = calls.slice(nT).find((c) => c.path === '/api/translate-quiz' && c.body.items.some((it) => it.id === 'q2-alt'));
+  ok('★ 대체 문항은 본 문항과 따로 번역한다', !!altCall && altCall.body.items.every((it) => /-alt$/.test(it.id)));
+  ok('번역이 대체 문항에 붙는다', S.qhas(q2.alt[0], 'km'));
+
   /* 보류 */
   click(win, $('btn-hold'));
   ok('★ 발급 보류 중에는 발급이 꺼진다', $('btn-approve').disabled === true);
@@ -237,6 +250,8 @@ function fakeQuestions(body) {
   eq('AI 작성 문항 수 기록', c.aiDraft.aiWritten, 1);
   ok('★★ 발급본 문항에 세 언어 번역이 들어 있다', c.quiz.every((q) => ['km', 'ne', 'vi'].every((l) => S.qhas(q, l))));
   ok('★ 문항 칸 번호(slot)는 저장하지 않는다', c.quiz.every((q) => !('slot' in q)));
+  const savedAlt = (c.quiz.find((q) => q.id === 'q2') || {}).alt;
+  ok('★★ 대체 문항이 발급본에 남는다 (칸 번호 없이)', Array.isArray(savedAlt) && savedAlt[0].id === 'q2-alt' && !('slot' in savedAlt[0]));
   ok('★★ 참고 사진(외부 그림)은 저장하지 않는다', !JSON.stringify(c).includes('/9j/AAAA') && !JSON.stringify(S.setup.load()).includes('/9j/AAAA'));
   ok('발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);
 

@@ -116,6 +116,36 @@
     });
   }
 
+  /* 🆕 2026-11-22 다시 풀 때는 **같은 목표 · 다른 문항** (규칙 문서 §12.8 · §12.9 ⑧, Guskey 2010).
+     **직전 시도가 미통과**이고 이번이 짝수 번째 시도(2·4·…)면 대체 문항(q.alt[0] — 같은 위험·주제·유형)을 낸다.
+     그 밖(첫 시도 · 통과 뒤 재교육 · 홀수 번째)은 본 문항 — 한 번 바꿨으면 다음엔 다시 본 문항이라 번갈아 나온다.
+     대체 문항이 없거나 내 언어로 준비되지 않았으면 고르기 문항은 **보기 순서만** 한 칸 돌린다.
+     ★ 저장 문항을 고치지 않는다 — 복사본만 돌린다. 채점은 문항별 맞음/틀림이라 순서가 바뀌어도 기록이 같다.
+     ★ 대체 문항의 id 는 asked 에 남고, Store.askedQuestion 이 본 문항 안에서 찾는다 (대시보드·증빙이 깨지지 않게) */
+  function retakeVersion(q, attemptNo, prevFailed) {
+    if (!prevFailed || attemptNo % 2 !== 0) return q;
+    var alt = Array.isArray(q.alt) ? q.alt[0] : null;
+    if (alt && questionsOf({ quiz: [alt] }).length && ready(alt)) return alt;
+    return q.type === 'choice' ? rotated(q) : q;
+  }
+
+  function rotated(q) {
+    var c = JSON.parse(JSON.stringify(q));
+    var n = Array.isArray(c.options) ? c.options.length : 0;
+    if (n < 2) return q;
+    var turn = function (list) { return Array.isArray(list) && list.length === n ? list.slice(1).concat(list.slice(0, 1)) : list; };
+    c.options = turn(c.options);
+    c.results = turn(c.results);
+    c.pics = turn(c.pics);
+    Object.keys(c.i18n || {}).forEach(function (lang) {
+      var pack = c.i18n[lang] || {};
+      pack.options = turn(pack.options);
+      pack.results = turn(pack.results);
+    });
+    c.answer = (c.answer - 1 + n) % n;
+    return c;
+  }
+
   function qt(q, field) { return Store.qtext(q, me.lang, field); }
 
   /** 이 문항을 내 언어로 낼 수 있는가 — 묻는 칸(문항·선택지·짝)이 다 번역됐는가 (Store.qhas).
@@ -168,10 +198,13 @@
 
   function start(course) {
     var setup = Store.setup.load();
+    var prevRow = progressOf(course.id);
+    var attemptNo = prevRow && prevRow.quiz ? (prevRow.quiz.attempt || 1) + 1 : 1;
+    var prevFailed = !!(prevRow && prevRow.quiz && !prevRow.quiz.passed);
     run = {
       course: course,
       equipment: Store.findBy(setup.equipments, 'id', course.equipmentId),
-      questions: questionsOf(course),
+      questions: questionsOf(course).map(function (q) { return retakeVersion(q, attemptNo, prevFailed); }),
       index: 0,
       answers: [],
       locked: false,

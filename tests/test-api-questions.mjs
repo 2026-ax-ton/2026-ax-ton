@@ -99,6 +99,22 @@ ok('★ 발급 막기 최소는 그 교육의 최소와 N 중 작은 값 (§9.4)
 ok('★ 다시 만들기 칸 상한 = 어느 종류든 가장 큰 최대', Q.maxCount() === K.special.max);
 eq('★ 유형 섞기 한계값을 계획에 싣는다 (규칙 §12.5 — 화면이 센다)', JSON.stringify(plan.mix), JSON.stringify(Q.RULES.mix));
 
+/* ── 🆕 2026-11-22 다시 풀기용 대체 문항 — 같은 칸에서 검증을 통과한 다음 후보 (규칙 §12.9 ⑧, C06 D-060) ── */
+const oneSlot = { slots: [{ slot: 1, hazardId: 'r3', type: 'action', difficulty: 'medium' }] };
+const cand = (prompt, right) => ({ slot: 1, hazardId: 'r3', type: 'action', prompt, options: [right, '그대로 지나간다', '뛰어서 건넌다'], answer: 0, why: '미끄러지면 다친다', prevention: '닦는다' });
+const withAlt = Q.selectQuiz(oneSlot, hz, { questions: [cand('통로 바닥에 기름이 있으면 어떻게 합니까', '기름을 닦는다'), cand('퇴근 전 작업장 바닥을 볼 때 무엇을 먼저 합니까', '기름을 닦는다')] }, []);
+const alt0 = (withAlt.quiz[0].alt || [])[0];
+ok('★★ 두 번째로 통과한 후보가 대체 문항이 된다', !!alt0 && alt0.id === 'q1-alt' && alt0.variantOf === 'q1');
+ok('★ 대체 문항은 같은 위험·주제·유형', alt0.hazardId === 'r3' && alt0.subtype === 'action' && alt0.topic === withAlt.quiz[0].topic);
+ok('★ 같은 목표라 정답이 같아도 된다 (중복으로 버리지 않는다)', alt0.options[alt0.answer] === withAlt.quiz[0].options[withAlt.quiz[0].answer]);
+ok('정답 자리는 본 문항과 다르게 돈다', alt0.answer !== withAlt.quiz[0].answer);
+ok('★ AI 작성 표시 · 노동자 화면 모양', alt0.aiWritten === true && alt0.type === 'choice' && alt0.results.length === alt0.options.length);
+const nearAlt = Q.selectQuiz(oneSlot, hz, { questions: [cand('통로 바닥에 기름이 있으면 어떻게 합니까', '기름을 닦는다'), cand('통로 바닥에 기름이 있으면 어떻게 합니까?', '기름을 닦는다')] }, []);
+ok('★ 발문이 거의 같으면 대체 문항으로 쓰지 않는다', !nearAlt.quiz[0].alt);
+eq('대체 후보는 제외 목록에 남기지 않는다', nearAlt.excluded.length, 0);
+const locOnly = Q.selectQuiz({ slots: [{ slot: 1, hazardId: 'r1', type: 'location', difficulty: 'easy' }] }, hz, { questions: [] }, []);
+ok('위치 문항에는 대체 문항이 없다 (같은 좌표라 다른 문항이 아니다)', locOnly.quiz.length === 1 && !locOnly.quiz[0].alt);
+
 /* ── 🆕 2026-11-22 정기교육 — 지난 회차 첫 시도에 틀린 위험을 먼저 (규칙 §7 ②·§12.3, C06 D-057) ── */
 eq('missed 는 양의 정수만 (나머지는 0)', Q.cleanHazards([{ ...HAZ[3], missed: 2 }, { ...HAZ[3], id: 'z1', missed: -1 }, { ...HAZ[3], id: 'z2', missed: 'x' }], HAZARD_CODES).map((h) => h.missed).join(), '2,0,0');
 const lowMany = Q.cleanHazards(many.map((h) => (h.id === 'x0' ? { ...h, missed: 3 } : h)), HAZARD_CODES);   // x0 = unknown, 점수가 가장 낮다

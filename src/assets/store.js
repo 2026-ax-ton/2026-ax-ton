@@ -572,7 +572,16 @@ var Store = (function () {
     var list = (course && Array.isArray(course.quiz)) ? course.quiz : [];
     var asked = (quizRow && Array.isArray(quizRow.asked)) ? quizRow.asked : null;
     if (!asked) return list[i] || null;
-    return asked[i] ? findBy(list, 'id', asked[i]) : null;
+    if (!asked[i]) return null;
+    var found = findBy(list, 'id', asked[i]);
+    if (found) return found;
+    /* 🆕 2026-11-22 다시 풀 때 낸 대체 문항(quiz[].alt[], C06 D-060)은 본 문항 안에 있다.
+       대체 문항도 같은 위험·주제·유형이라 대시보드·증빙이 같은 자리로 센다 */
+    for (var k = 0; k < list.length; k++) {
+      var alt = list[k] && Array.isArray(list[k].alt) ? findBy(list[k].alt, 'id', asked[i]) : null;
+      if (alt) return alt;
+    }
+    return null;
   }
 
   /* 7. reports — 노동자 기능8 위험요소 신고. 관리자 기능6 이 처리한다

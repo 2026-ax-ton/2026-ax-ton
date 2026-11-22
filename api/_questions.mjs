@@ -371,14 +371,25 @@ export function selectQuiz(plan, hazards, raw, phrases, rules = RULES) {
   plan.slots.forEach((s) => {
     const h = byId.get(s.hazardId);
     let made = null;
+    let alt = null;
     if (!h) { missing.push(s.slot); return; }
     if (s.type === 'location') {
       made = { prompt: '사진에서 「' + h.part + '」을(를) 누르세요', answer: { ...h.answer }, why: h.risk || h.part, prevention: '', answerFrom: 'photo', warnings: [],
         sources: h.sources.map((x) => ({ title: x.title, url: x.url })) };
     } else {
       cands.filter((c) => c && Number(c.slot) === s.slot).forEach((c) => {
-        if (made) return;
+        if (alt) return;
         const n = normalizeCandidate(c, s, h, phrases, rules);
+        if (made) {
+          /* 🆕 §12.8 · §12.9 ⑧ 다시 풀기용 대체 문항 — 같은 칸(위험·주제·유형)에서 검증을 통과한 **다음** 후보 하나.
+             같은 목표라 정답이 같아도 되지만, 발문은 본 문항·앞 문항들과 겹치지 않아야 한다. 떨어진 것은 제외 목록에 남기지 않는다 */
+          if (n.reasons.length) return;
+          const p2 = placeAnswer(n.q, s.slot + 1);
+          const near = similarity(p2.prompt, made.prompt) > rules.duplicateMaxOverlap
+            || quiz.some((x) => similarity(x.prompt, p2.prompt) > rules.duplicateMaxOverlap);
+          if (!near) alt = { ...p2, warnings: n.warnings };
+          return;
+        }
         if (!n.reasons.length) {
           const placed = placeAnswer(n.q, s.slot);
           const dup = duplicateOf(quiz, { ...placed, hazardId: h.id }, rules);
@@ -389,35 +400,42 @@ export function selectQuiz(plan, hazards, raw, phrases, rules = RULES) {
       });
     }
     if (!made) { missing.push(s.slot); return; }
-    const item = {
-      id: 'q' + (quiz.length + 1),
-      slot: s.slot,   // 다시 만들기가 같은 칸을 갈아 끼울 때 쓴다 (발급 때 뗀다)
-      type: s.type === 'location' ? 'hotspot' : 'choice',
-      subtype: s.type,
-      topic: TOPIC_OF[s.type],
-      hazard: h.hazard === 'unknown' ? '' : h.hazard,
-      hazardId: h.id,
-      difficulty: s.difficulty,
-      prompt: made.prompt,
-      why: made.why,
-      prevention: made.prevention,
-      sources: made.sources,
-      evidence: evidenceOf(h),
-      answerFrom: made.answerFrom,
-      aiWritten: s.type !== 'location',
-      warnings: made.warnings,
-      i18n: {},
-    };
-    if (item.type === 'hotspot') { item.answer = made.answer; item.figure = 'photo'; }
-    else {
-      item.options = made.options;
-      item.answer = made.answer;
-      /* ⑩ 오답을 고르면 그 위험요소의 risk 를 들려준다, 정답이면 해설 */
-      item.results = made.options.map((_, i) => (i === made.answer ? made.why : (h.risk || made.why)));
-    }
+    const item = itemOf('q' + (quiz.length + 1), s, h, made);
+    if (alt) item.alt = [{ ...itemOf(item.id + '-alt', s, h, alt), variantOf: item.id }];
     quiz.push(item);
   });
   return { quiz, excluded, missing, issuable: issuable(plan, quiz, missing, rules) };
+}
+
+/** 고른 후보 → 노동자 화면이 읽는 문항 모양 (본 문항·대체 문항 같은 모양) */
+function itemOf(id, s, h, made) {
+  const item = {
+    id,
+    slot: s.slot,   // 다시 만들기가 같은 칸을 갈아 끼울 때 쓴다 (발급 때 뗀다)
+    type: s.type === 'location' ? 'hotspot' : 'choice',
+    subtype: s.type,
+    topic: TOPIC_OF[s.type],
+    hazard: h.hazard === 'unknown' ? '' : h.hazard,
+    hazardId: h.id,
+    difficulty: s.difficulty,
+    prompt: made.prompt,
+    why: made.why,
+    prevention: made.prevention,
+    sources: made.sources,
+    evidence: evidenceOf(h),
+    answerFrom: made.answerFrom,
+    aiWritten: s.type !== 'location',
+    warnings: made.warnings,
+    i18n: {},
+  };
+  if (item.type === 'hotspot') { item.answer = made.answer; item.figure = 'photo'; }
+  else {
+    item.options = made.options;
+    item.answer = made.answer;
+    /* ⑩ 오답을 고르면 그 위험요소의 risk 를 들려준다, 정답이면 해설 */
+    item.results = made.options.map((_, i) => (i === made.answer ? made.why : (h.risk || made.why)));
+  }
+  return item;
 }
 
 /** 이 칸들은 AI 가 필요 없나 (전부 위치 문항) */

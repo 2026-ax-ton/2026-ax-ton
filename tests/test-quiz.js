@@ -6,6 +6,9 @@ const click = (win, node) => node.dispatchEvent(new win.MouseEvent('click', { bu
 /* 2026-11-11 — 사진·도해 문항은 고르고 [제출] 을 눌러야 채점된다 */
 const pickZone = (t, zone) => { click(t.win, zone); click(t.win, t.$('btn-hotspot-submit')); };
 const K = (t, key, lang) => t.win.I18N.t(key, lang || 'km');
+/* 🆕 2026-11-22 미통과 뒤 다시 풀면 보기 순서가 바뀔 수 있다 (규칙 §12.9 ⑧) — 선택지는 자리가 아니라 글자로 찾는다 */
+const optOf = (t, courseId, qi, oi, lang) => t.win.Store.qtext(t.win.Store.courses.load().find((c) => c.id === courseId).quiz[qi], lang || 'km', 'options')[oi];
+const choiceOf = (t, s) => [...t.$('quiz-body').querySelectorAll('.choice-btn')].find((b) => text(b).includes(s));
 
 function openQuiz(opts) {
   return boot('worker/quiz.html' + (opts.query || ''), Object.assign({ page: 'worker/quiz.js' }, opts));
@@ -221,8 +224,8 @@ function openQuiz(opts) {
   has('정답이면 맞다고 내 언어로 말한다', text(t.$('consequence-text')), K(t, 'quiz.rightSpot'));
   click(t.win, t.$('btn-next'));
 
-  // 문항2 choice — 정답
-  click(t.win, t.$('quiz-body').querySelectorAll('.choice-btn')[1]);
+  // 문항2 choice — 정답 (직전 미통과라 보기 순서가 돌아 있다 — 글자로 찾는다)
+  click(t.win, choiceOf(t, optOf(t, 'c-press', 1, 1)));
   click(t.win, t.$('btn-next'));
 
   // 문항3 match — 정답
@@ -300,12 +303,13 @@ function openQuiz(opts) {
   const t = openQuiz({ login: 'W-4821-11', query: '?course=c-paint' });
 
   // 문항1 은 choice. 오답을 골라 결과 문장을 확인한다.
-  const choices = t.$('quiz-body').querySelectorAll('.choice-btn');
-  click(t.win, choices[0]);   // 물을 뿌린다
+  /* 직전 미통과 → 2번째 시도라 보기 순서가 한 칸 돌아 있다 (대체 문항 없음) */
+  eq('★★ 미통과 뒤 다시 풀면 보기 순서가 바뀐다 (대체 문항이 없을 때)', text(t.$('quiz-body').querySelectorAll('.choice-btn')[0]).includes(optOf(t, 'c-paint', 0, 1, 'ne')), true);
+  click(t.win, choiceOf(t, optOf(t, 'c-paint', 0, 0, 'ne')));   // 물을 뿌린다
   has('오답의 결과를 네팔어로 말한다', text(t.$('consequence-text')),
     'पेन्टको आगोमा पानी छर्किँदा आगो फैलिन्छ।');
   eq('틀렸을 때 아이콘', iconName(t.$('consequence-ico')), 'alert');
-  eq('정답도 함께 표시', choices[1].getAttribute('data-mark'), 'ok');
+  eq('★ 순서가 바뀌어도 정답 표시가 맞는 보기에 붙는다', choiceOf(t, optOf(t, 'c-paint', 0, 1, 'ne')).getAttribute('data-mark'), 'ok');
 
   click(t.win, t.$('btn-next'));
 
@@ -493,8 +497,37 @@ function openQuiz(opts) {
 {
   const t = openQuiz({ login: 'W-4821-11', query: '?course=c-paint' });
   has('문항이 네팔어로 나온다', text(t.$('quiz-prompt')), 'पेन्टिङ गर्दा आगो लाग्यो। पहिले के गर्ने?');
-  has('선택지도 네팔어로 나온다',
-    text(t.$('quiz-body').querySelectorAll('.choice-btn')[1]), 'भेन्टिलेसन पंखा बन्द गरी बाहिर निस्कने');
+  ok('선택지도 네팔어로 나온다', !!choiceOf(t, 'भेन्टिलेसन पंखा बन्द गरी बाहिर निस्कने'));
+}
+
+/* --- 🆕 2026-11-22 미통과 뒤 다시 풀면 대체 문항 — 같은 목표 · 다른 문항 (규칙 §12.9 ⑧, C06 D-060) --- */
+{
+  const ALT_NE = 'वैकल्पिक प्रश्न परीक्षण';
+  const withAlt = (ready) => openQuiz({ login: 'W-4821-11', query: '?course=c-paint', before(win) {
+    win.Store.courses.update((list) => {
+      const q = list.find((c) => c.id === 'c-paint').quiz[0];
+      const alt = JSON.parse(JSON.stringify(q));
+      delete alt.alt;
+      alt.id = q.id + '-alt';
+      alt.variantOf = q.id;
+      alt.prompt = '대체 문항 시험';
+      if (ready) alt.i18n.ne.prompt = ALT_NE; else delete alt.i18n.ne;
+      q.alt = [alt];
+    });
+  } });
+  const t = withAlt(true);
+  has('★★ 직전 미통과면 대체 문항을 낸다 (내 언어)', text(t.$('quiz-prompt')), ALT_NE);
+  click(t.win, choiceOf(t, optOf(t, 'c-paint', 0, 1, 'ne')));
+  click(t.win, t.$('btn-next'));
+  pickZone(t, [...t.$('quiz-body').querySelectorAll('.zone')].find((z) => z.getAttribute('aria-label') === '도장 작업 구역'));
+  click(t.win, t.$('btn-next'));
+  const row = t.win.Store.progress.load().find((r) => r.workerId === 'W-4821-11' && r.courseId === 'c-paint');
+  const cpaint = t.win.Store.courses.load().find((c) => c.id === 'c-paint');
+  ok('★ 낸 문항 id 에 대체 문항이 남는다', row.quiz.asked[0] === cpaint.quiz[0].id + '-alt');
+  eq('★★ Store.askedQuestion 이 대체 문항을 찾는다 (대시보드·증빙)', (t.win.Store.askedQuestion(cpaint, row.quiz, 0) || {}).variantOf, cpaint.quiz[0].id);
+  eq('대체 문항도 같은 위험유형으로 센다', t.win.Store.askedQuestion(cpaint, row.quiz, 0).hazard, cpaint.quiz[0].hazard);
+  const t2 = withAlt(false);
+  ok('★ 대체 문항이 내 언어로 준비되지 않았으면 본 문항을 (보기 순서만 바꿔) 낸다', text(t2.$('quiz-prompt')).includes('पेन्टिङ गर्दा आगो लाग्यो'));
 }
 
 /* --- ★ 번역 배열의 길이가 다르면 한국어로 되돌아간다 ---

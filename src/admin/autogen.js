@@ -864,6 +864,7 @@
       var items = quizItems().filter(function (q) { return !translatedFor(q, lang); }).map(function (q) {
         return { id: q.id, prompt: q.prompt, options: q.options, results: q.results, why: q.why, prevention: q.prevention };
       });
+      translateAlts(lang);   // 🆕 대체 문항은 따로 — 본 문항 번역이 다 됐어도 돈다
       if (!items.length) { state.trans[lang] = 'ok'; return; }
       state.trans[lang] = 'pending';
       call('/api/translate-quiz', { equipment: { id: e.id, name: e.name }, lang: lang, items: items }).then(function (r) {
@@ -882,6 +883,31 @@
     renderAll();
   }
 
+  /* 🆕 2026-11-22 대체 문항 (quiz[].alt[], C06 D-060) */
+  function altsOf(q) { return q && Array.isArray(q.alt) ? q.alt : []; }
+
+  /** 대체 문항 번역 — 본 문항과 따로 한 번 더 부른다 (한 번에 20문항 상한, `_quiztrans.mjs`).
+   *  ★ 발급을 막지 않는다 — 번역이 없는 대체 문항은 노동자 화면이 본 문항의 보기 순서만 바꿔 낸다 */
+  function translateAlts(lang) {
+    var e = state.equipment;
+    var alts = [];
+    quizItems().forEach(function (q) { altsOf(q).forEach(function (a) { if (!translatedFor(a, lang)) alts.push(a); }); });
+    if (!alts.length) return;
+    call('/api/translate-quiz', { equipment: { id: e.id, name: e.name }, lang: lang, items: alts.slice(0, 20).map(function (a) {
+      return { id: a.id, prompt: a.prompt, options: a.options, results: a.results, why: a.why, prevention: a.prevention };
+    }) }).then(function (r) {
+      if (!r.ok || !sameEquipment(r.data) || !r.data.i18n) return;
+      alts.forEach(function (a) {
+        var t = r.data.i18n[a.id];
+        if (!t) return;
+        a.i18n = a.i18n || {};
+        a.i18n[lang] = t;
+        phraseOverride(a, lang);
+      });
+      renderAll();
+    });
+  }
+
   /** [수정 요청] — 그 칸만 같은 위험·유형·난이도로 다시 (계획은 그대로) */
   function regenOne(q) {
     if (!serverReady() || state.source === 'file') return;
@@ -892,6 +918,7 @@
       if (!r.ok || !sameEquipment(r.data) || !r.data.quiz || !r.data.quiz.length) { $('ag-quiz-status').textContent = r.ok ? '다시 만들지 못했습니다.' : failText(r); return; }
       var fresh = r.data.quiz[0];
       fresh.id = q.id;
+      altsOf(fresh).forEach(function (a) { a.id = q.id + '-alt'; a.variantOf = q.id; });   // 대체 문항 id 도 본 문항을 따라간다
       state.quiz.quiz = quizItems().map(function (x) { return x.slot === q.slot ? fresh : x; });
       $('ag-reviewed').checked = false;
       $('ag-quiz-status').textContent = q.id + ' 을 다시 만들었습니다.';
@@ -1012,6 +1039,17 @@
       if (q.why) li.appendChild(UI.el('p', 'meta', '해설: ' + q.why));
       if (q.prevention) li.appendChild(UI.el('p', 'meta', '안전수칙·예방조치: ' + q.prevention));
       if (q.evidence) li.appendChild(UI.el('p', 'meta', '탐지 근거: ' + q.evidence));
+      /* 🆕 2026-11-22 다시 풀기용 대체 문항 (규칙 §12.9 ⑧, C06 D-060) — 같은 위험·주제·유형. AI 가 쓴 것이라 본 문항과 함께 검토한다 */
+      altsOf(q).forEach(function (a) {
+        var box = UI.el('div', 'ag-alt');
+        box.setAttribute('data-alt', a.id);
+        box.appendChild(UI.waitBadge('다시 풀기용 대체 문항 — 검토 필요'));
+        box.appendChild(UI.el('p', null, a.prompt));
+        if (Array.isArray(a.options)) box.appendChild(UI.el('p', 'meta', '보기: ' + a.options.map(function (o, i) { return (i === a.answer ? '(정답) ' : '') + o; }).join(' · ')));
+        if (a.why) box.appendChild(UI.el('p', 'meta', '해설: ' + a.why));
+        box.appendChild(UI.el('p', 'sub', '처음 푼 뒤 미통과한 노동자가 다시 풀 때 이 문항이 대신 나옵니다. 내 언어 번역이 없으면 본 문항의 보기 순서만 바꿔 냅니다.'));
+        li.appendChild(box);
+      });
       if ((q.sources || []).length) {
         var srcs = UI.el('ul', 'meta');
         q.sources.forEach(function (s) {
@@ -1129,7 +1167,12 @@
   function buildCourse() {
     var e = state.equipment;
     if (!e || !state.research || !state.quiz) return null;
-    var quiz = quizItems().map(function (q) { var c = JSON.parse(JSON.stringify(q)); delete c.slot; return c; });
+    var quiz = quizItems().map(function (q) {
+      var c = JSON.parse(JSON.stringify(q));
+      delete c.slot;
+      (c.alt || []).forEach(function (a) { delete a.slot; });
+      return c;
+    });
     var usesPhoto = quiz.some(function (q) { return q.type === 'hotspot'; });
     var course = {
       id: Store.uid(),
@@ -1315,6 +1358,6 @@
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
     state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
-    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage, mixWarnings: mixWarnings
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage, mixWarnings: mixWarnings, translateQuiz: translateQuiz
   };
 })();
