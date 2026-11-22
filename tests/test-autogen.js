@@ -270,6 +270,35 @@ function fakeQuestions(body) {
   eq('★★ 오답 수를 위험요소에 붙여 보낸다', (mq.body.hazards.find((h) => h.id === hz0) || {}).missed, 2);
   ok('오답이 없는 위험에는 붙이지 않는다', mq.body.hazards.filter((h) => h.id !== hz0).every((h) => !('missed' in h)));
   ok('★ 발급본 위험요소 스냅샷에는 오답 수를 넣지 않는다', !JSON.stringify(S.courses.load()).includes('"missed"'));
+
+  /* 🆕 2026-11-22 특별교육 개별 사항 덮기 — 사람이 단 문구 태그로만, 경고만 (규칙 §12.9 ③, C06 D-058) */
+  const A = win.__autogen;
+  eq('특별교육이 아니면 확인하지 않는다', A.specialCoverage(), null);
+  const sp = doc.querySelector('input[name="edu-kind"][value="special"]');
+  sp.checked = true;
+  sp.dispatchEvent(new win.Event('change', { bubbles: true }));
+  const job = doc.getElementById('edu-special');
+  job.value = '11';
+  job.dispatchEvent(new win.Event('change', { bubbles: true }));
+  const ph = A.usablePhrases();
+  ok('쓸 수 있는 문구가 둘 이상 있다 (검사 준비)', ph.length >= 2);
+  S.library.update((list) => list.forEach((p) => {
+    if (p.id === ph[0].id) p.specialItems = ['11-1', '11-2'];
+    else if (p.id === ph[1].id) p.specialItems = ['11-3'];
+    else delete p.specialItems;
+  }));
+  const qs = A.state().quiz.quiz;
+  const keepFrom = qs[0].answerFrom;
+  eq('위치 문항(사진)은 문구가 없어 어느 사항도 덮지 않는다', A.specialCoverage().missing.length, 3);
+  qs[0].answerFrom = 'phrase:' + ph[0].id;
+  const cov = A.specialCoverage();
+  eq('★★ 덮은 사항 = 정답 문구의 태그 · 빠진 것 = 태그 문구는 있는데 문항이 없는 사항', cov.relevant + '|' + cov.missing.map((x) => x.tag).join() + '|' + cov.untagged.map((x) => x.tag).join(), '3|11-3|11-4');
+  click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
+  has('★★ 문항이 없는 개별 사항을 담당자에게 알린다', $('ag-plan').textContent, '특별교육 개별 사항 중 문항이 없는 것 1개');
+  has('★ 태그가 없어 확인할 수 없는 사항도 알린다', $('ag-plan').textContent, '문구 태그가 없어 확인할 수 없는 개별 사항 1개');
+  S.library.update((list) => list.forEach((p) => { if (p.id === ph[0].id) p.specialItems = ['11-1', '11-2', '11-3']; }));
+  eq('★ 정답 문구의 태그가 늘면 빠진 사항이 없어진다', A.specialCoverage().missing.length, 0);
+  qs[0].answerFrom = keepFrom;
   ok('화면 오류 없음 (흐름 끝)', t.errors.length === 0, t.errors.join(' | '));
 
   /* 해시로 설비 고르기 (설비 탭 · 콘텐츠 탭에서 오는 길) */

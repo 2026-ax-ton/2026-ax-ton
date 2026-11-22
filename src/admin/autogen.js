@@ -132,6 +132,35 @@
   }
   function eduKindId() { return EduKind.fields(eduKind).eduKind; }
 
+  /* 🆕 2026-11-22 특별교육 개별 사항 덮기 (규칙 §12.3·§12.9 ③, C06 D-058) — **경고만**, 발급은 막지 않는다.
+     사항 ↔ 문항은 사람이 문구에 단 태그(library `specialItems`, LegalTag)로만 잇는다. AI 가 잇지 않는다:
+       덮음        = 문항 정답이 검수 문구에서 왔고(answerFrom 'phrase:<id>') 그 문구에 그 사항 태그가 있다
+       설비와 닿음 = 이 설비 종류의 쓸 수 있는 문구 중 하나라도 그 사항 태그를 달았다
+       태그 없음   = 그 사항 태그를 단 문구가 하나도 없다 → 확인할 수 없다고 알린다
+     위치 문항(사진 탭)·AI 작성 정답은 문구가 없어 어느 사항도 덮지 않는 것으로 센다 */
+  function specialCoverage() {
+    var f = EduKind.fields(eduKind);
+    if (f.eduKind !== 'special' || !f.specialJob || typeof LegalTag === 'undefined') return null;
+    var job = LegalTag.jobs().filter(function (j) { return Number(j.no) === f.specialJob; })[0];
+    if (!job || !job.items.length) return null;
+    var phrases = usablePhrases();
+    var tagged = {};
+    var covered = {};
+    phrases.forEach(function (p) { LegalTag.of(p).specialItems.forEach(function (t) { tagged[t] = 1; }); });
+    quizItems().forEach(function (q) {
+      var m = /^phrase:(.+)$/.exec(q.answerFrom || '');
+      var p = m ? Store.findBy(phrases, 'id', m[1]) : null;
+      if (p) LegalTag.of(p).specialItems.forEach(function (t) { covered[t] = 1; });
+    });
+    var rel = job.items.filter(function (it) { return tagged[it.tag]; });
+    return {
+      job: job,
+      relevant: rel.length,
+      missing: rel.filter(function (it) { return !covered[it.tag]; }),
+      untagged: job.items.filter(function (it) { return !tagged[it.tag]; })
+    };
+  }
+
   /* 🆕 2026-11-22 이 설비의 지난 교육에서 **첫 시도**에 그 위험의 문항을 틀린 사람 수 — { 위험요소 id: 사람 수 } (규칙 §12.3, C06 D-057).
      첫 시도 = progress.quiz.firstAnswers·firstAsked. 옛 기록은 1회째(attempt 1)일 때만 answers·asked 를 첫 시도로 본다.
      지난 문항의 위험요소는 id 가 같으면 그것, 아니면 같은 위험유형 + 같은 부위 이름(공백·문장부호 무시)으로 잇는다.
@@ -894,6 +923,17 @@
     var p = state.quiz.plan || {};
     plan.appendChild(UI.itemRow('check', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
     (p.warnings || []).forEach(function (w) { plan.appendChild(UI.itemRow('alert', '문항 수 확인', w)); });
+    var cov = specialCoverage();
+    if (cov && cov.missing.length) {
+      plan.appendChild(UI.itemRow('alert', '특별교육 개별 사항 중 문항이 없는 것 ' + cov.missing.length + '개',
+        cov.missing.map(function (it) { return LegalTag.label(it.tag); }).join(' · ') + ' — 이 사항 태그가 달린 문구를 정답으로 쓴 문항이 없습니다. [전체 다시 만들기]나 문항 수정으로 채워 주세요. 발급은 막지 않습니다.'));
+    } else if (cov && cov.relevant) {
+      plan.appendChild(UI.itemRow('check', '특별교육 개별 사항 ' + cov.relevant + '개를 문항이 모두 다룹니다', '사항 태그가 달린 검수 문구가 정답인 문항 기준'));
+    }
+    if (cov && cov.untagged.length) {
+      plan.appendChild(UI.itemRow('alert', '문구 태그가 없어 확인할 수 없는 개별 사항 ' + cov.untagged.length + '개',
+        cov.untagged.map(function (it) { return LegalTag.label(it.tag); }).join(' · ') + ' — 콘텐츠 라이브러리에서 문구에 사항 태그를 달면 확인됩니다.'));
+    }
     if ((state.quiz.missing || []).length) plan.appendChild(UI.itemRow('alert', '못 채운 칸 ' + state.quiz.missing.length + '개', '규칙을 통과한 후보가 없었습니다. [전체 다시 만들기]를 눌러 주세요.'));
     if ((state.quiz.excluded || []).length) {
       var li0 = UI.el('li');
@@ -1248,6 +1288,6 @@
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
     state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
-    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage
   };
 })();
