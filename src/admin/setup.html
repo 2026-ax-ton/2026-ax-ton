@@ -272,6 +272,25 @@
         <ul class="item-list" id="list-worker"></ul>
       </section>
 
+
+      <!-- 🆕 2026-11-22 데이터 백업(JSON 상자) → 자료 내려받기 (yesol 요청).
+           담당자가 JSON 을 다룰 일은 없다 — 서버에 자동 저장되고, 필요한 것은 엑셀로 여는 명단·현황이다.
+           왼쪽 본문 칸에 둔다 — 오른쪽 요약 칸에 있으면 이 화면에서 왼쪽이 통째로 빈다.
+           JSON 내보내기·불러오기는 Store.exportAll/importAll 로 남아 있다 (개발·시연용) -->
+      <section class="card" aria-labelledby="t-data" data-view="backup">
+        <h2 class="card-title" id="t-data">자료 내려받기</h2>
+        <p class="storagenote">
+          배포 주소에서 로그인해 쓰면 입력한 내용은 <b>서버에 자동으로 저장</b>됩니다. 따로 백업하지 않아도 됩니다.
+        </p>
+        <p class="storagenote" style="margin-top:10px">
+          아래 버튼을 누르면 <b>엑셀에서 바로 열리는 파일(CSV)</b>로 내려받습니다. 보고·보관용입니다.
+        </p>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn" type="button" id="btn-csv-workers">노동자 명단</button>
+          <button class="btn" type="button" id="btn-csv-equips">설비 목록</button>
+          <button class="btn" type="button" id="btn-csv-progress">교육 이수 현황</button>
+        </div>
+      </section>
     </div><!-- /col-main -->
 
     <!-- 우측 요약 ---------------------------------------------------- -->
@@ -294,23 +313,7 @@
         <p class="muted" style="margin-top:10px" id="updated-at">아직 저장된 내용이 없습니다.</p>
       </section>
 
-      <!-- 🆕 2026-11-22 데이터 백업(JSON 상자) → 자료 내려받기 (yesol 요청).
-           담당자가 JSON 을 다룰 일은 없다 — 서버에 자동 저장되고, 필요한 것은 엑셀로 여는 명단·현황이다.
-           JSON 내보내기·불러오기는 Store.exportAll/importAll 로 남아 있다 (개발·시연용) -->
-      <section class="card" aria-labelledby="t-data" data-view="backup">
-        <h2 class="card-title" id="t-data">자료 내려받기</h2>
-        <p class="storagenote">
-          배포 주소에서 로그인해 쓰면 입력한 내용은 <b>서버에 자동으로 저장</b>됩니다. 따로 백업하지 않아도 됩니다.
-        </p>
-        <p class="storagenote" style="margin-top:10px">
-          아래 버튼을 누르면 <b>엑셀에서 바로 열리는 파일(CSV)</b>로 내려받습니다. 보고·보관용입니다.
-        </p>
-        <div class="btn-row" style="margin-top:12px">
-          <button class="btn" type="button" id="btn-csv-workers">노동자 명단</button>
-          <button class="btn" type="button" id="btn-csv-equips">설비 목록</button>
-          <button class="btn" type="button" id="btn-csv-progress">교육 이수 현황</button>
-        </div>
-      </section>
+
 
     </div><!-- /col-side -->
 

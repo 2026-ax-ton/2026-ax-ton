@@ -1422,3 +1422,12 @@ body.dash-v2 .page > .card { width: 100%; box-sizing: border-box; grid-column: a
 }
 /* 「정보수정」 같은 설비 줄 버튼이 두 줄로 꺾이지 않게 */
 #list-equip .btn-sm { white-space: nowrap; }
+
+/* 🆕 2026-11-22 한글 낱말이 중간에서 꺾이지 않게 (「완/료」 「됩/니다」) — 담당자 화면만.
+   긴 영문·주소처럼 한 낱말이 칸보다 길 때만 낱말 안에서 꺾는다 */
+body.has-admin-menu { word-break: keep-all; overflow-wrap: break-word; }
+@media (min-width: 1024px) {
+  body.has-tabbar .page > section[aria-labelledby="t-made"] { grid-column: 1 / -1; }
+}
+/* 폰에서 표 칸이 한 글자 폭까지 눌려 세로로 꺾이지 않게 — 표 안에서도 낱말 단위로만 꺾고, 좁으면 표를 옆으로 민다 (.tablewrap 가로 스크롤) */
+.tablewrap > table.data td { overflow-wrap: break-word; }
