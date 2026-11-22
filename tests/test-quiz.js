@@ -155,6 +155,16 @@ function openQuiz(opts) {
   has('둘째 문항은 정답', text(t.$('result-review').children[1]), t.win.I18N.t('state.correct', 'km'));
 
   has('교육을 다시 들으러 갈 수 있다', t.$('result-actions').innerHTML, 'learn.html');
+
+  /* 🆕 2026-11-22 다시 풀기 전에 틀린 문항 설명만 먼저 (규칙 §12.8 · §12.9 ⑦) */
+  const fixBtn = t.$('btn-review-wrong');
+  ok('★★ 미통과면 「틀린 문항 설명 듣기」가 첫 행동이다', !!fixBtn && t.$('result-actions').firstElementChild === fixBtn && /btn-primary/.test(fixBtn.className));
+  eq('그 버튼은 내 언어로', text(fixBtn), K(t, 'quiz.reviewWrong'));
+  ok('교육 다시 듣기는 둘째 (주 버튼이 아니다)', !/btn-primary/.test(t.$('result-actions').querySelector('a[href="learn.html"]').className));
+  ok('★ 틀린 문항 줄에만 설명 듣기 소리 버튼', !!t.$('result-review').children[0].querySelector('.btn-audio') && !t.$('result-review').children[1].querySelector('.btn-audio'));
+  ok('★★ 다시 풀기는 막지 않는다 (소리가 안 나는 기기에서 가두지 않는다)', [...t.$('result-actions').querySelectorAll('button')].some((b) => text(b) === K(t, 'quiz.retry') && !b.disabled));
+  click(t.win, fixBtn);
+  ok('설명 듣기를 눌러도 화면이 그대로다', t.$('view-result').hidden === false && t.errors.length === 0, t.errors.join(' | '));
   ok('★ 다음 행동이 문항별 복기보다 앞에 온다 (H2)',
     !!(t.$('result-actions').compareDocumentPosition(t.$('result-review')) &
       t.win.Node.DOCUMENT_POSITION_FOLLOWING));

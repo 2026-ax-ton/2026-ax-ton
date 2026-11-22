@@ -267,6 +267,17 @@
     $('btn-next').hidden = false;
   }
 
+  /* 🆕 2026-11-22 틀린 문항의 교정 — 문항 + 해설(내 언어). 해설이 없으면 고르기 문항은 정답 보기(내 언어).
+     ★ 내 언어로 된 것이 없으면 글을 띄우지 않고 문항만 다시 읽는다 (한국어 문장을 대신 띄우지 않는다) */
+  function correctionOf(q) {
+    var why = tr(q, 'why');
+    var opts = q.type === 'choice' ? tr(q, 'options') : null;
+    var right = !why && Array.isArray(opts) && Number.isInteger(q.answer) ? opts[q.answer] : null;
+    var text = why || right || '';
+    var ko = why ? (q.why || '') : (right ? q.options[q.answer] : '');
+    return { text: text, say: qt(q, 'prompt') + (text ? ' ' + text : ''), sayKo: q.prompt + (ko ? ' ' + ko : '') };
+  }
+
   /* 결과 문장 — 문항의 해설(내 언어). 없으면 맞음·틀림만 (한국어 문장을 대신 띄우지 않는다) */
   function feedbackOf(q, correct, okKey, noKey) {
     var why = tr(q, 'why');
@@ -640,6 +651,7 @@
 
     var review = $('result-review');
     review.textContent = '';
+    var wrong = [];
     run.questions.forEach(function (q, i) {
       var li = UI.el('li');
       var ico = UI.el('span', 'ico', KIND[q.type].ico);
@@ -648,6 +660,12 @@
       var body = UI.el('div', 'body');
       body.appendChild(UI.el('strong', null, qt(q, 'prompt')));
       li.appendChild(body);
+      if (run.answers[i] !== 1) {
+        var fix = correctionOf(q);
+        wrong.push(fix);
+        if (fix.text) body.appendChild(UI.el('p', 'meta fix', fix.text));
+        li.appendChild(UI.audioButton(function () { return say(fix.say, fix.sayKo); }, T('quiz.reviewWrong')));
+      }
       li.appendChild(run.answers[i] === 1 ? UI.okBadge(T('state.correct')) : UI.stopBadge(T('state.wrong')));
       review.appendChild(li);
     });
@@ -661,7 +679,20 @@
       actions.appendChild(linkButton(T('action.home'), 'home.html', true));
       actions.appendChild(linkButton(T('quiz.myRecord'), 'my.html'));
     } else {
-      actions.appendChild(linkButton(T('quiz.relearn'), 'learn.html', true));
+      /* 🆕 2026-11-22 다시 풀기 전에 **틀린 문항의 설명만** 먼저 들려준다 — 교정 뒤 다시 평가 (규칙 §12.8 · §12.9 ⑦, Guskey 2010).
+         ★ 다시 풀기를 막지 않는다 — 소리가 안 나는 기기에서 노동자를 가두지 않는다 */
+      if (wrong.length) {
+        var listenWrong = UI.audioButton(function () {
+          return say(wrong.map(function (w) { return w.say; }).join(' '), wrong.map(function (w) { return w.sayKo; }).join(' '));
+        }, T('quiz.reviewWrong'));
+        var fixBtn = UI.el('button', 'btn btn-primary', T('quiz.reviewWrong'));
+        fixBtn.type = 'button';
+        fixBtn.id = 'btn-review-wrong';
+        fixBtn.addEventListener('click', function () { listenWrong.play(); });
+        actions.appendChild(fixBtn);
+        if (first) listenWrong.play();
+      }
+      actions.appendChild(linkButton(T('quiz.relearn'), 'learn.html', !wrong.length));
       var again = UI.el('button', 'btn btn-quiet', T('quiz.retry'));
       again.type = 'button';
       again.addEventListener('click', function () { start(run.course); });
