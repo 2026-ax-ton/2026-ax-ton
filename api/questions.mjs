@@ -79,7 +79,7 @@ async function run(request) {
   let model = '';
   if (needsModel(slots)) {
     let cfg = null;
-    for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
+    for (const name of MODEL_ENVS) { cfg = readConfig(name, 'AI_PROVIDER_RESEARCH'); if (cfg) break; }
     if (!cfg) return fail(500, 'config', '서버 설정 오류입니다.', cors);
     cfg = { ...cfg, timeoutMs: Number(process.env.AI_QUESTIONS_TIMEOUT_MS) || DEFAULT_QUESTIONS_TIMEOUT_MS };
     model = cfg.model;
@@ -101,7 +101,7 @@ async function run(request) {
   const needAgain = slots.filter((s) => out.missing.indexOf(s.slot) !== -1 && s.type !== 'location');
   if (needAgain.length && model && Date.now() - started < 25000) {
     let cfg = null;
-    for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
+    for (const name of MODEL_ENVS) { cfg = readConfig(name, 'AI_PROVIDER_RESEARCH'); if (cfg) break; }
     if (cfg && (await takeDailyCall(cfg.dailyLimit))) {
       const avoid2 = out.excluded.filter((x) => needAgain.some((s) => s.slot === x.slot) && x.prompt).map((x) => '- ' + x.prompt);
       const r2 = await callModel({ ...cfg, timeoutMs: 25000 }, systemText(),
