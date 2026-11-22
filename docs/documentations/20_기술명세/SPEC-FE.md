@@ -47,7 +47,7 @@
 - 상태: `run = {course, equipment, questions, index, answers, locked}` (`quiz.js` 151행)
 - 문항 렌더: `hotspot`(구역 버튼 + 퍼센트 좌표 `Diagrams.inAnswer`) · `choice`(`options`, `answer` 인덱스) · `match`(`pairs`)
 - 답 처리 `answered(correct, consequenceText, consequenceKo)`: 잠금 → `data-mark` ok/no (정답 함께 표시) → 결과 문장 표시 + `UI.speak`
-- 채점: `PASS_SCORE` = 전 문항 정답. 기록 `progress.quiz = {score, passed, answers, asked, at, attempt, firstPassed}`
+- 채점: `PASS_SCORE` = 전 문항 정답. 기록 `progress.quiz = {score, passed, answers, asked, at, attempt, firstPassed, firstAnswers?, firstAsked?}` (🆕 2026-11-22 첫 시도 답·문항 id — 한 번만 쓴다, C06 D-057)
 - ✅ (2026-11-01) FR-WK-03-12: 문항 머리에 `n / 총`과 "한 번만 답할 수 있어요" (i18n 키 `quiz.stepLabel`·`quiz.onceOnly`, 6개 언어). 음성은 `promptSpeech()`에 합쳐 한 번에 읽는다(따로 부르면 `UI.speak`가 앞 발화를 끊는다)
 - ✅ (2026-11-01) FR-WK-03-13 (결정): 결과 `result-score`를 `n점` 대신 "n문항 중 m문항"으로, `result-actions`를 `result-review`보다 앞에 배치(HTML 순서)
 - ✅ (2026-11-01, 코드 확인) FR-WK-03-14: hotspot 구역 버튼의 터치 영역 지름 ≥ 60px — `.zone`의 기존 `min-width/min-height: var(--tap-min)`(투명 여백)이 이미 지키고 있었다. `test-quiz.js` §11 로 고정. 실기기 확인은 남음

@@ -252,6 +252,24 @@ function fakeQuestions(body) {
   $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
   eq('★★ 설비에 저장된 분석을 다시 조사하지 않고 불러온다 (참고 사진 찾기만 더 부른다)', calls.slice(n0).map((c) => c.path).join() + '|' + aiCount(win), '/api/photos|3');
   has('저장된 분석이라고 알린다', $('ag-research-status').textContent, '설비 탭에서 한 AI 위험요소 조사');
+
+  /* 🆕 2026-11-22 정기교육 — 이 설비의 지난 교육에서 첫 시도에 틀린 사람 수를 위험요소마다 (규칙 §12.3, C06 D-057) */
+  const ids = c.quiz.map((q) => q.id);
+  const hz0 = c.quiz[0].hazardId;
+  S.progress.update((list) => {
+    list.push({ workerId: 'W-m1', courseId: c.id, lang: 'km', learnedAt: 'x', quiz: { answers: [1, 1], asked: ids, attempt: 2, firstAnswers: [0, 1], firstAsked: ids } });
+    list.push({ workerId: 'W-m2', courseId: c.id, lang: 'km', learnedAt: 'x', quiz: { answers: [0, 1], asked: ids, attempt: 1 } });        // 옛 기록 1회째
+    list.push({ workerId: 'W-m3', courseId: c.id, lang: 'km', learnedAt: 'x', quiz: { answers: [0, 0], asked: ids, attempt: 3 } });        // 첫 시도를 모른다 → 세지 않는다
+  });
+  const missed = win.__autogen.missedCounts();
+  eq('★★ 첫 시도에 틀린 사람 수 (첫 기록 1 + 옛 1회째 기록 1, 첫 시도를 모르는 기록은 빼고)', missed[hz0], 2);
+  ok('★ 맞힌 문항의 위험은 세지 않는다', !missed[c.quiz[1].hazardId]);
+  click(win, $('btn-regen-all'));
+  await ticks();
+  const mq = calls.filter((x) => x.path === '/api/questions').pop();
+  eq('★★ 오답 수를 위험요소에 붙여 보낸다', (mq.body.hazards.find((h) => h.id === hz0) || {}).missed, 2);
+  ok('오답이 없는 위험에는 붙이지 않는다', mq.body.hazards.filter((h) => h.id !== hz0).every((h) => !('missed' in h)));
+  ok('★ 발급본 위험요소 스냅샷에는 오답 수를 넣지 않는다', !JSON.stringify(S.courses.load()).includes('"missed"'));
   ok('화면 오류 없음 (흐름 끝)', t.errors.length === 0, t.errors.join(' | '));
 
   /* 해시로 설비 고르기 (설비 탭 · 콘텐츠 탭에서 오는 길) */

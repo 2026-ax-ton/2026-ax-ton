@@ -131,6 +131,43 @@
       + (state.source === 'file' ? '' : '|' + eduKindId());
   }
   function eduKindId() { return EduKind.fields(eduKind).eduKind; }
+
+  /* 🆕 2026-11-22 이 설비의 지난 교육에서 **첫 시도**에 그 위험의 문항을 틀린 사람 수 — { 위험요소 id: 사람 수 } (규칙 §12.3, C06 D-057).
+     첫 시도 = progress.quiz.firstAnswers·firstAsked. 옛 기록은 1회째(attempt 1)일 때만 answers·asked 를 첫 시도로 본다.
+     지난 문항의 위험요소는 id 가 같으면 그것, 아니면 같은 위험유형 + 같은 부위 이름(공백·문장부호 무시)으로 잇는다.
+     한계: 부위 이름이 조금만 달라도 못 잇는다 — 조사를 다시 돌려 이름이 바뀌면 그 위험은 세지 않는다 (필요하면 서버의 2-gram 비교로) */
+  function missedCounts() {
+    var e = state.equipment;
+    var out = {};
+    if (!e) return out;
+    var hz = includedHazards();
+    var norm = function (t) { return String(t || '').toLowerCase().replace(/[\s.,!?·~"'()[\]{}:;/-]/g, ''); };
+    var match = function (id, snap) {
+      var same = Store.findBy(hz, 'id', id);
+      if (same) return same;
+      if (!snap) return null;
+      for (var i = 0; i < hz.length; i++) if (hz[i].hazard === snap.hazard && norm(hz[i].part) === norm(snap.part)) return hz[i];
+      return null;
+    };
+    var rows = Store.progress.load();
+    Store.courses.load().filter(function (c) { return c.equipmentId === e.id; }).forEach(function (c) {
+      rows.forEach(function (row) {
+        var q = row.courseId === c.id ? row.quiz : null;
+        if (!q) return;
+        var first = Array.isArray(q.firstAnswers) ? { answers: q.firstAnswers, asked: q.firstAsked }
+          : ((q.attempt || 1) === 1 && Array.isArray(q.answers) ? { answers: q.answers, asked: q.asked } : null);
+        if (!first) return;
+        var seen = {};
+        first.answers.forEach(function (a, i) {
+          if (a === 1) return;
+          var item = Store.askedQuestion(c, first, i);
+          var h = item ? match(item.hazardId, Store.findBy(c.hazards || [], 'id', item.hazardId)) : null;
+          if (h && !seen[h.id]) { seen[h.id] = 1; out[h.id] = (out[h.id] || 0) + 1; }
+        });
+      });
+    });
+    return out;
+  }
   function quizStale() { return !!state.quiz && state.quizFor !== signature(); }
   function quizItems() { return (state.quiz && state.quiz.quiz) || []; }
 
@@ -704,6 +741,8 @@
     var e = state.equipment;
     var b = { equipment: { id: e.id, kind: kindId(), name: e.name }, hazards: includedHazards(), phrases: usablePhrases().map(function (p) { return { id: p.id, ko: p.ko }; }) };
     if (eduKindId()) b.eduKind = eduKindId();   // 🆕 교육 종류별 문항 수 (규칙 §12.3)
+    var missed = missedCounts();                  // 🆕 정기교육은 서버가 이것을 먼저 낸다 (규칙 §12.3, C06 D-057)
+    b.hazards.forEach(function (h) { if (missed[h.id]) h.missed = missed[h.id]; });
     if (slots) b.slots = slots;
     if (avoid) b.avoid = avoid;
     return b;
@@ -1209,6 +1248,6 @@
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
     state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
-    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts
   };
 })();

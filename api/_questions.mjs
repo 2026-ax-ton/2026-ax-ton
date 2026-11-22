@@ -27,6 +27,8 @@ export const RULES = {
       regular: { min: 3, max: 8 },
     },
   },
+  /* §12.3 지난 회차 첫 시도 오답 위험을 먼저 내는 교육 종류 */
+  missedFirstKinds: ['regular'],
   typeMix: { location: 0.4, action: 0.3, ox: 0.1, situation: 0.2 },
   difficulty: { easy: 0.5, medium: 0.3, hard: 0.2 },
   weights: { official: 3, specific: 2, general: 1 },
@@ -70,6 +72,8 @@ export function cleanHazards(list, hazardCodes) {
         .filter((s) => s && /^https?:\/\//i.test(String(s.url)))
         .map((s) => ({ title: clip(s.title, LIMITS.title), url: String(s.url).slice(0, 500), host: clip(s.host, 80) })),
       answer: ans,
+      /* 🆕 2026-11-22 지난 회차 첫 시도에 이 위험의 문항을 틀린 사람 수 (화면이 progress 에서 센다, §12.3 정기교육) */
+      missed: Number.isInteger(h.missed) && h.missed > 0 ? Math.min(h.missed, 9999) : 0,
     };
   }).filter(Boolean);
 }
@@ -113,6 +117,7 @@ export function mergeHazards(hazards, rules = RULES) {
     const same = out[at];
     const keep = rank(h) > rank(same) ? { ...h } : same;
     if (!keep.answer) keep.answer = same.answer || h.answer;
+    keep.missed = (same.missed || 0) + (h.missed || 0);
     keep.merged = (same.merged || []).concat(keep === same ? h.id : same.id);
     out[at] = keep;
   });
@@ -160,11 +165,16 @@ export function planQuiz(input, rules = RULES, eduKind = '') {
   const warnings = N < range.min ? ['위험요소가 ' + hazards.length + '개라 문항이 ' + N + '개입니다 (이 교육의 최소 ' + range.min + '개) — 위험요소 조사를 보강하세요'] : [];
   if (hazards.length < input.length) reasons.push('부위가 겹치는 위험 ' + (input.length - hazards.length) + '개를 합쳤습니다');
 
-  /* ② 점수 내림차순 → 공식 먼저 → 좌표 있는 것 먼저 → 입력 순서 */
+  /* ② 점수 내림차순 → 공식 먼저 → 좌표 있는 것 먼저 → 입력 순서.
+     🆕 §12.3 정기교육(missedFirstKinds)은 그 앞에 「지난 첫 시도에 틀린 사람이 많은 위험」 — 공식 위험의 필수 칸(④)은 그대로 */
+  const missedFirst = (rules.missedFirstKinds || []).indexOf(range.kind) !== -1;
+  const miss = (h) => (missedFirst ? h.missed || 0 : 0);
   const ranked = hazards.map((h, i) => ({ h, i, s: scoreOf(h, rules) }))
-    .sort((a, b) => b.s - a.s || (b.h.official ? 1 : 0) - (a.h.official ? 1 : 0) || (b.h.answer ? 1 : 0) - (a.h.answer ? 1 : 0) || a.i - b.i)
+    .sort((a, b) => miss(b.h) - miss(a.h) || b.s - a.s || (b.h.official ? 1 : 0) - (a.h.official ? 1 : 0) || (b.h.answer ? 1 : 0) - (a.h.answer ? 1 : 0) || a.i - b.i)
     .map((r) => r.h);
   reasons.push('위험 ' + hazards.length + '개 → ' + N + '문항 (규칙' + (range.kind ? ' ' + range.kind : '') + ': 최소 ' + range.min + ' · 최대 ' + range.max + ' · 위험당 ' + rules.count.perHazardMax + ')');
+  const missedN = hazards.filter((h) => miss(h) > 0).length;
+  if (missedN) reasons.push('지난 회차 첫 시도에 틀린 위험 ' + missedN + '개를 먼저 넣었습니다');
 
   /* ④ 칸 배정 — 공식은 위치 몫을 남기고 먼저, 나머지 위험당 1칸, 남으면 둘째 칸 */
   const q = quotas(N, rules.typeMix);

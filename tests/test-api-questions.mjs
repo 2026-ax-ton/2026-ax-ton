@@ -98,6 +98,16 @@ eq('경고가 없을 때는 빈 목록', plan.warnings.length, 0);
 ok('★ 발급 막기 최소는 그 교육의 최소와 N 중 작은 값 (§9.4)', Q.issuable(sp, [], [], Q.RULES).why.some((w) => /최소 6개/.test(w)) && Q.issuable(spFew, [], [], Q.RULES).why.some((w) => /최소 4개/.test(w)));
 ok('★ 다시 만들기 칸 상한 = 어느 종류든 가장 큰 최대', Q.maxCount() === K.special.max);
 
+/* ── 🆕 2026-11-22 정기교육 — 지난 회차 첫 시도에 틀린 위험을 먼저 (규칙 §7 ②·§12.3, C06 D-057) ── */
+eq('missed 는 양의 정수만 (나머지는 0)', Q.cleanHazards([{ ...HAZ[3], missed: 2 }, { ...HAZ[3], id: 'z1', missed: -1 }, { ...HAZ[3], id: 'z2', missed: 'x' }], HAZARD_CODES).map((h) => h.missed).join(), '2,0,0');
+const lowMany = Q.cleanHazards(many.map((h) => (h.id === 'x0' ? { ...h, missed: 3 } : h)), HAZARD_CODES);   // x0 = unknown, 점수가 가장 낮다
+const reg = Q.planQuiz(lowMany, Q.RULES, 'regular');
+ok('★★ 정기교육이면 점수가 낮아도 지난 첫 시도 오답 위험이 문항에 들어간다', reg.slots.some((s) => s.hazardId === 'x0'));
+ok('★ 오답 위험을 먼저 넣었다고 이유에 남긴다', reg.reasons.some((r) => /첫 시도에 틀린 위험 1개/.test(r)));
+ok('★★ 공식 문서 위험의 필수 칸은 그대로', reg.slots.some((s) => s.hazardId === 'o9' && s.required));
+ok('★ 정기교육이 아니면 오답 수를 순위에 쓰지 않는다 (같은 최대 8)', !Q.planQuiz(lowMany, Q.RULES, 'job-change').slots.some((s) => s.hazardId === 'x0') && !Q.planQuiz(lowMany).slots.some((s) => s.hazardId === 'x0'));
+eq('합친 위험의 오답 수는 더한다', Q.mergeHazards(Q.cleanHazards([{ ...HAZ[1], missed: 1 }, { ...HAZ[1], id: 'r9', part: '램과 금형 사이 공간', missed: 2 }], HAZARD_CODES))[0].missed, 3);
+
 /* ── 4·5·6 선정 ─────────────────────────────────────────────────── */
 /* 🆕 2026-11-22 위험당 2문항이라 같은 위험의 행동·상황 칸이 함께 나온다 — 가짜 답도 칸 유형마다 다른 글로 써야 중복(§9.2)에 안 걸린다 */
 const SIT = { o1: '가드가 열린 채 기계가 움직이면 먼저 무엇을 합니까', r1: '손이 금형에 끼었으면 먼저 무엇을 합니까', r2: '동료가 제어반에서 감전되면 먼저 무엇을 합니까', r3: '동료가 미끄러져 쓰러지면 먼저 무엇을 합니까', r4: '호스에서 기름이 뿜어지면 먼저 무엇을 합니까' };

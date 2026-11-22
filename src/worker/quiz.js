@@ -595,6 +595,11 @@
       var prev = row.quiz;
       var attempt = prev ? (prev.attempt || 1) + 1 : 1;
       var firstPassed = prev ? (prev.firstPassed !== undefined ? prev.firstPassed : !!prev.passed) : passed;
+      /* 🆕 2026-11-22 첫 시도의 답과 문항 id 를 한 번만 남긴다 — 정기교육이 지난 첫 시도 오답 위험을 먼저 낸다 (규칙 §12.3, C06 D-057).
+         옛 기록: 앞 기록이 1회째면 그 답이 첫 시도다. 2회째 이상인데 첫 답이 없으면 지어내지 않고 비워 둔다 */
+      var first = !prev ? { answers: run.answers.slice(), asked: run.questions.map(function (q) { return q.id; }) }
+        : (Array.isArray(prev.firstAnswers) ? { answers: prev.firstAnswers, asked: prev.firstAsked }
+          : ((prev.attempt || 1) === 1 && Array.isArray(prev.answers) ? { answers: prev.answers, asked: prev.asked } : null));
       row.lang = me.lang;
       row.quiz = {
         score: score,
@@ -604,7 +609,9 @@
         attempt: attempt,
         firstPassed: firstPassed,
         /* ★ 그때 실제로 낸 문항의 id (C6) — 읽는 쪽은 Store.askedQuestion() 하나만 쓴다 */
-        asked: run.questions.map(function (q) { return q.id; })
+        asked: run.questions.map(function (q) { return q.id; }),
+        firstAnswers: first ? first.answers : undefined,
+        firstAsked: first && Array.isArray(first.asked) ? first.asked : undefined
       };
     });
 

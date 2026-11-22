@@ -183,6 +183,9 @@ function openQuiz(opts) {
     JSON.stringify(row.quiz.asked), JSON.stringify(['q1', 'q2', 'q3']));
   eq('★ answers 와 asked 의 자리가 짝지어진다',
     (row.quiz.asked || []).length, row.quiz.answers.length);
+  /* 🆕 2026-11-22 첫 시도 기록 (C06 D-057) — 앞 기록이 1회째면 그 답이 첫 시도다 */
+  eq('★ 첫 시도 답은 앞 기록(1회째) 그대로 — 이번 답으로 덮지 않는다', JSON.stringify(row.quiz.firstAnswers), '[1,1,1]');
+  ok('옛 기록에 문항 id 가 없으면 firstAsked 를 지어내지 않는다', row.quiz.firstAsked === undefined);
 }
 
 /* =================================================================
@@ -237,6 +240,7 @@ function openQuiz(opts) {
   eq('점수 100', row.quiz.score, 100);
   eq('시도 횟수가 늘었다', row.quiz.attempt, 2);
   eq('★ 최초 통과율의 근거는 덮이지 않는다', row.quiz.firstPassed, false);
+  eq('★ 첫 시도에 틀린 답도 덮이지 않는다 (정기교육이 이것을 먼저 낸다)', JSON.stringify(row.quiz.firstAnswers), '[1,0,0]');
 
   /* ★★ 공용 폰 (A04 2-5, D04 US-65, STC-E25-011) — 통과하면 자동 로그아웃.
      다음 사람이 이 세션을 이어받지 못하게 이 기기의 로그인 상태를 지운다.
@@ -245,6 +249,38 @@ function openQuiz(opts) {
   eq('★★ 통과하면 이 기기의 로그인 상태가 지워진다', t.win.Store.session.load().userId, '');
   ok('결과 화면은 그대로 보인다 (로그아웃이 화면을 지우지 않는다)',
     t.$('view-result').hidden === false);
+}
+
+/* =================================================================
+   3-1. 🆕 2026-11-22 처음 푸는 사람 — 첫 시도의 답과 문항 id 를 남긴다 (C06 D-057)
+   ================================================================= */
+{
+  const t = openQuiz({
+    login: 'W-4821-07',
+    query: '?course=c-press',
+    before(win) {
+      // 들은 기록(learnedAt)은 두고 푼 기록만 지운다 — 듣지 않으면 문항이 열리지 않는다 (1번)
+      win.Store.progress.update((list) => { list.find((x) => x.workerId === 'W-4821-07' && x.courseId === 'c-press').quiz = null; });
+    },
+  });
+  const zones = t.$('quiz-body').querySelectorAll('.zone');
+  pickZone(t, [...zones].find((z) => !z.getAttribute('aria-label').includes('램과 금형')) || zones[0]);   // 일부러 틀린다
+  click(t.win, t.$('btn-next'));
+  click(t.win, t.$('quiz-body').querySelectorAll('.choice-btn')[1]);
+  click(t.win, t.$('btn-next'));
+  const rows = t.$('quiz-body').querySelectorAll('.match-row');
+  click(t.win, rows[0].querySelectorAll('.match-btn')[0]);
+  click(t.win, rows[0].querySelectorAll('.match-btn')[1]);
+  click(t.win, rows[1].querySelectorAll('.match-btn')[0]);
+  click(t.win, rows[1].querySelectorAll('.match-btn')[1]);
+  const sub = t.$('quiz-body').querySelector('.big-actions .btn');
+  if (sub) click(t.win, sub);
+  click(t.win, t.$('btn-next'));
+  const row = t.win.Store.progress.load().find((r) => r.workerId === 'W-4821-07' && r.courseId === 'c-press');
+  ok('처음 푼 기록이 생긴다', !!(row && row.quiz) && row.quiz.attempt === 1);
+  eq('★★ 첫 시도 답 = 이번 답', JSON.stringify(row.quiz.firstAnswers), JSON.stringify(row.quiz.answers));
+  eq('★★ 첫 시도 문항 id = 이번에 낸 문항', JSON.stringify(row.quiz.firstAsked), JSON.stringify(row.quiz.asked));
+  ok('첫 문항을 틀린 것이 첫 시도 기록에 남는다', row.quiz.firstAnswers[0] !== 1);
 }
 
 /* =================================================================
