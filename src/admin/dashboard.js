@@ -252,17 +252,15 @@
         : (fp < 70 ? '목표 70~85% 보다 낮음' : '목표 범위 70~85%'))));
     left.appendChild(fpRow);
 
-    /* 오른쪽 — 타일 넷 */
+    /* 오른쪽 — 타일 넷. 🆕 2026-11-22 옆 배지(✓ n% · 주의 · 오답률 25%↑)는 뺐다 — 숫자·색과 겹치는 말이라 (yesol 요청) */
     var box = $('status-tiles');
     box.textContent = '';
     tile(box, { label: '총 대상자', value: n.total, unit: '명', hint: '등록 인원 기준' });
     tile(box, { label: '이수 완료', value: n.done, unit: '명',
-      badge: rate === null ? null : UI.okBadge(rate + '%'), hint: '이해도 검증 통과', hintTone: 'ok' });
+      hint: '이해도 검증 통과', hintTone: 'ok' });
     tile(box, { label: '미이수', value: miss, unit: '명', tone: miss ? 'stop' : null, alert: miss > 0,
-      badge: miss ? UI.stopBadge('주의') : null,
       hint: '미응시 ' + n.notTaken + '명 · 불합격 ' + n.failed + '명' });
     tile(box, { label: '취약 항목 발견', value: weak, unit: '건', tone: weak ? 'warn' : null,
-      badge: weak ? UI.waitBadge('오답률 ' + WEAK_LINE + '%↑') : null,
       hint: weak ? '재교육 권고 문항 감지됨' : '권고 대상 없음' });
   }
 
