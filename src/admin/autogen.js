@@ -125,9 +125,12 @@
       return { id: a.id, part: a.part, hazard: a.hazard, risk: a.risk, partEn: '', official: null, specific: false, status: 'manager', sources: [], answer: null, box: null };
     }));
   }
+  /* 🆕 2026-11-22 교육 종류도 넣는다 — 종류마다 문항 수가 달라서 (규칙 §12.3). 결과 파일 문항은 종류와 상관없이 만든 것이라 빼 둔다 */
   function signature() {
-    return JSON.stringify(includedHazards().map(function (h) { return [h.id, h.part, h.hazard, h.risk, h.answer && [h.answer.x, h.answer.y]]; }));
+    return JSON.stringify(includedHazards().map(function (h) { return [h.id, h.part, h.hazard, h.risk, h.answer && [h.answer.x, h.answer.y]]; }))
+      + (state.source === 'file' ? '' : '|' + eduKindId());
   }
+  function eduKindId() { return EduKind.fields(eduKind).eduKind; }
   function quizStale() { return !!state.quiz && state.quizFor !== signature(); }
   function quizItems() { return (state.quiz && state.quiz.quiz) || []; }
 
@@ -700,6 +703,7 @@
   function quizBody(slots, avoid) {
     var e = state.equipment;
     var b = { equipment: { id: e.id, kind: kindId(), name: e.name }, hazards: includedHazards(), phrases: usablePhrases().map(function (p) { return { id: p.id, ko: p.ko }; }) };
+    if (eduKindId()) b.eduKind = eduKindId();   // 🆕 교육 종류별 문항 수 (규칙 §12.3)
     if (slots) b.slots = slots;
     if (avoid) b.avoid = avoid;
     return b;
@@ -824,7 +828,7 @@
         : (server ? '' : '서버 없이는 문항을 만들 수 없습니다 — 문항이 든 결과 파일을 불러오세요.');
       return;
     }
-    if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
+    if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이나 교육 종류가 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
     var langs = quizLangs();
     if (langs.length) {
       var miss = transMissing();
@@ -850,6 +854,7 @@
     }
     var p = state.quiz.plan || {};
     plan.appendChild(UI.itemRow('check', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
+    (p.warnings || []).forEach(function (w) { plan.appendChild(UI.itemRow('alert', '문항 수 확인', w)); });
     if ((state.quiz.missing || []).length) plan.appendChild(UI.itemRow('alert', '못 채운 칸 ' + state.quiz.missing.length + '개', '규칙을 통과한 후보가 없었습니다. [전체 다시 만들기]를 눌러 주세요.'));
     if ((state.quiz.excluded || []).length) {
       var li0 = UI.el('li');
@@ -1158,6 +1163,7 @@
         $('ag-title').value = EduKind.titlePrefix(eduKind) + e.name + ' 안전교육';
       }
       if (state && state.research) renderApprove();
+      if (state && state.quiz) renderQuiz();   // 종류가 바뀌면 「다시 만들기」 안내가 바로 보이게
     });
   }
   drawEduKind();

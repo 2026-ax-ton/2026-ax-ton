@@ -4,8 +4,9 @@
            hazards: [{ id, part, hazard, risk, official?, specific?, sources[{title,url,host}], answer?{x,y,r} }],
            phrases: [{ id, ko }],            — 그 설비 종류의 검수 문구 (화면이 Store.phrasesFor 로 고른 것)
            slots?: [{ slot, hazardId, type, difficulty }],   — 다시 만들기: 이 칸만 (계획은 그대로)
-           avoid?: ["앞에 나온 문항 글", ...] }
-   응답  { equipment:{id,kind}, plan:{count,slots,reasons,rulesVersion}, quiz:[...], excluded:[...], missing:[slot],
+           avoid?: ["앞에 나온 문항 글", ...],
+           eduKind?: 'daily-hire'|'job-change'|'special'|'regular' }  — 🆕 2026-11-22 교육 종류별 문항 수 (규칙 §12.3). 모르는 값이면 기본 3~8
+   응답  { equipment:{id,kind}, plan:{count,eduKind,min,max,slots,reasons,warnings,rulesVersion}, quiz:[...], excluded:[...], missing:[slot],
            issuable:{ok, why[]}, rulesVersion, model }   — issuable.ok 가 거짓이면 화면이 발급을 막는다 (규칙 §9.4)
 
    ★ 문항 수·유형·난이도는 코드(_questions.mjs planQuiz)가 규칙으로 정한다. AI 는 칸을 채우기만 한다.
@@ -21,7 +22,7 @@ import { getSql, requireAdmin, withDb } from './_db.mjs';
 import { parseModelJson, HAZARD_CODES } from './_hazards.mjs';
 import { EQUIPMENT_KINDS } from './_official.mjs';
 import {
-  RULES, TYPES, cleanHazards, cleanPhrases, planQuiz, systemText, userText, selectQuiz, needsModel,
+  RULES, TYPES, cleanHazards, cleanPhrases, planQuiz, maxCount, systemText, userText, selectQuiz, needsModel,
 } from './_questions.mjs';
 
 export const config = { maxDuration: 60 };
@@ -39,7 +40,7 @@ const MESSAGES = {
 
 function readSlots(list, hazards) {
   const ids = new Set(hazards.map((h) => h.id));
-  return (Array.isArray(list) ? list : []).slice(0, RULES.count.max).map((s) => (s && Number.isInteger(s.slot) && ids.has(s.hazardId)
+  return (Array.isArray(list) ? list : []).slice(0, maxCount(RULES)).map((s) => (s && Number.isInteger(s.slot) && ids.has(s.hazardId)
     && TYPES.indexOf(s.type) !== -1 && ['easy', 'medium', 'hard'].indexOf(s.difficulty) !== -1
     ? { slot: s.slot, hazardId: s.hazardId, type: s.type, difficulty: s.difficulty, required: false } : null)).filter(Boolean);
 }
@@ -67,7 +68,7 @@ async function run(request) {
   if (!hazards.length) return fail(400, 'bad_request', '문항을 만들 위험요소가 없습니다.', cors);
   const phrases = cleanPhrases(body.phrases);
 
-  const plan = planQuiz(hazards);
+  const plan = planQuiz(hazards, RULES, typeof body.eduKind === 'string' ? body.eduKind : '');
   const merged = plan.hazards;   // 부위가 겹쳐 합친 뒤의 위험요소 (규칙 §7 ①)
   const regen = body.slots !== undefined;
   const slots = regen ? readSlots(body.slots, merged) : plan.slots;

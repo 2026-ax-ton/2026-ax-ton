@@ -160,6 +160,7 @@ function fakeQuestions(body) {
   eq('★★ 고친 부위·위험유형으로 보낸다', qc.body.hazards[1].part + '|' + qc.body.hazards[1].hazard, '발판 페달|pinch');
   eq('★ 좌표가 있는 위험에만 좌표를 보낸다', JSON.stringify(qc.body.hazards.map((h) => !!h.answer)), '[true,false]');
   ok('★★ 문구는 그 설비 종류 것만 보낸다', qc.body.phrases.every((p) => p.id !== 'ph-4'));
+  ok('교육 종류를 안 골랐으면 eduKind 를 보내지 않는다', !('eduKind' in qc.body));
   eq('문항이 그려진다', doc.querySelectorAll('#ag-quiz li.ag-q').length, 2);
   has('★★ AI 작성 문항 표시', $('ag-quiz').textContent, 'AI 작성 — 검토 필요');
   has('위치 문항 표시', $('ag-quiz').textContent, '사진 위치 (AI 탐지 좌표)');
@@ -175,6 +176,18 @@ function fakeQuestions(body) {
   ok('★★ 문항을 고르는 체크박스가 없다', !doc.querySelector('#ag-quiz input'));
   tabTo(t, 'ok');
   has('★ 항목에 연결 문항 번호', doc.querySelector('#ag-items li[data-id="r1"]').textContent, '연결 문항 q1');
+
+  /* 🆕 2026-11-22 교육 종류를 고르면 그 종류의 문항 수로 다시 만든다 (규칙 §12.3) */
+  const kindRadio = doc.querySelector('input[name="edu-kind"][value="regular"]');
+  ok('교육 종류 고르기가 있다', !!kindRadio);
+  kindRadio.checked = true;
+  kindRadio.dispatchEvent(new win.Event('change', { bubbles: true }));
+  has('★★ 교육 종류를 바꾸면 「다시 만들어야」 표시', $('ag-plan').textContent, '위험요소 판정이나 교육 종류가 바뀌었습니다');
+  ok('★ 다시 만들기 전에는 발급 단계가 끝나지 않는다', win.__autogen.steps().find((s) => s.what === 'AI 평가문항').done === false);
+  click(win, $('btn-regen-all'));
+  await ticks();
+  eq('★★ 고른 교육 종류를 /api/questions 에 보낸다', calls.filter((x) => x.path === '/api/questions').pop().body.eduKind, 'regular');
+  ok('다시 만들면 「다시 만들어야」 표시가 사라진다', $('ag-plan').textContent.indexOf('교육 종류가 바뀌었습니다') === -1);
 
   /* 검토 → 발급 */
   eq('★★ 아직 courses 에 아무것도 안 썼다', JSON.stringify(S.courses.load()), before);
@@ -227,12 +240,13 @@ function fakeQuestions(body) {
   ok('★★ 참고 사진(외부 그림)은 저장하지 않는다', !JSON.stringify(c).includes('/9j/AAAA') && !JSON.stringify(S.setup.load()).includes('/9j/AAAA'));
   ok('발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);
 
+
   /* 설비 바꾸기 — 앞 설비 것을 버리고, 다시 돌아오면 저장된 분석을 불러온다 */
   const n0 = calls.length;
   $('ag-equip').value = 'e-booth1';
   $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
   eq('★★ 다른 설비를 고르면 앞 설비의 분석·문항이 사라진다', !!win.__autogen.state().research + '|' + $('sec-items').hidden + '|' + $('sec-quiz').hidden, 'false|true|true');
-  eq('★ 제목도 그 설비로', $('ag-title').value, '도장 부스 1 안전교육');
+  eq('★ 제목도 그 설비로 (앞에서 고른 교육 종류 머리말은 그대로)', $('ag-title').value, '[정기교육] 도장 부스 1 안전교육');
   ok('도장 부스는 사진이 없다', $('ag-equip-photo').hidden === true);
   $('ag-equip').value = 'e-press3';
   $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
@@ -265,7 +279,7 @@ function fakeQuestions(body) {
     t5.win.document.querySelector('#ag-tabs [data-tab="check"]').dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
     setInc(t5, 'r2', true);
     setInc(t5, 'r3', false);
-    has('★★ 판정이 바뀌면 「다시 만들어야」 표시', t5.$('ag-plan').textContent, '위험요소 판정이 바뀌었습니다');
+    has('★★ 판정이 바뀌면 「다시 만들어야」 표시', t5.$('ag-plan').textContent, '위험요소 판정이나 교육 종류가 바뀌었습니다');
     ok('★★ 옛 문항으로는 발급되지 않는다', A.steps().find((s) => s.what === 'AI 평가문항').done === false);
     /* 서버 규칙(§9.4)이 발급 불가라고 하면 막는다 */
     A.state().quizFor = A.signature();

@@ -56,7 +56,7 @@ const PHRASES = [{ id: 'ph-1', ko: '금형 사이에 손을 넣지 마십시오'
 /* ── 1·2·3 계획 ─────────────────────────────────────────────────── */
 const plan = Q.planQuiz(hz);
 eq('★★ 같은 입력이면 같은 계획', JSON.stringify(Q.planQuiz(hz)), JSON.stringify(plan));
-eq('★ 문항 수 = 규칙 (위험 5 → 최소~최대 사이 5)', plan.count, Math.min(Q.RULES.count.max, Math.max(Q.RULES.count.min, 5)));
+eq('★ 문항 수 = 규칙 (위험 5 × 위험당 2, 최대까지 — §12.3)', plan.count, Math.min(Q.RULES.count.max, 5 * Q.RULES.count.perHazardMax));
 eq('★★ 공식 문서 위험이 첫 칸 · 필수', plan.slots[0].hazardId + '|' + plan.slots[0].required, 'o1|true');
 ok('★★ 위치 문항은 사진 좌표가 있는 위험만', plan.slots.filter((s) => s.type === 'location').every((s) => hz.find((h) => h.id === s.hazardId).answer));
 ok('★ 사진 좌표가 없는 위험은 위치 문항이 안 된다', plan.slots.filter((s) => ['o1', 'r3', 'r4'].indexOf(s.hazardId) !== -1).every((s) => s.type !== 'location'));
@@ -82,10 +82,25 @@ eq('★ 위험 1개 → 2문항, 같은 위험의 두 칸은 유형이 다르다
 const mergedPlan = Q.planQuiz(Q.cleanHazards([HAZ[1], { ...HAZ[1], id: 'r9', part: '램과 금형 사이 공간', answer: null, official: { code: 'C', section: 's' } }], HAZARD_CODES));
 eq('★ 부위가 겹치는 같은 유형 위험은 하나로 (공식 쪽을 남기고 좌표는 옮긴다, §7 ①)', mergedPlan.hazards.length + '|' + mergedPlan.hazards[0].id + '|' + !!mergedPlan.hazards[0].answer, '1|r9|true');
 const p3 = Q.planQuiz(hz.slice(0, 2));
-eq('★ 위험이 적으면 위험당 최대 문항까지 (2위험 → ' + Math.min(Q.RULES.count.min, 2 * Q.RULES.count.perHazardMax) + ')', p3.count, Math.min(Q.RULES.count.min, 2 * Q.RULES.count.perHazardMax));
+eq('★ 위험이 적으면 위험당 최대 문항까지 (2위험 → ' + 2 * Q.RULES.count.perHazardMax + ')', p3.count, 2 * Q.RULES.count.perHazardMax);
 eq('위험이 없으면 문항 0', Q.planQuiz([]).count, 0);
 
+/* ── 🆕 2026-11-22 교육 종류별 문항 수 (규칙 §12.3) ── */
+const K = Q.RULES.count.byKind;
+const sp = Q.planQuiz(hz, Q.RULES, 'special');
+eq('★★ 특별교육: 위험 5 → 10문항 · 최소·최대를 계획에 남긴다', sp.count + '|' + sp.eduKind + '|' + sp.min + '|' + sp.max, '10|special|' + K.special.min + '|' + K.special.max);
+eq('★ 특별교육도 최대(12)를 넘지 않는다', Q.planQuiz(many, Q.RULES, 'special').count, K.special.max);
+eq('★ 일용직 채용 시: 위험 5 → 최대 6', Q.planQuiz(hz, Q.RULES, 'daily-hire').count, K['daily-hire'].max);
+eq('★ 모르는 교육 종류는 기본값 (3~8)', Q.planQuiz(hz, Q.RULES, 'nope').eduKind + '|' + Q.planQuiz(hz, Q.RULES, 'nope').count, '|8');
+const spFew = Q.planQuiz(hz.slice(0, 2), Q.RULES, 'special');
+ok('★ 최소에 못 미치면 경고만 (특별교육 위험 2 → 4문항 + 경고)', spFew.count === 4 && spFew.warnings.length === 1 && /최소 6/.test(spFew.warnings[0]));
+eq('경고가 없을 때는 빈 목록', plan.warnings.length, 0);
+ok('★ 발급 막기 최소는 그 교육의 최소와 N 중 작은 값 (§9.4)', Q.issuable(sp, [], [], Q.RULES).why.some((w) => /최소 6개/.test(w)) && Q.issuable(spFew, [], [], Q.RULES).why.some((w) => /최소 4개/.test(w)));
+ok('★ 다시 만들기 칸 상한 = 어느 종류든 가장 큰 최대', Q.maxCount() === K.special.max);
+
 /* ── 4·5·6 선정 ─────────────────────────────────────────────────── */
+/* 🆕 2026-11-22 위험당 2문항이라 같은 위험의 행동·상황 칸이 함께 나온다 — 가짜 답도 칸 유형마다 다른 글로 써야 중복(§9.2)에 안 걸린다 */
+const SIT = { o1: '가드가 열린 채 기계가 움직이면 먼저 무엇을 합니까', r1: '손이 금형에 끼었으면 먼저 무엇을 합니까', r2: '동료가 제어반에서 감전되면 먼저 무엇을 합니까', r3: '동료가 미끄러져 쓰러지면 먼저 무엇을 합니까', r4: '호스에서 기름이 뿜어지면 먼저 무엇을 합니까' };
 function fakeAnswer(slots) {
   const out = [];
   slots.filter((s) => s.type !== 'location').forEach((s) => {
@@ -94,7 +109,8 @@ function fakeAnswer(slots) {
     } else {
       /* 첫 후보는 금지어가 있어 떨어지고, 둘째가 뽑힌다 */
       out.push({ slot: s.slot, hazardId: s.hazardId, type: s.type, prompt: '모두 정답 ' + s.slot, options: ['가', '나', '다'], answer: 0, why: 'w', prevention: 'p' });
-      out.push({ slot: s.slot, hazardId: s.hazardId, type: s.type, prompt: (HAZ.find((h) => h.id === s.hazardId) || {}).risk + ' — ' + s.slot, options: ['작업 전 전원 차단함', '그대로 계속 작업함', '혼자 빨리 처리함'], answer: 0, answerPhraseId: s.hazardId === 'r2' ? 'ph-2' : '', why: '해설입니다', prevention: '예방조치', sourceUrls: ['https://kosha.or.kr/doc', 'https://evil.com/x'] });
+      const sit = s.type === 'situation' && SIT[s.hazardId];
+      out.push({ slot: s.slot, hazardId: s.hazardId, type: s.type, prompt: (sit || (HAZ.find((h) => h.id === s.hazardId) || {}).risk) + ' — ' + s.slot, options: [sit ? '비상정지 버튼을 누름' : '작업 전 전원 차단함', '그대로 계속 작업함', '혼자 빨리 처리함'], answer: 0, answerPhraseId: s.hazardId === 'r2' ? 'ph-2' : '', why: '해설입니다', prevention: '예방조치', sourceUrls: ['https://kosha.or.kr/doc', 'https://evil.com/x'] });
     }
   });
   return { questions: out };
@@ -159,6 +175,9 @@ eq('★ 200 · 문항 = 계획 수', r.status + '|' + r.data.quiz.length, '200|'
 eq('★★ 고른 설비를 그대로 돌려준다', r.data.equipment.id + '|' + r.data.equipment.kind, 'e-press3|press');
 eq('★ AI 는 한 번만 부른다 (모든 칸을 한 질문에)', modelCalls, 1);
 ok('계획을 함께 돌려준다', r.data.plan && r.data.plan.slots.length === plan.count);
+const rk = await call({ ...BODY, eduKind: 'special' });
+eq('★★ 요청의 교육 종류로 문항 수를 정한다 (특별교육 위험 5 → 10, §12.3)', rk.data.plan.eduKind + '|' + rk.data.plan.count + '|' + rk.data.quiz.length, 'special|10|10');
+eq('★ 모르는 교육 종류는 기본값으로', (await call({ ...BODY, eduKind: '<x>' })).data.plan.eduKind, '');
 
 /* 다시 만들기 — 그 칸만, 위험·유형·난이도 그대로, 앞 문항과 다르게 */
 const target = r.data.plan.slots.find((s) => s.type !== 'location');

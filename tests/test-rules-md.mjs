@@ -34,7 +34,15 @@ ok('★ 「면책」 금지어가 들어 있다 (제품 원칙)', Q.RULES.banned
   eq('§4.2 N=' + n + ' location·action·situation·ox', [q.location, q.action, q.situation, q.ox].join(), want.join());
 });
 /* §3.2 예 */
-eq('§3.2 위험 5 → 5 · 20 → 8 · 2 → 3 · 1 → 2 · 0 → 0', [5, 20, 2, 1, 0].map((h) => Q.countFor(h)).join(), '5,8,3,2,0');
+eq('§3.2 위험 5 → 8 · 20 → 8 · 2 → 4 · 1 → 2 · 0 → 0', [5, 20, 2, 1, 0].map((h) => Q.countFor(h)).join(), '8,8,4,2,0');
+/* §12.3 예 */
+eq('§12.3 특별교육 위험 5 → 10 · 8 → 12 · 2 → 4', [5, 8, 2].map((h) => Q.countFor(h, Q.RULES, 'special')).join(), '10,12,4');
+eq('§12.3 일용직 채용 시 위험 5 → 6', Q.countFor(5, Q.RULES, 'daily-hire'), 6);
+ok('★ 교육 종류 키 = curriculum.js TRAININGS id', (() => {
+  const src = fs.readFileSync(new URL('../src/assets/curriculum.js', import.meta.url), 'utf8');
+  const ids = Array.from(src.matchAll(/\{ id: '([a-z-]+)', label:/g)).map((m) => m[1]).sort().join();
+  return ids === Object.keys(Q.RULES.count.byKind).sort().join();
+})());
 
 /* 법적 의무와 설계 기준을 섞지 않는다 — 문항 수를 「의무」로 쓰지 않는다 */
 ok('★ 문서가 「법이 정한 문항 수 — 없다」를 밝힌다', /법이 정한 문항 수가 있는가 — \*\*없다\*\*/.test(md));

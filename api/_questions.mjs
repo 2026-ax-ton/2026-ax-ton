@@ -16,8 +16,17 @@
 
 /* SAFETY_QUESTION_GENERATION_RULES.md §11 */
 export const RULES = {
-  version: '2026-11-11',
-  count: { min: 3, max: 8, perHazardMax: 2 },
+  version: '2026-11-22',
+  count: {
+    min: 3, max: 8, perHazardMax: 2,
+    /* §12.3 교육 종류별 최소·최대 — 키는 src/assets/curriculum.js TRAININGS id. 종류가 없으면 위 min·max */
+    byKind: {
+      'daily-hire': { min: 3, max: 6 },
+      'job-change': { min: 3, max: 8 },
+      special: { min: 6, max: 12 },
+      regular: { min: 3, max: 8 },
+    },
+  },
   typeMix: { location: 0.4, action: 0.3, ox: 0.1, situation: 0.2 },
   difficulty: { easy: 0.5, medium: 0.3, hard: 0.2 },
   weights: { official: 3, specific: 2, general: 1 },
@@ -120,26 +129,42 @@ export function quotas(n, mix) {
   return q;
 }
 
-/** §3.2 */
-export function countFor(h, rules = RULES) {
-  if (h <= 0) return 0;
-  if (h >= rules.count.min) return Math.min(h, rules.count.max);
-  return Math.min(rules.count.min, h * rules.count.perHazardMax);
+/** §12.3 교육 종류 → { kind, min, max }. 모르는 종류면 기본값 (kind '') */
+export function countRange(eduKind, rules = RULES) {
+  const by = rules.count.byKind || {};
+  const k = typeof eduKind === 'string' && Object.prototype.hasOwnProperty.call(by, eduKind) ? eduKind : '';
+  const r = k ? by[k] : rules.count;
+  return { kind: k, min: r.min, max: r.max };
 }
 
-/** 문항 계획 — { count, slots:[{ slot, hazardId, type, difficulty, required, topic }], reasons, rulesVersion, hazards(합친 뒤) } */
-export function planQuiz(input, rules = RULES) {
+/** 어느 교육 종류에서도 넘지 않는 문항 수 (다시 만들기 요청 칸 수 상한) */
+export function maxCount(rules = RULES) {
+  return Object.values(rules.count.byKind || {}).reduce((m, r) => Math.max(m, r.max), rules.count.max);
+}
+
+/** §3.2 · §12.3 — 위험요소마다 위치 1 + 바른 행동 1 (perHazardMax), 교육 종류의 최대까지 */
+export function countFor(h, rules = RULES, eduKind = '') {
+  if (h <= 0) return 0;
+  return Math.min(countRange(eduKind, rules).max, h * rules.count.perHazardMax);
+}
+
+/** 문항 계획 — { count, eduKind, min, max, slots:[{ slot, hazardId, type, difficulty, required, topic }], reasons, warnings, rulesVersion, hazards(합친 뒤) } */
+export function planQuiz(input, rules = RULES, eduKind = '') {
   const hazards = mergeHazards(input, rules);
   const reasons = [];
-  const N = countFor(hazards.length, rules);
-  if (!N) return { count: 0, slots: [], reasons: ['위험요소가 없어 문항을 만들지 않습니다'], rulesVersion: rules.version, hazards };
+  const range = countRange(eduKind, rules);
+  const N = countFor(hazards.length, rules, range.kind);
+  const base = { eduKind: range.kind, min: range.min, max: range.max, rulesVersion: rules.version, hazards };
+  if (!N) return { count: 0, slots: [], reasons: ['위험요소가 없어 문항을 만들지 않습니다'], warnings: [], ...base };
+  /* §12.3 위험요소가 적어 그 교육의 최소에 못 미치면 경고만 — 발급 막기는 §9.4 (최소와 N 중 작은 값) */
+  const warnings = N < range.min ? ['위험요소가 ' + hazards.length + '개라 문항이 ' + N + '개입니다 (이 교육의 최소 ' + range.min + '개) — 위험요소 조사를 보강하세요'] : [];
   if (hazards.length < input.length) reasons.push('부위가 겹치는 위험 ' + (input.length - hazards.length) + '개를 합쳤습니다');
 
   /* ② 점수 내림차순 → 공식 먼저 → 좌표 있는 것 먼저 → 입력 순서 */
   const ranked = hazards.map((h, i) => ({ h, i, s: scoreOf(h, rules) }))
     .sort((a, b) => b.s - a.s || (b.h.official ? 1 : 0) - (a.h.official ? 1 : 0) || (b.h.answer ? 1 : 0) - (a.h.answer ? 1 : 0) || a.i - b.i)
     .map((r) => r.h);
-  reasons.push('위험 ' + hazards.length + '개 → ' + N + '문항 (규칙: 최소 ' + rules.count.min + ' · 최대 ' + rules.count.max + ' · 위험당 최대 ' + rules.count.perHazardMax + ')');
+  reasons.push('위험 ' + hazards.length + '개 → ' + N + '문항 (규칙' + (range.kind ? ' ' + range.kind : '') + ': 최소 ' + range.min + ' · 최대 ' + range.max + ' · 위험당 ' + rules.count.perHazardMax + ')');
 
   /* ④ 칸 배정 — 공식은 위치 몫을 남기고 먼저, 나머지 위험당 1칸, 남으면 둘째 칸 */
   const q = quotas(N, rules.typeMix);
@@ -185,7 +210,7 @@ export function planQuiz(input, rules = RULES) {
 
   /* ⑥ 난이도 · ⑦ 기록 */
   slots.forEach((s) => { s.difficulty = LEVEL_OF[s.type]; s.topic = TOPIC_OF[s.type]; delete s._h; });
-  return { count: N, slots, reasons, rulesVersion: rules.version, hazards };
+  return { count: N, slots, reasons, warnings, ...base };
 }
 
 /* ── 2단계 지시문 ─────────────────────────────────────────────────────── */
@@ -312,7 +337,8 @@ function duplicateOf(quiz, item, rules) {
 export function issuable(plan, quiz, missing, rules = RULES) {
   const why = [];
   if (!plan.count) why.push('위험요소가 없어 문항이 없습니다');
-  if (quiz.length < Math.min(rules.count.min, plan.count)) why.push('채운 문항이 ' + quiz.length + '개로 최소 ' + Math.min(rules.count.min, plan.count) + '개보다 적습니다');
+  const least = Math.min(typeof plan.min === 'number' ? plan.min : rules.count.min, plan.count);
+  if (quiz.length < least) why.push('채운 문항이 ' + quiz.length + '개로 최소 ' + least + '개보다 적습니다');
   const reqMissing = plan.slots.filter((s) => s.required && missing.indexOf(s.slot) !== -1);
   if (reqMissing.length) why.push('필수(공식 문서) 칸 ' + reqMissing.map((s) => s.slot).join(', ') + '이(가) 비었습니다');
   const need = rules.requiredTopics.slice(0, plan.count);
