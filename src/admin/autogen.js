@@ -132,6 +132,32 @@
   }
   function eduKindId() { return EduKind.fields(eduKind).eduKind; }
 
+  /* 🆕 2026-11-22 유형 섞기 (규칙 §12.5 · §12.9 ⑩) — **경고만**, 발급은 막지 않는다 (그림 재료가 없는 설비가 있다).
+     한계값은 서버 규칙(plan.mix)에서 온다 — 여기에 숫자를 다시 적지 않는다. 결과 파일처럼 plan.mix 가 없으면 보지 않는다.
+     글 보기만 = 사진 위치 문항이 아니고 보기 그림(pics)도 없는 문항. 다시 만든 문항까지 지금 목록 전체로 센다 */
+  function mixWarnings() {
+    var mix = state.quiz && state.quiz.plan && state.quiz.plan.mix;
+    var qs = quizItems();
+    if (!mix || !qs.length) return [];
+    var out = [];
+    var textOnly = qs.filter(function (q) {
+      return q.type !== 'hotspot' && !(Array.isArray(q.pics) && q.pics.some(Boolean));
+    }).length;
+    if (textOnly / qs.length > mix.textOnlyMax) {
+      out.push('글 보기만 있는 문항이 ' + qs.length + '개 중 ' + textOnly + '개입니다 (규칙: ' + Math.round(mix.textOnlyMax * 100) + '% 이하). 사진 위치나 그림 고르기 문항을 늘리면 글을 못 읽는 노동자도 풀기 쉽습니다.');
+    }
+    var ox = qs.filter(function (q) { return q.subtype === 'ox'; }).length;
+    if (ox > mix.oxMax) out.push('OX 문항이 ' + ox + '개입니다 (규칙: ' + mix.oxMax + '개 이하). OX 는 찍어도 반은 맞습니다.');
+    var run = 1;
+    var longest = 1;
+    for (var i = 1; i < qs.length; i++) {
+      run = (qs[i].subtype || qs[i].type) === (qs[i - 1].subtype || qs[i - 1].type) ? run + 1 : 1;
+      if (run > longest) longest = run;
+    }
+    if (longest > mix.sameTypeRunMax) out.push('같은 유형 문항이 ' + longest + '개 잇따릅니다 (규칙: ' + mix.sameTypeRunMax + '개까지).');
+    return out;
+  }
+
   /* 🆕 2026-11-22 특별교육 개별 사항 덮기 (규칙 §12.3·§12.9 ③, C06 D-058) — **경고만**, 발급은 막지 않는다.
      사항 ↔ 문항은 사람이 문구에 단 태그(library `specialItems`, LegalTag)로만 잇는다. AI 가 잇지 않는다:
        덮음        = 문항 정답이 검수 문구에서 왔고(answerFrom 'phrase:<id>') 그 문구에 그 사항 태그가 있다
@@ -923,6 +949,7 @@
     var p = state.quiz.plan || {};
     plan.appendChild(UI.itemRow('check', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
     (p.warnings || []).forEach(function (w) { plan.appendChild(UI.itemRow('alert', '문항 수 확인', w)); });
+    mixWarnings().forEach(function (w) { plan.appendChild(UI.itemRow('alert', '유형 섞기 확인', w)); });
     var cov = specialCoverage();
     if (cov && cov.missing.length) {
       plan.appendChild(UI.itemRow('alert', '특별교육 개별 사항 중 문항이 없는 것 ' + cov.missing.length + '개',
@@ -1288,6 +1315,6 @@
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
     state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
-    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage, mixWarnings: mixWarnings
   };
 })();

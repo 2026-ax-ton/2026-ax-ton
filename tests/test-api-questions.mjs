@@ -97,6 +97,7 @@ ok('★ 최소에 못 미치면 경고만 (특별교육 위험 2 → 4문항 + �
 eq('경고가 없을 때는 빈 목록', plan.warnings.length, 0);
 ok('★ 발급 막기 최소는 그 교육의 최소와 N 중 작은 값 (§9.4)', Q.issuable(sp, [], [], Q.RULES).why.some((w) => /최소 6개/.test(w)) && Q.issuable(spFew, [], [], Q.RULES).why.some((w) => /최소 4개/.test(w)));
 ok('★ 다시 만들기 칸 상한 = 어느 종류든 가장 큰 최대', Q.maxCount() === K.special.max);
+eq('★ 유형 섞기 한계값을 계획에 싣는다 (규칙 §12.5 — 화면이 센다)', JSON.stringify(plan.mix), JSON.stringify(Q.RULES.mix));
 
 /* ── 🆕 2026-11-22 정기교육 — 지난 회차 첫 시도에 틀린 위험을 먼저 (규칙 §7 ②·§12.3, C06 D-057) ── */
 eq('missed 는 양의 정수만 (나머지는 0)', Q.cleanHazards([{ ...HAZ[3], missed: 2 }, { ...HAZ[3], id: 'z1', missed: -1 }, { ...HAZ[3], id: 'z2', missed: 'x' }], HAZARD_CODES).map((h) => h.missed).join(), '2,0,0');

@@ -29,6 +29,9 @@ export const RULES = {
   },
   /* §12.3 지난 회차 첫 시도 오답 위험을 먼저 내는 교육 종류 */
   missedFirstKinds: ['regular'],
+  /* §12.5 유형 섞기 — 넘으면 담당자 화면 경고만 (발급은 막지 않는다). 계획(plan.mix)에 실어 화면이 다시 만든 뒤에도 센다
+     textOnlyMax 글 보기만 있는 문항 비율 상한 · oxMax OX 문항 수 상한 · sameTypeRunMax 같은 유형이 잇따라도 되는 수 */
+  mix: { textOnlyMax: 0.4, oxMax: 1, sameTypeRunMax: 3 },
   typeMix: { location: 0.4, action: 0.3, ox: 0.1, situation: 0.2 },
   difficulty: { easy: 0.5, medium: 0.3, hard: 0.2 },
   weights: { official: 3, specific: 2, general: 1 },
@@ -159,7 +162,7 @@ export function planQuiz(input, rules = RULES, eduKind = '') {
   const reasons = [];
   const range = countRange(eduKind, rules);
   const N = countFor(hazards.length, rules, range.kind);
-  const base = { eduKind: range.kind, min: range.min, max: range.max, rulesVersion: rules.version, hazards };
+  const base = { eduKind: range.kind, min: range.min, max: range.max, mix: rules.mix, rulesVersion: rules.version, hazards };
   if (!N) return { count: 0, slots: [], reasons: ['위험요소가 없어 문항을 만들지 않습니다'], warnings: [], ...base };
   /* §12.3 위험요소가 적어 그 교육의 최소에 못 미치면 경고만 — 발급 막기는 §9.4 (최소와 N 중 작은 값) */
   const warnings = N < range.min ? ['위험요소가 ' + hazards.length + '개라 문항이 ' + N + '개입니다 (이 교육의 최소 ' + range.min + '개) — 위험요소 조사를 보강하세요'] : [];

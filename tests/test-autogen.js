@@ -271,8 +271,30 @@ function fakeQuestions(body) {
   ok('오답이 없는 위험에는 붙이지 않는다', mq.body.hazards.filter((h) => h.id !== hz0).every((h) => !('missed' in h)));
   ok('★ 발급본 위험요소 스냅샷에는 오답 수를 넣지 않는다', !JSON.stringify(S.courses.load()).includes('"missed"'));
 
-  /* 🆕 2026-11-22 특별교육 개별 사항 덮기 — 사람이 단 문구 태그로만, 경고만 (규칙 §12.9 ③, C06 D-058) */
+  /* 🆕 2026-11-22 유형 섞기 경고 (규칙 §12.5 · §12.9 ⑩) — 한계값은 plan.mix, 지금 문항 목록 전체로 센다 */
   const A = win.__autogen;
+  eq('plan.mix 가 없으면 보지 않는다 (결과 파일 등)', A.mixWarnings().length, 0);
+  const qz = A.state().quiz;
+  const keepQuiz = qz.quiz;
+  qz.plan.mix = { textOnlyMax: 0.4, oxMax: 1, sameTypeRunMax: 3 };
+  const txt = (i, sub) => ({ id: 'm' + i, type: 'choice', subtype: sub, prompt: 'p' + i, options: ['a', 'b'], answer: 0 });
+  qz.quiz = [txt(1, 'ox'), txt(2, 'ox'), txt(3, 'action'), txt(4, 'action'), txt(5, 'action'), txt(6, 'action')];
+  const mw = A.mixWarnings();
+  ok('★★ 글 보기만 문항이 40% 를 넘으면 경고', mw.some((w) => /글 보기만 있는 문항이 6개 중 6개/.test(w)));
+  ok('★ OX 가 1개를 넘으면 경고', mw.some((w) => /OX 문항이 2개/.test(w)));
+  ok('★ 같은 유형이 3개를 넘게 잇따르면 경고', mw.some((w) => /같은 유형 문항이 4개 잇따릅니다/.test(w)));
+  qz.quiz = [{ id: 'h1', type: 'hotspot', subtype: 'location' }, { ...txt(2, 'action'), pics: ['data:image/png;base64,AA', 'data:image/png;base64,BB'] }, txt(3, 'situation'), { id: 'h4', type: 'hotspot', subtype: 'location' }];
+  eq('★ 사진 위치·그림 고르기는 글 보기만이 아니다 → 경고 없음', A.mixWarnings().length, 0);
+  qz.quiz = [txt(1, 'action'), txt(2, 'action'), txt(3, 'action')].concat([1, 2, 3, 4, 5].map((i) => ({ id: 'h' + i, type: 'hotspot', subtype: 'location' })));
+  ok('같은 유형 3개까지는 괜찮다 (위치 5개 연속만 걸린다)', A.mixWarnings().length === 1 && /5개 잇따릅니다/.test(A.mixWarnings()[0]));
+  qz.quiz = [txt(1, 'ox'), txt(2, 'ox'), txt(3, 'action')];
+  click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
+  has('★★ 담당자 화면 계획 칸에 「유형 섞기 확인」', $('ag-plan').textContent, '유형 섞기 확인');
+  ok('경고만 — 발급 막기 이유에는 넣지 않는다', !(A.state().quiz.issuable && (A.state().quiz.issuable.why || []).some((w) => /유형 섞기|OX 문항/.test(w))));
+  qz.quiz = keepQuiz;
+  delete qz.plan.mix;
+
+  /* 🆕 2026-11-22 특별교육 개별 사항 덮기 — 사람이 단 문구 태그로만, 경고만 (규칙 §12.9 ③, C06 D-058) */
   eq('특별교육이 아니면 확인하지 않는다', A.specialCoverage(), null);
   const sp = doc.querySelector('input[name="edu-kind"][value="special"]');
   sp.checked = true;
