@@ -382,13 +382,8 @@ var UI = (function () {
      HTML 의 탭 링크 5개는 JS 가 멈췄을 때의 대비책으로 두고, 뜰 때 이 메뉴로 바꿔 끼운다.
      [href, 이름, 설명] — 화면 안 위치는 # 로 간다 (설비 화면은 # 마다 한 부분만 보인다) */
   var ADMIN_MENU = [
-    { label: '대시보드', icon: 'chart', items: [
-      ['dashboard.html#t-status', '이수 현황', '교육별 이수·미이수 인원'],
-      ['dashboard.html#t-weak', '이해도 취약 항목', '틀린 문항이 몰린 위험'],
-      ['dashboard.html#t-action', '조치가 필요한 사람', '재교육 · 미이수 노동자'],
-      ['dashboard.html#t-reports', '위험요소 신고', '노동자 익명 신고'],
-      ['dashboard.html#t-talk', '현장 소통 게시판', '노동자 질문 · 답변']
-    ] },
+    /* 🆕 2026-11-22 대시보드는 한 화면이라 상세 메뉴 없이 바로 간다 (yesol 요청) — items 대신 href */
+    { label: '대시보드', icon: 'chart', href: 'dashboard.html' },
     { label: '설비', icon: 'factory', items: [
       ['setup.html#site', '사업장 등록', '사업장 기본 정보 · 사용 언어 · 공정'],
       ['setup.html#equip', '설비 등록', '위험 기계·기구 등록 · 사진 촬영'],
@@ -443,11 +438,22 @@ var UI = (function () {
     }
 
     ADMIN_MENU.map(function (g) {
-      return { label: g.label, icon: g.icon, items: g.items.filter(function (it) { return mayOpen(it[0]); }) };
+      return { label: g.label, icon: g.icon, href: g.href && mayOpen(g.href) ? g.href : '',
+               items: (g.items || []).filter(function (it) { return mayOpen(it[0]); }) };
     }).filter(function (g) {
-      return g.items.length > 0;
+      return g.href || g.items.length > 0;
     }).forEach(function (g, gi) {
       var wrap = el('div', 'menu-group');
+      if (g.href) {   /* 상세 메뉴 없는 그룹 — 단추 대신 링크 하나 */
+        var link = el('a', 'menu-btn');
+        link.href = g.href;
+        link.appendChild(iconBox(g.icon, 'ico'));
+        link.appendChild(el('span', 'menu-label', g.label));
+        if (g.href === here) link.setAttribute('aria-current', 'page');
+        wrap.appendChild(link);
+        nav.appendChild(wrap);
+        return;
+      }
       var btn = el('button', 'menu-btn');
       btn.type = 'button';
       btn.id = 'menu-btn-' + gi;
