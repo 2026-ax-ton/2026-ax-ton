@@ -170,6 +170,29 @@ function open(opts = {}) {
   has('교육', text(rows[0]), '도장 부스 1 안전교육');
   has('미통과 상태', text(rows[0]), '미통과');
   has('★ 어느 항목에서 막혔는지', text(rows[0]), '화재');
+  ok('한두 번 미통과는 대면 재교육 표시가 없다', !text(rows[0]).includes('대면 재교육 필요'));
+}
+
+/* =================================================================
+   6-1. 🆕 2026-11-22 세 번 풀고도 통과 못 하면 「대면 재교육 필요」 — 숫자 없이 (규칙 문서 §12.9 ⑨)
+   ================================================================= */
+{
+  const f2f = (quiz) => {
+    const t = open({ before(win) {
+      win.Store.progress.update((list) => {
+        const r = list.find((x) => x.workerId === 'W-4821-11');
+        r.quiz = Object.assign({ score: 50, passed: false, answers: [1, 0], at: '2026-08-20T00:00:00.000Z' }, quiz);
+      });
+    } });
+    return { t, row: [...t.$('action-rows').querySelectorAll('tr')].find((tr) => text(tr).includes('W-4821-11')) };
+  };
+  const a = f2f({ attempt: 3, firstPassed: false });
+  has('★★ 세 번째 미통과면 대면 재교육 표시', text(a.row), '대면 재교육 필요');
+  ok('★ 아이콘·글자·색 3중 배지 (색만으로 구분하지 않는다)', !!a.row.querySelector('.badge.badge-wait.f2f > .ico') && text(a.row.querySelector('.f2f')).includes('대면 재교육 필요'));
+  ok('★★ 시도 횟수를 화면에 쓰지 않는다 (사람을 세지 않는다)', !/3\s*회|3번|시도/.test(text(a.t.$('action-rows'))));
+  ok('★ 노동자 평가가 아니라고 밝힌다', (a.row.querySelector('.f2f') || {}).title.includes('노동자 평가가 아닙니다'));
+  ok('두 번째까지는 표시가 없다', !text(f2f({ attempt: 2, firstPassed: false }).row).includes('대면 재교육 필요'));
+  ok('한 번이라도 첫 시도에 통과했던 기록이면 표시하지 않는다', !text(f2f({ attempt: 4, firstPassed: true }).row).includes('대면 재교육 필요'));
 }
 
 /* =================================================================

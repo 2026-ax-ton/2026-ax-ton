@@ -45,6 +45,13 @@
 
   var QLABEL = { hotspot: '위험 지점 짚기', choice: '올바른 작업 고르기', match: '보호구 연결하기' };
 
+  /* 🆕 2026-11-22 대면 재교육 표시 (규칙 문서 SAFETY_QUESTION_GENERATION_RULES.md §12.8 · §12.9 ⑨, 사용자 결정 「숫자 없이 표시」)
+     이 교육을 이만큼 풀고도 아직 통과하지 못했으면(첫 시도부터 한 번도 통과 못 함) 미통과 줄에 「대면 재교육 필요」를 단다.
+     3 = 원격교육 시험 3회까지(안전보건교육규정 별표 2, 이 앱에는 의무 아님 — 참고만).
+     ★ 사람을 세지 않는다 — 시도 횟수를 화면에 쓰지 않고, 이 표시로 줄 세우거나 거르거나 내보내지 않는다.
+       뜻은 「말과 그림만으로 이 교육을 전하지 못했다 → 담당자가 마주 앉아 다시 설명한다」이다. 노동자 평가가 아니다 */
+  var FACE_TO_FACE_AFTER = 3;
+
   /* -----------------------------------------------------------------
      읽기
      ----------------------------------------------------------------- */
@@ -75,6 +82,12 @@
     return Store.progress.load().filter(function (r) {
       return r.workerId === workerId && r.courseId === courseId;
     })[0] || null;
+  }
+
+  /* 🆕 대면 재교육 표시가 필요한가 (FACE_TO_FACE_AFTER 참고) — 횟수는 돌려주지 않는다 */
+  function needsFaceToFace(pair) {
+    var q = pair.state.key === 'fail' && pair.state.row ? pair.state.row.quiz : null;
+    return !!q && (q.attempt || 1) >= FACE_TO_FACE_AFTER && q.firstPassed !== true;
   }
 
   /* 한 사람 · 한 교육의 상태 */
@@ -409,6 +422,8 @@
        목적으로 내보내지 않는다는 이 화면의 원칙과 같은 이유로, 누적 횟수를
        세거나 사람을 줄 세우는 화면을 만들지 않는다.
        지시는 "이 교육을 다시 듣게 한다" 는 뜻이지 "이 사람이 못했다" 가 아니다.
+     🆕 2026-11-22 「대면 재교육 필요」 표시(FACE_TO_FACE_AFTER)도 같은 선을 지킨다 — 횟수를 보이지 않고,
+       그 표시로 줄 세우거나 거르거나 내보내지 않는다. 교육 방법(말·그림)을 바꾸라는 신호다.
 
      ★ 해소 판정은 Store.orderOpen() 한 곳에서 한다.
        노동자 홈이 같은 함수를 쓴다 — 계산이 두 곳이면 한쪽만 고쳐져서
@@ -546,6 +561,12 @@
       var stateCell = UI.el('td');
       if (p.state.key === 'fail') stateCell.appendChild(UI.stopBadge('미통과'));
       else stateCell.appendChild(UI.neutralBadge(p.state.label));
+      if (needsFaceToFace(p)) {
+        var f2f = UI.waitBadge('대면 재교육 필요');
+        f2f.classList.add('f2f');
+        f2f.title = '말과 그림만으로 이 교육을 전하지 못했습니다. 마주 앉아 다시 설명해 주세요. (노동자 평가가 아닙니다)';
+        stateCell.appendChild(f2f);
+      }
       tr.appendChild(stateCell);
 
       var topicCell = UI.el('td');
