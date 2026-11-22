@@ -883,6 +883,28 @@
     renderAll();
   }
 
+  /* 🆕 2026-11-22 그림 보기 검사 (규칙 §12.7 · §12.9 ⑥) — { block: [발급을 막는 것], warn: [경고만] }.
+     그림 출처(picMeta)는 결과 파일(scripts/make-video-quiz.mjs)에만 있고 발급본에서는 뗀다.
+       block  그림 수 ≠ 보기 수 (노동자 화면이 그림 없는 보기를 낸다)
+       warn   그림 출처 기록 없음 · 그림에 글자(번역 안 됨) · 글자 검사 결과 없음 · 정답 그림이 영상 장면 그대로(기억으로 맞힘) */
+  var TEXT_CHECK_OK = { no: true, '3d': true };
+  function picProblems(q) {
+    var out = { block: [], warn: [] };
+    var pics = q && Array.isArray(q.pics) ? q.pics : [];
+    if (!pics.length) return out;
+    var n = Array.isArray(q.options) ? q.options.length : 0;
+    if (pics.length !== n) out.block.push('그림 ' + pics.length + '장 · 보기 ' + n + '개 — 수가 같아야 합니다');
+    var meta = Array.isArray(q.picMeta) && q.picMeta.length === pics.length ? q.picMeta : null;
+    if (!meta) { out.warn.push('그림 출처 기록이 없어 글자·영상 장면 검사를 못 했습니다'); return out; }
+    meta.forEach(function (m, i) {
+      var c = m && m.textCheck;
+      if (c === 'yes') out.warn.push('그림 ' + (i + 1) + ' 에 글자가 있을 수 있습니다 — 그림 속 글자는 번역되지 않습니다');
+      else if (!TEXT_CHECK_OK[c]) out.warn.push('그림 ' + (i + 1) + ' 의 글자 검사 결과가 없습니다 (' + (c || '기록 없음') + ')');
+    });
+    if (meta[q.answer] && meta[q.answer].inVideo) out.warn.push('정답 그림이 영상에서 본 장면 그대로입니다 — 기억으로 맞힐 수 있어, 다른 각도·다른 순간이 낫습니다');
+    return out;
+  }
+
   /* 🆕 2026-11-22 대체 문항 (quiz[].alt[], C06 D-060) */
   function altsOf(q) { return q && Array.isArray(q.alt) ? q.alt : []; }
 
@@ -1036,6 +1058,9 @@
         li.appendChild(UI.el('p', 'meta', '정답 위치: 사진의 #' + number(q.hazardId) + ' 박스 (반지름 ' + (q.answer && q.answer.r) + '%)'));
       }
       (q.warnings || []).forEach(function (w) { li.appendChild(UI.itemRow('alert', '검토할 점: ' + w, '규칙상 버리지는 않았지만 담당자가 확인할 부분입니다.')); });
+      var pp = picProblems(q);
+      pp.block.forEach(function (w) { li.appendChild(UI.itemRow('alert', '그림 보기 — 발급 막힘: ' + w, '결과 파일을 다시 만들어 주세요.')); });
+      pp.warn.forEach(function (w) { li.appendChild(UI.itemRow('alert', '그림 보기 확인: ' + w, '발급은 막지 않습니다. 그림을 직접 보고 판단해 주세요.')); });
       if (q.why) li.appendChild(UI.el('p', 'meta', '해설: ' + q.why));
       if (q.prevention) li.appendChild(UI.el('p', 'meta', '안전수칙·예방조치: ' + q.prevention));
       if (q.evidence) li.appendChild(UI.el('p', 'meta', '탐지 근거: ' + q.evidence));
@@ -1097,6 +1122,8 @@
     var ps = usablePhrases().length;
     /* 규칙 §9.4 발급 막기 — 서버가 판정한 이유 (필수 주제 빠짐·최소 문항 미달 등) */
     var blocked = state.quiz && state.quiz.issuable && !state.quiz.issuable.ok ? (state.quiz.issuable.why || []) : [];
+    /* 🆕 그림 수 ≠ 보기 수면 노동자 화면이 그림 없는 보기를 낸다 — 발급을 막는다 (규칙 §12.7 · §12.9 ⑥) */
+    quizItems().forEach(function (q) { picProblems(q).block.forEach(function (b) { blocked = blocked.concat(q.id + ': ' + b); }); });
     return [
       /* 0단계는 막지 않는다 — 고르지 않으면 「미지정」 으로 발급된다 (FR-AD-04-21) */
       { what: '교육 종류', done: true, note: EduKind.label(EduKind.fields(eduKind)) },
@@ -1170,7 +1197,8 @@
     var quiz = quizItems().map(function (q) {
       var c = JSON.parse(JSON.stringify(q));
       delete c.slot;
-      (c.alt || []).forEach(function (a) { delete a.slot; });
+      delete c.picMeta;   // 그림 출처는 검토용 — 발급본(courses)에 담지 않는다 (§12.9 ⑥)
+      (c.alt || []).forEach(function (a) { delete a.slot; delete a.picMeta; });
       return c;
     });
     var usesPhoto = quiz.some(function (q) { return q.type === 'hotspot'; });
@@ -1358,6 +1386,6 @@
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
     state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
-    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage, mixWarnings: mixWarnings, translateQuiz: translateQuiz
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage, mixWarnings: mixWarnings, translateQuiz: translateQuiz, picProblems: picProblems
   };
 })();

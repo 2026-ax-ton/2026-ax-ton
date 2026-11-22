@@ -66,14 +66,24 @@ video.hazards.forEach((h, n) => {
   const [happen, safe] = [h.shots[1], h.shots[2]];
   const danger = happen.source === '3d' ? STILLS[happen.clip].map((t) => pic(path.join(clipDir, happen.clip + '.mp4'), t)) : [pic(path.join(imgDir, happen.file || h.hazardId + '_happen.png'))];
   const good = safe.source === '3d' ? pic(path.join(clipDir, safe.clip + '.mp4'), STILLS[safe.clip][0]) : pic(path.join(imgDir, safe.file || h.hazardId + '_safe.png'));
+  /* 🆕 2026-11-22 그림 출처 (규칙 §12.7 · §12.9 ⑥) — 담당자 화면이 글자 검사·「영상 장면 그대로」를 경고한다.
+     결과 파일에만 있고 발급본(courses)에는 담지 않는다 (autogen 이 뗀다).
+     textCheck: 3D 는 우리가 그린 장면이라 글자가 없다('3d'), AI 그림은 make-video.mjs 의 GPT 글자 검사 결과 그대로.
+     inVideo: 3D 클립은 영상에 통째로 나오고 AI 그림도 그 파일 그대로 나오니 지금은 모두 true */
+  const metaOf = (shot, t) => (shot.source === '3d'
+    ? { from: '3d', clip: shot.clip, t, textCheck: '3d', inVideo: true }
+    : { from: 'ai-image', file: shot.file || '', textCheck: shot.textCheck || 'unknown', inVideo: true });
+  const dangerMeta = happen.source === '3d' ? STILLS[happen.clip].map((t) => metaOf(happen, t)) : [metaOf(happen)];
   const at = n % (danger.length + 1);           // 정답 자리를 위험마다 옮긴다 — 늘 같은 번호면 외워서 맞힌다
   const pics = danger.slice();
   pics.splice(at, 0, good);
+  const picMeta = dangerMeta.slice();
+  picMeta.splice(at, 0, metaOf(safe, safe.source === '3d' ? STILLS[safe.clip][0] : undefined));
   const safeText = phrase ? reviewed.get(phrase) : '';
   quiz.push({ ...base, id: 'q' + (quiz.length + 1), type: 'choice', subtype: 'picture', difficulty: 'medium', prompt: PROMPT,
     prevention: safeText, evidence: '영상 ②·③ 장면 (' + (happen.source === '3d' ? '3D 재연' : 'AI 그림') + ')',
     answerFrom: phrase ? 'picture+phrase:' + phrase : 'picture', aiWritten: true,
-    options: pics.map((_, i) => '그림 ' + (i + 1)), pics, answer: at,
+    options: pics.map((_, i) => '그림 ' + (i + 1)), pics, picMeta, answer: at,
     results: pics.map((_, i) => (i === at ? (safeText || it.risk) : it.risk)) });
 });
 fs.rmSync(tmp, { recursive: true, force: true });

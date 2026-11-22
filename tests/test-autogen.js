@@ -210,6 +210,8 @@ function fakeQuestions(body) {
   const q2 = win.__autogen.state().quiz.quiz.find((q) => q.id === 'q2');
   q2.alt = [{ ...JSON.parse(JSON.stringify(q2)), id: 'q2-alt', variantOf: 'q2', prompt: '대체 발문', i18n: {} }];
   delete q2.alt[0].alt;
+  q2.picMeta = [{ from: '3d', textCheck: '3d', inVideo: true }];   // 검토용 — 발급본에서 떼야 한다
+  q2.alt[0].picMeta = [{ from: '3d', textCheck: '3d', inVideo: true }];
   click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
   ok('★★ 검토 화면에 대체 문항이 보인다', !!doc.querySelector('#ag-quiz li[data-q="q2"] [data-alt="q2-alt"]') && $('ag-quiz').textContent.includes('다시 풀기용 대체 문항'));
   const nT = calls.length;
@@ -251,6 +253,7 @@ function fakeQuestions(body) {
   ok('★★ 발급본 문항에 세 언어 번역이 들어 있다', c.quiz.every((q) => ['km', 'ne', 'vi'].every((l) => S.qhas(q, l))));
   ok('★ 문항 칸 번호(slot)는 저장하지 않는다', c.quiz.every((q) => !('slot' in q)));
   const savedAlt = (c.quiz.find((q) => q.id === 'q2') || {}).alt;
+  ok('★ 그림 출처(picMeta)는 발급본에 담지 않는다 (검토용, §12.9 ⑥)', !JSON.stringify(c).includes('picMeta'));
   ok('★★ 대체 문항이 발급본에 남는다 (칸 번호 없이)', Array.isArray(savedAlt) && savedAlt[0].id === 'q2-alt' && !('slot' in savedAlt[0]));
   ok('★★ 참고 사진(외부 그림)은 저장하지 않는다', !JSON.stringify(c).includes('/9j/AAAA') && !JSON.stringify(S.setup.load()).includes('/9j/AAAA'));
   ok('발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);
@@ -308,6 +311,24 @@ function fakeQuestions(body) {
   ok('경고만 — 발급 막기 이유에는 넣지 않는다', !(A.state().quiz.issuable && (A.state().quiz.issuable.why || []).some((w) => /유형 섞기|OX 문항/.test(w))));
   qz.quiz = keepQuiz;
   delete qz.plan.mix;
+
+  /* 🆕 2026-11-22 그림 보기 검사 (규칙 §12.7 · §12.9 ⑥) */
+  const P = 'data:image/jpeg;base64,AA';
+  const pq = (o) => Object.assign({ id: 'pq', type: 'choice', subtype: 'picture', prompt: '안전하게 일하는 그림을 고르세요', options: ['그림 1', '그림 2', '그림 3'], pics: [P, P, P], answer: 1 }, o);
+  eq('그림 없는 문항은 보지 않는다', JSON.stringify(A.picProblems({ type: 'choice', options: ['a', 'b'] })), '{"block":[],"warn":[]}');
+  ok('★★ 그림 수 ≠ 보기 수면 발급을 막는다', A.picProblems(pq({ pics: [P, P] })).block.length === 1);
+  ok('★ 그림 출처 기록이 없으면 경고', A.picProblems(pq()).warn.some((w) => w.includes('출처 기록이 없어')));
+  const meta = (c, v) => ({ from: 'ai-image', textCheck: c, inVideo: v });
+  const pw = A.picProblems(pq({ picMeta: [meta('no', false), meta('yes', true), meta('cached', false)] })).warn;
+  ok('★ 그림에 글자가 있으면 경고 (번역 안 됨)', pw.some((w) => w.includes('그림 2 에 글자가 있을 수 있습니다')));
+  ok('★ 글자 검사 결과가 없으면 경고', pw.some((w) => w.includes('그림 3 의 글자 검사 결과가 없습니다 (cached)')));
+  ok('★ 정답 그림이 영상 장면 그대로면 경고', pw.some((w) => w.includes('정답 그림이 영상에서 본 장면 그대로')));
+  eq('3D 장면·검사 통과 그림 · 영상과 다른 정답이면 경고 없음', A.picProblems(pq({ picMeta: [meta('no', true), { from: '3d', textCheck: '3d', inVideo: false }, meta('no', true)] })).warn.length, 0);
+  const keepQ = A.state().quiz.quiz;
+  A.state().quiz.quiz = keepQ.concat([pq({ pics: [P, P] })]);
+  const stQ = A.steps().find((s) => s.what === 'AI 평가문항');
+  ok('★★ 그림 수가 안 맞으면 「AI 평가문항」 단계가 끝나지 않는다 (발급 막힘)', stQ.done === false && stQ.note.includes('pq: 그림 2장 · 보기 3개'));
+  A.state().quiz.quiz = keepQ;
 
   /* 🆕 2026-11-22 특별교육 개별 사항 덮기 — 사람이 단 문구 태그로만, 경고만 (규칙 §12.9 ③, C06 D-058) */
   eq('특별교육이 아니면 확인하지 않는다', A.specialCoverage(), null);
