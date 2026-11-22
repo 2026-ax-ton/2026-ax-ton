@@ -116,6 +116,36 @@
     });
   }
 
+  /* 🆕 2026-11-22 다시 풀 때는 **같은 목표 · 다른 문항** (규칙 문서 §12.8 · §12.9 ⑧, Guskey 2010).
+     **직전 시도가 미통과**이고 이번이 짝수 번째 시도(2·4·…)면 대체 문항(q.alt[0] — 같은 위험·주제·유형)을 낸다.
+     그 밖(첫 시도 · 통과 뒤 재교육 · 홀수 번째)은 본 문항 — 한 번 바꿨으면 다음엔 다시 본 문항이라 번갈아 나온다.
+     대체 문항이 없거나 내 언어로 준비되지 않았으면 고르기 문항은 **보기 순서만** 한 칸 돌린다.
+     ★ 저장 문항을 고치지 않는다 — 복사본만 돌린다. 채점은 문항별 맞음/틀림이라 순서가 바뀌어도 기록이 같다.
+     ★ 대체 문항의 id 는 asked 에 남고, Store.askedQuestion 이 본 문항 안에서 찾는다 (대시보드·증빙이 깨지지 않게) */
+  function retakeVersion(q, attemptNo, prevFailed) {
+    if (!prevFailed || attemptNo % 2 !== 0) return q;
+    var alt = Array.isArray(q.alt) ? q.alt[0] : null;
+    if (alt && questionsOf({ quiz: [alt] }).length && ready(alt)) return alt;
+    return q.type === 'choice' ? rotated(q) : q;
+  }
+
+  function rotated(q) {
+    var c = JSON.parse(JSON.stringify(q));
+    var n = Array.isArray(c.options) ? c.options.length : 0;
+    if (n < 2) return q;
+    var turn = function (list) { return Array.isArray(list) && list.length === n ? list.slice(1).concat(list.slice(0, 1)) : list; };
+    c.options = turn(c.options);
+    c.results = turn(c.results);
+    c.pics = turn(c.pics);
+    Object.keys(c.i18n || {}).forEach(function (lang) {
+      var pack = c.i18n[lang] || {};
+      pack.options = turn(pack.options);
+      pack.results = turn(pack.results);
+    });
+    c.answer = (c.answer - 1 + n) % n;
+    return c;
+  }
+
   function qt(q, field) { return Store.qtext(q, me.lang, field); }
 
   /** 이 문항을 내 언어로 낼 수 있는가 — 묻는 칸(문항·선택지·짝)이 다 번역됐는가 (Store.qhas).
@@ -168,10 +198,13 @@
 
   function start(course) {
     var setup = Store.setup.load();
+    var prevRow = progressOf(course.id);
+    var attemptNo = prevRow && prevRow.quiz ? (prevRow.quiz.attempt || 1) + 1 : 1;
+    var prevFailed = !!(prevRow && prevRow.quiz && !prevRow.quiz.passed);
     run = {
       course: course,
       equipment: Store.findBy(setup.equipments, 'id', course.equipmentId),
-      questions: questionsOf(course),
+      questions: questionsOf(course).map(function (q) { return retakeVersion(q, attemptNo, prevFailed); }),
       index: 0,
       answers: [],
       locked: false,
@@ -265,6 +298,17 @@
       box.hidden = true;
     }
     $('btn-next').hidden = false;
+  }
+
+  /* 🆕 2026-11-22 틀린 문항의 교정 — 문항 + 해설(내 언어). 해설이 없으면 고르기 문항은 정답 보기(내 언어).
+     ★ 내 언어로 된 것이 없으면 글을 띄우지 않고 문항만 다시 읽는다 (한국어 문장을 대신 띄우지 않는다) */
+  function correctionOf(q) {
+    var why = tr(q, 'why');
+    var opts = q.type === 'choice' ? tr(q, 'options') : null;
+    var right = !why && Array.isArray(opts) && Number.isInteger(q.answer) ? opts[q.answer] : null;
+    var text = why || right || '';
+    var ko = why ? (q.why || '') : (right ? q.options[q.answer] : '');
+    return { text: text, say: qt(q, 'prompt') + (text ? ' ' + text : ''), sayKo: q.prompt + (ko ? ' ' + ko : '') };
   }
 
   /* 결과 문장 — 문항의 해설(내 언어). 없으면 맞음·틀림만 (한국어 문장을 대신 띄우지 않는다) */
@@ -595,6 +639,11 @@
       var prev = row.quiz;
       var attempt = prev ? (prev.attempt || 1) + 1 : 1;
       var firstPassed = prev ? (prev.firstPassed !== undefined ? prev.firstPassed : !!prev.passed) : passed;
+      /* 🆕 2026-11-22 첫 시도의 답과 문항 id 를 한 번만 남긴다 — 정기교육이 지난 첫 시도 오답 위험을 먼저 낸다 (규칙 §12.3, C06 D-057).
+         옛 기록: 앞 기록이 1회째면 그 답이 첫 시도다. 2회째 이상인데 첫 답이 없으면 지어내지 않고 비워 둔다 */
+      var first = !prev ? { answers: run.answers.slice(), asked: run.questions.map(function (q) { return q.id; }) }
+        : (Array.isArray(prev.firstAnswers) ? { answers: prev.firstAnswers, asked: prev.firstAsked }
+          : ((prev.attempt || 1) === 1 && Array.isArray(prev.answers) ? { answers: prev.answers, asked: prev.asked } : null));
       row.lang = me.lang;
       row.quiz = {
         score: score,
@@ -604,7 +653,9 @@
         attempt: attempt,
         firstPassed: firstPassed,
         /* ★ 그때 실제로 낸 문항의 id (C6) — 읽는 쪽은 Store.askedQuestion() 하나만 쓴다 */
-        asked: run.questions.map(function (q) { return q.id; })
+        asked: run.questions.map(function (q) { return q.id; }),
+        firstAnswers: first ? first.answers : undefined,
+        firstAsked: first && Array.isArray(first.asked) ? first.asked : undefined
       };
     });
 
@@ -633,6 +684,7 @@
 
     var review = $('result-review');
     review.textContent = '';
+    var wrong = [];
     run.questions.forEach(function (q, i) {
       var li = UI.el('li');
       var ico = UI.el('span', 'ico', KIND[q.type].ico);
@@ -641,6 +693,12 @@
       var body = UI.el('div', 'body');
       body.appendChild(UI.el('strong', null, qt(q, 'prompt')));
       li.appendChild(body);
+      if (run.answers[i] !== 1) {
+        var fix = correctionOf(q);
+        wrong.push(fix);
+        if (fix.text) body.appendChild(UI.el('p', 'meta fix', fix.text));
+        li.appendChild(UI.audioButton(function () { return say(fix.say, fix.sayKo); }, T('quiz.reviewWrong')));
+      }
       li.appendChild(run.answers[i] === 1 ? UI.okBadge(T('state.correct')) : UI.stopBadge(T('state.wrong')));
       review.appendChild(li);
     });
@@ -654,7 +712,20 @@
       actions.appendChild(linkButton(T('action.home'), 'home.html', true));
       actions.appendChild(linkButton(T('quiz.myRecord'), 'my.html'));
     } else {
-      actions.appendChild(linkButton(T('quiz.relearn'), 'learn.html', true));
+      /* 🆕 2026-11-22 다시 풀기 전에 **틀린 문항의 설명만** 먼저 들려준다 — 교정 뒤 다시 평가 (규칙 §12.8 · §12.9 ⑦, Guskey 2010).
+         ★ 다시 풀기를 막지 않는다 — 소리가 안 나는 기기에서 노동자를 가두지 않는다 */
+      if (wrong.length) {
+        var listenWrong = UI.audioButton(function () {
+          return say(wrong.map(function (w) { return w.say; }).join(' '), wrong.map(function (w) { return w.sayKo; }).join(' '));
+        }, T('quiz.reviewWrong'));
+        var fixBtn = UI.el('button', 'btn btn-primary', T('quiz.reviewWrong'));
+        fixBtn.type = 'button';
+        fixBtn.id = 'btn-review-wrong';
+        fixBtn.addEventListener('click', function () { listenWrong.play(); });
+        actions.appendChild(fixBtn);
+        if (first) listenWrong.play();
+      }
+      actions.appendChild(linkButton(T('quiz.relearn'), 'learn.html', !wrong.length));
       var again = UI.el('button', 'btn btn-quiet', T('quiz.retry'));
       again.type = 'button';
       again.addEventListener('click', function () { start(run.course); });

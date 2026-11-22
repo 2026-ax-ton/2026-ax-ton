@@ -56,7 +56,7 @@ const PHRASES = [{ id: 'ph-1', ko: '금형 사이에 손을 넣지 마십시오'
 /* ── 1·2·3 계획 ─────────────────────────────────────────────────── */
 const plan = Q.planQuiz(hz);
 eq('★★ 같은 입력이면 같은 계획', JSON.stringify(Q.planQuiz(hz)), JSON.stringify(plan));
-eq('★ 문항 수 = 규칙 (위험 5 → 최소~최대 사이 5)', plan.count, Math.min(Q.RULES.count.max, Math.max(Q.RULES.count.min, 5)));
+eq('★ 문항 수 = 규칙 (위험 5 × 위험당 2, 최대까지 — §12.3)', plan.count, Math.min(Q.RULES.count.max, 5 * Q.RULES.count.perHazardMax));
 eq('★★ 공식 문서 위험이 첫 칸 · 필수', plan.slots[0].hazardId + '|' + plan.slots[0].required, 'o1|true');
 ok('★★ 위치 문항은 사진 좌표가 있는 위험만', plan.slots.filter((s) => s.type === 'location').every((s) => hz.find((h) => h.id === s.hazardId).answer));
 ok('★ 사진 좌표가 없는 위험은 위치 문항이 안 된다', plan.slots.filter((s) => ['o1', 'r3', 'r4'].indexOf(s.hazardId) !== -1).every((s) => s.type !== 'location'));
@@ -82,10 +82,52 @@ eq('★ 위험 1개 → 2문항, 같은 위험의 두 칸은 유형이 다르다
 const mergedPlan = Q.planQuiz(Q.cleanHazards([HAZ[1], { ...HAZ[1], id: 'r9', part: '램과 금형 사이 공간', answer: null, official: { code: 'C', section: 's' } }], HAZARD_CODES));
 eq('★ 부위가 겹치는 같은 유형 위험은 하나로 (공식 쪽을 남기고 좌표는 옮긴다, §7 ①)', mergedPlan.hazards.length + '|' + mergedPlan.hazards[0].id + '|' + !!mergedPlan.hazards[0].answer, '1|r9|true');
 const p3 = Q.planQuiz(hz.slice(0, 2));
-eq('★ 위험이 적으면 위험당 최대 문항까지 (2위험 → ' + Math.min(Q.RULES.count.min, 2 * Q.RULES.count.perHazardMax) + ')', p3.count, Math.min(Q.RULES.count.min, 2 * Q.RULES.count.perHazardMax));
+eq('★ 위험이 적으면 위험당 최대 문항까지 (2위험 → ' + 2 * Q.RULES.count.perHazardMax + ')', p3.count, 2 * Q.RULES.count.perHazardMax);
 eq('위험이 없으면 문항 0', Q.planQuiz([]).count, 0);
 
+/* ── 🆕 2026-11-22 교육 종류별 문항 수 (규칙 §12.3) ── */
+const K = Q.RULES.count.byKind;
+const sp = Q.planQuiz(hz, Q.RULES, 'special');
+eq('★★ 특별교육: 위험 5 → 10문항 · 최소·최대를 계획에 남긴다', sp.count + '|' + sp.eduKind + '|' + sp.min + '|' + sp.max, '10|special|' + K.special.min + '|' + K.special.max);
+eq('★ 특별교육도 최대(12)를 넘지 않는다', Q.planQuiz(many, Q.RULES, 'special').count, K.special.max);
+eq('★ 일용직 채용 시: 위험 5 → 최대 6', Q.planQuiz(hz, Q.RULES, 'daily-hire').count, K['daily-hire'].max);
+eq('★ 모르는 교육 종류는 기본값 (3~8)', Q.planQuiz(hz, Q.RULES, 'nope').eduKind + '|' + Q.planQuiz(hz, Q.RULES, 'nope').count, '|8');
+const spFew = Q.planQuiz(hz.slice(0, 2), Q.RULES, 'special');
+ok('★ 최소에 못 미치면 경고만 (특별교육 위험 2 → 4문항 + 경고)', spFew.count === 4 && spFew.warnings.length === 1 && /최소 6/.test(spFew.warnings[0]));
+eq('경고가 없을 때는 빈 목록', plan.warnings.length, 0);
+ok('★ 발급 막기 최소는 그 교육의 최소와 N 중 작은 값 (§9.4)', Q.issuable(sp, [], [], Q.RULES).why.some((w) => /최소 6개/.test(w)) && Q.issuable(spFew, [], [], Q.RULES).why.some((w) => /최소 4개/.test(w)));
+ok('★ 다시 만들기 칸 상한 = 어느 종류든 가장 큰 최대', Q.maxCount() === K.special.max);
+eq('★ 유형 섞기 한계값을 계획에 싣는다 (규칙 §12.5 — 화면이 센다)', JSON.stringify(plan.mix), JSON.stringify(Q.RULES.mix));
+
+/* ── 🆕 2026-11-22 다시 풀기용 대체 문항 — 같은 칸에서 검증을 통과한 다음 후보 (규칙 §12.9 ⑧, C06 D-060) ── */
+const oneSlot = { slots: [{ slot: 1, hazardId: 'r3', type: 'action', difficulty: 'medium' }] };
+const cand = (prompt, right) => ({ slot: 1, hazardId: 'r3', type: 'action', prompt, options: [right, '그대로 지나간다', '뛰어서 건넌다'], answer: 0, why: '미끄러지면 다친다', prevention: '닦는다' });
+const withAlt = Q.selectQuiz(oneSlot, hz, { questions: [cand('통로 바닥에 기름이 있으면 어떻게 합니까', '기름을 닦는다'), cand('퇴근 전 작업장 바닥을 볼 때 무엇을 먼저 합니까', '기름을 닦는다')] }, []);
+const alt0 = (withAlt.quiz[0].alt || [])[0];
+ok('★★ 두 번째로 통과한 후보가 대체 문항이 된다', !!alt0 && alt0.id === 'q1-alt' && alt0.variantOf === 'q1');
+ok('★ 대체 문항은 같은 위험·주제·유형', alt0.hazardId === 'r3' && alt0.subtype === 'action' && alt0.topic === withAlt.quiz[0].topic);
+ok('★ 같은 목표라 정답이 같아도 된다 (중복으로 버리지 않는다)', alt0.options[alt0.answer] === withAlt.quiz[0].options[withAlt.quiz[0].answer]);
+ok('정답 자리는 본 문항과 다르게 돈다', alt0.answer !== withAlt.quiz[0].answer);
+ok('★ AI 작성 표시 · 노동자 화면 모양', alt0.aiWritten === true && alt0.type === 'choice' && alt0.results.length === alt0.options.length);
+const nearAlt = Q.selectQuiz(oneSlot, hz, { questions: [cand('통로 바닥에 기름이 있으면 어떻게 합니까', '기름을 닦는다'), cand('통로 바닥에 기름이 있으면 어떻게 합니까?', '기름을 닦는다')] }, []);
+ok('★ 발문이 거의 같으면 대체 문항으로 쓰지 않는다', !nearAlt.quiz[0].alt);
+eq('대체 후보는 제외 목록에 남기지 않는다', nearAlt.excluded.length, 0);
+const locOnly = Q.selectQuiz({ slots: [{ slot: 1, hazardId: 'r1', type: 'location', difficulty: 'easy' }] }, hz, { questions: [] }, []);
+ok('위치 문항에는 대체 문항이 없다 (같은 좌표라 다른 문항이 아니다)', locOnly.quiz.length === 1 && !locOnly.quiz[0].alt);
+
+/* ── 🆕 2026-11-22 정기교육 — 지난 회차 첫 시도에 틀린 위험을 먼저 (규칙 §7 ②·§12.3, C06 D-057) ── */
+eq('missed 는 양의 정수만 (나머지는 0)', Q.cleanHazards([{ ...HAZ[3], missed: 2 }, { ...HAZ[3], id: 'z1', missed: -1 }, { ...HAZ[3], id: 'z2', missed: 'x' }], HAZARD_CODES).map((h) => h.missed).join(), '2,0,0');
+const lowMany = Q.cleanHazards(many.map((h) => (h.id === 'x0' ? { ...h, missed: 3 } : h)), HAZARD_CODES);   // x0 = unknown, 점수가 가장 낮다
+const reg = Q.planQuiz(lowMany, Q.RULES, 'regular');
+ok('★★ 정기교육이면 점수가 낮아도 지난 첫 시도 오답 위험이 문항에 들어간다', reg.slots.some((s) => s.hazardId === 'x0'));
+ok('★ 오답 위험을 먼저 넣었다고 이유에 남긴다', reg.reasons.some((r) => /첫 시도에 틀린 위험 1개/.test(r)));
+ok('★★ 공식 문서 위험의 필수 칸은 그대로', reg.slots.some((s) => s.hazardId === 'o9' && s.required));
+ok('★ 정기교육이 아니면 오답 수를 순위에 쓰지 않는다 (같은 최대 8)', !Q.planQuiz(lowMany, Q.RULES, 'job-change').slots.some((s) => s.hazardId === 'x0') && !Q.planQuiz(lowMany).slots.some((s) => s.hazardId === 'x0'));
+eq('합친 위험의 오답 수는 더한다', Q.mergeHazards(Q.cleanHazards([{ ...HAZ[1], missed: 1 }, { ...HAZ[1], id: 'r9', part: '램과 금형 사이 공간', missed: 2 }], HAZARD_CODES))[0].missed, 3);
+
 /* ── 4·5·6 선정 ─────────────────────────────────────────────────── */
+/* 🆕 2026-11-22 위험당 2문항이라 같은 위험의 행동·상황 칸이 함께 나온다 — 가짜 답도 칸 유형마다 다른 글로 써야 중복(§9.2)에 안 걸린다 */
+const SIT = { o1: '가드가 열린 채 기계가 움직이면 먼저 무엇을 합니까', r1: '손이 금형에 끼었으면 먼저 무엇을 합니까', r2: '동료가 제어반에서 감전되면 먼저 무엇을 합니까', r3: '동료가 미끄러져 쓰러지면 먼저 무엇을 합니까', r4: '호스에서 기름이 뿜어지면 먼저 무엇을 합니까' };
 function fakeAnswer(slots) {
   const out = [];
   slots.filter((s) => s.type !== 'location').forEach((s) => {
@@ -94,7 +136,8 @@ function fakeAnswer(slots) {
     } else {
       /* 첫 후보는 금지어가 있어 떨어지고, 둘째가 뽑힌다 */
       out.push({ slot: s.slot, hazardId: s.hazardId, type: s.type, prompt: '모두 정답 ' + s.slot, options: ['가', '나', '다'], answer: 0, why: 'w', prevention: 'p' });
-      out.push({ slot: s.slot, hazardId: s.hazardId, type: s.type, prompt: (HAZ.find((h) => h.id === s.hazardId) || {}).risk + ' — ' + s.slot, options: ['작업 전 전원 차단함', '그대로 계속 작업함', '혼자 빨리 처리함'], answer: 0, answerPhraseId: s.hazardId === 'r2' ? 'ph-2' : '', why: '해설입니다', prevention: '예방조치', sourceUrls: ['https://kosha.or.kr/doc', 'https://evil.com/x'] });
+      const sit = s.type === 'situation' && SIT[s.hazardId];
+      out.push({ slot: s.slot, hazardId: s.hazardId, type: s.type, prompt: (sit || (HAZ.find((h) => h.id === s.hazardId) || {}).risk) + ' — ' + s.slot, options: [sit ? '비상정지 버튼을 누름' : '작업 전 전원 차단함', '그대로 계속 작업함', '혼자 빨리 처리함'], answer: 0, answerPhraseId: s.hazardId === 'r2' ? 'ph-2' : '', why: '해설입니다', prevention: '예방조치', sourceUrls: ['https://kosha.or.kr/doc', 'https://evil.com/x'] });
     }
   });
   return { questions: out };
@@ -159,6 +202,9 @@ eq('★ 200 · 문항 = 계획 수', r.status + '|' + r.data.quiz.length, '200|'
 eq('★★ 고른 설비를 그대로 돌려준다', r.data.equipment.id + '|' + r.data.equipment.kind, 'e-press3|press');
 eq('★ AI 는 한 번만 부른다 (모든 칸을 한 질문에)', modelCalls, 1);
 ok('계획을 함께 돌려준다', r.data.plan && r.data.plan.slots.length === plan.count);
+const rk = await call({ ...BODY, eduKind: 'special' });
+eq('★★ 요청의 교육 종류로 문항 수를 정한다 (특별교육 위험 5 → 10, §12.3)', rk.data.plan.eduKind + '|' + rk.data.plan.count + '|' + rk.data.quiz.length, 'special|10|10');
+eq('★ 모르는 교육 종류는 기본값으로', (await call({ ...BODY, eduKind: '<x>' })).data.plan.eduKind, '');
 
 /* 다시 만들기 — 그 칸만, 위험·유형·난이도 그대로, 앞 문항과 다르게 */
 const target = r.data.plan.slots.find((s) => s.type !== 'location');

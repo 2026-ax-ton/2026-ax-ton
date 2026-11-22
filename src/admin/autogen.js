@@ -125,8 +125,103 @@
       return { id: a.id, part: a.part, hazard: a.hazard, risk: a.risk, partEn: '', official: null, specific: false, status: 'manager', sources: [], answer: null, box: null };
     }));
   }
+  /* 🆕 2026-11-22 교육 종류도 넣는다 — 종류마다 문항 수가 달라서 (규칙 §12.3). 결과 파일 문항은 종류와 상관없이 만든 것이라 빼 둔다 */
   function signature() {
-    return JSON.stringify(includedHazards().map(function (h) { return [h.id, h.part, h.hazard, h.risk, h.answer && [h.answer.x, h.answer.y]]; }));
+    return JSON.stringify(includedHazards().map(function (h) { return [h.id, h.part, h.hazard, h.risk, h.answer && [h.answer.x, h.answer.y]]; }))
+      + (state.source === 'file' ? '' : '|' + eduKindId());
+  }
+  function eduKindId() { return EduKind.fields(eduKind).eduKind; }
+
+  /* 🆕 2026-11-22 유형 섞기 (규칙 §12.5 · §12.9 ⑩) — **경고만**, 발급은 막지 않는다 (그림 재료가 없는 설비가 있다).
+     한계값은 서버 규칙(plan.mix)에서 온다 — 여기에 숫자를 다시 적지 않는다. 결과 파일처럼 plan.mix 가 없으면 보지 않는다.
+     글 보기만 = 사진 위치 문항이 아니고 보기 그림(pics)도 없는 문항. 다시 만든 문항까지 지금 목록 전체로 센다 */
+  function mixWarnings() {
+    var mix = state.quiz && state.quiz.plan && state.quiz.plan.mix;
+    var qs = quizItems();
+    if (!mix || !qs.length) return [];
+    var out = [];
+    var textOnly = qs.filter(function (q) {
+      return q.type !== 'hotspot' && !(Array.isArray(q.pics) && q.pics.some(Boolean));
+    }).length;
+    if (textOnly / qs.length > mix.textOnlyMax) {
+      out.push('글 보기만 있는 문항이 ' + qs.length + '개 중 ' + textOnly + '개입니다 (규칙: ' + Math.round(mix.textOnlyMax * 100) + '% 이하). 사진 위치나 그림 고르기 문항을 늘리면 글을 못 읽는 노동자도 풀기 쉽습니다.');
+    }
+    var ox = qs.filter(function (q) { return q.subtype === 'ox'; }).length;
+    if (ox > mix.oxMax) out.push('OX 문항이 ' + ox + '개입니다 (규칙: ' + mix.oxMax + '개 이하). OX 는 찍어도 반은 맞습니다.');
+    var run = 1;
+    var longest = 1;
+    for (var i = 1; i < qs.length; i++) {
+      run = (qs[i].subtype || qs[i].type) === (qs[i - 1].subtype || qs[i - 1].type) ? run + 1 : 1;
+      if (run > longest) longest = run;
+    }
+    if (longest > mix.sameTypeRunMax) out.push('같은 유형 문항이 ' + longest + '개 잇따릅니다 (규칙: ' + mix.sameTypeRunMax + '개까지).');
+    return out;
+  }
+
+  /* 🆕 2026-11-22 특별교육 개별 사항 덮기 (규칙 §12.3·§12.9 ③, C06 D-058) — **경고만**, 발급은 막지 않는다.
+     사항 ↔ 문항은 사람이 문구에 단 태그(library `specialItems`, LegalTag)로만 잇는다. AI 가 잇지 않는다:
+       덮음        = 문항 정답이 검수 문구에서 왔고(answerFrom 'phrase:<id>') 그 문구에 그 사항 태그가 있다
+       설비와 닿음 = 이 설비 종류의 쓸 수 있는 문구 중 하나라도 그 사항 태그를 달았다
+       태그 없음   = 그 사항 태그를 단 문구가 하나도 없다 → 확인할 수 없다고 알린다
+     위치 문항(사진 탭)·AI 작성 정답은 문구가 없어 어느 사항도 덮지 않는 것으로 센다 */
+  function specialCoverage() {
+    var f = EduKind.fields(eduKind);
+    if (f.eduKind !== 'special' || !f.specialJob || typeof LegalTag === 'undefined') return null;
+    var job = LegalTag.jobs().filter(function (j) { return Number(j.no) === f.specialJob; })[0];
+    if (!job || !job.items.length) return null;
+    var phrases = usablePhrases();
+    var tagged = {};
+    var covered = {};
+    phrases.forEach(function (p) { LegalTag.of(p).specialItems.forEach(function (t) { tagged[t] = 1; }); });
+    quizItems().forEach(function (q) {
+      var m = /^phrase:(.+)$/.exec(q.answerFrom || '');
+      var p = m ? Store.findBy(phrases, 'id', m[1]) : null;
+      if (p) LegalTag.of(p).specialItems.forEach(function (t) { covered[t] = 1; });
+    });
+    var rel = job.items.filter(function (it) { return tagged[it.tag]; });
+    return {
+      job: job,
+      relevant: rel.length,
+      missing: rel.filter(function (it) { return !covered[it.tag]; }),
+      untagged: job.items.filter(function (it) { return !tagged[it.tag]; })
+    };
+  }
+
+  /* 🆕 2026-11-22 이 설비의 지난 교육에서 **첫 시도**에 그 위험의 문항을 틀린 사람 수 — { 위험요소 id: 사람 수 } (규칙 §12.3, C06 D-057).
+     첫 시도 = progress.quiz.firstAnswers·firstAsked. 옛 기록은 1회째(attempt 1)일 때만 answers·asked 를 첫 시도로 본다.
+     지난 문항의 위험요소는 id 가 같으면 그것, 아니면 같은 위험유형 + 같은 부위 이름(공백·문장부호 무시)으로 잇는다.
+     한계: 부위 이름이 조금만 달라도 못 잇는다 — 조사를 다시 돌려 이름이 바뀌면 그 위험은 세지 않는다 (필요하면 서버의 2-gram 비교로) */
+  function missedCounts() {
+    var e = state.equipment;
+    var out = {};
+    if (!e) return out;
+    var hz = includedHazards();
+    var norm = function (t) { return String(t || '').toLowerCase().replace(/[\s.,!?·~"'()[\]{}:;/-]/g, ''); };
+    var match = function (id, snap) {
+      var same = Store.findBy(hz, 'id', id);
+      if (same) return same;
+      if (!snap) return null;
+      for (var i = 0; i < hz.length; i++) if (hz[i].hazard === snap.hazard && norm(hz[i].part) === norm(snap.part)) return hz[i];
+      return null;
+    };
+    var rows = Store.progress.load();
+    Store.courses.load().filter(function (c) { return c.equipmentId === e.id; }).forEach(function (c) {
+      rows.forEach(function (row) {
+        var q = row.courseId === c.id ? row.quiz : null;
+        if (!q) return;
+        var first = Array.isArray(q.firstAnswers) ? { answers: q.firstAnswers, asked: q.firstAsked }
+          : ((q.attempt || 1) === 1 && Array.isArray(q.answers) ? { answers: q.answers, asked: q.asked } : null);
+        if (!first) return;
+        var seen = {};
+        first.answers.forEach(function (a, i) {
+          if (a === 1) return;
+          var item = Store.askedQuestion(c, first, i);
+          var h = item ? match(item.hazardId, Store.findBy(c.hazards || [], 'id', item.hazardId)) : null;
+          if (h && !seen[h.id]) { seen[h.id] = 1; out[h.id] = (out[h.id] || 0) + 1; }
+        });
+      });
+    });
+    return out;
   }
   function quizStale() { return !!state.quiz && state.quizFor !== signature(); }
   function quizItems() { return (state.quiz && state.quiz.quiz) || []; }
@@ -700,6 +795,9 @@
   function quizBody(slots, avoid) {
     var e = state.equipment;
     var b = { equipment: { id: e.id, kind: kindId(), name: e.name }, hazards: includedHazards(), phrases: usablePhrases().map(function (p) { return { id: p.id, ko: p.ko }; }) };
+    if (eduKindId()) b.eduKind = eduKindId();   // 🆕 교육 종류별 문항 수 (규칙 §12.3)
+    var missed = missedCounts();                  // 🆕 정기교육은 서버가 이것을 먼저 낸다 (규칙 §12.3, C06 D-057)
+    b.hazards.forEach(function (h) { if (missed[h.id]) h.missed = missed[h.id]; });
     if (slots) b.slots = slots;
     if (avoid) b.avoid = avoid;
     return b;
@@ -766,6 +864,7 @@
       var items = quizItems().filter(function (q) { return !translatedFor(q, lang); }).map(function (q) {
         return { id: q.id, prompt: q.prompt, options: q.options, results: q.results, why: q.why, prevention: q.prevention };
       });
+      translateAlts(lang);   // 🆕 대체 문항은 따로 — 본 문항 번역이 다 됐어도 돈다
       if (!items.length) { state.trans[lang] = 'ok'; return; }
       state.trans[lang] = 'pending';
       call('/api/translate-quiz', { equipment: { id: e.id, name: e.name }, lang: lang, items: items }).then(function (r) {
@@ -784,6 +883,53 @@
     renderAll();
   }
 
+  /* 🆕 2026-11-22 그림 보기 검사 (규칙 §12.7 · §12.9 ⑥) — { block: [발급을 막는 것], warn: [경고만] }.
+     그림 출처(picMeta)는 결과 파일(scripts/make-video-quiz.mjs)에만 있고 발급본에서는 뗀다.
+       block  그림 수 ≠ 보기 수 (노동자 화면이 그림 없는 보기를 낸다)
+       warn   그림 출처 기록 없음 · 그림에 글자(번역 안 됨) · 글자 검사 결과 없음 · 정답 그림이 영상 장면 그대로(기억으로 맞힘) */
+  var TEXT_CHECK_OK = { no: true, '3d': true };
+  function picProblems(q) {
+    var out = { block: [], warn: [] };
+    var pics = q && Array.isArray(q.pics) ? q.pics : [];
+    if (!pics.length) return out;
+    var n = Array.isArray(q.options) ? q.options.length : 0;
+    if (pics.length !== n) out.block.push('그림 ' + pics.length + '장 · 보기 ' + n + '개 — 수가 같아야 합니다');
+    var meta = Array.isArray(q.picMeta) && q.picMeta.length === pics.length ? q.picMeta : null;
+    if (!meta) { out.warn.push('그림 출처 기록이 없어 글자·영상 장면 검사를 못 했습니다'); return out; }
+    meta.forEach(function (m, i) {
+      var c = m && m.textCheck;
+      if (c === 'yes') out.warn.push('그림 ' + (i + 1) + ' 에 글자가 있을 수 있습니다 — 그림 속 글자는 번역되지 않습니다');
+      else if (!TEXT_CHECK_OK[c]) out.warn.push('그림 ' + (i + 1) + ' 의 글자 검사 결과가 없습니다 (' + (c || '기록 없음') + ')');
+    });
+    if (meta[q.answer] && meta[q.answer].inVideo) out.warn.push('정답 그림이 영상에서 본 장면 그대로입니다 — 기억으로 맞힐 수 있어, 다른 각도·다른 순간이 낫습니다');
+    return out;
+  }
+
+  /* 🆕 2026-11-22 대체 문항 (quiz[].alt[], C06 D-060) */
+  function altsOf(q) { return q && Array.isArray(q.alt) ? q.alt : []; }
+
+  /** 대체 문항 번역 — 본 문항과 따로 한 번 더 부른다 (한 번에 20문항 상한, `_quiztrans.mjs`).
+   *  ★ 발급을 막지 않는다 — 번역이 없는 대체 문항은 노동자 화면이 본 문항의 보기 순서만 바꿔 낸다 */
+  function translateAlts(lang) {
+    var e = state.equipment;
+    var alts = [];
+    quizItems().forEach(function (q) { altsOf(q).forEach(function (a) { if (!translatedFor(a, lang)) alts.push(a); }); });
+    if (!alts.length) return;
+    call('/api/translate-quiz', { equipment: { id: e.id, name: e.name }, lang: lang, items: alts.slice(0, 20).map(function (a) {
+      return { id: a.id, prompt: a.prompt, options: a.options, results: a.results, why: a.why, prevention: a.prevention };
+    }) }).then(function (r) {
+      if (!r.ok || !sameEquipment(r.data) || !r.data.i18n) return;
+      alts.forEach(function (a) {
+        var t = r.data.i18n[a.id];
+        if (!t) return;
+        a.i18n = a.i18n || {};
+        a.i18n[lang] = t;
+        phraseOverride(a, lang);
+      });
+      renderAll();
+    });
+  }
+
   /** [수정 요청] — 그 칸만 같은 위험·유형·난이도로 다시 (계획은 그대로) */
   function regenOne(q) {
     if (!serverReady() || state.source === 'file') return;
@@ -794,6 +940,7 @@
       if (!r.ok || !sameEquipment(r.data) || !r.data.quiz || !r.data.quiz.length) { $('ag-quiz-status').textContent = r.ok ? '다시 만들지 못했습니다.' : failText(r); return; }
       var fresh = r.data.quiz[0];
       fresh.id = q.id;
+      altsOf(fresh).forEach(function (a) { a.id = q.id + '-alt'; a.variantOf = q.id; });   // 대체 문항 id 도 본 문항을 따라간다
       state.quiz.quiz = quizItems().map(function (x) { return x.slot === q.slot ? fresh : x; });
       $('ag-reviewed').checked = false;
       $('ag-quiz-status').textContent = q.id + ' 을 다시 만들었습니다.';
@@ -824,7 +971,7 @@
         : (server ? '' : '서버 없이는 문항을 만들 수 없습니다 — 문항이 든 결과 파일을 불러오세요.');
       return;
     }
-    if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
+    if (quizStale()) plan.appendChild(UI.itemRow('alert', '위험요소 판정이나 교육 종류가 바뀌었습니다', server ? '[전체 다시 만들기]를 눌러 문항에 반영하세요.' : '서버에서 다시 만들어야 반영됩니다. 지금 문항은 결과 파일의 판정 기준입니다.'));
     var langs = quizLangs();
     if (langs.length) {
       var miss = transMissing();
@@ -850,6 +997,19 @@
     }
     var p = state.quiz.plan || {};
     plan.appendChild(UI.itemRow('check', '문항 ' + quizItems().length + '개 · 규칙 ' + (state.quiz.rulesVersion || p.rulesVersion || ''), (p.reasons || []).join(' / ')));
+    (p.warnings || []).forEach(function (w) { plan.appendChild(UI.itemRow('alert', '문항 수 확인', w)); });
+    mixWarnings().forEach(function (w) { plan.appendChild(UI.itemRow('alert', '유형 섞기 확인', w)); });
+    var cov = specialCoverage();
+    if (cov && cov.missing.length) {
+      plan.appendChild(UI.itemRow('alert', '특별교육 개별 사항 중 문항이 없는 것 ' + cov.missing.length + '개',
+        cov.missing.map(function (it) { return LegalTag.label(it.tag); }).join(' · ') + ' — 이 사항 태그가 달린 문구를 정답으로 쓴 문항이 없습니다. [전체 다시 만들기]나 문항 수정으로 채워 주세요. 발급은 막지 않습니다.'));
+    } else if (cov && cov.relevant) {
+      plan.appendChild(UI.itemRow('check', '특별교육 개별 사항 ' + cov.relevant + '개를 문항이 모두 다룹니다', '사항 태그가 달린 검수 문구가 정답인 문항 기준'));
+    }
+    if (cov && cov.untagged.length) {
+      plan.appendChild(UI.itemRow('alert', '문구 태그가 없어 확인할 수 없는 개별 사항 ' + cov.untagged.length + '개',
+        cov.untagged.map(function (it) { return LegalTag.label(it.tag); }).join(' · ') + ' — 콘텐츠 라이브러리에서 문구에 사항 태그를 달면 확인됩니다.'));
+    }
     if ((state.quiz.missing || []).length) plan.appendChild(UI.itemRow('alert', '못 채운 칸 ' + state.quiz.missing.length + '개', '규칙을 통과한 후보가 없었습니다. [전체 다시 만들기]를 눌러 주세요.'));
     if ((state.quiz.excluded || []).length) {
       var li0 = UI.el('li');
@@ -898,9 +1058,23 @@
         li.appendChild(UI.el('p', 'meta', '정답 위치: 사진의 #' + number(q.hazardId) + ' 박스 (반지름 ' + (q.answer && q.answer.r) + '%)'));
       }
       (q.warnings || []).forEach(function (w) { li.appendChild(UI.itemRow('alert', '검토할 점: ' + w, '규칙상 버리지는 않았지만 담당자가 확인할 부분입니다.')); });
+      var pp = picProblems(q);
+      pp.block.forEach(function (w) { li.appendChild(UI.itemRow('alert', '그림 보기 — 발급 막힘: ' + w, '결과 파일을 다시 만들어 주세요.')); });
+      pp.warn.forEach(function (w) { li.appendChild(UI.itemRow('alert', '그림 보기 확인: ' + w, '발급은 막지 않습니다. 그림을 직접 보고 판단해 주세요.')); });
       if (q.why) li.appendChild(UI.el('p', 'meta', '해설: ' + q.why));
       if (q.prevention) li.appendChild(UI.el('p', 'meta', '안전수칙·예방조치: ' + q.prevention));
       if (q.evidence) li.appendChild(UI.el('p', 'meta', '탐지 근거: ' + q.evidence));
+      /* 🆕 2026-11-22 다시 풀기용 대체 문항 (규칙 §12.9 ⑧, C06 D-060) — 같은 위험·주제·유형. AI 가 쓴 것이라 본 문항과 함께 검토한다 */
+      altsOf(q).forEach(function (a) {
+        var box = UI.el('div', 'ag-alt');
+        box.setAttribute('data-alt', a.id);
+        box.appendChild(UI.waitBadge('다시 풀기용 대체 문항 — 검토 필요'));
+        box.appendChild(UI.el('p', null, a.prompt));
+        if (Array.isArray(a.options)) box.appendChild(UI.el('p', 'meta', '보기: ' + a.options.map(function (o, i) { return (i === a.answer ? '(정답) ' : '') + o; }).join(' · ')));
+        if (a.why) box.appendChild(UI.el('p', 'meta', '해설: ' + a.why));
+        box.appendChild(UI.el('p', 'sub', '처음 푼 뒤 미통과한 노동자가 다시 풀 때 이 문항이 대신 나옵니다. 내 언어 번역이 없으면 본 문항의 보기 순서만 바꿔 냅니다.'));
+        li.appendChild(box);
+      });
       if ((q.sources || []).length) {
         var srcs = UI.el('ul', 'meta');
         q.sources.forEach(function (s) {
@@ -948,6 +1122,8 @@
     var ps = usablePhrases().length;
     /* 규칙 §9.4 발급 막기 — 서버가 판정한 이유 (필수 주제 빠짐·최소 문항 미달 등) */
     var blocked = state.quiz && state.quiz.issuable && !state.quiz.issuable.ok ? (state.quiz.issuable.why || []) : [];
+    /* 🆕 그림 수 ≠ 보기 수면 노동자 화면이 그림 없는 보기를 낸다 — 발급을 막는다 (규칙 §12.7 · §12.9 ⑥) */
+    quizItems().forEach(function (q) { picProblems(q).block.forEach(function (b) { blocked = blocked.concat(q.id + ': ' + b); }); });
     return [
       /* 0단계는 막지 않는다 — 고르지 않으면 「미지정」 으로 발급된다 (FR-AD-04-21) */
       { what: '교육 종류', done: true, note: EduKind.label(EduKind.fields(eduKind)) },
@@ -1018,7 +1194,13 @@
   function buildCourse() {
     var e = state.equipment;
     if (!e || !state.research || !state.quiz) return null;
-    var quiz = quizItems().map(function (q) { var c = JSON.parse(JSON.stringify(q)); delete c.slot; return c; });
+    var quiz = quizItems().map(function (q) {
+      var c = JSON.parse(JSON.stringify(q));
+      delete c.slot;
+      delete c.picMeta;   // 그림 출처는 검토용 — 발급본(courses)에 담지 않는다 (§12.9 ⑥)
+      (c.alt || []).forEach(function (a) { delete a.slot; delete a.picMeta; });
+      return c;
+    });
     var usesPhoto = quiz.some(function (q) { return q.type === 'hotspot'; });
     var course = {
       id: Store.uid(),
@@ -1158,6 +1340,7 @@
         $('ag-title').value = EduKind.titlePrefix(eduKind) + e.name + ' 안전교육';
       }
       if (state && state.research) renderApprove();
+      if (state && state.quiz) renderQuiz();   // 종류가 바뀌면 「다시 만들기」 안내가 바로 보이게
     });
   }
   drawEduKind();
@@ -1203,6 +1386,6 @@
   /* 검사가 화면 안쪽을 볼 수 있게 — 화면 동작에는 쓰지 않는다 */
   window.__autogen = {
     state: function () { return state; }, loadRun: loadRun, readRun: readRun, steps: steps,
-    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases
+    includedHazards: includedHazards, signature: signature, usablePhrases: usablePhrases, missedCounts: missedCounts, specialCoverage: specialCoverage, mixWarnings: mixWarnings, translateQuiz: translateQuiz, picProblems: picProblems
   };
 })();

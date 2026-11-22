@@ -451,7 +451,7 @@ hr{border:0;border-top:1px solid var(--line);margin:28px 0}
 <ul><li><code>prefs</code>(글자 크기)는 기기 설정이라 서버에 두지 않는다.</li><li>테이블 변경은 <code>db/migrations/NNN_설명.sql</code>로만 한다.</li></ul>
 <p><strong>데이터 계약 (저장소 10칸)</strong></p>
 <div class="tbl"><table><thead><tr><th>#</th><th>키</th><th>무엇</th><th>쓰는 쪽</th><th>읽는 쪽</th></tr></thead><tbody><tr><td>1</td><td><code>accounts</code></td><td>계정</td><td>회원가입</td><td>로그인·게시판</td></tr><tr><td>2</td><td><code>session</code></td><td>로그인한 사람</td><td>로그인</td><td>모든 화면(가드)</td></tr><tr><td>3</td><td><code>setup</code></td><td>사업장·언어·공정·설비·노동자</td><td>기능1</td><td>거의 전부</td></tr><tr><td>4</td><td><code>library</code></td><td>안전 문구 + 언어별 검수 상태</td><td>기능9</td><td>기능2·3, 홈</td></tr><tr><td>5</td><td><code>courses</code></td><td>교육과 문항</td><td>기능2</td><td>기능3·4·5·6</td></tr><tr><td>6</td><td><code>progress</code></td><td>수강·점수 기록</td><td>기능3·4</td><td>기능5·6, 마이</td></tr><tr><td>7</td><td><code>reports</code></td><td>위험요소 신고 (<strong>익명, 식별값 없음</strong>)</td><td>기능8</td><td>기능6</td></tr><tr><td>8</td><td><code>posts</code></td><td>게시글·댓글</td><td>기능7</td><td>기능7</td></tr><tr><td>9</td><td><code>prefs</code></td><td>이 기기의 보기 설정 (글자 크기, 음성 되돌림)</td><td>노동자 화면</td><td>노동자 화면</td></tr><tr><td>10</td><td><code>orders</code></td><td>재교육 지시</td><td>기능6</td><td>노동자 홈, 기능6</td></tr></tbody></table></div>
-<p>모양이 미묘한 세 곳: <code>library[].translations[lang].status</code>(언어별 검수), <code>courses[].quiz[].i18n</code>(문항 다국어), <code>progress[].quiz.asked</code>(답이 어느 문항의 것인가). 상세는 <code>docs/09-handover.md</code> §4.1.</p>
+<p>모양이 미묘한 세 곳: <code>library[].translations[lang].status</code>(언어별 검수), <code>courses[].quiz[].i18n</code>(문항 다국어), <code>progress[].quiz.asked</code>(답이 어느 문항의 것인가) · 🆕 2026-11-22 <code>progress[].quiz.firstAnswers·firstAsked</code>(첫 시도 답, 한 번만 씀 — C06 D-057) · <code>courses[].quiz[].alt</code>(다시 풀기용 대체 문항, <code>askedQuestion</code> 이 찾는다 — C06 D-060). 상세는 <code>docs/09-handover.md</code> §4.1.</p>
 <p><strong>🆕 2차 데이터 계약 변경 — <code>library[].translations[lang]</code> (TK-2-08, 데이터 모양 변경)</strong></p>
 <pre><code>library[i].translations[code] = {
   text, back,
@@ -482,7 +482,15 @@ hr{border:0;border-top:1px solid var(--line);margin:28px 0}
 <a id="inc-d07"></a>
 <p>→ 원본: <a href="../../documentations/40_캡스톤산출물/D07_시험결과서.md">D07 시험결과서</a></p>
 <h2 id="d07--소프트웨어-시스템-시험결과서">D07 · 소프트웨어 시스템 시험결과서</h2>
-<blockquote><p>양식: <code>2025-개정-D07-소프트웨어시스템시험결과서.hwp</code><br>⚠️ §6 「수행결과」 칸은 최종 구현 후(기능 동결)에 채운다.<br><strong>문서 상태</strong> 초안 v0.4 · <strong>최종 수정</strong> 2026-10-31<br>🆕 <strong>2026-11-22 실측 — 59묶음 3,828건 통과</strong> (새 묶음: <code>test-setup-video</code> · <code>test-setup-research</code> · <code>test-scan-download</code> · <code>test-scan-lost</code> · <code>test-ai-timeouts</code> · <code>test-phrase-hazards</code>). 이 PC 에서만 <code>test-agent-boundary</code> 의 시간 검사 2건이 가끔 실패한다 — CI 는 통과</p>
+<blockquote><p>양식: <code>2025-개정-D07-소프트웨어시스템시험결과서.hwp</code><br>⚠️ §6 「수행결과」 칸은 최종 구현 후(기능 동결)에 채운다.<br><strong>문서 상태</strong> 초안 v0.4 · <strong>최종 수정</strong> 2026-10-31<br>🆕 <strong>2026-11-22 (10) 실측 — 60묶음 3,948건 통과</strong> — 그림 보기 검사(C06 D-061): <code>test-autogen</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 (9) 실측 — 60묶음 3,939건 통과</strong> — 다시 풀기 대체 문항(C06 D-060): <code>test-api-questions</code> · <code>test-quiz</code> · <code>test-autogen</code> 에 검사 추가, <code>test-quiz</code> 는 선택지를 자리 대신 글자로 찾는다 (다시 풀 때 보기 순서가 돈다)</p>
+<p>🆕 <strong>2026-11-22 (7) 실측 — 60묶음 3,921건 통과</strong> — 대면 재교육 표시(C06 D-059): <code>test-dashboard</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 (6) 실측 — 60묶음 3,914건 통과</strong> — 유형 섞기 경고(규칙 §12.5): <code>test-autogen</code> · <code>test-api-questions</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 (5) 실측 — 60묶음 3,905건 통과</strong> — develop 을 받아 묶음 하나가 늘었고, 미통과 뒤 틀린 문항 설명 먼저(PRD-WK-03 FR-26): <code>test-quiz</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 (4) 실측 — 59묶음 3,888건 통과</strong> — 특별교육 개별 사항 덮기 경고(C06 D-058): <code>test-autogen</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 (3) 실측 — 59묶음 3,881건 통과</strong> — 첫 시도 기록·정기교육 오답 먼저(C06 D-057): <code>test-quiz</code> · <code>test-api-questions</code> · <code>test-autogen</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 (2) 실측 — 59묶음 3,863건 통과</strong> — 교육 종류별 문항 수(C06 D-056): <code>test-api-questions</code> · <code>test-rules-md</code> · <code>test-autogen</code> 에 검사 추가</p>
+<p>🆕 <strong>2026-11-22 실측 — 59묶음 3,828건 통과</strong> (새 묶음: <code>test-setup-video</code> · <code>test-setup-research</code> · <code>test-scan-download</code> · <code>test-scan-lost</code> · <code>test-ai-timeouts</code> · <code>test-phrase-hazards</code>). 이 PC 에서만 <code>test-agent-boundary</code> 의 시간 검사 2건이 가끔 실패한다 — CI 는 통과</p>
 <p>이 판은 <strong>기준선 v1.0 의 자동화 테스트 실측</strong>(<strong>2026-10-31</strong> 재실행 — 묶음별 건수가 10/10과 같다)과 <strong>AI 번역·검수 에이전트의 확정 시험 계획(미수행, 구현 11/1~11/8)</strong> 을 담는다.<br>수행 상태 표기: ✅ 통과 · ⬜ 미수행(구현 전/예정) · 🧑 사람이 수행.</p></blockquote>
 <hr>
 <h3 id="1-프로젝트-개요">1. 프로젝트 개요</h3>

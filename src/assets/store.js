@@ -548,8 +548,10 @@ var Store = (function () {
 
   /* 6. progress — 노동자 기능3·4 가 쓰고 관리자 기능5·6 이 읽는다
         { workerId, courseId, lang, learnedAt,
-          quiz: { score, passed, answers, at, asked } }
+          quiz: { score, passed, answers, at, asked, attempt, firstPassed, firstAnswers?, firstAsked? } }
         asked 는 그때 실제로 낸 문항의 id 목록이다 (C6). answers 와 자리가 짝지어진다.
+        🆕 2026-11-22 firstAnswers·firstAsked = 첫 시도의 answers·asked (한 번만 쓰고 바꾸지 않는다, C06 D-057).
+          옛 기록에는 없다 — 읽는 쪽은 없으면 attempt 가 1 일 때만 answers·asked 를 첫 시도로 본다.
         통과하지 못하면 교육 완료로 기록되지 않는다 (SCREEN 기능4). */
   var progress = listStore('progress');
 
@@ -570,7 +572,16 @@ var Store = (function () {
     var list = (course && Array.isArray(course.quiz)) ? course.quiz : [];
     var asked = (quizRow && Array.isArray(quizRow.asked)) ? quizRow.asked : null;
     if (!asked) return list[i] || null;
-    return asked[i] ? findBy(list, 'id', asked[i]) : null;
+    if (!asked[i]) return null;
+    var found = findBy(list, 'id', asked[i]);
+    if (found) return found;
+    /* 🆕 2026-11-22 다시 풀 때 낸 대체 문항(quiz[].alt[], C06 D-060)은 본 문항 안에 있다.
+       대체 문항도 같은 위험·주제·유형이라 대시보드·증빙이 같은 자리로 센다 */
+    for (var k = 0; k < list.length; k++) {
+      var alt = list[k] && Array.isArray(list[k].alt) ? findBy(list[k].alt, 'id', asked[i]) : null;
+      if (alt) return alt;
+    }
+    return null;
   }
 
   /* 7. reports — 노동자 기능8 위험요소 신고. 관리자 기능6 이 처리한다

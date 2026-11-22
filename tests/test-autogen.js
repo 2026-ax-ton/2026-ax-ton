@@ -160,6 +160,7 @@ function fakeQuestions(body) {
   eq('★★ 고친 부위·위험유형으로 보낸다', qc.body.hazards[1].part + '|' + qc.body.hazards[1].hazard, '발판 페달|pinch');
   eq('★ 좌표가 있는 위험에만 좌표를 보낸다', JSON.stringify(qc.body.hazards.map((h) => !!h.answer)), '[true,false]');
   ok('★★ 문구는 그 설비 종류 것만 보낸다', qc.body.phrases.every((p) => p.id !== 'ph-4'));
+  ok('교육 종류를 안 골랐으면 eduKind 를 보내지 않는다', !('eduKind' in qc.body));
   eq('문항이 그려진다', doc.querySelectorAll('#ag-quiz li.ag-q').length, 2);
   has('★★ AI 작성 문항 표시', $('ag-quiz').textContent, 'AI 작성 — 검토 필요');
   has('위치 문항 표시', $('ag-quiz').textContent, '사진 위치 (AI 탐지 좌표)');
@@ -175,6 +176,18 @@ function fakeQuestions(body) {
   ok('★★ 문항을 고르는 체크박스가 없다', !doc.querySelector('#ag-quiz input'));
   tabTo(t, 'ok');
   has('★ 항목에 연결 문항 번호', doc.querySelector('#ag-items li[data-id="r1"]').textContent, '연결 문항 q1');
+
+  /* 🆕 2026-11-22 교육 종류를 고르면 그 종류의 문항 수로 다시 만든다 (규칙 §12.3) */
+  const kindRadio = doc.querySelector('input[name="edu-kind"][value="regular"]');
+  ok('교육 종류 고르기가 있다', !!kindRadio);
+  kindRadio.checked = true;
+  kindRadio.dispatchEvent(new win.Event('change', { bubbles: true }));
+  has('★★ 교육 종류를 바꾸면 「다시 만들어야」 표시', $('ag-plan').textContent, '위험요소 판정이나 교육 종류가 바뀌었습니다');
+  ok('★ 다시 만들기 전에는 발급 단계가 끝나지 않는다', win.__autogen.steps().find((s) => s.what === 'AI 평가문항').done === false);
+  click(win, $('btn-regen-all'));
+  await ticks();
+  eq('★★ 고른 교육 종류를 /api/questions 에 보낸다', calls.filter((x) => x.path === '/api/questions').pop().body.eduKind, 'regular');
+  ok('다시 만들면 「다시 만들어야」 표시가 사라진다', $('ag-plan').textContent.indexOf('교육 종류가 바뀌었습니다') === -1);
 
   /* 검토 → 발급 */
   eq('★★ 아직 courses 에 아무것도 안 썼다', JSON.stringify(S.courses.load()), before);
@@ -192,6 +205,21 @@ function fakeQuestions(body) {
   ok('★ 문항이 바뀌면 검토 표시를 다시 받는다', $('ag-reviewed').checked === false && $('btn-approve').disabled === true);
   $('ag-reviewed').checked = true;
   $('ag-reviewed').dispatchEvent(new win.Event('change', { bubbles: true }));
+
+  /* 🆕 2026-11-22 다시 풀기용 대체 문항 (규칙 §12.9 ⑧, C06 D-060) — 검토 화면에 보이고, 따로 번역하고, 발급본에 남는다 */
+  const q2 = win.__autogen.state().quiz.quiz.find((q) => q.id === 'q2');
+  q2.alt = [{ ...JSON.parse(JSON.stringify(q2)), id: 'q2-alt', variantOf: 'q2', prompt: '대체 발문', i18n: {} }];
+  delete q2.alt[0].alt;
+  q2.picMeta = [{ from: '3d', textCheck: '3d', inVideo: true }];   // 검토용 — 발급본에서 떼야 한다
+  q2.alt[0].picMeta = [{ from: '3d', textCheck: '3d', inVideo: true }];
+  click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
+  ok('★★ 검토 화면에 대체 문항이 보인다', !!doc.querySelector('#ag-quiz li[data-q="q2"] [data-alt="q2-alt"]') && $('ag-quiz').textContent.includes('다시 풀기용 대체 문항'));
+  const nT = calls.length;
+  win.__autogen.translateQuiz(['km']);
+  await ticks();
+  const altCall = calls.slice(nT).find((c) => c.path === '/api/translate-quiz' && c.body.items.some((it) => it.id === 'q2-alt'));
+  ok('★ 대체 문항은 본 문항과 따로 번역한다', !!altCall && altCall.body.items.every((it) => /-alt$/.test(it.id)));
+  ok('번역이 대체 문항에 붙는다', S.qhas(q2.alt[0], 'km'));
 
   /* 보류 */
   click(win, $('btn-hold'));
@@ -224,20 +252,111 @@ function fakeQuestions(body) {
   eq('AI 작성 문항 수 기록', c.aiDraft.aiWritten, 1);
   ok('★★ 발급본 문항에 세 언어 번역이 들어 있다', c.quiz.every((q) => ['km', 'ne', 'vi'].every((l) => S.qhas(q, l))));
   ok('★ 문항 칸 번호(slot)는 저장하지 않는다', c.quiz.every((q) => !('slot' in q)));
+  const savedAlt = (c.quiz.find((q) => q.id === 'q2') || {}).alt;
+  ok('★ 그림 출처(picMeta)는 발급본에 담지 않는다 (검토용, §12.9 ⑥)', !JSON.stringify(c).includes('picMeta'));
+  ok('★★ 대체 문항이 발급본에 남는다 (칸 번호 없이)', Array.isArray(savedAlt) && savedAlt[0].id === 'q2-alt' && !('slot' in savedAlt[0]));
   ok('★★ 참고 사진(외부 그림)은 저장하지 않는다', !JSON.stringify(c).includes('/9j/AAAA') && !JSON.stringify(S.setup.load()).includes('/9j/AAAA'));
   ok('발급 뒤 승인 버튼이 꺼진다', $('btn-approve').disabled === true);
+
 
   /* 설비 바꾸기 — 앞 설비 것을 버리고, 다시 돌아오면 저장된 분석을 불러온다 */
   const n0 = calls.length;
   $('ag-equip').value = 'e-booth1';
   $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
   eq('★★ 다른 설비를 고르면 앞 설비의 분석·문항이 사라진다', !!win.__autogen.state().research + '|' + $('sec-items').hidden + '|' + $('sec-quiz').hidden, 'false|true|true');
-  eq('★ 제목도 그 설비로', $('ag-title').value, '도장 부스 1 안전교육');
+  eq('★ 제목도 그 설비로 (앞에서 고른 교육 종류 머리말은 그대로)', $('ag-title').value, '[정기교육] 도장 부스 1 안전교육');
   ok('도장 부스는 사진이 없다', $('ag-equip-photo').hidden === true);
   $('ag-equip').value = 'e-press3';
   $('ag-equip').dispatchEvent(new win.Event('change', { bubbles: true }));
   eq('★★ 설비에 저장된 분석을 다시 조사하지 않고 불러온다 (참고 사진 찾기만 더 부른다)', calls.slice(n0).map((c) => c.path).join() + '|' + aiCount(win), '/api/photos|3');
   has('저장된 분석이라고 알린다', $('ag-research-status').textContent, '설비 탭에서 한 AI 위험요소 조사');
+
+  /* 🆕 2026-11-22 정기교육 — 이 설비의 지난 교육에서 첫 시도에 틀린 사람 수를 위험요소마다 (규칙 §12.3, C06 D-057) */
+  const ids = c.quiz.map((q) => q.id);
+  const hz0 = c.quiz[0].hazardId;
+  S.progress.update((list) => {
+    list.push({ workerId: 'W-m1', courseId: c.id, lang: 'km', learnedAt: 'x', quiz: { answers: [1, 1], asked: ids, attempt: 2, firstAnswers: [0, 1], firstAsked: ids } });
+    list.push({ workerId: 'W-m2', courseId: c.id, lang: 'km', learnedAt: 'x', quiz: { answers: [0, 1], asked: ids, attempt: 1 } });        // 옛 기록 1회째
+    list.push({ workerId: 'W-m3', courseId: c.id, lang: 'km', learnedAt: 'x', quiz: { answers: [0, 0], asked: ids, attempt: 3 } });        // 첫 시도를 모른다 → 세지 않는다
+  });
+  const missed = win.__autogen.missedCounts();
+  eq('★★ 첫 시도에 틀린 사람 수 (첫 기록 1 + 옛 1회째 기록 1, 첫 시도를 모르는 기록은 빼고)', missed[hz0], 2);
+  ok('★ 맞힌 문항의 위험은 세지 않는다', !missed[c.quiz[1].hazardId]);
+  click(win, $('btn-regen-all'));
+  await ticks();
+  const mq = calls.filter((x) => x.path === '/api/questions').pop();
+  eq('★★ 오답 수를 위험요소에 붙여 보낸다', (mq.body.hazards.find((h) => h.id === hz0) || {}).missed, 2);
+  ok('오답이 없는 위험에는 붙이지 않는다', mq.body.hazards.filter((h) => h.id !== hz0).every((h) => !('missed' in h)));
+  ok('★ 발급본 위험요소 스냅샷에는 오답 수를 넣지 않는다', !JSON.stringify(S.courses.load()).includes('"missed"'));
+
+  /* 🆕 2026-11-22 유형 섞기 경고 (규칙 §12.5 · §12.9 ⑩) — 한계값은 plan.mix, 지금 문항 목록 전체로 센다 */
+  const A = win.__autogen;
+  eq('plan.mix 가 없으면 보지 않는다 (결과 파일 등)', A.mixWarnings().length, 0);
+  const qz = A.state().quiz;
+  const keepQuiz = qz.quiz;
+  qz.plan.mix = { textOnlyMax: 0.4, oxMax: 1, sameTypeRunMax: 3 };
+  const txt = (i, sub) => ({ id: 'm' + i, type: 'choice', subtype: sub, prompt: 'p' + i, options: ['a', 'b'], answer: 0 });
+  qz.quiz = [txt(1, 'ox'), txt(2, 'ox'), txt(3, 'action'), txt(4, 'action'), txt(5, 'action'), txt(6, 'action')];
+  const mw = A.mixWarnings();
+  ok('★★ 글 보기만 문항이 40% 를 넘으면 경고', mw.some((w) => /글 보기만 있는 문항이 6개 중 6개/.test(w)));
+  ok('★ OX 가 1개를 넘으면 경고', mw.some((w) => /OX 문항이 2개/.test(w)));
+  ok('★ 같은 유형이 3개를 넘게 잇따르면 경고', mw.some((w) => /같은 유형 문항이 4개 잇따릅니다/.test(w)));
+  qz.quiz = [{ id: 'h1', type: 'hotspot', subtype: 'location' }, { ...txt(2, 'action'), pics: ['data:image/png;base64,AA', 'data:image/png;base64,BB'] }, txt(3, 'situation'), { id: 'h4', type: 'hotspot', subtype: 'location' }];
+  eq('★ 사진 위치·그림 고르기는 글 보기만이 아니다 → 경고 없음', A.mixWarnings().length, 0);
+  qz.quiz = [txt(1, 'action'), txt(2, 'action'), txt(3, 'action')].concat([1, 2, 3, 4, 5].map((i) => ({ id: 'h' + i, type: 'hotspot', subtype: 'location' })));
+  ok('같은 유형 3개까지는 괜찮다 (위치 5개 연속만 걸린다)', A.mixWarnings().length === 1 && /5개 잇따릅니다/.test(A.mixWarnings()[0]));
+  qz.quiz = [txt(1, 'ox'), txt(2, 'ox'), txt(3, 'action')];
+  click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
+  has('★★ 담당자 화면 계획 칸에 「유형 섞기 확인」', $('ag-plan').textContent, '유형 섞기 확인');
+  ok('경고만 — 발급 막기 이유에는 넣지 않는다', !(A.state().quiz.issuable && (A.state().quiz.issuable.why || []).some((w) => /유형 섞기|OX 문항/.test(w))));
+  qz.quiz = keepQuiz;
+  delete qz.plan.mix;
+
+  /* 🆕 2026-11-22 그림 보기 검사 (규칙 §12.7 · §12.9 ⑥) */
+  const P = 'data:image/jpeg;base64,AA';
+  const pq = (o) => Object.assign({ id: 'pq', type: 'choice', subtype: 'picture', prompt: '안전하게 일하는 그림을 고르세요', options: ['그림 1', '그림 2', '그림 3'], pics: [P, P, P], answer: 1 }, o);
+  eq('그림 없는 문항은 보지 않는다', JSON.stringify(A.picProblems({ type: 'choice', options: ['a', 'b'] })), '{"block":[],"warn":[]}');
+  ok('★★ 그림 수 ≠ 보기 수면 발급을 막는다', A.picProblems(pq({ pics: [P, P] })).block.length === 1);
+  ok('★ 그림 출처 기록이 없으면 경고', A.picProblems(pq()).warn.some((w) => w.includes('출처 기록이 없어')));
+  const meta = (c, v) => ({ from: 'ai-image', textCheck: c, inVideo: v });
+  const pw = A.picProblems(pq({ picMeta: [meta('no', false), meta('yes', true), meta('cached', false)] })).warn;
+  ok('★ 그림에 글자가 있으면 경고 (번역 안 됨)', pw.some((w) => w.includes('그림 2 에 글자가 있을 수 있습니다')));
+  ok('★ 글자 검사 결과가 없으면 경고', pw.some((w) => w.includes('그림 3 의 글자 검사 결과가 없습니다 (cached)')));
+  ok('★ 정답 그림이 영상 장면 그대로면 경고', pw.some((w) => w.includes('정답 그림이 영상에서 본 장면 그대로')));
+  eq('3D 장면·검사 통과 그림 · 영상과 다른 정답이면 경고 없음', A.picProblems(pq({ picMeta: [meta('no', true), { from: '3d', textCheck: '3d', inVideo: false }, meta('no', true)] })).warn.length, 0);
+  const keepQ = A.state().quiz.quiz;
+  A.state().quiz.quiz = keepQ.concat([pq({ pics: [P, P] })]);
+  const stQ = A.steps().find((s) => s.what === 'AI 평가문항');
+  ok('★★ 그림 수가 안 맞으면 「AI 평가문항」 단계가 끝나지 않는다 (발급 막힘)', stQ.done === false && stQ.note.includes('pq: 그림 2장 · 보기 3개'));
+  A.state().quiz.quiz = keepQ;
+
+  /* 🆕 2026-11-22 특별교육 개별 사항 덮기 — 사람이 단 문구 태그로만, 경고만 (규칙 §12.9 ③, C06 D-058) */
+  eq('특별교육이 아니면 확인하지 않는다', A.specialCoverage(), null);
+  const sp = doc.querySelector('input[name="edu-kind"][value="special"]');
+  sp.checked = true;
+  sp.dispatchEvent(new win.Event('change', { bubbles: true }));
+  const job = doc.getElementById('edu-special');
+  job.value = '11';
+  job.dispatchEvent(new win.Event('change', { bubbles: true }));
+  const ph = A.usablePhrases();
+  ok('쓸 수 있는 문구가 둘 이상 있다 (검사 준비)', ph.length >= 2);
+  S.library.update((list) => list.forEach((p) => {
+    if (p.id === ph[0].id) p.specialItems = ['11-1', '11-2'];
+    else if (p.id === ph[1].id) p.specialItems = ['11-3'];
+    else delete p.specialItems;
+  }));
+  const qs = A.state().quiz.quiz;
+  const keepFrom = qs[0].answerFrom;
+  eq('위치 문항(사진)은 문구가 없어 어느 사항도 덮지 않는다', A.specialCoverage().missing.length, 3);
+  qs[0].answerFrom = 'phrase:' + ph[0].id;
+  const cov = A.specialCoverage();
+  eq('★★ 덮은 사항 = 정답 문구의 태그 · 빠진 것 = 태그 문구는 있는데 문항이 없는 사항', cov.relevant + '|' + cov.missing.map((x) => x.tag).join() + '|' + cov.untagged.map((x) => x.tag).join(), '3|11-3|11-4');
+  click(win, $('btn-hold')); click(win, $('btn-hold'));   // 다시 그리기
+  has('★★ 문항이 없는 개별 사항을 담당자에게 알린다', $('ag-plan').textContent, '특별교육 개별 사항 중 문항이 없는 것 1개');
+  has('★ 태그가 없어 확인할 수 없는 사항도 알린다', $('ag-plan').textContent, '문구 태그가 없어 확인할 수 없는 개별 사항 1개');
+  S.library.update((list) => list.forEach((p) => { if (p.id === ph[0].id) p.specialItems = ['11-1', '11-2', '11-3']; }));
+  eq('★ 정답 문구의 태그가 늘면 빠진 사항이 없어진다', A.specialCoverage().missing.length, 0);
+  qs[0].answerFrom = keepFrom;
   ok('화면 오류 없음 (흐름 끝)', t.errors.length === 0, t.errors.join(' | '));
 
   /* 해시로 설비 고르기 (설비 탭 · 콘텐츠 탭에서 오는 길) */
@@ -265,7 +384,7 @@ function fakeQuestions(body) {
     t5.win.document.querySelector('#ag-tabs [data-tab="check"]').dispatchEvent(new t5.win.MouseEvent('click', { bubbles: true }));
     setInc(t5, 'r2', true);
     setInc(t5, 'r3', false);
-    has('★★ 판정이 바뀌면 「다시 만들어야」 표시', t5.$('ag-plan').textContent, '위험요소 판정이 바뀌었습니다');
+    has('★★ 판정이 바뀌면 「다시 만들어야」 표시', t5.$('ag-plan').textContent, '위험요소 판정이나 교육 종류가 바뀌었습니다');
     ok('★★ 옛 문항으로는 발급되지 않는다', A.steps().find((s) => s.what === 'AI 평가문항').done === false);
     /* 서버 규칙(§9.4)이 발급 불가라고 하면 막는다 */
     A.state().quizFor = A.signature();
