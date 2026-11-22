@@ -17,7 +17,7 @@ const ticks = async (n) => { for (let i = 0; i < (n || 8); i += 1) await tick();
 const RESEARCH = {
   equipment: { id: 'e-press3' }, model: 'm-test',
   items: [
-    { id: 'r1', part: '램과 금형 사이', hazard: 'pinch', status: 'ok', image: 'data:image/jpeg;base64,EXT' },
+    { id: 'r1', part: '램과 금형 사이', hazard: 'pinch', status: 'ok', image: 'data:image/jpeg;base64,EXT', sources: [{ title: '현장 글', url: 'https://blog.example/a', kind: 'experience' }] },
     { id: 'r2', part: '제어반', hazard: 'shock', status: 'check' },
   ],
 };
@@ -69,7 +69,13 @@ const MAPPED = { equipment: { id: 'e-press3' }, person: false, mapped: [{ id: 'r
   eq('★★ 사진 위 박스 = 위치를 찾은 위험요소 수', boxes.length, 1);
   eq('★ 박스 번호 = 목록 번호', boxes[0] && boxes[0].textContent, '#1');
   eq('박스 자리는 % 좌표', boxes[0] && boxes[0].style.left + '|' + boxes[0].style.width, '10%|30%');
-  has('★ 위치 못 찾은 위험요소는 「위치 확인 필요」 — 지어내지 않는다', row().querySelector('.equip-research-list').textContent, '제어반 — 감전 · 위치 확인 필요');
+  const lis = row().querySelectorAll('.equip-research-list li');
+  has('★ 위치 못 찾은 위험요소는 「위치 확인 필요」 — 지어내지 않는다', lis[1].textContent, '위치 확인 필요');
+  ok('★ 조사 목록은 펼쳐 둔다 (AI 검수 블록과 헷갈리지 않게)', row().querySelector('.equip-research-list').open === true);
+  has('★ 고른 위험 밖에서 찾은 수 · 출처 수를 요약에', row().querySelector('.equip-research-list summary').textContent, '고른 위험 밖에서 찾은 것');
+  has('★ 담당자가 고른 위험이면 「내가 고른 위험」', lis[0].textContent, '내가 고른 위험');
+  has('★ 출처 종류를 보인다 (현장 경험 글 등)', lis[0].textContent, '현장 경험 글');
+  has('★ 출처가 없으면 「출처 없음」으로 드러낸다', lis[1].textContent, '출처 없음');
   ok('★★ 조사를 마치면 교육 만들기로 간다', Array.from(row().querySelectorAll('a')).some((x) => x.getAttribute('href') === 'autogen.html#eq=e-press3'));
   has('★ 요약에 6단계 AI 위험요소 조사', $('checklist').textContent, '6. AI 위험요소 조사');
 

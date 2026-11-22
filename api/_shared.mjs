@@ -255,14 +255,18 @@ export function isAllowedLang(lang) {
 
 /* ── 모델 호출 (A02 §5.3) ──────────────────────────────────────────── */
 
-export function readConfig(modelEnvName) {
+/** providerEnvName — 🆕 2026-11-22 함수 묶음마다 공급사를 따로 고를 수 있다 (예: AI_PROVIDER_RESEARCH=openai).
+ *  없으면 AI_PROVIDER 하나를 본다. 조사·위치·문항·참고 사진은 웹 검색 근거가 있어야 해서 GPT 로 돌린다
+ *  (gemini-3.1-flash-lite 로는 출처가 0개였다 — 밀링·드릴 2026-11-21) */
+export function readConfig(modelEnvName, providerEnvName) {
   const limits = {
     timeoutMs: Number(process.env.AI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
     dailyLimit: Number(process.env.AI_DAILY_LIMIT) || DEFAULT_DAILY_LIMIT,
   };
   /* 🆕 개인 사본 선택지 — AI_PROVIDER=openai 면 GPT (api/_openai.mjs). 기본은 Gemini (C06 D-018).
      모델은 OPENAI_MODEL 하나만 본다 — Gemini 모델 이름(AI_MODEL_*)을 GPT 에 넘기지 않는다 */
-  if (process.env.AI_PROVIDER === 'openai') {
+  const provider = (providerEnvName && process.env[providerEnvName]) || process.env.AI_PROVIDER;
+  if (provider === 'openai') {
     const okey = process.env.OPENAI_API_KEY || '';
     const omodel = process.env.OPENAI_MODEL || '';
     if (!okey || !omodel) return null;
