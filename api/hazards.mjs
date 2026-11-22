@@ -119,7 +119,7 @@ async function run(request) {
   }
 
   let cfg = null;
-  for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
+  for (const name of MODEL_ENVS) { cfg = readConfig(name, 'AI_PROVIDER_RESEARCH'); if (cfg) break; }
   if (!cfg) {
     log({ route: 'hazards', ms: Date.now() - started, status: 500, err: 'config' });
     return fail(500, 'config', '서버 설정 오류입니다.', cors);

@@ -1459,3 +1459,6 @@ body.has-admin-menu { word-break: keep-all; overflow-wrap: break-word; }
   body.dash-figma.has-admin-menu .dv-rate-num strong { font-size: 2.6em; }
   body.dash-figma.has-admin-menu .dv-rate-num span { font-size: .82em; }
 }
+.equip-research-list li { margin: 4px 0; }
+.equip-research-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.equip-research-tags .badge { font-size: 12px; }
