@@ -1431,3 +1431,18 @@ body.has-admin-menu { word-break: keep-all; overflow-wrap: break-word; }
 }
 /* 폰에서 표 칸이 한 글자 폭까지 눌려 세로로 꺾이지 않게 — 표 안에서도 낱말 단위로만 꺾고, 좁으면 표를 옆으로 민다 (.tablewrap 가로 스크롤) */
 .tablewrap > table.data td { overflow-wrap: break-word; }
+/* 상세 메뉴 없는 그룹(대시보드)은 링크 하나 — 옛 탭 막대 링크 규칙(.tabbar a · .tabbar.fixed a)을 걷어 다른 단추와 같게 */
+.admin-menu a.menu-btn { text-decoration: none; }
+.tabbar.admin-menu a.menu-btn[aria-current="page"] .ico { background: none; padding: 0; }
+@media (min-width: 1024px) {
+  .tabbar.fixed.admin-menu a.menu-btn { justify-content: center; gap: 8px; min-height: 56px; padding: 0 16px; border-radius: 0; font-size: .95em; background: transparent; }
+}
+
+/* 🆕 2026-11-22 대시보드 넓은 화면 — 「이수 현황」이 옆 「위험요소 신고」보다 짧아 아래가 비었다 (yesol 요청).
+   같은 줄 카드는 같은 높이로 늘리고, 이수 현황 안의 칸들도 함께 늘린다 */
+@media (min-width: 1024px) {
+  body.dash-figma.has-admin-menu .page { align-items: stretch; }
+  body.dash-figma.has-admin-menu .page > section[aria-labelledby="t-status"] { display: flex; flex-direction: column; }
+  body.dash-figma.has-admin-menu .dv-status { flex: 1 1 auto; }
+  body.dash-figma.has-admin-menu .dv-tiles { grid-auto-rows: 1fr; }
+}
