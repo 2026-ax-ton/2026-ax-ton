@@ -452,17 +452,33 @@
   function researchList(eq) {
     var a = eq.analysis;
     var mapped = a.guided && Array.isArray(a.guided.mapped) ? a.guided.mapped : [];
+    /* 🆕 2026-11-22 — 펼쳐 둔다. 「AI 검수」(담당자가 고른 위험이 맞는지)와 헷갈려 조사 결과가 고른 위험뿐인 줄 알았다 */
     var d = UI.el('details', 'equip-research-list');
-    d.appendChild(UI.el('summary', null, '조사한 위험요소 ' + a.research.items.length + '개 보기'));
+    d.open = true;
+    var chosen = Array.isArray(eq.hazards) ? eq.hazards : [];
+    var extra = a.research.items.filter(function (it) { return chosen.indexOf(it.hazard) === -1; }).length;
+    var srcN = a.research.items.reduce(function (n, it) { return n + (it.sources || []).length; }, 0);
+    d.appendChild(UI.el('summary', null, '조사한 위험요소 ' + a.research.items.length + '개 — 고른 위험 밖에서 찾은 것 ' + extra + '개 · 출처 ' + srcN + '건'));
     var ol = UI.el('ol');
     a.research.items.forEach(function (it) {
       var h = Store.hazard(it.hazard);
-      var where = mapped.some(function (m) { return m.id === it.id; }) ? '' : ' · 위치 확인 필요';
-      ol.appendChild(UI.el('li', null, (it.part || '부위 미상') + ' — ' + (h ? h.label : (it.hazard || '위험 미상')) + where));
+      var li = UI.el('li');
+      li.appendChild(UI.el('span', null, (it.part || '부위 미상') + ' — ' + (h ? h.label : (it.hazard || '위험 미상'))));
+      var tags = UI.el('span', 'equip-research-tags');
+      tags.appendChild(chosen.indexOf(it.hazard) !== -1 ? UI.neutralBadge('내가 고른 위험') : UI.waitBadge('AI 가 더 찾은 위험'));
+      if (!mapped.some(function (m) { return m.id === it.id; })) tags.appendChild(UI.neutralBadge('위치 확인 필요'));
+      var kinds = {};
+      (it.sources || []).forEach(function (s) { kinds[s.kind || 'web'] = 1; });
+      Object.keys(kinds).forEach(function (k) { tags.appendChild(UI.el('span', 'badge badge-neutral', SOURCE_KIND[k] || '웹')); });
+      if (!(it.sources || []).length) tags.appendChild(UI.stopBadge('출처 없음'));
+      li.appendChild(tags);
+      ol.appendChild(li);
     });
     d.appendChild(ol);
     return d;
   }
+  /* 출처 종류 → 화면 이름 (api/_research.mjs kindOf) */
+  var SOURCE_KIND = { official: '공식 문서', manual: '제조사', video: '영상', paper: '논문', journal: '전문지·기사', experience: '현장 경험 글', sales: '판매·중계', web: '웹' };
 
   function runResearch(id) {
     var eq = Store.findBy(Store.setup.load().equipments, 'id', id);

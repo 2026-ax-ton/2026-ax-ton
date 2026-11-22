@@ -83,7 +83,7 @@ async function run(request) {
   if (wantsVerify && !verify) return fail(400, 'bad_request', '확인할 항목이 없습니다.', cors);
 
   let cfg = null;
-  for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
+  for (const name of MODEL_ENVS) { cfg = readConfig(name, 'AI_PROVIDER_RESEARCH'); if (cfg) break; }
   if (!cfg) {
     log({ route: 'research', ms: Date.now() - started, status: 500, err: 'config' });
     return fail(500, 'config', '서버 설정 오류입니다.', cors);

@@ -67,6 +67,7 @@ export function systemText(hazardCodes = HAZARD_CODES) {
     + 'C) 공통 기준만으로 안 나오는 이 설비 고유의 위험(구조·동력 방식 때문에 생기는 것)을 따로 찾는다.\n'
     + 'D) 제조사·모델명이 있으면 그 제조사 자료를 찾되, 모델명이 같아도 제조사가 다르면 다른 제품이다.\n'
     + 'E) 현장 경험 글을 넓게 찾는다: 작업자·정비 기사·안전관리자가 직접 겪은 일을 쓴 블로그·카페·커뮤니티 글, 업계 전문지·안전 신문 기사, 사고 경험담. 공식 문서에 없어도 현장에서 실제로 다치는 곳이면 항목으로 넣는다.\n'
+    + 'F) 🆕 설비 종류·모델명으로 학술 논문·연구 보고서(KCI·RISS·DBpia·산업안전보건연구원), 실제 재해 사례(KOSHA 재해사례·중대재해 속보), 사용·정비 동영상(유튜브)도 찾는다. 담당자가 미리 고른 위험유형에 없는 위험도 찾으면 넣는다.\n'
     + rulesText(hazardCodes, BASE_ITEMS);
 }
 
@@ -115,7 +116,7 @@ function rulesText(hazardCodes, max) {
     + `5) 항목은 많아도 ${max}개. 항목마다 부위(part), 위험유형(hazard), 위험 설명(risk), 근거(sources)를 쓴다.\n`
     + `6) hazard 는 다음 중 하나만 쓴다: ${hazardCodes.join(', ')}. 어디에도 맞지 않으면 unknown.\n`
     + '7) risk 는 무엇이 왜 위험한지 한국어 한 문장으로 쓴다. 노동자에게 하는 지시문(~하십시오)을 쓰지 않는다.\n'
-    + '8) sources 에는 실제로 본 자료의 제목(title)·주소(url)·종류(kind)만 쓴다. 주소를 지어내지 않는다. kind 는 manual(제조사), official(공공·법령), journal(업계 전문지·기사), experience(현장 경험 글), web(그 밖) 중 하나. experience 는 글쓴이가 직접 겪거나 작업한 내용일 때만 쓴다.\n'
+    + '8) sources 에는 실제로 본 자료의 제목(title)·주소(url)·종류(kind)만 쓴다. 주소를 지어내지 않는다. kind 는 manual(제조사), official(공공·법령), journal(업계 전문지·기사), paper(학술 논문·연구 보고서), experience(현장 경험 글), web(그 밖) 중 하나. experience 는 글쓴이가 직접 겪거나 작업한 내용일 때만 쓴다.\n'
     + '9) 자료끼리 말이 다르면 하나를 고르지 말고 conflict 에 양쪽 내용을 짧게 쓴다.\n'
     + '10) 사진으로 확인해야 할 부위면 needsPhoto 에 찍을 부위와 각도를 짧게 쓴다(예: 램과 금형 사이를 정면에서).\n'
     + '10-1) partEn 에 그 부위의 영어 이름을 짧게 쓴다(예: ram and die, back gauge). 영어 자료의 그림 설명과 맞춰 참고 사진을 찾는 데 쓴다.\n'
@@ -217,7 +218,7 @@ export function tierOf(host, makerHint) {
 export const KINDS = { 1: 'manual', 2: 'official', 4: 'video', 5: 'sales' };
 export function kindOf(tier, modelKind) {
   if (KINDS[tier]) return KINDS[tier];
-  return modelKind === 'experience' || modelKind === 'journal' ? modelKind : 'web';
+  return modelKind === 'experience' || modelKind === 'journal' || modelKind === 'paper' ? modelKind : 'web';   // 🆕 2026-11-22 paper(학술 논문)
 }
 
 /** 모델이 실제로 본 출처 — groundingMetadata.groundingChunks[].web.{uri,title}.

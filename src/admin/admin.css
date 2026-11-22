@@ -1446,3 +1446,19 @@ body.has-admin-menu { word-break: keep-all; overflow-wrap: break-word; }
   body.dash-figma.has-admin-menu .dv-status { flex: 1 1 auto; }
   body.dash-figma.has-admin-menu .dv-tiles { grid-auto-rows: 1fr; }
 }
+/* 🆕 2026-11-22 늘어난 이수 현황 칸에 맞춰 안의 숫자·고리도 키운다 (yesol 요청) — 칸 안에서 위아래 가운데 */
+@media (min-width: 1024px) {
+  body.dash-figma.has-admin-menu .dv-tiles .kpi { display: flex; flex-direction: column; }
+  body.dash-figma.has-admin-menu .dv-tiles dd { margin: auto 0 6px; font-size: 2.6em; line-height: 1.1; }
+  body.dash-figma.has-admin-menu .dv-tiles .hint { margin-bottom: auto; font-size: .82em; }
+  body.dash-figma.has-admin-menu .dv-tiles dt { font-size: .9em; }
+  body.dash-figma.has-admin-menu .dv-rate-row { flex: 1 1 auto; flex-direction: column; justify-content: center; gap: 16px; text-align: center; }
+  body.dash-figma.has-admin-menu .dv-ring { width: 128px; height: 128px; }
+  body.dash-figma.has-admin-menu .dv-ring::before { inset: 14px; }
+  body.dash-figma.has-admin-menu .dv-ring span { font-size: 1.05em; }
+  body.dash-figma.has-admin-menu .dv-rate-num strong { font-size: 2.6em; }
+  body.dash-figma.has-admin-menu .dv-rate-num span { font-size: .82em; }
+}
+.equip-research-list li { margin: 4px 0; }
+.equip-research-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.equip-research-tags .badge { font-size: 12px; }

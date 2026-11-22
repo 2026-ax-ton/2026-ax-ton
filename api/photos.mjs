@@ -83,7 +83,7 @@ async function run(request) {
   if (!eq || !items.length) return fail(400, 'bad_request', '설비 이름과 위험 항목을 보내 주세요.', cors);
 
   let cfg = null;
-  for (const name of MODEL_ENVS) { cfg = readConfig(name); if (cfg) break; }
+  for (const name of MODEL_ENVS) { cfg = readConfig(name, 'AI_PROVIDER_RESEARCH'); if (cfg) break; }
   if (!cfg) {
     log({ route: 'photos', ms: Date.now() - started, status: 500, err: 'config' });
     return fail(500, 'config', '서버 설정 오류입니다.', cors);
