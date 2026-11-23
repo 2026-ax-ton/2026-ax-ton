@@ -337,6 +337,22 @@ console.log = () => {};
     method: 'GET', headers: { origin: 'https://evil.example', authorization: 'Bearer ' + ADMIN },
   }));
   eq('다른 출처는 403', other.status, 403);
+
+  /* 🆕 2026-11-23 브라우저는 같은 출처 GET 에 Origin 을 안 붙인다 — 배포 주소에서 받기가 403 이었다 */
+  const same = await store.handle(new Request('https://x/api/store?keys=setup', {
+    method: 'GET', headers: { 'sec-fetch-site': 'same-origin', authorization: 'Bearer ' + ADMIN },
+  }));
+  eq('★★ Origin 없는 같은 출처 GET (Sec-Fetch-Site) 은 받는다', same.status, 200);
+  const bare = await store.handle(new Request('https://x/api/store?keys=setup', { method: 'GET', headers: { authorization: 'Bearer ' + ADMIN } }));
+  eq('★ Origin 도 Sec-Fetch-Site 도 없으면 그대로 403', bare.status, 403);
+  const cross = await store.handle(new Request('https://x/api/store?keys=setup', {
+    method: 'GET', headers: { 'sec-fetch-site': 'cross-site', authorization: 'Bearer ' + ADMIN },
+  }));
+  eq('★ 다른 사이트에서 온 GET 은 403', cross.status, 403);
+  const put = await store.handle(new Request('https://x/api/store?key=courses', {
+    method: 'PUT', headers: { 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', authorization: 'Bearer ' + ADMIN }, body: '{"data":[]}',
+  }));
+  eq('★ 쓰기(PUT)는 여전히 Origin 이 있어야 한다', put.status, 403);
 }
 
 /* ===================================================================
