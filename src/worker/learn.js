@@ -316,38 +316,21 @@
     if (autoSpeak && !shown) audio.play();
   }
 
-  /** 교육 영상 주소 — 같은 출처 경로만 (제3자 요청 0건, C05 T-1″). http(s)://·// 로 시작하면 쓰지 않는다 */
-  function videoSrc(course) {
-    var v = course && course.video;
-    var src = v && typeof v.src === 'string' ? v.src : '';
-    return /^(\/(?!\/)|\.\.?\/)/.test(src) ? src : '';
-  }
-
+  /** 교육 영상 — 같은 출처 경로만 (UI.courseVideoSrc). 같은 영상이면 다시 그리지 않는다 (재생 중 끊기지 않게) */
   function renderVideo(course, show) {
     var box = $('course-video');
     if (!box) {
-      box = UI.el('div', 'course-video');
+      box = UI.el('div');
       box.id = 'course-video';
       $('phrase-card').parentNode.insertBefore(box, $('phrase-card'));
     }
-    var src = show ? videoSrc(course) : '';
+    var src = show ? UI.courseVideoSrc(course) : '';
     if (box.getAttribute('data-src') === src) return !!src;
     box.textContent = '';
     box.setAttribute('data-src', src);
     box.hidden = !src;
     if (!src) return false;
-    var v = document.createElement('video');
-    v.src = src;
-    v.controls = true;
-    v.setAttribute('playsinline', '');
-    v.preload = 'metadata';
-    v.style.width = '100%';
-    v.style.borderRadius = '12px';
-    v.style.background = '#000';
-    box.appendChild(v);
-    var note = UI.el('p', 'muted', I18N.t('learn.aiVideo', me.lang));
-    note.insertBefore(UI.iconBox('alert', 'ico', 'span'), note.firstChild);
-    box.appendChild(note);
+    box.appendChild(UI.courseVideo(course, I18N.t('learn.aiVideo', me.lang)));
     return true;
   }
 

@@ -1216,7 +1216,37 @@ var UI = (function () {
     return bar;
   }
 
+  /* 🆕 2026-11-23 교육 영상 (course.video.src) — 노동자 수강 · 담당자 교육 목록이 같이 쓴다.
+     ★ 같은 출처 경로만 (제3자 요청 0건, C05 T-1″). http(s)://·//·javascript: 는 '' */
+  function courseVideoSrc(course) {
+    var v = course && course.video;
+    var src = v && typeof v.src === 'string' ? v.src : '';
+    return /^(\/(?!\/)|\.\.?\/)/.test(src) ? src : '';
+  }
+
+  /** 영상 + 「AI 로 만든 장면」 표시 묶음. 주소가 안전하지 않으면 null */
+  function courseVideo(course, note) {
+    var src = courseVideoSrc(course);
+    if (!src) return null;
+    var box = el('div', 'course-video');
+    var v = document.createElement('video');
+    v.src = src;
+    v.controls = true;
+    v.setAttribute('playsinline', '');
+    v.preload = 'metadata';
+    v.style.width = '100%';
+    v.style.maxWidth = '720px';
+    v.style.borderRadius = '12px';
+    v.style.background = '#000';
+    box.appendChild(v);
+    var p = el('p', 'muted', note);
+    p.insertBefore(iconBox('alert', 'ico', 'span'), p.firstChild);
+    box.appendChild(p);
+    return box;
+  }
+
   return {
+    courseVideoSrc: courseVideoSrc, courseVideo: courseVideo,
     syncBadge: syncBadge,
     brand: brand,
     $: $, $$: $$, el: el,
