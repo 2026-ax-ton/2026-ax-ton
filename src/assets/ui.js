@@ -595,7 +595,7 @@ var UI = (function () {
     });
     sel.addEventListener('change', function () {
       var code = sel.value;
-      var r = Store.accounts.update(function (list) {
+      var r = Auth.setLang ? Auth.setLang(code) : Store.accounts.update(function (list) {
         var acc = findByKey(list, 'userId', u.userId);
         if (acc) acc.lang = code;
       });
