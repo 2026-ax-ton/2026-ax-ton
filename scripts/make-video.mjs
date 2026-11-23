@@ -20,12 +20,19 @@
      대본 검수·수정 → node scripts/make-video.mjs <결과> <out.mp4> --reuse  → 렌더 (GPT 대본 0회)
    ★ 그림은 research/videos/<출력 이름>/ 에 두고 다시 쓴다 (같은 위험이면 다시 만들지 않는다 — 비용).
    ★ 이 PC 에는 한국어 음성만 있다. 노동자 언어 음성은 서버 TTS(제출 직전 결제 예정)로 바꾼다.
+   🆕 2026-11-23 노트북 시연용 (yesol 요청 — 배포 없이 영상만):
+     --seedance       AI 그림 대신 Seedance 2.0 mini 영상 클립 (실제 설비 사진의 위험 부분을 첫 장면으로, 5초 720p, 소리 없음)
+     --seedance-test  첫 위험의 재연 클립 1개만 만들고 끝낸다 (시험용, 약 $0.15)
+     --tts=gemini     한국어 음성을 Gemini TTS 로 (없으면 이 PC 의 SAPI). 같은 문장은 캐시에서 다시 쓴다
+     --intro3d=<mp4>  처음 컷을 3D 둘레 장면으로 (tools3d 의 milling_3d_path.mp4)
+     클립·음성은 research/videos/<출력 이름>/ 에 두고 다시 쓴다 (프롬프트·문장이 같으면 다시 부르지 않는다 — 비용).
    키는 .env.local, 출력하지 않는다. */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import vm from 'vm';
 import { execFileSync } from 'child_process';
+import crypto from 'crypto';
 import { callModel } from '../api/_shared.mjs';
 import { parseModelJson } from '../api/_hazards.mjs';
 import { readEnvLocal } from './measure-hazards.mjs';
@@ -44,6 +51,16 @@ const STYLE = 'Flat vector safety-training illustration for factory workers. Sim
   + 'Absolutely no text, letters, numbers, labels, signs with writing, logos or watermarks anywhere. No injury, no blood, no gore.';
 const CLIPS3D = { pinch: ['press_pinch', 'press_safe'], drop: ['press_drop', 'press_blocked'] };   /* [재연, 바른 행동] */
 const BORDER = { happen: '0xF59E0B', safe: '0x16A34A' };
+const SEED = process.argv.includes('--seedance') || process.argv.includes('--seedance-test');
+const SEED_TEST = process.argv.includes('--seedance-test');
+const TTS_GEMINI = process.argv.includes('--tts=gemini');
+const INTRO3D = (process.argv.find((a) => a.startsWith('--intro3d=')) || '').slice('--intro3d='.length);
+const SEED_MODEL = 'dreamina-seedance-2-0-mini-260615';   /* BytePlus ModelArk 모델 표 (2026-11-23 확인) */
+const SEED_URL = 'https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks';
+const SEED_STYLE = 'Realistic factory safety-training footage that continues from the first frame, a real milling machine. '
+  + 'Keep the machine, colors and framing of the first frame; slow, gentle camera movement. One worker in a blue work uniform and cotton gloves. '
+  + 'Absolutely no text, letters, numbers, signs or logos. No injury, no blood. Scene: ';
+const TTS_MODEL = 'gemini-3.8-flash-tts', TTS_VOICE = 'Kore';   /* ai.google.dev speech-generation (Interactions API) */
 const IMPERATIVE = /(하십시오|하세요|마세요|마십시오|해야 합니다|하지 말)/;
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
@@ -124,7 +141,7 @@ if (process.argv.includes('--reuse') && fs.existsSync(scriptFile)) {
   raw = { intro: prev.intro, outro: prev.outro, outroPhraseId: prev.outroPhraseId, general: prev.general || [],
     hazards: prev.hazards.map((h) => ({ hazardId: h.hazardId, accident: h.accident, visual: h.visual || vis(h.shots[1]),
       happen: h.happen !== undefined ? h.happen : h.shots[1].prompt, safe: h.safe !== undefined ? h.safe : h.shots[2].prompt,
-      narration: h.narration, phraseId: h.phraseId, guide: h.guide || '' })) };
+      narration: h.narration, phraseId: h.phraseId, guide: h.guide || '', seedBox: h.seedBox })) };
 } else {
   const r = await callModel(cfg, system, user, { maxOutputTokens: 8000, maxText: 16000 });
   if (r.error) { console.error('대본 실패: ' + r.error); process.exit(1); }
@@ -148,7 +165,8 @@ const picked = [];
   if (!h || picked.length >= HAZARDS[1] || picked.some((p) => p.hazard.id === h.id)) return;
   const accident = classify(h) || String(s.accident || '기타').trim();
   const visual = has3d && AS3D[accident] ? AS3D[accident] : has3d && CLIPS3D[s.visual] ? s.visual : 'ai';
-  const kindKey = visual !== 'ai' ? visual : accident;
+  /* 🆕 2026-11-23 사고 종류 거르기(KINDS)는 프레스용이다 — 다른 설비는 같은 위험요소만 한 번 (밀링 끼임 여럿이 하나로 줄었다) */
+  const kindKey = visual !== 'ai' ? visual : kind === 'press' ? accident : h.id;
   if (usedKind.has(kindKey)) return;
   const happen = String(s.happen || '').trim().slice(0, 400), safe = String(s.safe || '').trim().slice(0, 400);
   if (visual === 'ai' && (!happen || !safe)) return;
@@ -160,7 +178,7 @@ const picked = [];
   const fixed = !narration;
   if (fixed) narration = h.part + '. ' + h.risk;
   const guide = String(s.guide || '').trim().slice(0, 200);   /* GPT 수칙 — 지시투 허용, 담당자 검수 대상 */
-  picked.push({ hazard: h, accident, visual, happen, safe, narration, fixed, phrase, guide });
+  picked.push({ hazard: h, accident, visual, happen, safe, narration, fixed, phrase, guide, seedBox: s.seedBox && typeof s.seedBox === 'object' ? s.seedBox : null });
 });
 /* 공통 수칙 — 검수 문구가 있으면 그것, 없으면 GPT 글. 3D/그림 없이 설비 사진 컷 하나씩 */
 const general = (Array.isArray(raw.general) ? raw.general : []).map((g) => {
@@ -187,7 +205,7 @@ const scriptJson = (extra) => JSON.stringify(Object.assign({
   general: general.map((g) => ({ text: g.text, phraseId: g.phrase ? g.phrase.id : '' })),
 }, extra), null, 2);
 if (process.argv.includes('--script-only')) {
-  fs.writeFileSync(scriptFile, scriptJson({ hazards: picked.map((s) => ({ hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual,
+  fs.writeFileSync(scriptFile, scriptJson({ candidates: (raw.hazards || []).map((x) => x && x.hazardId + '/' + x.accident + '/' + x.visual), hazards: picked.map((s) => ({ hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual,
     happen: s.happen, safe: s.safe, narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '', guide: s.guide })) }));
   lines.forEach((l) => console.log('  [' + l.source + '] ' + l.at + ': ' + l.text));
   console.log('대본만 저장: ' + scriptFile + ' — 검수 뒤 --reuse 로 렌더');
@@ -226,8 +244,64 @@ async function genImage(prompt, file) {
     fs.unlinkSync(file);
   }
 }
+let clips = 0, seedTokens = 0;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function seedClip(prompt, box, file) {
+  const side = file.replace(/\.mp4$/, '.txt');
+  const sig = prompt + '\n' + JSON.stringify(box);   /* 첫 장면 자리(seedBox)가 바뀌어도 다시 만든다 */
+  if (fs.existsSync(file) && fs.existsSync(side) && fs.readFileSync(side, 'utf8') === sig) return file;
+  /* 첫 장면 = 실제 사진에서 위험 박스 둘레를 16:9 로 자른 것 */
+  const src = path.join(tmp, 'seed-src.jpg');
+  fs.writeFileSync(src, Buffer.from(run.photo.data.split(',')[1], 'base64'));
+  const [W, H] = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', src]).toString().trim().split(',').map(Number);
+  let cw = Math.max((box.x1 - box.x0) / 100 * W * 2.2, W * 0.5), ch = cw * 9 / 16;
+  if (ch > H) { ch = H; cw = ch * 16 / 9; }
+  if (cw > W) { cw = W; ch = cw * 9 / 16; }
+  const cx = (box.x0 + box.x1) / 200 * W, cy = (box.y0 + box.y1) / 200 * H;
+  const x = Math.round(Math.min(Math.max(0, cx - cw / 2), W - cw)), y = Math.round(Math.min(Math.max(0, cy - ch / 2), H - ch));
+  const first = path.join(tmp, 'seed-first.jpg');
+  ff(['-i', src, '-vf', 'crop=' + (Math.floor(cw / 2) * 2) + ':' + (Math.floor(ch / 2) * 2) + ':' + x + ':' + y + ',scale=1280:720', '-q:v', '3', first]);
+  if (process.env.SEED_DRY) { fs.copyFileSync(first, file.replace(/.mp4$/, '_first.jpg')); throw new Error('SEED_DRY — 첫 장면만 저장'); }
+  const key = (env.SEEDANCE_API_KEY || '').trim();
+  if (!key) throw new Error('SEEDANCE_API_KEY 가 .env.local 에 없다');
+  const h = { Authorization: 'Bearer ' + key, 'content-type': 'application/json' };
+  const body = { model: SEED_MODEL, resolution: '720p', ratio: '16:9', duration: 5, generate_audio: false, watermark: false,
+    content: [{ type: 'text', text: SEED_STYLE + prompt },
+      { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + fs.readFileSync(first).toString('base64') }, role: 'first_frame' }] };
+  const r = await fetch(SEED_URL, { method: 'POST', headers: h, body: JSON.stringify(body), signal: AbortSignal.timeout(60000) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.id) throw new Error('Seedance 시작 실패 ' + r.status + ' ' + String((j.error && j.error.message) || '').slice(0, 200));
+  console.log('  Seedance ' + path.basename(file) + ' 만드는 중 (작업 ' + j.id + ')');
+  for (let i = 0; i < 120; i++) {
+    await sleep(5000);
+    const q = await fetch(SEED_URL + '/' + j.id, { headers: h, signal: AbortSignal.timeout(30000) }).catch(() => null);
+    const t = q ? await q.json().catch(() => ({})) : {};
+    if (t.status === 'succeeded') {
+      const v = await fetch(t.content.video_url, { signal: AbortSignal.timeout(120000) });
+      fs.writeFileSync(file, Buffer.from(await v.arrayBuffer()));
+      fs.writeFileSync(side, sig);
+      clips++; seedTokens += (t.usage && t.usage.total_tokens) || 0;
+      console.log('  완료 ' + path.basename(file) + ' · 토큰 ' + ((t.usage && t.usage.total_tokens) || '?'));
+      return file;
+    }
+    if (['failed', 'cancelled', 'expired'].includes(t.status)) throw new Error('Seedance ' + t.status + ' ' + String((t.error && t.error.message) || '').slice(0, 200));
+  }
+  throw new Error('Seedance 10분 넘게 안 끝남');
+}
+if (SEED_TEST) {
+  const s = picked.find((p) => p.visual === 'ai');
+  if (!s) { console.error('AI 장면 위험이 없다'); process.exit(1); }
+  const f = await seedClip(s.happen, s.seedBox || s.hazard.box, path.join(cache, s.hazard.id + '_happen.mp4'));
+  console.log('시험 클립: ' + f + ' · 새로 만든 클립 ' + clips + '개 · 토큰 ' + seedTokens);
+  process.exit(0);
+}
 for (const s of picked) {
   if (s.visual !== 'ai') continue;
+  if (SEED) {
+    s.happenClip = await seedClip(s.happen, s.seedBox || s.hazard.box, path.join(cache, s.hazard.id + '_happen.mp4'));
+    s.safeClip = await seedClip(s.safe, s.seedBox || s.hazard.box, path.join(cache, s.hazard.id + '_safe.mp4'));
+    continue;
+  }
   s.happenImg = await genImage(s.happen + ' The moment just before an accident; nothing bad has happened yet; a soft red warning glow marks the danger spot.', path.join(cache, s.hazard.id + '_happen.png'));
   s.safeImg = await genImage(s.safe + ' Calm, correct and safe work practice.', path.join(cache, s.hazard.id + '_safe.png'));
 }
@@ -256,9 +330,12 @@ function photoShot(sec, list, Z, focus) {
 /* 만든 그림·3D: 테두리 + 연필 아이콘 (실제 사진과 구분) */
 const mark = (color) => "drawbox=x=0:y=0:w=iw:h=ih:color=" + color + ":t=14[b];[1:v]scale=72:72[i];[b][i]overlay=30:30";
 function clipShot(name, minSec, role) {
-  const src = path.join(DIR3D, name + '.mp4'), out = path.join(tmp, 'shot' + (shotN++) + '.mp4');
+  const src = /\.mp4$/.test(name) ? name : path.join(DIR3D, name + '.mp4'), out = path.join(tmp, 'shot' + (shotN++) + '.mp4');
   const sec = Math.max(dur(src), minSec);
-  ff(['-i', src, '-i', PENCIL, '-filter_complex', '[0:v]tpad=stop_mode=clone:stop_duration=' + sec + ',trim=duration=' + sec + ',setpts=PTS-STARTPTS,' + mark(BORDER[role]) + ',' + fades(sec)].concat(enc, [out]));
+  const base = '[0:v]scale=' + VW + ':' + VH + ':force_original_aspect_ratio=decrease,pad=' + VW + ':' + VH + ':(ow-iw)/2:(oh-ih)/2:color=0x1e2328,setsar=1,fps=' + FPS
+    + ',tpad=stop_mode=clone:stop_duration=' + sec + ',trim=duration=' + sec + ',setpts=PTS-STARTPTS,';
+  ff(role ? ['-i', src, '-i', PENCIL, '-filter_complex', base + mark(BORDER[role]) + ',' + fades(sec)].concat(enc, [out])
+    : ['-i', src, '-filter_complex', base + fades(sec)].concat(enc, [out]));
   shots.push({ file: out, sec }); return sec;
 }
 function imageShot(img, sec, role) {
@@ -270,7 +347,25 @@ function imageShot(img, sec, role) {
 
 /* ── ⑤ 음성 — 이 PC 의 한국어 음성 (Windows SAPI). 글은 파일로 넘긴다 ── */
 let wavN = 0;
-function speak(text) {
+let ttsCalls = 0;
+async function speak(text) {
+  if (TTS_GEMINI) {
+    const dir = path.join(cache, 'tts');
+    fs.mkdirSync(dir, { recursive: true });
+    const wav = path.join(dir, crypto.createHash('sha1').update(TTS_MODEL + TTS_VOICE + text).digest('hex').slice(0, 16) + '.wav');
+    if (!fs.existsSync(wav)) {
+      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+        method: 'POST', headers: { 'x-goog-api-key': (env.GEMINI_API_KEY || '').trim(), 'content-type': 'application/json' }, signal: AbortSignal.timeout(90000),
+        body: JSON.stringify({ model: TTS_MODEL, input: [{ type: 'user_input', content: [{ type: 'text', text }] }],
+          response_format: { type: 'audio' }, generation_config: { speech_config: [{ voice: TTS_VOICE }] } }) });
+      const j = await r.json().catch(() => ({}));
+      const a = (j.steps || []).filter((x) => x.type === 'model_output').flatMap((x) => x.content || []).filter((c) => c.type === 'audio').pop();
+      if (!r.ok || !a || !a.data) throw new Error('Gemini TTS 실패 ' + r.status + ' ' + String((j.error && j.error.message) || '').slice(0, 200));
+      fs.writeFileSync(wav, Buffer.from(a.data, 'base64'));
+      ttsCalls++;
+    }
+    return { wav, sec: dur(wav) };
+  }
   const wav = path.join(tmp, 'v' + (wavN++) + '.wav'), txt = wav.replace(/\.wav$/, '.txt');
   fs.writeFileSync(txt, text, 'utf8');
   const ps = 'Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; '
@@ -283,34 +378,34 @@ const audio = [];   /* { wav|null, sec } — 컷 묶음 길이에 맞춰 뒤를 
 const voice = (v, sec) => audio.push({ wav: v && v.wav, sec });
 
 /* 처음 */
-let v = speak(intro);
-voice(v, photoShot(Math.max(4, v.sec + 0.8), [], 1.06, null));
+let v = await speak(intro);
+voice(v, INTRO3D ? clipShot(INTRO3D, Math.max(4, v.sec + 0.8), null) : photoShot(Math.max(4, v.sec + 0.8), [], 1.06, null));
 
 for (const s of picked) {
   const p = boxPx(s.hazard.box);
   const Z = Math.min(2.4, Math.max(1.3, 0.75 * Math.min(VW / p.w, VH / p.h)));
-  v = speak(s.narration);
+  v = await speak(s.narration);
   /* ①+② 동안 위험 설명 */
   const pair = s.visual !== 'ai' ? CLIPS3D[s.visual] : null;
   let sec = photoShot(WHERE_SEC, [p], Z.toFixed(2), p);
   const need = Math.max(4, v.sec + 0.6 - WHERE_SEC);
-  sec += pair ? clipShot(pair[0], need, 'happen') : imageShot(s.happenImg.file, need, 'happen');
+  sec += pair ? clipShot(pair[0], need, 'happen') : s.happenClip ? clipShot(s.happenClip, need, 'happen') : imageShot(s.happenImg.file, need, 'happen');
   voice(v, sec);
   /* ③ 동안 검수 문구(메인) → GPT 수칙(보충) */
   const say3 = [s.phrase && s.phrase.ko, s.guide].filter(Boolean).join(' ... ');
-  const pv = say3 ? speak(say3) : null;
+  const pv = say3 ? await speak(say3) : null;
   const need3 = Math.max(4, pv ? pv.sec + 0.8 : 0);
-  voice(pv, pair ? clipShot(pair[1], need3, 'safe') : imageShot(s.safeImg.file, need3, 'safe'));
+  voice(pv, pair ? clipShot(pair[1], need3, 'safe') : s.safeClip ? clipShot(s.safeClip, need3, 'safe') : imageShot(s.safeImg.file, need3, 'safe'));
 }
 
 /* 공통 수칙 — 설비 전체 사진 한 컷씩 */
 for (const g of general) {
-  v = speak(g.phrase ? g.phrase.ko : g.text);
+  v = await speak(g.phrase ? g.phrase.ko : g.text);
   voice(v, photoShot(Math.max(4, v.sec + 0.8), [], 1.06, null));
 }
 
 /* 끝 — 설비 전체 (박스를 다 그리면 겹쳐서 읽히지 않는다) */
-v = speak([outro, outroPhrase && !usedPhrase.has(outroPhrase.id) ? outroPhrase.ko : ''].filter(Boolean).join(' ... '));
+v = await speak([outro, outroPhrase && !usedPhrase.has(outroPhrase.id) ? outroPhrase.ko : ''].filter(Boolean).join(' ... '));
 voice(v, photoShot(Math.max(4, v.sec + 1), [], 1.06, null));
 
 /* ── ⑥ 이어 붙이기: 영상 따로, 음성 따로(컷 묶음 길이에 맞춤) → 합치기 ── */
@@ -332,18 +427,20 @@ ff(['-i', vfile, '-i', afile, '-c:v', 'copy', '-c:a', 'aac', '-shortest', to]);
 
 const total = dur(to);
 fs.writeFileSync(scriptFile, scriptJson({
-  imageModel: IMAGE_MODEL, seconds: Math.round(total), calls: { script: process.argv.includes('--reuse') ? 0 : 1, images, textChecks: checks },
+  imageModel: SEED ? SEED_MODEL : IMAGE_MODEL, tts: TTS_GEMINI ? TTS_MODEL : 'sapi', seconds: Math.round(total), calls: { script: process.argv.includes('--reuse') ? 0 : 1, images, textChecks: checks, seedanceClips: clips, seedanceTokens: seedTokens, tts: ttsCalls },
   hazards: picked.map((s) => ({
-    hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual, happen: s.happen, safe: s.safe,
+    hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual, happen: s.happen, safe: s.safe, seedBox: s.seedBox || undefined,
     narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '', guide: s.guide,
     shots: [
       { role: 'where', source: 'real-photo', box: s.hazard.box },
-      s.visual === 'ai' ? { role: 'happen', source: 'ai-image', prompt: s.happen, file: path.basename(s.happenImg.file), textCheck: s.happenImg.textCheck || 'cached' }
+      s.happenClip ? { role: 'happen', source: 'ai-video', prompt: s.happen, file: path.basename(s.happenClip) }
+        : s.visual === 'ai' ? { role: 'happen', source: 'ai-image', prompt: s.happen, file: path.basename(s.happenImg.file), textCheck: s.happenImg.textCheck || 'cached' }
         : { role: 'happen', source: '3d', clip: CLIPS3D[s.visual][0] },
-      s.visual === 'ai' ? { role: 'safe', source: 'ai-image', prompt: s.safe, file: path.basename(s.safeImg.file), textCheck: s.safeImg.textCheck || 'cached' }
+      s.safeClip ? { role: 'safe', source: 'ai-video', prompt: s.safe, file: path.basename(s.safeClip) }
+        : s.visual === 'ai' ? { role: 'safe', source: 'ai-image', prompt: s.safe, file: path.basename(s.safeImg.file), textCheck: s.safeImg.textCheck || 'cached' }
         : { role: 'safe', source: '3d', clip: CLIPS3D[s.visual][1] },
     ],
   })),
 }));
-console.log('영상 ' + to + ' · ' + Math.round(total) + '초 · ' + Math.round(fs.statSync(to).size / 1024) + 'KB · 그림 ' + images + '장 생성 · 글자검사 ' + checks + '회');
+console.log('영상 ' + to + ' · ' + Math.round(total) + '초 · ' + Math.round(fs.statSync(to).size / 1024) + 'KB · 그림 ' + images + '장 생성 · 글자검사 ' + checks + '회 · Seedance 클립 ' + clips + '개(토큰 ' + seedTokens + ') · TTS ' + ttsCalls + '회');
 fs.rmSync(tmp, { recursive: true, force: true });

@@ -133,6 +133,8 @@ var I18N = (function () {
     'learn.backToList':   { ko: '교육 목록으로 돌아가기', km: 'ត្រឡប់ទៅបញ្ជី',  id: 'Kembali ke daftar', vi: 'Quay lại danh sách', ne: 'सूचीमा फर्कनु', th: 'กลับไปที่รายการ' },
     'learn.notYet':       { ko: '아직 들을 수 없습니다',  km: 'មិនទាន់អាចស្តាប់', id: 'Belum bisa diikuti', vi: 'Chưa thể học', ne: 'अझै सुन्न सकिँदैन', th: 'ยังเรียนไม่ได้' },
     'learn.listenAgain':  { ko: '이 문구를 다시 듣기',    km: 'ស្តាប់សារនេះម្តងទៀត', id: 'Dengarkan lagi', vi: 'Nghe lại câu này', ne: 'फेरि सुन्नुहोस्', th: 'ฟังอีกครั้ง' },
+    /* 🆕 2026-11-23 교육 영상 — AI(Seedance)로 만든 장면이 섞여 있다는 표시 (실제 사진과 구분). 번역은 검수 전 */
+    'learn.aiVideo':      { ko: 'AI로 만든 장면이 들어 있는 영상입니다', km: 'វីដេអូនេះមានឈុតឆាកដែលបង្កើតដោយ AI', id: 'Video ini berisi adegan buatan AI', vi: 'Video này có cảnh do AI tạo ra', ne: 'यो भिडियोमा AI ले बनाएका दृश्यहरू छन्', th: 'วิดีโอนี้มีฉากที่สร้างด้วย AI' },
     'learn.startQuiz':    { ko: '이해도 검증 시작',       km: 'ចាប់ផ្តើមត្រួតពិនិត្យ', id: 'Mulai uji pemahaman', vi: 'Bắt đầu kiểm tra', ne: 'जाँच सुरु गर्नुहोस्', th: 'เริ่มตรวจความเข้าใจ' },
     'learn.excluded':     { ko: '검수 대기 제외', km: 'មិនរាប់បញ្ចូល (រង់ចាំត្រួតពិនិត្យ)', id: 'Dikecualikan (menunggu pemeriksaan)', vi: 'Đã loại trừ (chờ kiểm duyệt)', ne: 'बाहेक गरिएको (जाँच पर्खाइमा)', th: 'ไม่รวม (รอตรวจสอบ)' },
     'learn.transPending': { ko: '내 언어 번역 준비 중',   km: 'កំពុងរៀបចំការបកប្រែ', id: 'Terjemahan disiapkan', vi: 'Đang chuẩn bị bản dịch', ne: 'अनुवाद तयारीमा', th: 'กำลังเตรียมคำแปล' },
@@ -250,6 +252,10 @@ var I18N = (function () {
     /* 🆕 2026-11-11 노동자 교육·검증 화면 — 하드코딩 한국어를 없앤다 (사용자 요청: 크메르어를 고르면 한국어가 섞이지 않게).
        ★ 여기에도 안전 지시는 없다. 화면 안내·버튼·결과 문장뿐이다. {n} {t} {r} 는 코드가 숫자로 바꾼다 */
     'quiz.kindHotspot': { ko: '위험한 곳 누르기', km: 'ចុចកន្លែងគ្រោះថ្នាក់', id: 'Tekan tempat berbahaya', vi: 'Chạm vào chỗ nguy hiểm', ne: 'खतरनाक ठाउँ थिच्नुहोस्', th: 'แตะจุดอันตราย' },
+    /* 🆕 2026-11-23 3D 돌려보기 문항 — 번역은 검수 전 */
+    'quiz.kindOrbit':   { ko: '돌려 보며 위험한 곳 누르기', km: 'បង្វិលមើល ហើយចុចកន្លែងគ្រោះថ្នាក់', id: 'Putar lalu tekan tempat berbahaya', vi: 'Xoay để xem rồi chạm vào chỗ nguy hiểm', ne: 'घुमाएर हेर्नुहोस् र खतरनाक ठाउँ थिच्नुहोस्', th: 'หมุนดูแล้วแตะจุดอันตราย' },
+    'quiz.rotateHint':  { ko: '사진을 옆으로 밀면 설비가 돌아갑니다. 위험한 곳이 보이면 누르세요', km: 'អូសរូបភាពទៅចំហៀង ដើម្បីបង្វិលម៉ាស៊ីន។ ពេលឃើញកន្លែងគ្រោះថ្នាក់ សូមចុច', id: 'Geser foto ke samping untuk memutar mesin. Tekan tempat berbahaya saat terlihat', vi: 'Vuốt ảnh sang ngang để xoay máy. Thấy chỗ nguy hiểm thì chạm vào', ne: 'मेसिन घुमाउन फोटो छेउतिर सार्नुहोस्। खतरनाक ठाउँ देखिएपछि थिच्नुहोस्', th: 'เลื่อนภาพไปด้านข้างเพื่อหมุนเครื่อง เห็นจุดอันตรายแล้วให้แตะ' },
+    'quiz.rotateFind':  { ko: '이 장면에서는 보이지 않습니다. 돌려서 찾아보세요', km: 'មិនឃើញក្នុងរូបនេះទេ។ សូមបង្វិលរក', id: 'Tidak terlihat di gambar ini. Putar untuk mencarinya', vi: 'Không thấy ở cảnh này. Hãy xoay để tìm', ne: 'यो दृश्यमा देखिँदैन। घुमाएर खोज्नुहोस्', th: 'มองไม่เห็นในภาพนี้ หมุนเพื่อหาดู' },
     'quiz.kindChoice': { ko: '알맞은 행동 고르기', km: 'ជ្រើសសកម្មភាពត្រឹមត្រូវ', id: 'Pilih tindakan yang benar', vi: 'Chọn hành động đúng', ne: 'सही काम छान्नुहोस्', th: 'เลือกการกระทำที่ถูกต้อง' },
     'quiz.kindMatch': { ko: '짝 맞추기', km: 'ផ្គូផ្គង', id: 'Pasangkan', vi: 'Ghép cặp', ne: 'जोडा मिलाउनुहोस्', th: 'จับคู่' },
     'quiz.tapPhoto': { ko: '사진에서 위험한 곳을 누르세요', km: 'ចុចកន្លែងគ្រោះថ្នាក់នៅលើរូបភាព', id: 'Tekan tempat berbahaya di gambar', vi: 'Chạm vào chỗ nguy hiểm trên hình', ne: 'तस्बिरमा खतरनाक ठाउँ थिच्नुहोस्', th: 'แตะจุดอันตรายบนภาพ' },

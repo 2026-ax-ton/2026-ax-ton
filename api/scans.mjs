@@ -7,6 +7,8 @@
    🆕 2026-11-16 교육 그림 (보기 그림·설비 사진을 교육 데이터 밖으로 — 동기화 상한 512KB 를 풀기 위해)
    POST /api/scans  { op: 'media-put', courseId, name, data }   → { ok, ref: 'media:<courseId>/<name>.jpg' }   담당자만
    POST /api/scans  { op: 'media-get', ref }                    → { data: 'data:image/jpeg;base64,…' }       담당자·노동자
+   🆕 2026-11-23 교육 영상 조각 — media-put 에 name 'v00'~'v99' + data 'data:video/mp4;base64,…' (2MB 까지) → ref 'media:<courseId>/v00.mp4'.
+      응답 4.5MB 상한 때문에 영상은 조각으로 나눠 올리고, 화면이 받아 이어 붙여 튼다 (UI.courseVideo)
    POST /api/scans  { op: 'media-del', courseId }               → { ok, deleted }   담당자만 — 발급 저장이 실패했을 때 올려 둔 그 교육 그림을 치운다 (2026-11-21)
      ★ ref 에는 사업장이 없다 — 저장 경로 media/<내 사업장>/… 는 **토큰에서만** 붙인다. 남의 사업장 그림은 「없음」
      ★ 노동자는 media-get 만. 나머지(촬영 사진 올리기·목록·받기, 교육 그림 올리기)는 담당자만
@@ -28,8 +30,11 @@ const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const NAME_RE = /^[0-9]-[0-9]{1,2}-[0-9]{1,2}$/;   // 바퀴-칸-번호 (scan.js)
 const JPEG_RE = /^data:image\/jpeg;base64,([A-Za-z0-9+/]+=*)$/;
 const MEDIA_NAME_RE = /^[A-Za-z0-9_-]{1,64}$/;
-const MEDIA_REF_RE = /^media:([A-Za-z0-9_-]{1,64})\/([A-Za-z0-9_-]{1,64})\.jpg$/;
+const MEDIA_REF_RE = /^media:([A-Za-z0-9_-]{1,64})\/([A-Za-z0-9_-]{1,64})\.(jpg|mp4)$/;
 const MAX_MEDIA = 256 * 1024;              // 교육 그림 1장 — 줄인 사본(긴 변 256~448px)이라 넉넉하다
+const MP4_RE = /^data:video\/mp4;base64,([A-Za-z0-9+/]+=*)$/;
+const VIDEO_PART_RE = /^v[0-9]{2}$/;
+const MAX_VIDEO_PART = 2 * 1024 * 1024;     // 영상 조각 1개 — base64 로 2.7MB, 요청 상한(MAX_BODY 3MB) 안
 
 let blobForTest = null;
 export function setBlobForTest(b) { blobForTest = b; }
@@ -103,6 +108,15 @@ async function mediaPut(account, body, cors) {
   if (!MEDIA_NAME_RE.test(courseId || '') || !MEDIA_NAME_RE.test(name || '')) {
     return fail(400, 'bad_request', '교육·그림 이름을 확인해 주세요.', cors);
   }
+  if (VIDEO_PART_RE.test(name)) {
+    const v = MP4_RE.exec(typeof data === 'string' ? data : '');
+    if (!v) return fail(400, 'bad_request', 'mp4 영상 조각만 받습니다.', cors);
+    const vb = Buffer.from(v[1], 'base64');
+    if (vb.length > MAX_VIDEO_PART) return fail(413, 'too_large', '영상 조각이 너무 큽니다.', cors);
+    await (await blob()).put(mediaRoot(account) + courseId + '/' + name + '.mp4', vb,
+      { access: 'private', contentType: 'video/mp4', addRandomSuffix: false, allowOverwrite: true });
+    return json(200, { ok: true, ref: 'media:' + courseId + '/' + name + '.mp4' }, cors);
+  }
   const m = JPEG_RE.exec(typeof data === 'string' ? data : '');
   if (!m) return fail(400, 'bad_request', 'JPEG 그림만 받습니다.', cors);
   const bytes = Buffer.from(m[1], 'base64');
@@ -126,10 +140,12 @@ async function mediaDel(account, body, cors) {
 async function mediaGet(account, body, cors) {
   const m = MEDIA_REF_RE.exec(typeof body.ref === 'string' ? body.ref : '');
   if (!m) return fail(404, 'not_found', '그림이 없습니다.', cors);
-  const r = await (await blob()).get(mediaRoot(account) + m[1] + '/' + m[2] + '.jpg', { access: 'private' });
+  /* mp4 는 영상 조각 이름(v00~)일 때만 — 그림 이름에 .mp4 를 붙여 다른 것을 꺼내지 못하게 */
+  if (m[3] === 'mp4' && !VIDEO_PART_RE.test(m[2])) return fail(404, 'not_found', '그림이 없습니다.', cors);
+  const r = await (await blob()).get(mediaRoot(account) + m[1] + '/' + m[2] + '.' + m[3], { access: 'private' });
   if (!r || r.statusCode !== 200 || !r.stream) return fail(404, 'not_found', '그림이 없습니다.', cors);
   const buf = Buffer.from(await new Response(r.stream).arrayBuffer());
-  return json(200, { data: 'data:image/jpeg;base64,' + buf.toString('base64') }, cors);
+  return json(200, { data: (m[3] === 'mp4' ? 'data:video/mp4;base64,' : 'data:image/jpeg;base64,') + buf.toString('base64') }, cors);
 }
 
 async function run(request) {

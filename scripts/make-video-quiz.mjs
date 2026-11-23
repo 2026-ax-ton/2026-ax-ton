@@ -64,14 +64,16 @@ video.hazards.forEach((h, n) => {
     answerFrom: 'photo', aiWritten: false, answer, figure: 'photo' });
 
   const [happen, safe] = [h.shots[1], h.shots[2]];
-  const danger = happen.source === '3d' ? STILLS[happen.clip].map((t) => pic(path.join(clipDir, happen.clip + '.mp4'), t)) : [pic(path.join(imgDir, happen.file || h.hazardId + '_happen.png'))];
-  const good = safe.source === '3d' ? pic(path.join(clipDir, safe.clip + '.mp4'), STILLS[safe.clip][0]) : pic(path.join(imgDir, safe.file || h.hazardId + '_safe.png'));
+  /* 🆕 2026-11-23 Seedance 클립(ai-video) — 사고 직전 장면 2컷(2초·4.5초) + 바른 장면 1컷(3초) */
+  const vid = (shot) => path.join(imgDir, shot.file);
+  const danger = happen.source === 'ai-video' ? [pic(vid(happen), 2), pic(vid(happen), 4.5)] : happen.source === '3d' ? STILLS[happen.clip].map((t) => pic(path.join(clipDir, happen.clip + '.mp4'), t)) : [pic(path.join(imgDir, happen.file || h.hazardId + '_happen.png'))];
+  const good = safe.source === 'ai-video' ? pic(vid(safe), 3) : safe.source === '3d' ? pic(path.join(clipDir, safe.clip + '.mp4'), STILLS[safe.clip][0]) : pic(path.join(imgDir, safe.file || h.hazardId + '_safe.png'));
   const at = n % (danger.length + 1);           // 정답 자리를 위험마다 옮긴다 — 늘 같은 번호면 외워서 맞힌다
   const pics = danger.slice();
   pics.splice(at, 0, good);
   const safeText = phrase ? reviewed.get(phrase) : '';
   quiz.push({ ...base, id: 'q' + (quiz.length + 1), type: 'choice', subtype: 'picture', difficulty: 'medium', prompt: PROMPT,
-    prevention: safeText, evidence: '영상 ②·③ 장면 (' + (happen.source === '3d' ? '3D 재연' : 'AI 그림') + ')',
+    prevention: safeText, evidence: '영상 ②·③ 장면 (' + (happen.source === '3d' ? '3D 재연' : happen.source === 'ai-video' ? 'AI 영상(Seedance)' : 'AI 그림') + ')',
     answerFrom: phrase ? 'picture+phrase:' + phrase : 'picture', aiWritten: true,
     options: pics.map((_, i) => '그림 ' + (i + 1)), pics, answer: at,
     results: pics.map((_, i) => (i === at ? (safeText || it.risk) : it.risk)) });

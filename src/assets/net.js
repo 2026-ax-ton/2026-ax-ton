@@ -156,7 +156,8 @@ var Net = (function () {
        쿼리로 가르면 다른 그림이 나올 수 있다
      ★ 제3자 요청 0건 — 우리 서버만 부른다. file:// 에서는 부르지 않는다(onHttps) */
   var MEDIA_CACHE = 'media-v1';
-  var MEDIA_RE = /^media:[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.jpg$/;
+  /* 🆕 2026-11-23 영상 조각(v00.mp4 …)도 — 교육 영상을 조각으로 받아 이어 붙인다 (UI.courseVideo) */
+  var MEDIA_RE = /^media:[A-Za-z0-9_-]{1,64}\/([A-Za-z0-9_-]{1,64}\.jpg|v[0-9]{2}\.mp4)$/;
 
   function isMediaRef(v) { return typeof v === 'string' && MEDIA_RE.test(v); }
 
@@ -186,7 +187,8 @@ var Net = (function () {
       return hit.then(function (res) {
         if (res) return res.text();
         return post('/api/scans', { op: 'media-get', ref: ref }, opts).then(function (r) {
-          var data = r.ok && r.data && typeof r.data.data === 'string' && r.data.data.indexOf('data:image/') === 0 ? r.data.data : '';
+          var want = /\.mp4$/.test(ref) ? 'data:video/mp4;' : 'data:image/';
+          var data = r.ok && r.data && typeof r.data.data === 'string' && r.data.data.indexOf(want) === 0 ? r.data.data : '';
           /* 담기가 끝난 뒤에 돌려준다 — 곧바로 끊겨도 방금 받은 그림이 캐시에 있어야 한다 (CI 에서 순서가 갈렸다) */
           if (data && cache && typeof Response === 'function') {
             return cache.put(key, new Response(data, { headers: { 'Content-Type': 'text/plain' } }))

@@ -1216,7 +1216,66 @@ var UI = (function () {
     return bar;
   }
 
+  /* 🆕 2026-11-23 교육 영상 (course.video.src) — 노동자 수강 · 담당자 교육 목록이 같이 쓴다.
+     ★ 같은 출처 경로만 (제3자 요청 0건, C05 T-1″). http(s)://·//·javascript: 는 '' */
+  function courseVideoSrc(course) {
+    var v = course && course.video;
+    var src = v && typeof v.src === 'string' ? v.src : '';
+    return /^(\/(?!\/)|\.\.?\/)/.test(src) ? src : '';
+  }
+
+  /** 🆕 저장소 영상 조각 (media:<교육>/v00.mp4 …) — 응답 상한 때문에 나눠 올린 것. 전부 우리 저장소 주소여야 한다 */
+  function courseVideoParts(course) {
+    var v = course && course.video;
+    var parts = v && Array.isArray(v.parts) ? v.parts : [];
+    return parts.length && parts.length <= 40 && parts.every(function (p) { return typeof Net !== 'undefined' && Net.isMediaRef(p) && /\.mp4$/.test(p); }) ? parts : [];
+  }
+
+  function hasCourseVideo(course) { return !!(courseVideoSrc(course) || courseVideoParts(course).length); }
+
+  /** 조각을 받아 하나로 이어 붙인다 (Net.media 가 Cache Storage 에 담아 두니 끊겨도 다시 튼다) */
+  function loadParts(v, parts, box) {
+    var wait = el('p', 'muted', '…');
+    box.insertBefore(wait, v);
+    Promise.all(parts.map(function (p) { return Net.media(p, { token: typeof Auth !== 'undefined' && Auth.token ? Auth.token() : '' }); })).then(function (list) {
+      if (wait.parentNode) wait.parentNode.removeChild(wait);
+      if (list.some(function (d) { return !d; })) { box.setAttribute('data-media', 'missing'); return; }
+      var bytes = list.map(function (d) {
+        var bin = atob(d.slice(d.indexOf(',') + 1));
+        var a = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+        return a;
+      });
+      v.src = URL.createObjectURL(new Blob(bytes, { type: 'video/mp4' }));
+      box.setAttribute('data-media', 'ok');
+    });
+  }
+
+  /** 영상 + 「AI 로 만든 장면」 표시 묶음. 주소가 안전하지 않으면 null */
+  function courseVideo(course, note) {
+    var src = courseVideoSrc(course);
+    var parts = src ? [] : courseVideoParts(course);
+    if (!src && !parts.length) return null;
+    var box = el('div', 'course-video');
+    var v = document.createElement('video');
+    if (src) v.src = src;
+    v.controls = true;
+    v.setAttribute('playsinline', '');
+    v.preload = 'metadata';
+    v.style.width = '100%';
+    v.style.maxWidth = '720px';
+    v.style.borderRadius = '12px';
+    v.style.background = '#000';
+    box.appendChild(v);
+    var p = el('p', 'muted', note);
+    p.insertBefore(iconBox('alert', 'ico', 'span'), p.firstChild);
+    box.appendChild(p);
+    if (parts.length) loadParts(v, parts, box);
+    return box;
+  }
+
   return {
+    courseVideoSrc: courseVideoSrc, courseVideo: courseVideo, hasCourseVideo: hasCourseVideo,
     syncBadge: syncBadge,
     brand: brand,
     $: $, $$: $$, el: el,
