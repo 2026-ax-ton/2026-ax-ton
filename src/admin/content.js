@@ -1374,6 +1374,26 @@
       tr.appendChild(actCell);
 
       body.appendChild(tr);
+
+      /* 🆕 2026-11-23 교육 영상 — 발급한 뒤 담당자도 노동자와 같은 영상을 본다 (같은 출처 경로만, UI.courseVideo) */
+      var video = UI.courseVideo(c, 'AI(Seedance)로 만든 장면이 들어 있는 영상입니다. 실제 사진 장면과 구분해 보세요.');
+      if (video) {
+        var vrow = UI.el('tr', 'course-video-row');
+        vrow.hidden = true;
+        var vcell = UI.el('td');
+        vcell.colSpan = 8;
+        vcell.appendChild(video);
+        vrow.appendChild(vcell);
+        body.appendChild(vrow);
+        var watch = UI.el('button', 'btn-sm', '영상 보기');
+        watch.type = 'button';
+        watch.addEventListener('click', function () {
+          vrow.hidden = !vrow.hidden;
+          watch.textContent = vrow.hidden ? '영상 보기' : '영상 닫기';
+          if (vrow.hidden) video.querySelector('video').pause();
+        });
+        row.insertBefore(watch, row.firstChild);
+      }
     });
   }
 
