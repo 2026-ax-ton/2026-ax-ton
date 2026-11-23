@@ -311,7 +311,44 @@
     $('btn-prev').disabled = current.index === 0;
     $('btn-next').textContent = last ? T('learn.heard') + ' ✓' : T('action.next') + ' ▶';
 
-    if (autoSpeak) audio.play();
+    /* 🆕 2026-11-23 교육 영상 — 첫 단계 문구 카드 위에. 영상이 있으면 문구 음성을 저절로 틀지 않는다 (소리가 겹친다) */
+    var shown = renderVideo(course, current.index === 0);
+    if (autoSpeak && !shown) audio.play();
+  }
+
+  /** 교육 영상 주소 — 같은 출처 경로만 (제3자 요청 0건, C05 T-1″). http(s)://·// 로 시작하면 쓰지 않는다 */
+  function videoSrc(course) {
+    var v = course && course.video;
+    var src = v && typeof v.src === 'string' ? v.src : '';
+    return /^(\/(?!\/)|\.\.?\/)/.test(src) ? src : '';
+  }
+
+  function renderVideo(course, show) {
+    var box = $('course-video');
+    if (!box) {
+      box = UI.el('div', 'course-video');
+      box.id = 'course-video';
+      $('phrase-card').parentNode.insertBefore(box, $('phrase-card'));
+    }
+    var src = show ? videoSrc(course) : '';
+    if (box.getAttribute('data-src') === src) return !!src;
+    box.textContent = '';
+    box.setAttribute('data-src', src);
+    box.hidden = !src;
+    if (!src) return false;
+    var v = document.createElement('video');
+    v.src = src;
+    v.controls = true;
+    v.setAttribute('playsinline', '');
+    v.preload = 'metadata';
+    v.style.width = '100%';
+    v.style.borderRadius = '12px';
+    v.style.background = '#000';
+    box.appendChild(v);
+    var note = UI.el('p', 'muted', I18N.t('learn.aiVideo', me.lang));
+    note.insertBefore(UI.iconBox('alert', 'ico', 'span'), note.firstChild);
+    box.appendChild(note);
+    return true;
   }
 
   function step(delta) {

@@ -133,6 +133,8 @@ var I18N = (function () {
     'learn.backToList':   { ko: '교육 목록으로 돌아가기', km: 'ត្រឡប់ទៅបញ្ជី',  id: 'Kembali ke daftar', vi: 'Quay lại danh sách', ne: 'सूचीमा फर्कनु', th: 'กลับไปที่รายการ' },
     'learn.notYet':       { ko: '아직 들을 수 없습니다',  km: 'មិនទាន់អាចស្តាប់', id: 'Belum bisa diikuti', vi: 'Chưa thể học', ne: 'अझै सुन्न सकिँदैन', th: 'ยังเรียนไม่ได้' },
     'learn.listenAgain':  { ko: '이 문구를 다시 듣기',    km: 'ស្តាប់សារនេះម្តងទៀត', id: 'Dengarkan lagi', vi: 'Nghe lại câu này', ne: 'फेरि सुन्नुहोस्', th: 'ฟังอีกครั้ง' },
+    /* 🆕 2026-11-23 교육 영상 — AI(Seedance)로 만든 장면이 섞여 있다는 표시 (실제 사진과 구분). 번역은 검수 전 */
+    'learn.aiVideo':      { ko: 'AI로 만든 장면이 들어 있는 영상입니다', km: 'វីដេអូនេះមានឈុតឆាកដែលបង្កើតដោយ AI', id: 'Video ini berisi adegan buatan AI', vi: 'Video này có cảnh do AI tạo ra', ne: 'यो भिडियोमा AI ले बनाएका दृश्यहरू छन्', th: 'วิดีโอนี้มีฉากที่สร้างด้วย AI' },
     'learn.startQuiz':    { ko: '이해도 검증 시작',       km: 'ចាប់ផ្តើមត្រួតពិនិត្យ', id: 'Mulai uji pemahaman', vi: 'Bắt đầu kiểm tra', ne: 'जाँच सुरु गर्नुहोस्', th: 'เริ่มตรวจความเข้าใจ' },
     'learn.excluded':     { ko: '검수 대기 제외', km: 'មិនរាប់បញ្ចូល (រង់ចាំត្រួតពិនិត្យ)', id: 'Dikecualikan (menunggu pemeriksaan)', vi: 'Đã loại trừ (chờ kiểm duyệt)', ne: 'बाहेक गरिएको (जाँच पर्खाइमा)', th: 'ไม่รวม (รอตรวจสอบ)' },
     'learn.transPending': { ko: '내 언어 번역 준비 중',   km: 'កំពុងរៀបចំការបកប្រែ', id: 'Terjemahan disiapkan', vi: 'Đang chuẩn bị bản dịch', ne: 'अनुवाद तयारीमा', th: 'กำลังเตรียมคำแปล' },
