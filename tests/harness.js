@@ -69,7 +69,8 @@ function boot(pageRelPath, opts = {}) {
 
   if (opts.seed !== false) win.Seed.fill();
   if (opts.login) {
-    win.Store.session.save({ userId: opts.login, role: opts.role || 'worker', at: new Date().toISOString() });
+    /* 이 기기 로그인 — 검사 주소가 https 라 서버에 닿지 못해 들어온 것으로 적는다 (Auth.current, 2026-11-23). offline:false 로 그 막기를 시험할 수 있다 */
+    win.Store.session.save({ userId: opts.login, role: opts.role || 'worker', at: new Date().toISOString(), offline: opts.offline !== false });
   }
   if (opts.before) opts.before(win);
 

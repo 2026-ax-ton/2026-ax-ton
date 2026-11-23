@@ -72,6 +72,23 @@ var Auth = (function () {
     return true;
   }
 
+  /** 🆕 2026-11-23 화면 언어 바꾸기 — 이 기기 계정과, 서버로 로그인했으면 그 사용자 정보에도.
+   *  예전에는 이 기기 계정만 고쳐서 서버 로그인 중에는 언어 칸을 바꿔도 화면이 그대로였다 */
+  function setLang(code) {
+    var u = current();
+    if (!u) return { ok: false };
+    var r = Store.accounts.update(function (list) {
+      for (var i = 0; i < list.length; i++) if (list[i] && list[i].userId === u.userId) list[i].lang = code;
+    });
+    var su = serverUser();
+    if (token() && su) {
+      su.lang = code;
+      try { sessionStorage.setItem(USER_KEY, JSON.stringify(su)); } catch (e) { return { ok: false }; }
+      return { ok: true };
+    }
+    return r;
+  }
+
   function dropServer() {
     try {
       sessionStorage.removeItem(TOKEN_KEY);
@@ -95,6 +112,11 @@ var Auth = (function () {
 
     var s = Store.session.load();
     if (!s.userId || !s.role) return null;
+
+    /* 🆕 2026-11-23 배포 주소(서버를 부를 수 있는 곳)에서는 이 기기 로그인을 **서버에 닿지 못했을 때 들어온 것만** 믿는다.
+       예전 이 기기 로그인이 남아 있으면 새 탭마다 서버 없이(동기화 꺼짐) 돌아 서버의 교육·영상이 안 보였다 (2026-11-23 겪음).
+       그때는 다시 로그인하게 한다 — 로그인 화면이 서버로 들어간다 */
+    if (canServer() && !s.offline) return null;
 
     // 세션에 남아 있어도 계정이 지워졌으면 로그인 상태가 아니다
     var acc = Store.findBy(Store.accounts.load(), 'userId', s.userId);
@@ -143,7 +165,7 @@ var Auth = (function () {
     return { ok: true, account: account };
   }
 
-  function login(userId, pw) {
+  function login(userId, pw, opts) {
     userId = (userId || '').trim();
     var acc = Store.findBy(Store.accounts.load(), 'userId', userId);
 
@@ -156,7 +178,8 @@ var Auth = (function () {
     var ok = Store.session.save({
       userId: acc.userId,
       role: acc.role,
-      at: new Date().toISOString()
+      at: new Date().toISOString(),
+      offline: !!(opts && opts.offline)
     });
     if (!ok) return { ok: false, reason: '이 브라우저에 로그인 상태를 저장할 수 없습니다.' };
 
@@ -327,6 +350,7 @@ var Auth = (function () {
     login: login,
     canServer: canServer,
     token: token,
+    setLang: setLang,
     loginServer: loginServer,
     signupServer: signupServer,
     signupWorkplaceServer: signupWorkplaceServer,
