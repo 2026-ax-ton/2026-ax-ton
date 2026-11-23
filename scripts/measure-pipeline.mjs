@@ -61,13 +61,13 @@ async function main() {
   const model = o['model-id'] || (gpt ? env.OPENAI_MODEL : (env.AI_MODEL_RESEARCH || env.AI_MODEL_TRANSLATE || 'gemini-3.1-flash-lite'));
   if (!model) { console.error('.env.local 에 OPENAI_MODEL 을 넣어 주세요 (platform.openai.com 모델 목록에서 확인).'); process.exit(1); }
   const provider = gpt ? 'openai' : undefined;
-  const eq = { name: cleanField(o.name, 60), maker: cleanField(o.maker, 60), model: cleanField(o.model, 60), year: null };
+  const eq = { name: cleanField(o.name, 60), maker: cleanField(o.maker, 60), model: cleanField(o.model, 60), year: null, kind: o.kind || '', id: o.id || '' };
 
   /* ── S2 리서치 ── */
   console.log('── S2 리서치 · ' + (gpt ? 'GPT' : 'Gemini') + ' ' + model + ' · ' + [eq.name, eq.maker, eq.model].filter(Boolean).join(' / '));
   let t0 = Date.now();
   /* 서버(api/research.mjs)와 같다 — 기본 조사와 「이 기계에만 있는 위험」 두 질문을 나란히 */
-  const mcfg = { provider, key, model, timeoutMs: 60000 };
+  const mcfg = { provider, key, model, timeoutMs: 150000 };   // 서버와 같다 (api/research.mjs DEFAULT_RESEARCH_TIMEOUT_MS)
   const mopts = { maxOutputTokens: 8000, maxText: 24000, tools: [{ google_search: {} }] };
   const [r, r2] = await Promise.all([
     callModel(mcfg, systemText(), userText(eq), mopts),
@@ -115,7 +115,7 @@ async function main() {
   const items = cleanGuidedItems(res.items.map((it) => ({ id: it.id, part: it.part, hazard: it.hazard })));
   console.log('\n── S3 사진 위치 · ' + path.basename(abs) + ' ' + Math.round(buf.length / 1024) + 'KB · 항목 ' + items.length + '개');
   t0 = Date.now();
-  const g = await callModel({ provider, key, model, timeoutMs: 45000 }, guidedSystemText(), [
+  const g = await callModel({ provider, key, model, timeoutMs: 90000 }, guidedSystemText(), [
     { inline_data: { mime_type: mime, data: buf.toString('base64') } },
     { text: guidedUserText(items) },
   ], { maxOutputTokens: 4800, maxText: 8000 });   // api/hazards.mjs 안내형과 같다

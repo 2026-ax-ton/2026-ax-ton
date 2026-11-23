@@ -165,7 +165,8 @@ const picked = [];
   if (!h || picked.length >= HAZARDS[1] || picked.some((p) => p.hazard.id === h.id)) return;
   const accident = classify(h) || String(s.accident || '기타').trim();
   const visual = has3d && AS3D[accident] ? AS3D[accident] : has3d && CLIPS3D[s.visual] ? s.visual : 'ai';
-  const kindKey = visual !== 'ai' ? visual : accident;
+  /* 🆕 2026-11-23 사고 종류 거르기(KINDS)는 프레스용이다 — 다른 설비는 같은 위험요소만 한 번 (밀링 끼임 여럿이 하나로 줄었다) */
+  const kindKey = visual !== 'ai' ? visual : kind === 'press' ? accident : h.id;
   if (usedKind.has(kindKey)) return;
   const happen = String(s.happen || '').trim().slice(0, 400), safe = String(s.safe || '').trim().slice(0, 400);
   if (visual === 'ai' && (!happen || !safe)) return;
@@ -204,7 +205,7 @@ const scriptJson = (extra) => JSON.stringify(Object.assign({
   general: general.map((g) => ({ text: g.text, phraseId: g.phrase ? g.phrase.id : '' })),
 }, extra), null, 2);
 if (process.argv.includes('--script-only')) {
-  fs.writeFileSync(scriptFile, scriptJson({ hazards: picked.map((s) => ({ hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual,
+  fs.writeFileSync(scriptFile, scriptJson({ candidates: (raw.hazards || []).map((x) => x && x.hazardId + '/' + x.accident + '/' + x.visual), hazards: picked.map((s) => ({ hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual,
     happen: s.happen, safe: s.safe, narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '', guide: s.guide })) }));
   lines.forEach((l) => console.log('  [' + l.source + '] ' + l.at + ': ' + l.text));
   console.log('대본만 저장: ' + scriptFile + ' — 검수 뒤 --reuse 로 렌더');
