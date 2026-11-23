@@ -48,8 +48,15 @@
   var KIND = {
     hotspot: { ico: '👆', key: 'quiz.kindHotspot' },
     choice:  { ico: '☑',  key: 'quiz.kindChoice' },
-    match:   { ico: '🔗', key: 'quiz.kindMatch' }
+    match:   { ico: '🔗', key: 'quiz.kindMatch' },
+    /* 🆕 2026-11-23 3D 돌려보기 — 촬영 사진 묶음을 끌어 돌리며 위험한 곳 누르기 (규칙 문서 §12.6 · §12.9 ⑤) */
+    'orbit-hotspot': { ico: '👆', key: 'quiz.kindOrbit' }
   };
+
+  /** 돌려보기 장면 주소 — 같은 출처 경로 · data:image · 저장소(media:) 만 (제3자 요청 0건) */
+  function frameOk(src) {
+    return typeof src === 'string' && (/^(\/(?!\/)|\.\.?\/)/.test(src) || src.indexOf('data:image/') === 0 || Net.isMediaRef(src));
+  }
 
   /* -----------------------------------------------------------------
      내가 누구인지 · 무엇을 검증하는지
@@ -112,6 +119,11 @@
       if (q.type === 'hotspot') return !!(q.answer && typeof q.answer.x === 'number');
       if (q.type === 'choice') return Array.isArray(q.options) && q.options.length > 1 && typeof q.answer === 'number';
       if (q.type === 'match') return Array.isArray(q.pairs) && q.pairs.length > 0;
+      if (q.type === 'orbit-hotspot') {
+        return Array.isArray(q.frames) && q.frames.length > 1 && q.frames.every(frameOk)
+          && Array.isArray(q.answers) && q.answers.length === q.frames.length
+          && q.answers.some(function (a) { return a && typeof a.x === 'number'; });
+      }
       return false;
     });
   }
@@ -238,6 +250,7 @@
     var body = $('quiz-body');
     body.textContent = '';
     if (q.type === 'hotspot') renderHotspot(body, q);
+    else if (q.type === 'orbit-hotspot') renderOrbit(body, q);
     else if (q.type === 'choice') renderChoice(body, q);
     else renderMatch(body, q);
 
@@ -402,6 +415,123 @@
       ring.style.height = (2 * (q.answer.r || 12)) + '%';
       figure.appendChild(ring);
     }
+  }
+
+  /* --- orbit-hotspot — 사진 묶음을 손가락으로 끌어 돌리고, 위험한 곳을 누른다 (2026-11-23)
+     정답은 장면마다 다르다 (answers[n] = {x,y,r} 또는 null = 그 장면에서는 안 보임).
+     ★ 안 보이는 장면에서 누르면 채점하지 않고 「돌려서 찾아보세요」 — 한 번만 답하는 규칙을 그 장면 탓으로 날리지 않는다
+     ★ 끌기 없이도 끝낼 수 있게 ◀ ▶ 버튼 (60px) */
+
+  function renderOrbit(body, q) {
+    var n = q.frames.length;
+    var view = typeof q.start === 'number' && q.start >= 0 && q.start < n ? q.start : 0;
+    var figure = UI.el('div', 'quiz-figure photo orbit-figure');
+    figure.style.touchAction = 'pan-y';
+    var img = UI.el('img');
+    img.alt = '';
+    img.draggable = false;
+    figure.appendChild(img);
+    var sel = null, marker = null;
+    var count = UI.el('span', 'orbit-count');
+
+    /* 미리 받아 둔다 — 돌릴 때 끊기지 않게 */
+    q.frames.forEach(function (src) { if (!Net.isMediaRef(src)) { var pre = new Image(); pre.src = src; } });
+
+    function show(i) {
+      view = Math.max(0, Math.min(n - 1, i));
+      if (Net.isMediaRef(q.frames[view])) Net.mediaInto(img, q.frames[view], { token: Auth.token() });
+      else img.src = q.frames[view];
+      count.textContent = (view + 1) + ' / ' + n;
+      if (sel && sel.view !== view) { sel = null; if (marker) { marker.parentNode.removeChild(marker); marker = null; } paintSel(); }
+    }
+
+    var submit = UI.el('button', 'btn btn-primary', T('quiz.submit'));
+    submit.type = 'button';
+    submit.id = 'btn-orbit-submit';
+    var clear = UI.el('button', 'btn btn-quiet', T('quiz.clear'));
+    clear.type = 'button';
+    function paintSel() {
+      submit.disabled = !sel;
+      clear.disabled = !sel;
+      submit.setAttribute('aria-disabled', sel ? 'false' : 'true');
+    }
+
+    /* 끌기 = 돌리기, 거의 안 움직이고 떼면 = 누르기 */
+    var drag = null;
+    var STEP = 24;   // px 마다 한 장
+    figure.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, start: view, moved: false }; });
+    figure.addEventListener('pointermove', function (e) {
+      if (!drag || run.locked) return;
+      var dx = e.clientX - drag.x;
+      if (Math.abs(dx) > 8) drag.moved = true;
+      if (drag.moved) show(drag.start - Math.round(dx / STEP));
+    });
+    figure.addEventListener('click', function (e) {
+      var wasDrag = drag && drag.moved;
+      drag = null;
+      if (wasDrag || run.locked) return;
+      var box = figure.getBoundingClientRect();
+      if (!box.width || !box.height) return;
+      var x = Math.max(0, Math.min(100, ((e.clientX - box.left) / box.width) * 100));
+      var y = Math.max(0, Math.min(100, ((e.clientY - box.top) / box.height) * 100));
+      sel = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, view: view };
+      if (!marker) { marker = UI.el('div', 'tapmark'); figure.appendChild(marker); }
+      marker.style.left = sel.x + '%';
+      marker.style.top = sel.y + '%';
+      paintSel();
+    });
+
+    var prev = UI.el('button', 'btn btn-quiet', '◀');
+    prev.type = 'button';
+    prev.setAttribute('aria-label', T('action.prev'));
+    prev.addEventListener('click', function () { if (!run.locked) show(view - 1); });
+    var next = UI.el('button', 'btn btn-quiet', '▶');
+    next.type = 'button';
+    next.setAttribute('aria-label', T('action.next'));
+    next.addEventListener('click', function () { if (!run.locked) show(view + 1); });
+
+    clear.addEventListener('click', function () {
+      if (run.locked) return;
+      sel = null;
+      if (marker) { marker.parentNode.removeChild(marker); marker = null; }
+      paintSel();
+    });
+
+    submit.addEventListener('click', function () {
+      if (run.locked) return;
+      if (!sel) { UI.toast(T('quiz.pickFirst')); return; }
+      var ans = q.answers[sel.view];
+      if (!ans) { UI.toast(T('quiz.rotateFind')); UI.speak(say(T('quiz.rotateFind'), I18N.t('quiz.rotateFind', 'ko'))); return; }
+      var correct = Diagrams.inAnswer(ans, sel.x, sel.y);
+      run.picked = { x: sel.x, y: sel.y, view: sel.view };
+      submit.disabled = true;
+      clear.disabled = true;
+      if (marker) marker.setAttribute('data-mark', correct ? 'ok' : 'no');
+      if (!correct) {
+        var ring = UI.el('div', 'answer-ring');
+        ring.style.left = ans.x + '%';
+        ring.style.top = ans.y + '%';
+        ring.style.width = (2 * (ans.r || 12)) + '%';
+        ring.style.height = (2 * (ans.r || 12)) + '%';
+        figure.appendChild(ring);
+      }
+      var fb = feedbackOf(q, correct, 'quiz.rightSpot', 'quiz.wrongSpot');
+      answered(correct, fb.text, fb.ko);
+    });
+
+    body.appendChild(figure);
+    var turn = UI.el('div', 'orbit-turn');
+    turn.appendChild(prev);
+    turn.appendChild(count);
+    turn.appendChild(next);
+    body.appendChild(turn);
+    body.appendChild(UI.el('p', 'zonehint', T('quiz.rotateHint')));
+    var row = UI.el('div', 'big-actions hotspot-actions');
+    row.appendChild(clear);
+    row.appendChild(submit);
+    body.appendChild(row);
+    show(view);
+    paintSel();
   }
 
   /* --- choice — 올바른 작업 고르기 --- */

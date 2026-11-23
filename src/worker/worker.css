@@ -1896,3 +1896,9 @@ body.has-tabbar { background: var(--hv2-bg); }
 .workerbar .btn-sm { white-space: nowrap; flex: 0 0 auto; }
 .workerbar .who span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .workerbar .lang-switch { flex: 0 1 auto; min-width: 0; max-width: 7.5em; }
+
+/* 🆕 2026-11-23 3D 돌려보기 문항 — ◀ n/N ▶ (끌기 없이도 돌릴 수 있게, 60px) */
+.orbit-turn { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.orbit-turn .btn { width: auto; min-width: var(--tap-min); flex: 1 1 0; font-size: 1.4rem; }
+.orbit-count { font-weight: 700; min-width: 4em; text-align: center; }
+.orbit-figure { cursor: grab; user-select: none; max-width: 34vh; margin-left: auto; margin-right: auto; }   /* 세로 사진(9:16)이 화면의 60% 를 넘지 않게 — 폭으로 줄여 정답 % 좌표가 그대로 맞는다 */
