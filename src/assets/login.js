@@ -144,7 +144,8 @@
   }
 
   function loginHere(fallbackNote) {
-    var result = Auth.login($('login-id').value, $('login-pw').value);
+    /* 서버에 닿지 못해 이 기기 계정으로 들어온 것인지 적어 둔다 — 배포 주소에서는 그때만 이 기기 로그인을 믿는다 (Auth.current) */
+    var result = Auth.login($('login-id').value, $('login-pw').value, { offline: !!fallbackNote });
     if (!result.ok) {
       showError(result.reason);
       if (fallbackNote) showMode(fallbackNote);

@@ -436,10 +436,11 @@ var Store = (function () {
 
   /* 2. session — 로그인이 쓰고 모든 화면이 읽는다 */
   var session = makeStore('session',
-    function () { return { userId: '', role: '', at: null }; },
+    function () { return { userId: '', role: '', at: null, offline: false }; },
     function (d) {
       d = obj(d);
-      return { userId: d.userId || '', role: d.role || '', at: d.at || null };
+      /* 🆕 2026-11-23 offline — 서버에 닿지 못해 이 기기 계정으로 들어왔는지 (Auth.current 가 배포 주소에서 본다) */
+      return { userId: d.userId || '', role: d.role || '', at: d.at || null, offline: d.offline === true };
     });
 
   /* 3. setup — 관리자 기능1 (사업장 · 언어 · 공정 · 설비 · 노동자)
