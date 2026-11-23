@@ -1,7 +1,7 @@
 {
   "equipment": "밀링",
   "model": "gpt-5-mini",
-  "at": "2026-11-23T06:02:39.263Z",
+  "at": "2026-11-23T06:36:24.298Z",
   "phrasesFrom": "seed.js",
   "hazardTypes": [
     "pinch",
@@ -25,12 +25,12 @@
     },
     {
       "at": "r1 위험",
-      "source": "claude",
+      "source": "gpt",
       "text": "회전하는 커터와 주축에 장갑이나 소매가 닿으면 말려 들어가 손이 끼이거나 베일 수 있다."
     },
     {
       "at": "r1 수칙",
-      "source": "claude",
+      "source": "gpt",
       "text": "커터가 완전히 멈춘 뒤에만 손을 댄다. 회전 중에는 장갑 낀 손이나 소매를 커터 가까이 두지 않는다."
     },
     {
@@ -79,16 +79,6 @@
       "text": "바이스와 클램프는 규정 토크로 조이고 보조 지지대를 사용한다. 가공 시작 전 고정 상태를 재확인한다."
     },
     {
-      "at": "r9 위험",
-      "source": "gpt",
-      "text": "조작손잡이와 회전부 접촉으로 손상이나 끼임 위험이 있다."
-    },
-    {
-      "at": "r9 수칙",
-      "source": "gpt",
-      "text": "조작 전 회전부의 방호를 확인하고, 손잡이 조작 시 기계가 완전히 멈췄는지 확인한다."
-    },
-    {
       "at": "공통 1",
       "source": "gpt",
       "text": "보호안경, 방진마스크, 절삭장갑 등 개인보호구를 착용한다."
@@ -126,14 +116,17 @@
       "phraseId": ""
     }
   ],
-  "candidates": [
-    "r1/끼임/pinch",
-    "r4/감전/ai",
-    "r8/화재누유/ai",
-    "r10/넘어짐추락/ai",
-    "r11/낙하압착/ai",
-    "r9/기타/ai"
-  ],
+  "imageModel": "dreamina-seedance-2-0-mini-260615",
+  "tts": "gemini-3.8-flash-tts",
+  "seconds": 130,
+  "calls": {
+    "script": 0,
+    "images": 0,
+    "textChecks": 0,
+    "seedanceClips": 10,
+    "seedanceTokens": 1089000,
+    "tts": 15
+  },
   "hazards": [
     {
       "hazardId": "r1",
@@ -142,17 +135,40 @@
       "visual": "ai",
       "happen": "A worker reaches a gloved hand toward the rotating milling cutter at the bottom of the spindle, just above the vise, to brush away chips while the cutter is still spinning; the glove and loose sleeve are very close to the cutter.",
       "safe": "Same scene: the spindle and cutter are fully stopped, the worker has switched off the machine and uses a chip brush with sleeves fastened tight, keeping hands away from the cutter.",
-      "narration": "회전하는 커터와 주축에 장갑이나 소매가 닿으면 말려 들어가 손이 끼이거나 베일 수 있다.",
-      "fixed": false,
-      "phraseId": "",
-      "guide": "커터가 완전히 멈춘 뒤에만 손을 댄다. 회전 중에는 장갑 낀 손이나 소매를 커터 가까이 두지 않는다.",
-      "note": "2026-11-23 GPT 가 이 항목에 그림 설명을 비워 빠졌다 — Claude 가 채움, 검수 필요",
       "seedBox": {
         "x0": 24,
         "y0": 30,
         "x1": 56,
         "y1": 44
-      }
+      },
+      "narration": "회전하는 커터와 주축에 장갑이나 소매가 닿으면 말려 들어가 손이 끼이거나 베일 수 있다.",
+      "fixed": false,
+      "phraseId": "",
+      "guide": "커터가 완전히 멈춘 뒤에만 손을 댄다. 회전 중에는 장갑 낀 손이나 소매를 커터 가까이 두지 않는다.",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 26,
+            "y0": 14,
+            "x1": 52,
+            "y1": 34
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-video",
+          "prompt": "A worker reaches a gloved hand toward the rotating milling cutter at the bottom of the spindle, just above the vise, to brush away chips while the cutter is still spinning; the glove and loose sleeve are very close to the cutter.",
+          "file": "r1_happen.mp4"
+        },
+        {
+          "role": "safe",
+          "source": "ai-video",
+          "prompt": "Same scene: the spindle and cutter are fully stopped, the worker has switched off the machine and uses a chip brush with sleeves fastened tight, keeping hands away from the cutter.",
+          "file": "r1_safe.mp4"
+        }
+      ]
     },
     {
       "hazardId": "r4",
@@ -164,7 +180,31 @@
       "narration": "분전반의 손상이나 방호 미흡으로 전기 노출과 기계의 비정상 동작이 발생할 수 있다.",
       "fixed": false,
       "phraseId": "ph-6",
-      "guide": "전원 차단 후 잠금·표시하고 전기 점검만 전기 담당자가 수행한다. 젖은 손이나 장비로 전기 설비에 접촉하지 않는다."
+      "guide": "전원 차단 후 잠금·표시하고 전기 점검만 전기 담당자가 수행한다. 젖은 손이나 장비로 전기 설비에 접촉하지 않는다.",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 76,
+            "y0": 51,
+            "x1": 96,
+            "y1": 70
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-video",
+          "prompt": "A worker standing by an open electrical panel reaching toward exposed wires while the machine is powered.",
+          "file": "r4_happen.mp4"
+        },
+        {
+          "role": "safe",
+          "source": "ai-video",
+          "prompt": "The same scene with the panel closed and locked, worker standing back with power off and a multimeter on the side.",
+          "file": "r4_safe.mp4"
+        }
+      ]
     },
     {
       "hazardId": "r8",
@@ -176,7 +216,31 @@
       "narration": "절삭유나 냉각수의 누출이 피부 자극과 미끄러짐, 전기·화재 위험을 유발할 수 있다.",
       "fixed": false,
       "phraseId": "",
-      "guide": "누출 즉시 차단하고 흡수재로 정리한다. 탱크와 배관 점검을 정기적으로 실시한다."
+      "guide": "누출 즉시 차단하고 흡수재로 정리한다. 탱크와 배관 점검을 정기적으로 실시한다.",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 70,
+            "y0": 62,
+            "x1": 88,
+            "y1": 82
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-video",
+          "prompt": "Coolant leaking from a pipe onto the floor and splashing near electrical connectors and hot surfaces.",
+          "file": "r8_happen.mp4"
+        },
+        {
+          "role": "safe",
+          "source": "ai-video",
+          "prompt": "Leak patched or container placed to catch fluid, spill absorbed, and area kept clear from hot surfaces and electrical parts.",
+          "file": "r8_safe.mp4"
+        }
+      ]
     },
     {
       "hazardId": "r10",
@@ -188,7 +252,31 @@
       "narration": "칩·오일로 바닥이 미끄러져 넘어지고 2차 손상이 발생할 수 있다.",
       "fixed": false,
       "phraseId": "",
-      "guide": "작업 중 발생한 칩과 오일은 즉시 제거하고 바닥을 건조하게 유지한다. 미끄럼 방지 신발을 착용한다."
+      "guide": "작업 중 발생한 칩과 오일은 즉시 제거하고 바닥을 건조하게 유지한다. 미끄럼 방지 신발을 착용한다.",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 22,
+            "y0": 90,
+            "x1": 76,
+            "y1": 99.9
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-video",
+          "prompt": "Floor covered with metal chips and oily puddles around the machine, worker walking through with slippery shoes.",
+          "file": "r10_happen.mp4"
+        },
+        {
+          "role": "safe",
+          "source": "ai-video",
+          "prompt": "Clean floor with chips swept into a bin and oil wiped up; clear walkway and worker wearing non-slip footwear.",
+          "file": "r10_safe.mp4"
+        }
+      ]
     },
     {
       "hazardId": "r11",
@@ -200,19 +288,31 @@
       "narration": "고정 불량으로 가공물이나 공구가 이탈·낙하하여 타격이나 압착 위험이 있다.",
       "fixed": false,
       "phraseId": "",
-      "guide": "바이스와 클램프는 규정 토크로 조이고 보조 지지대를 사용한다. 가공 시작 전 고정 상태를 재확인한다."
-    },
-    {
-      "hazardId": "r9",
-      "part": "작업반경·조작손잡이(핸드휠 등)",
-      "accident": "끼임",
-      "visual": "ai",
-      "happen": "Operator adjusting a handwheel while nearby rotating parts are unguarded, fingers close to rotating shaft.",
-      "safe": "Operator uses handles with guards in place; hands kept away from rotating surfaces and speed reduced before adjustment.",
-      "narration": "조작손잡이와 회전부 접촉으로 손상이나 끼임 위험이 있다.",
-      "fixed": false,
-      "phraseId": "",
-      "guide": "조작 전 회전부의 방호를 확인하고, 손잡이 조작 시 기계가 완전히 멈췄는지 확인한다."
+      "guide": "바이스와 클램프는 규정 토크로 조이고 보조 지지대를 사용한다. 가공 시작 전 고정 상태를 재확인한다.",
+      "shots": [
+        {
+          "role": "where",
+          "source": "real-photo",
+          "box": {
+            "x0": 10,
+            "y0": 36,
+            "x1": 36,
+            "y1": 52
+          }
+        },
+        {
+          "role": "happen",
+          "source": "ai-video",
+          "prompt": "Workpiece in a vise loosening during cutting, starting to tilt and fall off the table toward a worker's hands.",
+          "file": "r11_happen.mp4"
+        },
+        {
+          "role": "safe",
+          "source": "ai-video",
+          "prompt": "Workpiece firmly clamped with proper fixtures and supports; worker clear of the drop zone.",
+          "file": "r11_safe.mp4"
+        }
+      ]
     }
   ]
 }
