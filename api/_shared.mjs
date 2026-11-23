@@ -184,7 +184,12 @@ export async function guardBasic(request, opts) {
        부르면 실격이다 (C06 D-034, C08 §7.1, A04 7-6). 스위치는 되돌릴 수 있게
        남겨 두지만 값은 언제나 0 이다 — 막는 힘이 약하기도 하다 (A02 §5.2). */
   const nullOrigin = origin === 'null' && allowFile;
-  const sameOrigin = !!origin && allowedOrigins().indexOf(origin) !== -1;
+  /* 🆕 2026-11-23 브라우저는 같은 출처 GET·HEAD 에 Origin 을 붙이지 않는다 (Fetch 표준) — 동기화 받기(GET /api/store)가
+     배포 주소에서 403 이었다. 그때는 브라우저가 붙이는 Sec-Fetch-Site: same-origin 으로 같은 출처를 안다.
+     (이 헤더는 페이지 스크립트가 바꿀 수 없다. 둘 다 없는 요청은 그대로 막는다) */
+  const readMethod = request.method === 'GET' || request.method === 'HEAD';
+  const sameOrigin = (!!origin && allowedOrigins().indexOf(origin) !== -1)
+    || (!origin && readMethod && request.headers.get('sec-fetch-site') === 'same-origin');
   const cors = nullOrigin ? CORS_NULL : undefined;
 
   if (request.method === 'OPTIONS') {
