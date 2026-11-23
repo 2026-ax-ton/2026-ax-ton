@@ -403,7 +403,8 @@
   }
 
   function saveLang(code) {
-    var result = Store.accounts.update(function (list) {
+    /* 🆕 2026-11-23 서버 로그인 중에는 이 기기 계정만 고치면 화면이 그대로였다 — Auth.setLang 이 둘 다 적는다 */
+    var result = Auth.setLang ? Auth.setLang(code) : Store.accounts.update(function (list) {
       var acc = Store.findBy(list, 'userId', me.id);
       if (acc) acc.lang = code;          // ★ 값만. 다른 필드는 손대지 않는다
     });
