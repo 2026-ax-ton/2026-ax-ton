@@ -140,13 +140,19 @@
       "part": "회전절삭공구(커터)·스핀들",
       "accident": "끼임",
       "visual": "ai",
-      "happen": "A worker leans in and reaches a gloved hand toward the spinning milling cutter under the spindle to brush away chips while the machine is running; the loose sleeve and glove are very close to the rotating cutter.",
+      "happen": "A worker reaches a gloved hand toward the rotating milling cutter at the bottom of the spindle, just above the vise, to brush away chips while the cutter is still spinning; the glove and loose sleeve are very close to the cutter.",
       "safe": "Same scene: the spindle and cutter are fully stopped, the worker has switched off the machine and uses a chip brush with sleeves fastened tight, keeping hands away from the cutter.",
       "narration": "회전하는 커터와 주축에 장갑이나 소매가 닿으면 말려 들어가 손이 끼이거나 베일 수 있다.",
       "fixed": false,
       "phraseId": "",
       "guide": "커터가 완전히 멈춘 뒤에만 손을 댄다. 회전 중에는 장갑 낀 손이나 소매를 커터 가까이 두지 않는다.",
-      "note": "2026-11-23 GPT 가 이 항목에 그림 설명을 비워 빠졌다 — Claude 가 채움, 검수 필요"
+      "note": "2026-11-23 GPT 가 이 항목에 그림 설명을 비워 빠졌다 — Claude 가 채움, 검수 필요",
+      "seedBox": {
+        "x0": 24,
+        "y0": 30,
+        "x1": 56,
+        "y1": 44
+      }
     },
     {
       "hazardId": "r4",

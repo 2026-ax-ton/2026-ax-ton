@@ -141,7 +141,7 @@ if (process.argv.includes('--reuse') && fs.existsSync(scriptFile)) {
   raw = { intro: prev.intro, outro: prev.outro, outroPhraseId: prev.outroPhraseId, general: prev.general || [],
     hazards: prev.hazards.map((h) => ({ hazardId: h.hazardId, accident: h.accident, visual: h.visual || vis(h.shots[1]),
       happen: h.happen !== undefined ? h.happen : h.shots[1].prompt, safe: h.safe !== undefined ? h.safe : h.shots[2].prompt,
-      narration: h.narration, phraseId: h.phraseId, guide: h.guide || '' })) };
+      narration: h.narration, phraseId: h.phraseId, guide: h.guide || '', seedBox: h.seedBox })) };
 } else {
   const r = await callModel(cfg, system, user, { maxOutputTokens: 8000, maxText: 16000 });
   if (r.error) { console.error('대본 실패: ' + r.error); process.exit(1); }
@@ -178,7 +178,7 @@ const picked = [];
   const fixed = !narration;
   if (fixed) narration = h.part + '. ' + h.risk;
   const guide = String(s.guide || '').trim().slice(0, 200);   /* GPT 수칙 — 지시투 허용, 담당자 검수 대상 */
-  picked.push({ hazard: h, accident, visual, happen, safe, narration, fixed, phrase, guide });
+  picked.push({ hazard: h, accident, visual, happen, safe, narration, fixed, phrase, guide, seedBox: s.seedBox && typeof s.seedBox === 'object' ? s.seedBox : null });
 });
 /* 공통 수칙 — 검수 문구가 있으면 그것, 없으면 GPT 글. 3D/그림 없이 설비 사진 컷 하나씩 */
 const general = (Array.isArray(raw.general) ? raw.general : []).map((g) => {
@@ -248,7 +248,8 @@ let clips = 0, seedTokens = 0;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function seedClip(prompt, box, file) {
   const side = file.replace(/\.mp4$/, '.txt');
-  if (fs.existsSync(file) && fs.existsSync(side) && fs.readFileSync(side, 'utf8') === prompt) return file;
+  const sig = prompt + '\n' + JSON.stringify(box);   /* 첫 장면 자리(seedBox)가 바뀌어도 다시 만든다 */
+  if (fs.existsSync(file) && fs.existsSync(side) && fs.readFileSync(side, 'utf8') === sig) return file;
   /* 첫 장면 = 실제 사진에서 위험 박스 둘레를 16:9 로 자른 것 */
   const src = path.join(tmp, 'seed-src.jpg');
   fs.writeFileSync(src, Buffer.from(run.photo.data.split(',')[1], 'base64'));
@@ -278,7 +279,7 @@ async function seedClip(prompt, box, file) {
     if (t.status === 'succeeded') {
       const v = await fetch(t.content.video_url, { signal: AbortSignal.timeout(120000) });
       fs.writeFileSync(file, Buffer.from(await v.arrayBuffer()));
-      fs.writeFileSync(side, prompt);
+      fs.writeFileSync(side, sig);
       clips++; seedTokens += (t.usage && t.usage.total_tokens) || 0;
       console.log('  완료 ' + path.basename(file) + ' · 토큰 ' + ((t.usage && t.usage.total_tokens) || '?'));
       return file;
@@ -290,15 +291,15 @@ async function seedClip(prompt, box, file) {
 if (SEED_TEST) {
   const s = picked.find((p) => p.visual === 'ai');
   if (!s) { console.error('AI 장면 위험이 없다'); process.exit(1); }
-  const f = await seedClip(s.happen, s.hazard.box, path.join(cache, s.hazard.id + '_happen.mp4'));
+  const f = await seedClip(s.happen, s.seedBox || s.hazard.box, path.join(cache, s.hazard.id + '_happen.mp4'));
   console.log('시험 클립: ' + f + ' · 새로 만든 클립 ' + clips + '개 · 토큰 ' + seedTokens);
   process.exit(0);
 }
 for (const s of picked) {
   if (s.visual !== 'ai') continue;
   if (SEED) {
-    s.happenClip = await seedClip(s.happen, s.hazard.box, path.join(cache, s.hazard.id + '_happen.mp4'));
-    s.safeClip = await seedClip(s.safe, s.hazard.box, path.join(cache, s.hazard.id + '_safe.mp4'));
+    s.happenClip = await seedClip(s.happen, s.seedBox || s.hazard.box, path.join(cache, s.hazard.id + '_happen.mp4'));
+    s.safeClip = await seedClip(s.safe, s.seedBox || s.hazard.box, path.join(cache, s.hazard.id + '_safe.mp4'));
     continue;
   }
   s.happenImg = await genImage(s.happen + ' The moment just before an accident; nothing bad has happened yet; a soft red warning glow marks the danger spot.', path.join(cache, s.hazard.id + '_happen.png'));
@@ -428,7 +429,7 @@ const total = dur(to);
 fs.writeFileSync(scriptFile, scriptJson({
   imageModel: SEED ? SEED_MODEL : IMAGE_MODEL, tts: TTS_GEMINI ? TTS_MODEL : 'sapi', seconds: Math.round(total), calls: { script: process.argv.includes('--reuse') ? 0 : 1, images, textChecks: checks, seedanceClips: clips, seedanceTokens: seedTokens, tts: ttsCalls },
   hazards: picked.map((s) => ({
-    hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual, happen: s.happen, safe: s.safe,
+    hazardId: s.hazard.id, part: s.hazard.part, accident: s.accident, visual: s.visual, happen: s.happen, safe: s.safe, seedBox: s.seedBox || undefined,
     narration: s.narration, fixed: s.fixed, phraseId: s.phrase ? s.phrase.id : '', guide: s.guide,
     shots: [
       { role: 'where', source: 'real-photo', box: s.hazard.box },
