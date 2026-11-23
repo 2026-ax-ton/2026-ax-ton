@@ -86,6 +86,17 @@ eq('★ .. 경로는 404', (await call({ op: 'get', path: 'scans/wpA/../wpB/x.jp
   eq('담당자도 받는다', (await call({ op: 'media-get', ref: 'media:c1/q0-1.jpg' }, ADMIN)).data.data, JPG);
   eq('★★ 다른 사업장은 같은 주소로도 404', (await call({ op: 'media-get', ref: 'media:c1/q0-1.jpg' }, OTHER)).status, 404);
   eq('★ 주소 모양이 다르면 404 (경로를 넘볼 수 없다)', (await call({ op: 'media-get', ref: 'media:../wpB/c1/x.jpg' }, WORKER)).status, 404);
+
+  /* 🆕 2026-11-23 교육 영상 조각 (v00.mp4 …) */
+  const MP4 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29t';
+  eq('★ 영상 조각은 v00 이름 + mp4 로', (await call({ op: 'media-put', courseId: 'c1', name: 'v00', data: MP4 }, ADMIN)).data.ref, 'media:c1/v00.mp4');
+  eq('영상 이름에 JPEG 를 보내면 400', (await call({ op: 'media-put', courseId: 'c1', name: 'v01', data: JPG }, ADMIN)).status, 400);
+  eq('★ 그림 이름에 mp4 를 보내면 400 (JPEG 만)', (await call({ op: 'media-put', courseId: 'c1', name: 'photo', data: MP4 }, ADMIN)).status, 400);
+  eq('★★ 노동자도 자기 사업장 영상 조각을 받는다', (await call({ op: 'media-get', ref: 'media:c1/v00.mp4' }, WORKER)).data.data, MP4);
+  eq('★★ 다른 사업장은 같은 영상 주소로도 404', (await call({ op: 'media-get', ref: 'media:c1/v00.mp4' }, OTHER)).status, 404);
+  eq('★ 영상 조각 이름이 아니면 mp4 로 꺼낼 수 없다', (await call({ op: 'media-get', ref: 'media:c1/q0-1.mp4' }, WORKER)).status, 404);
+  const bigV = 'data:video/mp4;base64,' + Buffer.alloc(2 * 1024 * 1024 + 10).toString('base64');
+  eq('너무 큰 영상 조각은 막는다', [413, 400].includes((await call({ op: 'media-put', courseId: 'c1', name: 'v02', data: bigV }, ADMIN)).status), true);
   eq('★★ 노동자는 촬영 사진(scans)은 여전히 못 받는다', (await call({ op: 'get', path: 'scans/wpA/e1/s1/0-3-1.jpg' }, WORKER)).status, 403);
 
   /* 🆕 2026-11-21 media-del — 발급 저장이 실패했을 때 그 교육 그림만 치운다 */

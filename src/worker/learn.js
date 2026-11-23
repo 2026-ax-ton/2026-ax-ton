@@ -324,7 +324,7 @@
       box.id = 'course-video';
       $('phrase-card').parentNode.insertBefore(box, $('phrase-card'));
     }
-    var src = show ? UI.courseVideoSrc(course) : '';
+    var src = show && UI.hasCourseVideo(course) ? (UI.courseVideoSrc(course) || 'parts:' + course.id) : '';
     if (box.getAttribute('data-src') === src) return !!src;
     box.textContent = '';
     box.setAttribute('data-src', src);
